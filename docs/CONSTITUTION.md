@@ -10,7 +10,7 @@ CS-1. TypeScript with `strict`, `noUncheckedIndexedAccess`, and `verbatimModuleS
 Why: `noUncheckedIndexedAccess` gives `list[i]` the type "T or undefined", which catches the off-by-one reads that strict mode alone allows.
 Revisit when: a flag blocks a correct pattern more than twice and the only workaround is a cast.
 
-CS-2. Vitest runs the tests, esbuild builds the single bundled file (NFR-2), and Biome lints and formats. Turn on Biome's rules against default exports and barrel files.
+CS-2. Vitest runs the tests, esbuild builds the single bundled file (NFR-2), and Biome lints and formats. Turn on Biome's rules against default exports and barrel files. The one exception is `src/index.ts`, the package entry that FR-63 requires, which re-exports the stage functions.
 Why: these are the approved tools. Named exports keep grep and rename reliable.
 Revisit when: one of these tools cannot do a job the PRD requires.
 
@@ -25,6 +25,7 @@ Why: NFR-13 forbids custom tags. YAML 1.1 reads `no` and `off` as `false`, which
 
 CS-5. The source folders are:
 
+    src/shared/          the types that pass between stages, and CouldNotRunError
     src/prepare/         image bytes in, prepared image out
     src/build/           parsed packs, prepared image, context, and facts in; state, questions, and skipped out
     src/ask/             ask(), the adapter type, and the stub adapter (FR-20, FR-64)
@@ -36,7 +37,7 @@ CS-5. The source folders are:
 Why: each folder maps to one PRD section, so a person can delete the folder and regenerate it from that section (AC-1, AC-3).
 Revisit when: a folder fails the ten-minute test in AC-3. Then split it, and update this list and `CLAUDE.md` in the same pull request.
 
-CS-6. Only `src/cli/` touches the file system, the environment, `process`, stdout, or stderr. Only `src/ask/typesafe/` touches the network. Every other folder receives values and returns new values, and never changes its arguments. A stage imports only shared types and its own folder, never another stage's folder.
+CS-6. Only `src/cli/` touches the file system, the environment, `process`, stdout, or stderr. Only `src/ask/typesafe/` touches the network. Every other folder receives values and returns new values, and never changes its arguments. A stage imports only `src/shared/` and its own folder, never another stage's folder.
 Why: AC-1 and AC-7. A stage with no I/O can be tested with plain values and rewritten without mocks, and a stage that imports another stage cannot be deleted alone.
 Revisit when: a stage needs data that the CLI cannot read for it beforehand.
 
