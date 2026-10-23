@@ -1,8 +1,6 @@
 import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const PLACEHOLDER_OUTPUT = "deskcrit: no commands yet (crit-cy8.11 adds them)";
-
 /**
  * Runs the command for the given arguments and returns the exit code. For now
  * it is a placeholder that proves the toolchain works; crit-cy8.11 adds the
@@ -12,16 +10,6 @@ export function main(_argv: string[]): number {
   // The placeholder ignores its arguments, and the leading underscore tells the
   // linter that is on purpose. crit-cy8.11 parses them.
   return 0;
-}
-
-/**
- * Runs main with the process arguments, writes stdout once, and sets the exit
- * code instead of ending the process early, so output is never cut off (FR-61, CS-17).
- */
-export function runMain(): void {
-  const exitCode = main(process.argv.slice(2));
-  process.stdout.write(`${PLACEHOLDER_OUTPUT}\n`);
-  process.exitCode = exitCode;
 }
 
 /**
@@ -39,5 +27,9 @@ function isEntryPoint(): boolean {
 }
 
 if (isEntryPoint()) {
-  runMain();
+  // Write stdout once, then set the exit code instead of ending the process
+  // early, so output is never cut off (FR-61, CS-17).
+  const exitCode = main(process.argv.slice(2));
+  process.stdout.write("deskcrit: no commands yet (crit-cy8.11 adds them)\n");
+  process.exitCode = exitCode;
 }
