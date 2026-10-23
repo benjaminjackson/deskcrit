@@ -426,7 +426,7 @@ The gate document is a report with `mode` set to `gate` and one more field, `gat
 
 | ID | Requirement | Reason | Reconsider when |
 | --- | --- | --- | --- |
-| NFR-1 | `crit` runs on every Node.js release that is in active or maintenance long-term support on the release date. | Most agent environments have a supported Node.js. | A target environment lacks Node.js. |
+| NFR-1 | `crit` runs on every Node.js release that is in active or maintenance long-term support on the release date. Before each npm release, the person who publishes it sets the Node.js versions in CI and the `engines` field in `package.json` to the releases in active or maintenance long-term support on that date. | Most agent environments have a supported Node.js. This requirement is judged on the release date, so the supported list is updated on that date too. | A target environment lacks Node.js. Releases come out so rarely that a supported Node.js release reaches end of life between two of them. |
 | NFR-2 | `crit` ships as one bundled JavaScript file that runs with `npx deskcrit` with no separate install step. The image library `sharp` is the only native dependency. | An agent can run it on any machine with Node.js. | `sharp` cannot be bundled for a common platform. |
 | NFR-3 | `crit` has no browser dependency. | Capture is the caller's job, and a browser makes the install heavy. | Never in v1. |
 | NFR-4 | Every run reports its latency and cost. No latency or cost target is set until milestone M-1 measures them, because TypeSafe publishes no image latency and the token cost of an image is unknown. | Unknown figures cannot be targets. | M-1 completes. Then this row gets a target. |
