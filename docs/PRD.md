@@ -380,7 +380,7 @@ Example with two findings. The numbers are illustrative.
   "image": { "path": "home.png", "width": 1440, "height": 900 },
   "context": { "purpose": "landing page", "audience": "small business owners", "platform": "web" },
   "packs": [ { "name": "typography", "version": "1.0.0" } ],
-  "model": "jev-1.14",
+  "model": "jev-1.14.0",
   "findings": [
     {
       "criterion": "typography/faint-body-text",
@@ -392,7 +392,7 @@ Example with two findings. The numbers are illustrative.
       "source": "W3C, WCAG 2.2, Success Criterion 1.4.3 Contrast (Minimum)",
       "link": "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum",
       "fix": "Darken the text or lighten the background. For the exact ratio, run axe-core; WCAG wants 4.5:1 for body text and 3:1 for large text.",
-      "model": "jev-1.14"
+      "model": "jev-1.14.0"
     },
     {
       "criterion": "typography/single-focal-point",
@@ -404,7 +404,7 @@ Example with two findings. The numbers are illustrative.
       "source": "Donis A. Dondis, A Primer of Visual Literacy (1973)",
       "link": null,
       "fix": "Pick the one thing the viewer must see first. Make it larger, higher-contrast, or more isolated, and demote the rest by one step in size or weight.",
-      "model": "jev-1.14"
+      "model": "jev-1.14.0"
     }
   ],
   "skipped": [
@@ -426,7 +426,7 @@ The gate document is a report with `mode` set to `gate` and one more field, `gat
 
 | ID | Requirement | Reason | Reconsider when |
 | --- | --- | --- | --- |
-| NFR-1 | `crit` runs on every Node.js release that is in active or maintenance long-term support on the release date. | Most agent environments have a supported Node.js. | A target environment lacks Node.js. |
+| NFR-1 | `crit` runs on every Node.js release that is in active or maintenance long-term support on the release date. The `engines` field in `package.json` sets only a minimum: `>=` the oldest Node.js release in active or maintenance long-term support. The CI matrix covers every Node.js release in active or maintenance long-term support, and it is updated within 30 days of a release entering or leaving long-term support, not only when a new version of `deskcrit` is published to npm. Dropping a Node.js major release from `engines` needs a new major version of `deskcrit`, because users who pin a major version expect it to keep running where it ran. This agrees with AC-2, which allows only additive changes. Changed 2026-10-23: added the rule for when `engines` and the CI matrix change; before, the row named no such rule. | Most agent environments have a supported Node.js. An exact list of long-term support majors in `engines` blocks Current releases such as 25 and 27. A CI list updated only when a release is published lags new long-term support releases. | A target environment lacks Node.js. Node.js changes its release schedule, or npm adds a better way to state supported runtimes. |
 | NFR-2 | `crit` ships as one bundled JavaScript file that runs with `npx deskcrit` with no separate install step. The image library `sharp` is the only native dependency. | An agent can run it on any machine with Node.js. | `sharp` cannot be bundled for a common platform. |
 | NFR-3 | `crit` has no browser dependency. | Capture is the caller's job, and a browser makes the install heavy. | Never in v1. |
 | NFR-4 | Every run reports its latency and cost. No latency or cost target is set until milestone M-1 measures them, because TypeSafe publishes no image latency and the token cost of an image is unknown. | Unknown figures cannot be targets. | M-1 completes. Then this row gets a target. |
@@ -443,7 +443,7 @@ The gate document is a report with `mode` set to `gate` and one more field, `gat
 
 ## 10. Jev and TypeSafe constraints
 
-These come from TypeSafe's published limits and known weaknesses for `jev-1.13` and `jev-1.14`, as recorded in [BRIEF.md](../BRIEF.md#jev-specific-constraints-the-design-respects). This document does not add claims about TypeSafe beyond the brief.
+These come from TypeSafe's published limits and known weaknesses for `jev-1.13.0` and `jev-1.14.0`, as recorded in [BRIEF.md](../BRIEF.md#jev-specific-constraints-the-design-respects) (BRIEF.md uses the short names `jev-1.13` and `jev-1.14` and is kept as first written). This document does not add claims about TypeSafe beyond the brief.
 
 | ID | Constraint | Design response |
 | --- | --- | --- |
