@@ -1,0 +1,34 @@
+# Lint, type check, unit tests, and build on every supported Node release
+# (NFR-1). The matrix must match "engines" in package.json. CI uses no secrets
+# and never runs npm run test:live, so it makes no call to TypeSafe (CS-21).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22, 24, 26]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Smoke test the bundle
+        run: |
+          test "$(ls dist)" = "crit.js"
+          node dist/crit.js

@@ -10,7 +10,22 @@
 - `docs/PRD.md` is the behavioral specification with stable IDs. It is the source of truth for what to build. If `BRIEF.md` and `docs/PRD.md` disagree, `docs/PRD.md` wins and the disagreement is a defect to report.
 - `README.md` is a two-line summary. Do not treat it as a specification.
 
-Current state: there is no source code yet. The first milestone is the spike described in `BRIEF.md` under Milestones: one screenshot, twenty hand-written questions, the danger-zone header, and a spreadsheet comparing Jev's answers with one designer's answers (PRD M-1). That spike decides whether the project continues. Do not build the full pipeline before the spike result is recorded in `docs/PRD.md`.
+Current state: the package scaffold exists. It has the build, lint, type check, and test tools, a placeholder `crit` command, and `CouldNotRunError`. There is no stage code yet. The first milestone is the spike described in `BRIEF.md` under Milestones: one screenshot, twenty hand-written questions, the danger-zone header, and a spreadsheet comparing Jev's answers with one designer's answers (PRD M-1). That spike decides whether the project continues. Do not build the full pipeline before the spike result is recorded in `docs/PRD.md`.
+
+## Layout
+
+This list names only the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full planned folder layout. Add a path here in the pull request that creates it.
+
+- `package.json` declares the `deskcrit` and `crit` commands, the scripts, and the exact dev tool versions. It supports Node `^22.12.0 || ^24.0.0 || >=26.0.0`, which is every Node release in active or maintenance long-term support on 2026-10-28 (NFR-1). Vitest 5 needs Node 22.12 or later, so that is the floor.
+- `package-lock.json` pins every installed package. CI installs from it with `npm ci`.
+- `.npmrc` makes `npm install` save exact versions (CS-3).
+- `tsconfig.json` sets the compiler flags from CS-1. `tsc` only type-checks, and esbuild writes the output.
+- `biome.json` sets lint and format rules (CS-2). It turns off the rule against default exports for `vitest.config.ts`, because Vitest reads its settings from a default export. It allows `src/index.ts` as the one barrel file.
+- `vitest.config.ts` runs only the unit tests under `src/`. The durable tests in `evals/` are not wired up yet.
+- `scripts/build.mjs` bundles `src/cli/main.ts` into `dist/crit.js`, with `sharp` left external (NFR-2). `dist/` is built by `npm run build` and by `npm pack`, and is not committed.
+- `.github/workflows/ci.yml` is the CI file. It runs lint, type check, unit tests, build, and a smoke run of the bundle on Node 22, 24, and 26. When the Node releases in long-term support change, update this matrix and `engines` together.
+- `src/cli/main.ts` is the placeholder command. It is the only file that sets the exit code (CS-17).
+- `src/shared/could-not-run-error.ts` holds `CouldNotRunError`, the error every stage throws when the run cannot go on (CS-16).
 
 ## How we build: the Phoenix rules
 
