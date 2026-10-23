@@ -1,6 +1,3 @@
-import { realpathSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-
 /**
  * Runs the command for the given arguments and returns the exit code. For now
  * it is a placeholder that proves the toolchain works; crit-cy8.11 adds the
@@ -13,23 +10,12 @@ export function main(_argv: string[]): number {
 }
 
 /**
- * Says whether this file is the program that Node was asked to run, and not a
- * module that another file (such as a test) imported (NFR-2).
+ * Runs main, writes stdout once, then sets the exit code instead of ending the
+ * process early, so output is never cut off. This is the only place that sets
+ * the exit code (FR-61, CS-17).
  */
-function isEntryPoint(): boolean {
-  const scriptPath = process.argv[1];
-  if (scriptPath === undefined) {
-    return false;
-  }
-  // npx runs the bundle through a symlink in node_modules/.bin, so compare the
-  // real path of the script with the path of this module (import.meta.url).
-  return realpathSync(scriptPath) === fileURLToPath(import.meta.url);
-}
-
-if (isEntryPoint()) {
-  // Write stdout once, then set the exit code instead of ending the process
-  // early, so output is never cut off (FR-61, CS-17).
-  const exitCode = main(process.argv.slice(2));
+export function run(argv: string[]): void {
+  const exitCode = main(argv);
   process.stdout.write("deskcrit: no commands yet (crit-cy8.11 adds them)\n");
   process.exitCode = exitCode;
 }

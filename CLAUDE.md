@@ -16,15 +16,16 @@ Current state: the package scaffold exists. It has the build, lint, type check, 
 
 This list names only the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full planned folder layout. Add a path here in the pull request that creates it.
 
-- `package.json` declares the `deskcrit` and `crit` commands, the scripts, and the exact dev tool versions. It supports Node `^22.12.0 || ^24.0.0 || >=26.0.0`: Node 22 and 24, which are in long-term support today, and Node 26, which enters active long-term support on 2026-10-28 (NFR-1). Vitest 5 needs Node 22.12 or later, so that is the floor.
+- `package.json` declares the `deskcrit` and `crit` commands, the scripts, and the exact dev tool versions. Its `engines` field and the CI matrix cover Node 22, 24, and 26, following PRD NFR-1. Vitest 5 needs Node 22.12 or later, so that is the floor.
 - `package-lock.json` pins every installed package. CI installs from it with `npm ci`.
 - `.npmrc` makes `npm install` save exact versions (CS-3).
 - `tsconfig.json` sets the compiler flags from CS-1. `tsc` only type-checks, and esbuild writes the output.
 - `biome.json` sets lint and format rules (CS-2). It turns off the rule against default exports for `vitest.config.ts`, because Vitest reads its settings from a default export. It allows `src/index.ts` as the one barrel file.
 - `vitest.config.ts` runs only the unit tests under `src/`. The durable tests in `evals/` are not wired up yet.
-- `scripts/build.mjs` bundles `src/cli/main.ts` into `dist/crit.js`, with `sharp` left external (NFR-2). `dist/` is built by `npm run build` and by `npm pack`, and is not committed.
+- `scripts/build.mjs` bundles `src/cli/bin.ts` into `dist/crit.js`, with `sharp` left external (NFR-2). `dist/` is built by `npm run build` and by `npm pack`, and is not committed.
 - `.github/workflows/ci.yml` is the CI file. It runs lint, type check, unit tests, build, and a smoke run of the bundle on Node 22, 24, and 26. When the Node releases in long-term support change, update this matrix and `engines` together.
 - `src/cli/main.ts` is the placeholder command. It is the only file that sets the exit code (CS-17).
+- `src/cli/bin.ts` is the bundle entry file. It only calls `run` from `src/cli/main.ts`.
 - `src/shared/could-not-run-error.ts` holds `CouldNotRunError`, the error every stage throws when the run cannot go on (CS-16).
 
 ## How we build: the Phoenix rules
