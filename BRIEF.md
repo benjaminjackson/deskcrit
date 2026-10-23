@@ -215,7 +215,7 @@ Naming: the package, the repo, and the marketplace are `deskcrit`, `deskcrit`, a
 
 ## Milestones
 
-1. **Spike.** One screenshot, twenty hand-written questions across domains, the danger-zone header, and a spreadsheet of Jev's answers against two designers' answers. Decides whether to continue.
+1. **Spike.** One screenshot, twenty hand-written questions across domains, the danger-zone header, and a spreadsheet of Jev's answers against one designer's answers. Decides whether to continue.
 2. **report.** Prepare, build, ask, compose, JSON and pretty output. The `typography` and `layout` packs first.
 3. **Packs and marketplace.** Pack schema, loader, `crit packs`, the `deskcrit-packs` repo with CI and fixtures. The remaining five first-party packs.
 4. **compare and gate.** Order-swapped comparison, thresholds, exit codes.
