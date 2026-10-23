@@ -16,7 +16,7 @@ Current state: the package scaffold exists. It has the build, lint, type check, 
 
 This list names only the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full planned folder layout. Add a path here in the pull request that creates it.
 
-- `package.json` declares the `deskcrit` and `crit` commands, the scripts, and the exact dev tool versions. It supports Node `^22.12.0 || ^24.0.0 || >=26.0.0`, which is every Node release in active or maintenance long-term support on 2026-10-28 (NFR-1). Vitest 5 needs Node 22.12 or later, so that is the floor.
+- `package.json` declares the `deskcrit` and `crit` commands, the scripts, and the exact dev tool versions. It supports Node `^22.12.0 || ^24.0.0 || >=26.0.0`: Node 22 and 24, which are in long-term support today, and Node 26, which enters active long-term support on 2026-10-28 (NFR-1). Vitest 5 needs Node 22.12 or later, so that is the floor.
 - `package-lock.json` pins every installed package. CI installs from it with `npm ci`.
 - `.npmrc` makes `npm install` save exact versions (CS-3).
 - `tsconfig.json` sets the compiler flags from CS-1. `tsc` only type-checks, and esbuild writes the output.
