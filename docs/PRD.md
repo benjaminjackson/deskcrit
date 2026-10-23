@@ -364,7 +364,7 @@ fixtures:
 
 ## 8. Output contract
 
-The JSON output is the user interface for agents, and it changes slowly. Every document has a `schema_version` that follows semantic versioning. Before 1.0, the shape changes only by adding optional fields. The JSON schema files for report, compare, and gate are durable artifacts, stored in the repository and checked by EV-2.
+The JSON output is the user interface for agents, and it changes slowly. Every document has a `schema_version` that follows semantic versioning. Within one major version of `schema_version`, the shape changes only by adding optional fields. A change that removes, renames, or retypes a field needs a new major version. The JSON schema files for report, compare, and gate are durable artifacts, stored in the repository and checked by EV-2.
 
 ### 8.1 Report
 
