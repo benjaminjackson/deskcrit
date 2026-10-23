@@ -15,12 +15,10 @@ Every source was checked against the web in a second pass. A source that could n
 | Typography, legibility, and readability: guidelines for deskcrit | 36 |
 | Layout, spacing, grids, alignment, visual hierarchy | 33 |
 | Color guidelines for deskcrit | 30 |
-| Accessibility and legal compliance: research for deskcrit | 26 |
+| Accessibility and legal compliance: research for deskcrit | 25 |
 | UX and interaction heuristics: guideline research for deskcrit | 47 |
 | Data visualization | 25 |
 | Art direction, composition, illustration, and visual coherence | 43 |
-
-Every source was checked against the web. The four that could not be confirmed are marked `UNVERIFIED:` in place.
 
 ---
 
@@ -238,182 +236,182 @@ Every source was checked against the web. The four that could not be confirmed a
 
 ## Layout, spacing, grids, alignment, visual hierarchy
 
-### 1. Use a consistent grid
+### Use a consistent grid
 - **Rule:** Content snaps to one underlying grid (columns plus margins plus gutters). Left and right edges of blocks recur at the same column lines across the page; a block that sits off every column line with no reason is a defect.
 - **Source:** Josef Müller-Brockmann, *Grid Systems in Graphic Design* (1981); Kimberly Elam, *Grid Systems: Principles of Organizing Type* (2004).
 - **Judged by:** askable.
 
-### 3. Consistent gutters
+### Consistent gutters
 - **Rule:** The space between columns is one constant value across the page (commonly 16 or 24dp/px; Material uses 16dp on compact, 24dp on larger sizes). Gutters are never visibly uneven between adjacent cards or columns.
 - **Source:** Material Design 3, *Layout: Spacing* (2023); Müller-Brockmann, *Grid Systems in Graphic Design* (1981).
 - **Link:** https://m3.material.io/foundations/layout/grids-spacing/spacing
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 4. Page margins are present and equal
+### Page margins are present and equal
 - **Rule:** Content has an outer margin on every side. Left and right margins match each other, and text or controls do not touch the canvas edge. On mobile web, the side margin is at least 16px; Material uses 16dp on compact and 24dp on medium.
 - **Source:** Material Design 3, *Layout: Spacing* (2023); Apple *Human Interface Guidelines: Layout* (margins and safe areas).
 - **Link:** https://developer.apple.com/design/human-interface-guidelines/layout
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 5. Respect safe areas
+### Respect safe areas
 - **Rule:** Interactive content and key text stay inside the platform safe area (clear of notches, rounded corners, home indicator, status bar). Backgrounds may extend to the edge; content may not.
 - **Source:** Apple *Human Interface Guidelines: Layout* (safe areas).
 - **Link:** https://developer.apple.com/design/human-interface-guidelines/layout
 - **Judged by:** askable.
 
-### 6. Spacing comes from a small scale (4pt/8pt)
+### Spacing comes from a small scale (4pt/8pt)
 - **Rule:** Padding, margins, and gaps are multiples of 4 (preferably 8) px: for example 4, 8, 12, 16, 24, 32, 48, 64. Values such as 13px or 22px are flagged. Use a fixed scale rather than arbitrary values.
 - **Source:** Material Design 3, *Layout: Spacing* (8dp baseline grid, 4dp for small elements); Adam Wathan and Steve Schoger, *Refactoring UI* (2018), "Define your spacing and sizing system up front".
 - **Judged by:** askable as a visual judgment only. Jev is asked about spacing that looks inconsistent from one gap to the next. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
-### 7. Spacing inside a group is smaller than spacing between groups
+### Spacing inside a group is smaller than spacing between groups
 - **Rule:** The gap between related items is clearly smaller than the gap between unrelated groups. A working check is at least about 1.5x to 2x. If gaps are equal everywhere, grouping is lost.
 - **Source:** Max Wertheimer, "Untersuchungen zur Lehre von der Gestalt II" (1923), law of proximity; Robin Williams, *The Non-Designer's Design Book* (proximity principle); Wathan and Schoger, *Refactoring UI* (2018), "Start with too much white space" and grouping section.
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 8. A label sits closer to its own field than to the previous one
+### A label sits closer to its own field than to the previous one
 - **Rule:** In forms and captions, a label or caption is nearer to the element it names than to neighboring elements. The gap above a label is larger than the gap between the label and its field.
 - **Source:** Wertheimer (1923), law of proximity; Williams, *The Non-Designer's Design Book* (proximity).
 - **Judged by:** askable.
 
-### 9. Similarity: look alike means work alike
+### Similarity: look alike means work alike
 - **Rule:** Elements with the same function share the same size, color, shape, and type style. Elements that differ in function differ visibly. Visually identical elements with different roles, or inconsistent styling of like elements, are flagged.
 - **Source:** Wertheimer (1923), law of similarity; Williams, *The Non-Designer's Design Book* (repetition).
 - **Judged by:** askable.
 
-### 10. Common region and enclosure for grouping
+### Common region and enclosure for grouping
 - **Rule:** Items inside one shared boundary (card, panel, background tint, border) read as a group. Unrelated items should not share a region, and related items should not be split across regions.
 - **Source:** Stephen E. Palmer, "Common Region: A New Principle of Perceptual Grouping," *Cognitive Psychology* 24(3), 436-447 (1992); Nielsen Norman Group, "The Principle of Common Region: Containers Create Groupings."
 - **Link:** https://www.nngroup.com/articles/common-region/
 - **Judged by:** askable.
 
-### 11. Continuity: elements on a line read as related
+### Continuity: elements on a line read as related
 - **Rule:** Items aligned along a line or curve are read as a sequence. Arrangements should lead the eye in the intended direction, and a stray element breaking an implied line is flagged.
 - **Source:** Wertheimer (1923), law of good continuation; Kurt Koffka, *Principles of Gestalt Psychology* (1935).
 - **Judged by:** askable.
 
-### 12. Figure/ground is unambiguous
+### Figure/ground is unambiguous
 - **Rule:** The primary content (figure) separates clearly from its background through contrast, edge definition, or size. Text and key shapes never merge with busy backgrounds or compete with them.
 - **Source:** Edgar Rubin, *Synsoplevede Figurer* (1915); Koffka, *Principles of Gestalt Psychology* (1935); Donis A. Dondis, *A Primer of Visual Literacy* (1973).
 - **Judged by:** askable.
 
-### 13. Align to shared edges
+### Align to shared edges
 - **Rule:** Every element lines up with at least one other element on a shared edge or axis. Do not mix left, center, and right alignment in the same block without a reason; pick one dominant alignment per block (left alignment for body text in left-to-right languages).
 - **Source:** Williams, *The Non-Designer's Design Book* (alignment: "Nothing should be placed on the page arbitrarily"); Müller-Brockmann (1981).
 - **Judged by:** askable.
 
-### 14. Near misses are worse than clear differences
+### Near misses are worse than clear differences
 - **Rule:** Offsets of just a few pixels between elements meant to align (for example 2px or 3px) are defects; either align them exactly or differ clearly.
 - **Source:** Williams, *The Non-Designer's Design Book* (alignment); Robert Bringhurst, *The Elements of Typographic Style* (alignment of edges).
 - **Judged by:** askable as a visual judgment only. Jev is asked about elements that look almost aligned but not quite. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
-### 15. Optical alignment over mathematical alignment
+### Optical alignment over mathematical alignment
 - **Rule:** Round, triangular, and icon shapes may overshoot or be nudged so they look aligned. A circle sits slightly larger than a square of the same nominal size, punctuation hangs into the margin, and icons center by visual mass rather than by bounding box. Judge by appearance when the two disagree.
 - **Source:** Vignelli Associates, *The Vignelli Canon* (2010); Bringhurst, *The Elements of Typographic Style* (hanging punctuation, overshoot).
 - **Judged by:** askable.
 
-### 16. Repetition: reuse the same few styles and spacing patterns
+### Repetition: reuse the same few styles and spacing patterns
 - **Rule:** Visual elements (heading style, button style, card padding, rules, icons) recur consistently through the design. The design uses a small fixed set of type sizes, colors, and spacing values, not a new variant for each element.
 - **Source:** Williams, *The Non-Designer's Design Book* (repetition); Vignelli, *The Vignelli Canon* (2010), "Consistency."
 - **Judged by:** askable.
 
-### 17. Contrast: make differences obvious, not timid
+### Contrast: make differences obvious, not timid
 - **Rule:** When two elements differ (size, weight, color, type family), they differ by a clear amount. Near-identical sizes or weights (for example 16px against 17px, or two similar grays) are flagged as timid contrast.
 - **Source:** Williams, *The Non-Designer's Design Book* (contrast); Dondis, *A Primer of Visual Literacy* (1973), visual techniques of contrast.
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 18. White space is deliberate and generous
+### White space is deliberate and generous
 - **Rule:** Content is not crammed. There is clear empty space around the main element and between sections, and padding inside containers is not tighter than the gaps between them. White space is part of the layout, not leftover.
 - **Source:** Vignelli, *The Vignelli Canon* (2010), on space and discipline; Wathan and Schoger, *Refactoring UI* (2018), "Start with too much white space."
 - **Judged by:** askable.
 
-### 19. A clear single focal point
+### A clear single focal point
 - **Rule:** The design has one dominant element that wins first attention (largest, highest contrast, or most isolated), then a clear secondary level. If three or more elements compete at the same visual weight, flag it.
 - **Source:** Dondis, *A Primer of Visual Literacy* (1973), emphasis and subordination; Nielsen Norman Group, "Visual Hierarchy in UX: Definition."
 - **Link:** https://www.nngroup.com/articles/visual-hierarchy-ux-definition/
 - **Judged by:** askable.
 
-### 20. Hierarchy shows through size, weight, color, and position
+### Hierarchy shows through size, weight, color, and position
 - **Rule:** Importance order is readable from the page alone: more important items are larger, bolder, higher contrast, or positioned earlier. Headings are clearly larger than body text (a ratio of about 1.25x or more per step on a type scale), and the heading level order matches its visual size order.
 - **Source:** Nielsen Norman Group, "Visual Hierarchy in UX: Definition"; Wathan and Schoger, *Refactoring UI* (2018), "Hierarchy is everything."
 - **Link:** https://www.nngroup.com/articles/visual-hierarchy-ux-definition/
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 21. Do not rely on size alone: de-emphasize secondary items
+### Do not rely on size alone: de-emphasize secondary items
 - **Rule:** Hierarchy comes as much from toning down secondary content (lighter color, smaller size, lower weight) as from enlarging primary content. Only one or two primary actions per view; the rest are secondary or tertiary in style.
 - **Source:** Wathan and Schoger, *Refactoring UI* (2018), "Don't use grey text on colored backgrounds" and "Emphasize by de-emphasizing"; Material Design 3, *Buttons* (emphasis levels).
 - **Judged by:** askable.
 
-### 22. Balance: visual weight is distributed, not lopsided
+### Balance: visual weight is distributed, not lopsided
 - **Rule:** Visual weight (size, darkness, color saturation, density) is balanced around the center of the canvas, either symmetrically or asymmetrically. A large heavy block on one side needs a counterweight; an unbalanced layout needs an intentional reason (for example, a diagonal flow).
 - **Source:** Dondis, *A Primer of Visual Literacy* (1973), balance and instability; Rudolf Arnheim, *Art and Visual Perception* (1954), balance.
 - **Judged by:** askable.
 
-### 23. Text line length of 45 to 75 characters
+### Text line length of 45 to 75 characters
 - **Rule:** Body text lines hold about 45 to 75 characters (66 is the ideal in single-column setting). Lines over about 90 characters or under about 30 in body copy are flagged.
 - **Source:** Bringhurst, *The Elements of Typographic Style* (1992), "Choosing the page and the text block."
 - **Judged by:** askable as a visual judgment only. Jev is asked about lines that look too long or too short to read comfortably. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
-### 24. Line spacing and paragraph spacing for readable blocks
+### Line spacing and paragraph spacing for readable blocks
 - **Rule:** Body text line height is about 1.4 to 1.6 times the font size; WCAG's text spacing test accepts line height of 1.5 and paragraph spacing of 2x the font size without loss of content. Headings are tighter (about 1.1 to 1.3).
 - **Source:** W3C, *Web Content Accessibility Guidelines (WCAG) 2.2*, Success Criterion 1.4.12 Text Spacing; Bringhurst (1992) on leading.
 - **Link:** https://www.w3.org/TR/WCAG22/#text-spacing
 - **Judged by:** askable as a visual judgment only. Jev is asked about blocks whose lines or paragraphs look too tight. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
-### 25. Rule of thirds (weak: folk wisdom)
+### Rule of thirds (weak: folk wisdom)
 - **Rule:** In photographic or illustrative compositions, placing the focal point near one of the four thirds intersections often looks more dynamic than dead center. Treat as a soft heuristic only, not a defect when absent, since centered compositions are valid.
 - **Source:** John Thomas Smith, *Remarks on Rural Scenery* (1797), the first named use. Not a tested law; later treatments are heuristics.
 - **Link:** https://en.wikipedia.org/wiki/Rule_of_thirds
 - **Judged by:** askable.
 
-### 27. F-pattern: put key content where scanning starts
+### F-pattern: put key content where scanning starts
 - **Rule:** On text-heavy pages, readers scan across the top, then down the left edge in an F shape. Important information belongs at the top and left in left-to-right languages: headings, first words, and bullet leads. Crucial content buried at the far right or low on the page is flagged.
 - **Source:** Jakob Nielsen, "F-Shaped Pattern For Reading Web Content," Nielsen Norman Group (2006, eyetracking study); followed up by Kara Pernice, "F-Shaped Pattern of Reading on the Web: Misunderstood, But Still Relevant (Even on Mobile)," Nielsen Norman Group (2017).
 - **Link:** https://www.nngroup.com/articles/f-shaped-pattern-reading-web-content-discovered/ (2006 original); 2017 follow-up: https://www.nngroup.com/articles/f-shaped-pattern-reading-web-content/
 - **Judged by:** askable.
 
-### 28. Z-pattern for sparse layouts
+### Z-pattern for sparse layouts
 - **Rule:** On low-density pages (landing pages, posters, ads), the eye moves from top left across to top right, diagonally to bottom left, then across to bottom right. Place logo or headline at the start, and the call to action at the end of that path. Treat as a lower-confidence heuristic than the F-pattern; gaze depends on content.
 - **Source:** Edmund Arnold, newspaper design "Gutenberg diagram" (1950s; attribution confirmed via search and Wikipedia, but the Nielsen Norman Group visual hierarchy article does not mention it). No controlled primary study of the Z shape on the web; moderate confidence.
 - **Link:** https://en.wikipedia.org/wiki/Edmund_Arnold
 - **Judged by:** askable.
 
-### 29. Above the fold: the core message and primary action are visible without scrolling
+### Above the fold: the core message and primary action are visible without scrolling
 - **Rule:** On first load, the value proposition (headline plus the primary action) is visible in the initial viewport (about 600px high on common laptops and 667px on small phones). Content below the fold must still invite scrolling, for example by a partially cut-off element.
 - **Source:** Nielsen Norman Group, "Scrolling and Attention" (Therese Fessenden, 2018): users spend about 57% of viewing time above the fold and 74% in the first two screenfuls.
 - **Link:** https://www.nngroup.com/articles/scrolling-and-attention/
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 30. Touch and click targets of adequate size and spacing
+### Touch and click targets of adequate size and spacing
 - **Rule:** Tappable targets are at least 44x44pt (Apple) or 48x48dp (Material), with at least 8dp between adjacent targets. WCAG 2.2 AA (SC 2.5.8) sets a hard floor of 24x24 CSS px; 2.5.5 (AAA) asks for 44x44.
 - **Source:** Apple *Human Interface Guidelines: Layout / Buttons*; Material Design 3, *Accessibility: Touch targets*; W3C *WCAG 2.2*, SC 2.5.8 Target Size (Minimum).
 - **Link:** https://www.w3.org/TR/WCAG22/#target-size-minimum (WCAG); Material: https://m3.material.io/components/icon-buttons/accessibility
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
-### 31. Reflow: no horizontal scrolling down to 320px wide
+### Reflow: no horizontal scrolling down to 320px wide
 - **Rule:** Content reflows to a single column at a 320 CSS px viewport without horizontal scrolling or loss of content (except for data tables, maps, and the like). Text blocks, images, and cards must not overflow their container.
 - **Source:** W3C *WCAG 2.2*, SC 1.4.10 Reflow.
 - **Link:** https://www.w3.org/TR/WCAG22/#reflow
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 32. Responsive layouts adapt their structure, not only their scale
+### Responsive layouts adapt their structure, not only their scale
 - **Rule:** At smaller widths columns collapse (multi-column to one column), navigation condenses, and spacing scales down by steps; text size stays readable (body not below about 16px). Elements do not shrink into unreadable or untappable sizes.
 - **Source:** Material Design 3, *Layout: Canonical layouts* and *Window size classes* (2023); Apple *Human Interface Guidelines: Layout* (adaptivity).
 - **Link:** https://m3.material.io/foundations/layout/canonical-layouts
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 33. Consistent density: no mix of cramped and sparse regions
+### Consistent density: no mix of cramped and sparse regions
 - **Rule:** Information density is steady across the layout. One part of the page is not packed tight while another is nearly empty without a reason (such as a hero section). Spacing between repeated items (list rows, cards) is uniform.
 - **Source:** Vignelli, *The Vignelli Canon* (2010), discipline and consistency; Material Design 3, *Applying density* (2023).
 - **Link:** https://m3.material.io/foundations/layout/grids-spacing/density
 - **Judged by:** askable.
 
-### 34. Establish a modular type scale and tie spacing to it
+### Establish a modular type scale and tie spacing to it
 - **Rule:** Font sizes come from a limited modular scale (for example ratios 1.2 to 1.333, or a hand-picked set of 6 to 8 sizes), and vertical spacing relates to the line height (a baseline rhythm). More than about 6 to 8 distinct sizes on one page is flagged.
 - **Source:** Bringhurst, *The Elements of Typographic Style* (1992), "Harmonic proportion" and "Rhythm"; Wathan and Schoger, *Refactoring UI* (2018), "Establish a type scale."
 - **Judged by:** askable as a visual judgment only. Jev is asked about type sizes that look arbitrary rather than stepped. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
-### 35. Group by hierarchy of proximity: heading closer to its content than to the content above
+### Group by hierarchy of proximity: heading closer to its content than to the content above
 - **Rule:** A heading sits closer to the paragraph beneath it than to the one above. The space above a heading is larger than the space below it (a typical ratio is about 2:1 or more).
 - **Source:** Williams, *The Non-Designer's Design Book* (proximity); Bringhurst, *The Elements of Typographic Style* (1992), on headings and spacing.
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
@@ -604,7 +602,7 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 | Regime | Jurisdiction | Standard it references | Link |
 |---|---|---|---|
 | ADA Title II web and mobile rule (final rule April 2024; Interim Final Rule April 20, 2026 pushed dates back one year: April 26, 2027 for entities of 50,000+ people, April 26, 2028 for smaller ones) | US, state and local governments | WCAG 2.1 Level AA | https://www.ada.gov/resources/web-rule-first-steps/ |
-| ADA Title III (private businesses; no web rule; DOJ guidance names no technical standard, and WCAG 2.1 AA being the de facto measure in courts could not be confirmed from a primary source) | US | WCAG (2.1 AA de facto) | https://www.ada.gov/resources/web-guidance/ |
+| ADA Title III (private businesses; no web rule; DOJ guidance names no technical standard, and UNVERIFIED: WCAG 2.1 AA as the de facto measure in courts could not be confirmed from a primary source) | US | WCAG (2.1 AA de facto) | https://www.ada.gov/resources/web-guidance/ |
 | Section 508 of the Rehabilitation Act (revised 2017) | US federal agencies and contractors | WCAG 2.0 Level A and AA (incorporated by reference) | https://www.section508.gov/ |
 | European Accessibility Act (Directive 2019/882), applicable since 28 June 2025 | EU member states, covers e-commerce, banking, e-books, and similar consumer products and services | EN 301 549 (v3.2.1 is the current harmonised reference, which incorporates WCAG 2.1 AA; v4.1.1 was published in September 2026 but gives a presumption of conformity only once cited in the Official Journal of the EU, expected 30 November 2026) | https://commission.europa.eu/strategy-and-policy/policies/justice-and-fundamental-rights/disability/union-equality-strategy-rights-persons-disabilities-2021-2030/european-accessibility-act_en |
 | Web Accessibility Directive (EU 2016/2102) | EU public sector bodies | EN 301 549 | https://single-market-economy.ec.europa.eu/single-market/goods/european-standards/harmonised-standards/accessibility-websites-and-mobile-applications_en |
@@ -612,153 +610,151 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 | Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018 | UK public sector | WCAG Level A and AA (the 2022 amendment replaced the EN 301 549 reference; GOV.UK guidance names WCAG 2.2 AA) | https://www.gov.uk/guidance/accessibility-requirements-for-public-sector-websites-and-apps |
 | AODA, Integrated Accessibility Standards Regulation (Ontario Regulation 191/11) | Ontario, Canada; large organizations | WCAG 2.0 Level AA (new public websites) | https://www.ontario.ca/page/how-make-websites-accessible |
 
-### Guidelines
-
-### 1. Text contrast (minimum)
+### Text contrast (minimum)
 - **Rule:** Body text needs a contrast ratio of at least 4.5:1 against its background; large text (at least 24 CSS px, or 18.66 CSS px bold) needs at least 3:1. Logos and disabled controls are exempt.
 - **Source:** WCAG 2.2 SC 1.4.3 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
 - **Judged by:** askable as a visual judgment only. Jev is asked about text that reads as faint against its background. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
-### 3. Non-text contrast
+### Non-text contrast
 - **Rule:** Visual boundaries needed to identify a UI component need at least 3:1 against adjacent colors: an input border, a checkbox, a button edge when there is no other cue. So do meaningful graphics such as chart lines and icons that carry meaning. Also applies to focus and selected states.
 - **Source:** WCAG 2.2 SC 1.4.11 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
 - **Judged by:** askable as a visual judgment only. Jev is asked about component boundaries or state indicators that look too faint. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
-### 5. Reflow
+### Reflow
 - **Rule:** At a 320 CSS px wide viewport (400% zoom of 1280 px) content reflows to one column with no horizontal scrolling and no loss of information. Exceptions: data tables, maps, diagrams, video, and toolbars needing two-dimensional layout; vertical content uses 256 CSS px height.
 - **Source:** WCAG 2.2 SC 1.4.10 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/reflow.html
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 7. Images of text
+### Images of text
 - **Rule:** Text is real text, not a picture of text, unless the exact look is essential (logotype). Applies to web UI; a poster or slide image being raster is a different case.
 - **Source:** WCAG 2.2 SC 1.4.5 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/images-of-text.html
 - **Judged by:** askable.
 
-### 8. Use of color
+### Use of color
 - **Rule:** Color is not the only way to show information: links inside body text, errors, required fields, chart series, and states need a second cue (underline, icon, label, pattern). Or the link has 3:1 contrast against surrounding text plus a non-color cue on hover and focus.
 - **Source:** WCAG 2.2 SC 1.4.1 (A)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 9. Sensory characteristics
+### Sensory characteristics
 - **Rule:** Instructions do not rely only on shape, size, position, sound, or color (for example, 'click the green button on the right' needs a name or label too).
 - **Source:** WCAG 2.2 SC 1.3.3 (A)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/sensory-characteristics.html
 - **Judged by:** askable.
 
-### 11. Target size (minimum)
+### Target size (minimum)
 - **Rule:** Pointer targets are at least 24 by 24 CSS px, or smaller targets have enough spacing that a 24 px diameter circle centered on each does not overlap another target or its circle. Exceptions: inline links in text, user-agent controls, essential presentation.
 - **Source:** WCAG 2.2 SC 2.5.8 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to hit. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
-### 13. Focus visible
+### Focus visible
 - **Rule:** Every keyboard-focusable element shows a visible focus indicator when focused. Removing the outline with `outline: none` and not replacing it fails.
 - **Source:** WCAG 2.2 SC 2.4.7 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html
 - **Judged by:** askable.
 
-### 14. Focus not obscured (minimum)
+### Focus not obscured (minimum)
 - **Rule:** A focused element is not entirely hidden by author-created content such as sticky headers, cookie banners, or chat widgets.
 - **Source:** WCAG 2.2 SC 2.4.11 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html
 - **Judged by:** askable.
 
-### 15. Focus appearance
+### Focus appearance
 - **Rule:** The focus indicator encloses the component or is at least 2 CSS px thick around its perimeter, and changes by at least 3:1 between focused and unfocused states. Included as the quality-tier reading of 2.4.7; it is AAA, not required by any law.
 - **Source:** WCAG 2.2 SC 2.4.13 (AAA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/focus-appearance.html
 - **Judged by:** askable as a visual judgment only. Jev is asked about a focus indicator that is hard to see in a focus-state screenshot. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
-### 17. Orientation
+### Orientation
 - **Rule:** Content works in both portrait and landscape unless one orientation is essential (piano app, bank-check deposit).
 - **Source:** WCAG 2.2 SC 1.3.4 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/orientation.html
 - **Judged by:** askable.
 
-### 21. Headings and labels
+### Headings and labels
 - **Rule:** Headings and form labels describe the topic or purpose of their section or field. 'Click here' or 'Section 1' as a heading fails. Also check a sensible hierarchy with no skipped levels.
 - **Source:** WCAG 2.2 SC 2.4.6 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/headings-and-labels.html
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 22. Labels or instructions
+### Labels or instructions
 - **Rule:** Every input has a visible label or instruction that stays visible while typing. A placeholder alone is not enough.
 - **Source:** WCAG 2.2 SC 3.3.2 (A)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/labels-or-instructions.html
 - **Judged by:** askable.
 
-### 24. Link purpose (in context)
+### Link purpose (in context)
 - **Rule:** Each link's purpose can be told from its text or its surrounding sentence, paragraph, or list item. Repeated 'Read more' links need distinguishing context or an `aria-label`.
 - **Source:** WCAG 2.2 SC 2.4.4 (A)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context.html
 - **Judged by:** askable.
 
-### 26. Consistent navigation
+### Consistent navigation
 - **Rule:** Navigation links repeated on multiple pages appear in the same relative order each time.
 - **Source:** WCAG 2.2 SC 3.2.3 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/consistent-navigation.html
 - **Judged by:** askable.
 
-### 27. Consistent identification
+### Consistent identification
 - **Rule:** The same function has the same label and icon across pages (a search icon is always called 'Search', not 'Find' on another page).
 - **Source:** WCAG 2.2 SC 3.2.4 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/consistent-identification.html
 - **Judged by:** askable.
 
-### 28. Consistent help
+### Consistent help
 - **Rule:** Help links, contact details, or chat appear in the same relative place across pages.
 - **Source:** WCAG 2.2 SC 3.2.6 (A)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/consistent-help.html
 - **Judged by:** askable.
 
-### 29. Error identification
+### Error identification
 - **Rule:** An input error is identified in text, naming the field in error, not only by red color or an icon.
 - **Source:** WCAG 2.2 SC 3.3.1 (A)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/error-identification.html
 - **Judged by:** askable.
 
-### 30. Error suggestion
+### Error suggestion
 - **Rule:** When an error is detected and a fix is known, the message says how to correct it ('Enter a date like 03/21/2026'), not just 'Invalid input'.
 - **Source:** WCAG 2.2 SC 3.3.3 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion.html
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 38. Apple touch target size
+### Apple touch target size
 - **Rule:** Interactive controls are at least 44 by 44 points on iOS and iPadOS, with space between them. (visionOS recommends 60 pt.)
 - **Source:** Apple, *Human Interface Guidelines: Accessibility* (Buttons, Layout and 'Hit targets')
 - **Link:** https://developer.apple.com/design/human-interface-guidelines/accessibility
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
-### 40. Material touch target size
+### Material touch target size
 - **Rule:** Touch targets are at least 48 by 48 dp, with at least 8 dp between targets. A visual icon can be smaller if the tap area is 48 dp.
 - **Source:** Google, *Android Accessibility Help: Touch target size* (48x48 dp, 8 dp spacing; the Material 3 structure page is JavaScript-rendered and could not be read)
 - **Link:** https://support.google.com/accessibility/android/answer/7101858?hl=en
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
-### 41. Dyslexia-friendly typography
+### Dyslexia-friendly typography
 - **Rule:** Use a common sans-serif such as Arial, Verdana, or Calibri at 12 to 14 pt (about 16 to 19 px) or larger. Left-align text with no justification. Avoid italics, underline, and all caps for running text. Use wide letter and word spacing.
 - **Source:** British Dyslexia Association, *Dyslexia Style Guide* (2023; wording checked against the archived web version, since the PDF returns 403 to scripted requests)
 - **Link:** https://web.archive.org/web/20230315034831/www.bdadyslexia.org.uk/advice/employers/creating-a-dyslexia-friendly-workplace/dyslexia-friendly-style-guide
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 42. Dyslexia-friendly line length, spacing, and background
+### Dyslexia-friendly line length, spacing, and background
 - **Rule:** Line spacing of about 1.5, with extra space around headings and between paragraphs. Lines of about 60 to 70 characters. Cream or soft pastel backgrounds rather than pure white. Headings and bullets instead of dense blocks of text.
 - **Source:** British Dyslexia Association, *Dyslexia Style Guide* (2023; wording checked against the archived web version, since the PDF returns 403 to scripted requests)
 - **Link:** https://web.archive.org/web/20230315034831/www.bdadyslexia.org.uk/advice/employers/creating-a-dyslexia-friendly-workplace/dyslexia-friendly-style-guide
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 43. Low-vision large-print guidance
+### Low-vision large-print guidance
 - **Rule:** For print and posters aimed at low-vision readers, RNIB See it Right advises at least 12 pt, and 14 pt or more for wider reach. It also calls for a clear sans-serif, strong contrast, and matte paper to avoid glare. Treat 18 pt as the large-text bar from WCAG.
 - **Source:** RNIB, *See it Right: Making Information Accessible* (Clear Print Guidelines)
 - **Link:** https://resourcecentre.org.uk/books/see-it-right-making-information-accessible-for-people-with-sight-problems/
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
-### 44. Text alternatives for charts and posters (information not conveyed in image alone)
+### Text alternatives for charts and posters (information not conveyed in image alone)
 - **Rule:** Key meaning in a chart, infographic, or poster is also stated in text near it (title, summary, data table, caption) rather than only in the picture.
 - **Source:** WCAG 2.2 SC 1.1.1 (A), complex images technique G95 / G92 (verified: G95 short text alternative describing the content, G92 long description)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html
