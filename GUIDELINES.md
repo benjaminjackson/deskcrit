@@ -8,18 +8,6 @@ Scope: the design, not the writing. There is no content design section: reading 
 
 Every source was checked against the web in a second pass. A source that could not be confirmed is marked `UNVERIFIED:` in place. Rules that the research flagged as folk wisdom (rule of thirds, golden ratio, Z-pattern) are labelled in their own entries and should carry low weight.
 
-## Section counts
-
-| Section | Guidelines |
-| --- | --- |
-| Typography, legibility, and readability: guidelines for deskcrit | 36 |
-| Layout, spacing, grids, alignment, visual hierarchy | 33 |
-| Color guidelines for deskcrit | 30 |
-| Accessibility and legal compliance: research for deskcrit | 25 |
-| UX and interaction heuristics: guideline research for deskcrit | 47 |
-| Data visualization | 25 |
-| Art direction, composition, illustration, and visual coherence | 43 |
-
 ---
 
 ## Typography, legibility, and readability: guidelines for deskcrit

@@ -1,5 +1,7 @@
 # deskcrit: creative brief
 
+> Status, 2026-10-23: this brief is the pitch as first written. `docs/PRD.md` is the specification and wins where the two differ. The PRD defers five things this brief describes until after the spike or a second pack publisher: the pack marketplace with a cache and `crit packs add` (PRD FR-11, FR-53), tiling tall pages into crops (FR-8), criterion weights (FR-30), order-swapped pairwise compare (FR-36), and inline packs in `.crit.yaml` (FR-52).
+
 ## One line
 
 `deskcrit` is a command-line critic, invoked as `crit`. You hand it a picture of a design and a set of criteria packs. It turns each criterion into a typed question for TypeSafe's Jev model and asks them all in one request. The report that comes back says what looks wrong, how sure the model is, where on the image, which source says so, and what usually fixes it.
