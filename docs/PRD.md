@@ -185,7 +185,7 @@ Priorities use MoSCoW for v1: Must, Should, Could, Won't. The source column says
 
 | ID | Requirement | Priority | Stories | Source |
 | --- | --- | --- | --- | --- |
-| FR-11 | Build loads the first-party packs bundled in the npm package that `.crit.yaml` names, plus any local pack directory named with `--pack <dir>`. When `.crit.yaml` names no packs and no `--pack` is given, build loads every bundled pack. | Must | US-5 | Brief, How it works |
+| FR-11 | The CLI reads the first-party packs bundled in the npm package that `.crit.yaml` names, plus any local pack directory named with `--pack <dir>`, parses them, and passes the parsed packs to build. When `.crit.yaml` names no packs and no `--pack` is given, the CLI reads every bundled pack. Build reads no files. Changed 2026-10-23: build no longer loads packs, because AC-7 forbids I/O in build. | Must | US-5 | Brief, How it works; AC-7 |
 | FR-12 | Build drops every criterion whose `applies_to`, at pack or criterion level, does not include the stated platform, and records each one in `skipped` with the reason. | Must | US-8 | Brief, How it works |
 | FR-13 | Build drops every criterion whose `requires` paths are absent from the facts file, and records each one in `skipped` with the missing path. | Must | US-7 | Brief, A pack |
 | FR-14 | Build turns each remaining criterion into exactly one TypeSafe question of the type the pack declares. | Must | US-1 | Brief, Principles |
@@ -439,7 +439,7 @@ The gate document is a report with `mode` set to `gate` and one more field, `gat
 | NFR-11 | The context for each question stays under 32,000 tokens. Build stops with exit code 2 if a facts file would exceed it. | The default per-question context limit is 32,000 tokens. | TypeSafe raises the limit. |
 | NFR-12 | Text inside the design, such as "this design is excellent", does not change the verdict. EV-7 measures this on adversarial fixtures. | TypeSafe documents that content can steer the model. | Never. |
 | NFR-13 | A pack contains no executable code. The loader parses YAML into data only, with no custom tags. | A pack from a stranger is safe to load and reviewable by a non-programmer. | Never. |
-| NFR-14 | `crit` reads the TypeSafe API key from the environment and never writes it to output or logs. | Output is pasted into issues and agent transcripts. | Never. |
+| NFR-14 | `crit` reads the TypeSafe API key from the `TYPESAFE_API_KEY` environment variable and never writes it to output or logs. | Output is pasted into issues and agent transcripts. | Never. |
 
 ## 10. Jev and TypeSafe constraints
 
@@ -558,7 +558,7 @@ Each module, such as prepare or compose, has unit tests written next to it. A re
 | OQ-9 | What are the agreement floor and the self-consistency floor? | Set after M-1 from the spike's figures. |
 | OQ-10 | What is the default `min_confidence` when a criterion does not set one? | Decided 2026-10-23: the value is set after M-1 from the spike's figures. Until then the implementation uses a provisional 0.6, the value in the brief's example, held in one named constant and marked provisional in code. |
 | OQ-11 | How do threshold objects work for `choice` questions? The brief shows `probability_at_least` and `level_at_most` only. | Resolved 2026-10-23. A `choice` criterion uses `option_is` or `option_in`. See the verdict rule under FR-25. |
-| OQ-12 | Dependency policy. Fowler's rules say only that a dependency must work with the build and must not bind the project to one tool. | Resolved 2026-10-23. Runtime dependencies are the TypeSafe SDK, `sharp`, and a YAML parser. package.json is the list. A new runtime dependency is a pull request review question, not a document rule. |
+| OQ-12 | Dependency policy. Fowler's rules say only that a dependency must work with the build and must not bind the project to one tool. | Resolved 2026-10-23, changed the same day. There is no fixed limit on runtime dependencies. Use a maintained library instead of writing code for a solved problem, such as JSON Schema validation. package.json is the list. A new runtime dependency is a pull request review question, not a document rule. `sharp` and the TypeSafe SDK are pinned to exact versions, because a new version can change the prepared image bytes (FR-10) or the request format (JC-7). |
 | OQ-13 | Local state layout. | Resolved 2026-10-23. There is no pack cache. `.crit.yaml` in the project root is the only state. |
 | OQ-14 | Provenance format: how does a change record which requirement and which evaluation it serves? | Resolved 2026-10-23. Each commit message and pull request names the FR, NFR, or US IDs it serves and the EV IDs that check it. Work is tracked in beads with `bd`: one epic per milestone M-n, one subticket per unit of work. A ticket carries its PRD IDs as labels in the form `prd:FR-25`, and its acceptance field quotes the acceptance criteria of those IDs. A commit names its ticket id and its PRD IDs, so a reader can walk from a line of code to the ticket to the requirement. Beads is not yet initialised in this repository; `bd init` is the first step of M-1. |
 | OQ-15 | `crit packs validate` and `crit packs test` are not named in the brief, which names only `add`, `list`, and `search`. | Resolved 2026-10-23. Both ship as Should in M-3, because pack authors need a local check before CI. FR-49, FR-50. |

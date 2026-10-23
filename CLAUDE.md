@@ -6,6 +6,7 @@
 
 - `BRIEF.md` is the pitch: what the tool is, who it is for, the principles, the risks, and the milestones.
 - `GUIDELINES.md` is the catalog of guidelines that the seven first-party packs encode. Each entry has a rule, a source, and a note on how it becomes a question.
+- `docs/CONSTITUTION.md` is the coding standards. Read it before you write or review code, and cite its rules by ID (CS-n).
 - `docs/PRD.md` is the behavioral specification with stable IDs. It is the source of truth for what to build. If `BRIEF.md` and `docs/PRD.md` disagree, `docs/PRD.md` wins and the disagreement is a defect to report.
 - `README.md` is a two-line summary. Do not treat it as a specification.
 
@@ -41,8 +42,8 @@ This project follows Chad Fowler's regenerative software series, "The Phoenix Ar
 - The npm package is `deskcrit`. It declares two commands, `deskcrit` and `crit`. All documentation and examples use `crit`.
 - Exit codes are fixed: 0 for pass, 1 for fail, 2 for could not run. Treat them as part of the slow layer described above.
 - The TypeSafe call sits behind one interface that takes a state and a list of questions and returns a list of typed answers and a `usage` object (PRD FR-20). Nothing outside `src/ask/typesafe` imports the SDK.
-- The test runner, the bundler, and the linter are not chosen yet. When one is chosen, record it here in the same pull request, with the reason and what would make it wrong.
-- Do not restate general coding style here. The naming, comment, and commit-message rules in the user's global `CLAUDE.md` apply.
+- Vitest runs the tests, esbuild builds the bundled file, and Biome lints and formats. Reason: Vitest runs TypeScript with no extra build step, esbuild makes one file with `sharp` left external, and Biome is one tool with no plugins to manage. Reconsider when one of them cannot do a job the PRD requires. `docs/CONSTITUTION.md` CS-2 holds the details.
+- Do not restate coding style here. `docs/CONSTITUTION.md` holds it, and the naming, comment, and commit-message rules in the user's global `CLAUDE.md` also apply.
 
 ## Docs hygiene
 
@@ -53,7 +54,7 @@ This project follows Chad Fowler's regenerative software series, "The Phoenix Ar
 
 ## Open decisions
 
-The test runner and bundler are not chosen. Other open questions are in `docs/PRD.md` section 15.
+Open questions are in `docs/PRD.md` section 15.
 
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:1105d646 -->
