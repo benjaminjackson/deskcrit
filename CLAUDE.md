@@ -28,6 +28,7 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `src/cli/main.ts` holds the placeholder command and sets the exit code.
 - `src/cli/bin.ts` is the bundle entry file.
 - `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
+- `spike/` holds the M-1 spike inputs: the prepared screenshot, the twenty questions, the page purpose, and its attribution.
 
 ## How we build: the Phoenix rules
 
