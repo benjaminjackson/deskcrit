@@ -4,7 +4,7 @@
 
 | Field | Value |
 | --- | --- |
-| Version | 0.3.2 |
+| Version | 0.3.3 |
 | Status | Draft |
 | Owner | Benjamin Jackson |
 | Last updated | 2026-10-23 |
@@ -19,6 +19,7 @@
 | 2026-10-23 | 0.3.0 | FR-54 now defines the four accepted rights bases for fixture images, the capture metadata for a real page, the 2 MB cap, and the privacy rules. OQ-17 lists the accepted real-page sources. Added EV-13, the guideline count check, with its script under `evals/`. |
 | 2026-10-23 | 0.3.1 | G-8 no longer carries a guideline count. EV-13 now counts headings as well as rule bullets and records the FR-55 phrasings the script depends on. |
 | 2026-10-23 | 0.3.2 | Benjamin Jackson decided the open questions OQ-5, OQ-6, OQ-7, OQ-12, and OQ-15 as proposed, and decided that OQ-8 and OQ-10 are set after M-1 with provisional values until then. |
+| 2026-10-23 | 0.3.3 | FR-55 no longer lists per-pack guideline counts. EV-13 and its script are removed. |
 
 ### How to update this document
 
@@ -66,7 +67,7 @@ Jev is TypeSafe's System One model. It answers narrow, typed questions over a st
 | G-5 | Make criteria portable data that anyone can write, review, publish, and install. |
 | G-6 | Report a calibrated probability and confidence for every finding, and never a bare verdict without them. |
 | G-7 | Make a run reproducible: the same image, pinned packs, and pinned model give the same verdicts. |
-| G-8 | Ship seven first-party packs that encode the guidelines in [GUIDELINES.md](../GUIDELINES.md). FR-55 holds the counts. |
+| G-8 | Ship seven first-party packs that encode the guidelines in [GUIDELINES.md](../GUIDELINES.md). |
 
 ### Non-goals
 
@@ -315,7 +316,7 @@ The two example criteria in the brief give these verdicts. The examples assume a
 | FR-52 | `.crit.yaml` may define packs inline under `packs.inline` with the same schema as a published pack. | Should | US-12 | Brief, Open questions; OQ-4 |
 | FR-53 | The `deskcrit-packs` repository has one directory per pack, an `index.json` listing each pack's name, version, domains, and summary, a CI job that validates and fixture-tests every pack, a generated README per pack that lists every criterion's source, and a changelog per pack. | Must | US-5, US-6 | Brief, The marketplace repo |
 | FR-54 | A pull request to `deskcrit-packs` that adds a criterion must list one positive fixture that triggers it and one negative fixture that does not in the criterion's `fixtures` field, with both images under the pack's `fixtures/` directory. Every pack declares a license. Every fixture image has a sidecar entry in the pack's `fixtures/ATTRIBUTION.md` with a rights basis from a closed list of four: own work licensed under the pack license, public domain with the source named, an open license that permits redistribution and commercial use (CC0, CC BY, CC BY-SA, the UK Open Government Licence, or MIT or Apache licensed documentation) with the attribution text, or written permission from the owner attached to the pull request. Fair use or fair dealing is never a basis, because it is a defence and cannot be passed on under MIT. CC NC and CC ND images are refused. A fixture captured from a live page also records the source URL, capture date, viewport, device scale factor, and browser version, and is captured once and committed, never re-fetched in CI. No fixture shows a face of a real person, personal data, or a logged-in state. Each fixture file is at most 2 MB. Reason: the marketplace repo is public and MIT licensed, and one takedown would remove a fixture and break the test that depends on it. Review trigger: a takedown notice, or a fixture type the four bases cannot cover. | Must | US-6 | Brief, The marketplace repo |
-| FR-55 | Seven first-party packs ship in v1, encoding the guidelines in [GUIDELINES.md](../GUIDELINES.md): `typography` with 36, `layout` with 33, `color` with 30, `accessibility` with 25, `ux` with 47, `dataviz` with 25, and `art-direction` with 43. That is 239 guidelines in total. Every criterion in a first-party pack has a `compare` block. | Must | US-1 | Brief, First-party packs |
+| FR-55 | Seven first-party packs ship in v1, encoding the guidelines in [GUIDELINES.md](../GUIDELINES.md), one pack per section of that catalog: `typography`, `layout`, `color`, `accessibility`, `ux`, `dataviz`, and `art-direction`. The catalog's own section table holds the counts, and no other document repeats them. Every criterion in a first-party pack has a `compare` block. | Must | US-1 | Brief, First-party packs |
 | FR-56 | A criterion that encodes a folk rule, such as the rule of thirds or the Z-pattern, says so in its title or source and has a weight below 1. | Should | US-1 | Brief, Principles |
 | FR-57 | The `accessibility` pack records the version of each standard it encodes. | Must | US-5 | Brief, Risks |
 | FR-58 | Packs that ship example images as Jev criteria. | Won't | none | NG-9; OQ-3 |
@@ -540,7 +541,7 @@ Unit tests for each module, written next to the module. They are disposable. A r
 | EV-1 | Golden-output tests of the CLI. Run each command on fixed images with `--answers <file>` and a recorded answer file, and compare stdout, stderr, and exit code with stored expected output. The test serialises the JSON with sorted keys before it compares. The volatile fields `usage.latency_ms` and `tool.version` are left out of the comparison. | Identical JSON outside the volatile fields, and identical exit codes. |
 | EV-2 | Every JSON document the CLI writes validates against the report, compare, or gate schema. | 100 percent valid. |
 | EV-3 | Every first-party pack and every pack in `deskcrit-packs` validates against the pack schema. | 100 percent valid. |
-| EV-13 | The guideline counts in the GUIDELINES.md section table and in FR-55 match the number of entries in each section of GUIDELINES.md, counted both by `###` heading and by `- **Rule:**` bullet. Run `evals/check-guideline-counts.sh`. The script reads FR-55 literally, so FR-55 must keep the phrasings "`pack` with N" and "That is N guidelines in total". | Exit 0. |
+| EV-13 | Removed 2026-10-23. The guideline counts no longer appear outside GUIDELINES.md, so there is nothing to keep in sync. | Removed. |
 | EV-4 | Pack fixture tests: each criterion fires on its positive fixtures and stays quiet on its negative fixtures. | Every fixture agrees with its label, or the criterion is demoted under EV-5. |
 | EV-5 | Agreement between Jev and human labels on the fixture set, per criterion. The fixture set has at least 100 designs with human-labelled defects across the seven domains, and at least 30 before-and-after pairs with a human preference. | Each criterion at or above the agreement floor may ship with `fail`. Below the floor it ships with `warn` as its most severe verdict, or does not ship. The floor is set in OQ-9. |
 | EV-6 | Self-consistency: each criterion asked several times on the same fixture with the same model. | The verdict matches across runs at or above the self-consistency floor in OQ-9. |

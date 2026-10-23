@@ -5,7 +5,7 @@
 ## Where things are
 
 - `BRIEF.md` is the pitch: what the tool is, who it is for, the principles, the risks, and the milestones.
-- `GUIDELINES.md` is the catalog of guidelines that the seven first-party packs encode. The counts live in its section table and in PRD FR-55 only. Each entry has a rule, a source, and a note on how it becomes a question.
+- `GUIDELINES.md` is the catalog of guidelines that the seven first-party packs encode. Each entry has a rule, a source, and a note on how it becomes a question.
 - `docs/PRD.md` is the behavioral specification with stable IDs. It is the source of truth for what to build. If `BRIEF.md` and `docs/PRD.md` disagree, `docs/PRD.md` wins and the disagreement is a defect to report.
 - `README.md` is a two-line summary. Do not treat it as a specification.
 
@@ -16,7 +16,7 @@ Planned layout, not present today. Update this list in the same pull request tha
 - `src/prepare`, `src/build`, `src/ask`, `src/compose`: one module per pipeline stage.
 - `src/ask/typesafe`: the single adapter that talks to TypeSafe, behind the interface the `ask` stage defines.
 - `schemas/`: the pack YAML schema and the output JSON schema.
-- `evals/`: the durable tests, the fixture images, and the human labels. Present today with one script, `evals/check-guideline-counts.sh`, which is PRD EV-13.
+- `evals/`: the durable tests, the fixture images, and the human labels.
 
 ## How we build: the Phoenix rules
 

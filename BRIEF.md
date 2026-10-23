@@ -154,7 +154,7 @@ Rules for publishing: every criterion cites its source; no executable code; no q
 
 ### First-party packs for v1
 
-All seven domains ship on day one. The research behind them is in `GUIDELINES.md`, with one entry per guideline, each with a testable rule, a source, a link where the source is online, and a note on how it becomes a question. The counts per pack are in docs/PRD.md FR-55 and are checked by evals/check-guideline-counts.sh. Rules that were pure measurements, needed the DOM, or needed a running app were cut. Rules that carry an exact figure but have a visible symptom are asked about the symptom and cite the figure.
+All seven domains ship on day one. The research behind them is in `GUIDELINES.md`, with one entry per guideline, each with a testable rule, a source, a link where the source is online, and a note on how it becomes a question. Rules that were pure measurements, needed the DOM, or needed a running app were cut. Rules that carry an exact figure but have a visible symptom are asked about the symptom and cite the figure.
 
 | Pack | Domain | Headline sources |
 | --- | --- | --- |
