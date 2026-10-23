@@ -1,20 +1,24 @@
 # M-1 spike questions (crit-oj5.1). Twenty hand-written questions about the
 # image at the state path `screenshot` (spike/screenshot.png). Field names
-# follow the pack schema in docs/PRD.md section 7.8. There are no fix,
+# follow the pack schema in docs/PRD.md section 7.8, plus one spike-only
+# field, `domain`, which names the FR-55 pack the question belongs to.
+# `source` names a GUIDELINES.md `###` heading; pack sources that name the
+# standard and its version come later, under FR-57. There are no fix,
 # fail_when, warn_when, pass_when, or fixtures fields, because the spike
 # compares raw answers and decides no verdicts. For noul questions, true is
-# the defect. For score questions, level index 0 is the best state.
+# the defect. For score questions, level index 0 is the best state. Choice
+# options are listed from best to worst.
 
 - id: body-text-looks-small
   domain: typography
-  title: Body text looks too small for sustained reading
+  title: Body text looks too small to read
   source: Body text size
   question:
     type: noul
-    instructions: In the image at screenshot, does the paragraph text of the main article look too small to read comfortably at the size the page was designed for?
+    instructions: In the image at screenshot, is the paragraph text of the main article too small to read comfortably as shown?
     criteria:
-      "true": The main article's paragraph text looks smaller than comfortable reading text on a desktop web page.
-      "false": The main article's paragraph text looks like a comfortable reading size for a desktop web page.
+      "true": The main article's paragraph text is too small to read comfortably as shown.
+      "false": The main article's paragraph text can be read comfortably as shown.
 
 - id: measure-too-long
   domain: typography
@@ -41,8 +45,8 @@
 
 - id: edges-misaligned
   domain: layout
-  title: Elements do not line up on shared edges
-  source: Align to shared edges
+  title: Elements almost line up but not quite
+  source: Near misses are worse than clear differences
   question:
     type: noul
     instructions: In the image at screenshot, are there blocks of content whose edges almost line up with each other but not quite?
@@ -55,12 +59,11 @@
   title: No single focal point
   source: A clear single focal point
   question:
-    type: score
-    instructions: In the image at screenshot, how clearly does one element win the viewer's first attention?
-    levels:
-      - One element clearly dominates and wins first attention.
-      - Several elements compete for first attention at a similar visual weight.
-      - Nothing stands out; the page reads at one even visual weight.
+    type: noul
+    instructions: In the image at screenshot, does the page lack a single element that leads the eye first?
+    criteria:
+      "true": No single element leads the eye.
+      "false": One element clearly leads the eye.
 
 - id: density-mixed
   domain: layout
@@ -71,6 +74,7 @@
     instructions: In the image at screenshot, which option best describes how evenly content is packed across the page?
     criteria:
       even: Content is packed evenly across the page.
+      some-sparse: Content is even in places and sparse in others, and nothing looks cramped.
       some-cramped: The page is mostly even, but some regions look cramped.
       cramped-beside-sparse: Cramped regions sit next to regions that are nearly empty.
 
@@ -93,7 +97,7 @@
     type: noul
     instructions: In the image at screenshot, does any chart identify its data series by color alone, with no label on or next to the series itself?
     criteria:
-      "true": A chart relies on color alone, for example a color legend away from the data, to tell its series apart.
+      "true": A chart tells its series apart by color alone.
       "false": Every chart labels its series directly, or adds a second cue such as a pattern or a label beside the series.
 
 - id: accent-overused
@@ -102,7 +106,7 @@
   source: Accent color restraint
   question:
     type: score
-    instructions: In the image at screenshot, how sparingly is the main accent color used for links and highlights?
+    instructions: In the image at screenshot, how sparingly is the main accent color used?
     levels:
       - The accent color is used sparingly and draws the eye to what matters.
       - The accent color appears often enough to weaken its emphasis.
@@ -114,7 +118,7 @@
   source: Link purpose (in context)
   question:
     type: noul
-    instructions: In the image at screenshot, is there a link whose text alone does not say what it opens, such as a generic phrase repeated under several items?
+    instructions: In the image at screenshot, is there a link whose text alone does not say what it opens?
     criteria:
       "true": At least one link uses generic text that does not say what it opens.
       "false": Every visible link says what it opens, in its own words or in the sentence around it.
@@ -125,10 +129,10 @@
   source: Images of text
   question:
     type: noul
-    instructions: In the image at screenshot, does the page contain a picture of text, such as an infographic or chart image whose words are part of the image?
+    instructions: In the image at screenshot, does any text look like part of a picture rather than live page text?
     criteria:
-      "true": The page shows text inside an image that looks like a picture rather than live page text.
-      "false": All text on the page looks like live page text, apart from logos.
+      "true": Some text, other than logos and icons, looks like part of a picture rather than live page text.
+      "false": All text, other than logos and icons, looks like live page text.
 
 - id: headings-describe-content
   domain: accessibility
@@ -138,9 +142,9 @@
     type: score
     instructions: In the image at screenshot, how well do the headings in the main article describe the content of their sections?
     levels:
-      - Every heading clearly describes its section.
-      - Some headings are vague about their section.
-      - Most headings tell the reader little about their section.
+      - Headings say clearly what follows them.
+      - Headings are partly vague about what follows them.
+      - Headings are uninformative about what follows them.
 
 - id: primary-action-clear
   domain: ux
@@ -156,14 +160,15 @@
 
 - id: links-look-clickable
   domain: ux
-  title: Links do not look clickable
+  title: Links do not stand out from paragraph text
   source: Buttons and links must look clickable
   question:
-    type: noul
-    instructions: In the image at screenshot, does any link look like plain text rather than something to click?
-    criteria:
-      "true": At least one link looks like plain text and does not look clickable.
-      "false": Every link looks clickable through its color, underline, shape, or position.
+    type: score
+    instructions: In the image at screenshot, how clearly do the links in the main article stand out from the paragraph text around them?
+    levels:
+      - Links stand out clearly through color or underline.
+      - Links stand out only slightly.
+      - Links are hard to tell apart from paragraph text.
 
 - id: minimalist-design
   domain: ux
@@ -174,8 +179,8 @@
     instructions: In the image at screenshot, how free is the page of elements that compete with the main content for attention?
     levels:
       - Focused; everything shown supports the main content.
-      - Some clutter; a few elements compete with the main content.
-      - Cluttered; many elements compete with the main content.
+      - Some visible clutter competes with the main content.
+      - Cluttered; the main content has to fight for attention.
 
 - id: chart-missing-axis-units
   domain: dataviz
@@ -194,11 +199,11 @@
   source: Titles and annotations state the takeaway
   question:
     type: choice
-    instructions: In the image at screenshot, which option best describes the titles of the charts?
+    instructions: In the image at screenshot, which option best describes the title shown inside or directly on each chart, not the section heading above it?
     criteria:
       takeaway: The chart titles state what the reader should conclude from the data.
       topic-only: The chart titles name the topic of the data but not what it shows.
-      no-title: The charts have no visible titles.
+      no-title: The charts have no visible titles of their own.
 
 - id: chartjunk
   domain: dataviz
@@ -224,7 +229,7 @@
       - Mostly cohesive; one or two parts look like they come from elsewhere.
       - Pieces look unrelated, as if taken from different designs.
 
-- id: image-blurry-or-distorted
+- id: image-blurry
   domain: art-direction
   title: An image looks blurry
   source: "Image quality: sharp, undistorted, at native proportions"
