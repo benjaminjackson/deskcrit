@@ -4,7 +4,7 @@
 
 | Field | Value |
 | --- | --- |
-| Version | 0.3.1 |
+| Version | 0.3.2 |
 | Status | Draft |
 | Owner | Benjamin Jackson |
 | Last updated | 2026-10-23 |
@@ -18,6 +18,7 @@
 | 2026-10-23 | 0.2.1 | AC-7 now names the `--save-answers` file as the one file the CLI layer writes outside `crit packs`. Added OQ-17 with a proposed default for producing fixture images from HTML and CSS templates. |
 | 2026-10-23 | 0.3.0 | FR-54 now defines the four accepted rights bases for fixture images, the capture metadata for a real page, the 2 MB cap, and the privacy rules. OQ-17 lists the accepted real-page sources. Added EV-13, the guideline count check, with its script under `evals/`. |
 | 2026-10-23 | 0.3.1 | G-8 no longer carries a guideline count. EV-13 now counts headings as well as rule bullets and records the FR-55 phrasings the script depends on. |
+| 2026-10-23 | 0.3.2 | Benjamin Jackson decided the open questions OQ-5, OQ-6, OQ-7, OQ-12, and OQ-15 as proposed, and decided that OQ-8 and OQ-10 are set after M-1 with provisional values until then. |
 
 ### How to update this document
 
@@ -587,17 +588,17 @@ Unit tests for each module, written next to the module. They are disposable. A r
 | OQ-2 | How much context does a visual question get: the image only, or the image plus a one-line purpose? | Image plus purpose. Packs are written assuming the purpose is present. | Benjamin Jackson, after M-1 |
 | OQ-3 | May packs ship example images as Jev criteria? | No in v1, because of image rights. FR-58. | Benjamin Jackson, after v1 |
 | OQ-4 | May a project define its own pack inline in `.crit.yaml`? | Yes, with the same schema. FR-52. | Benjamin Jackson |
-| OQ-5 | What does the gate fail on? The brief says "thresholds" but does not define a project-level threshold or how `weight` combines. | Fail on any `fail` verdict. Allow an optional policy in `.crit.yaml`. FR-41. | Benjamin Jackson |
-| OQ-6 | Where does `uncertain` sort relative to `warn` and `pass`? The brief does not say. | After `warn` and before `pass`. FR-28. | Benjamin Jackson |
-| OQ-7 | How are findings merged across tiles? The brief does not say. | The most severe verdict wins. FR-29. | Benjamin Jackson, after M-1 |
-| OQ-8 | By how much does disagreement between the two ordered compare answers lower confidence? | Use the lower of the two confidences, multiplied by the probability mass the two answers share. Tune on the before-and-after pairs. | Benjamin Jackson, after M-4 |
+| OQ-5 | What does the gate fail on? The brief says "thresholds" but does not define a project-level threshold or how `weight` combines. | Resolved 2026-10-23. The gate fails on any `fail` verdict. An optional policy in `.crit.yaml` may loosen that later. FR-41. | Benjamin Jackson |
+| OQ-6 | Where does `uncertain` sort relative to `warn` and `pass`? The brief does not say. | Resolved 2026-10-23. The order is fail, warn, uncertain, pass. FR-28. | Benjamin Jackson |
+| OQ-7 | How are findings merged across tiles? The brief does not say. | Resolved 2026-10-23. The most severe verdict wins, and each tile's region is kept. FR-29. | Benjamin Jackson, after M-1 |
+| OQ-8 | By how much does disagreement between the two ordered compare answers lower confidence? | Decided 2026-10-23: the rule is set after M-1 from the before-and-after pairs. Until then the implementation uses a provisional rule, the lower of the two confidences multiplied by the probability mass the two answers share, held in one named constant and marked provisional in code. | Benjamin Jackson, after M-4 |
 | OQ-9 | What are the agreement floor and the self-consistency floor? | Set after M-1 from the spike's figures. | Benjamin Jackson, after M-1 |
-| OQ-10 | What is the default `min_confidence` when a criterion does not set one? | 0.6, the value in the brief's example. | Benjamin Jackson |
+| OQ-10 | What is the default `min_confidence` when a criterion does not set one? | Decided 2026-10-23: the value is set after M-1 from the spike's figures. Until then the implementation uses a provisional 0.6, the value in the brief's example, held in one named constant and marked provisional in code. | Benjamin Jackson |
 | OQ-11 | How do threshold objects work for `choice` questions? The brief shows `probability_at_least` and `level_at_most` only. | Resolved 2026-10-23. A `choice` criterion uses `option_is` or `option_in`. See the verdict rule under FR-25. | Benjamin Jackson |
-| OQ-12 | Dependency policy. Fowler's rules say only that a dependency must work with the build and must not bind the project to one tool. | Runtime dependencies are the TypeSafe SDK, `sharp`, and a YAML parser. Any new runtime dependency needs a changelog row here with its reason and review trigger. | Benjamin Jackson |
+| OQ-12 | Dependency policy. Fowler's rules say only that a dependency must work with the build and must not bind the project to one tool. | Resolved 2026-10-23. Runtime dependencies are the TypeSafe SDK, `sharp`, and a YAML parser. Any new runtime dependency needs a changelog row here with its reason and review trigger. | Benjamin Jackson |
 | OQ-13 | Local state layout. | The pack cache lives in the user cache directory under `deskcrit/packs/<name>/<version>/`. `.crit.yaml` lives in the project root. Nothing else is written. | Benjamin Jackson |
 | OQ-14 | Provenance format: how does a change record which requirement and which evaluation it serves? | Each commit message and pull request names the FR, NFR, or US IDs it serves and the EV IDs that check it. | Benjamin Jackson |
-| OQ-15 | `crit packs validate` and `crit packs test` are not named in the brief, which names only `add`, `list`, and `search`. | Ship them as Should, because pack authors need a local check before CI. FR-49, FR-50. | Benjamin Jackson |
+| OQ-15 | `crit packs validate` and `crit packs test` are not named in the brief, which names only `add`, `list`, and `search`. | Resolved 2026-10-23. Both ship as Should in M-3, because pack authors need a local check before CI. FR-49, FR-50. | Benjamin Jackson |
 | OQ-16 | The brief's example criterion `single-focal-point` asks "how many elements compete", which reads as a counting question and conflicts with JC-2. | Reword it to ask whether one element dominates, with the same three levels. | Pack author, during M-2 |
 | OQ-17 | The brief does not say how fixture images are produced. Hand-collected screenshots are slow to gather, carry rights questions, and rarely come in matched pairs. | Produce most fixtures from source in `deskcrit-packs`: one HTML and CSS template per criterion, rendered by a pinned Playwright Chromium with fonts shipped in the repo, with one parameter that turns the defect on or off, so the positive and the negative differ only in the defect. Charts use inline SVG in the same templates. The rendered PNGs are committed so the fixture tests do not depend on a renderer. The `art-direction` pack and a share of every pack use real or licensed screenshots as well, because rendered pages are cleaner than production pages and illustration style cannot be rendered from a template. The renderer is a development dependency of `deskcrit-packs` only, so NG-1 still holds. For the real-page share, take pages only from sources whose license FR-54 accepts: United States federal government sites (public domain, and a rich source of real defects), GOV.UK and the GOV.UK Design System (Open Government Licence and MIT), the design system demo pages of USWDS, Carbon, Primer, and Material, Figma Community files (CC BY 4.0 by default), Wikipedia and MDN (CC BY-SA), and for posters, type, charts, and illustration the open access collections of the Library of Congress, the Smithsonian, the Metropolitan Museum, the Rijksmuseum, and Wikimedia Commons with a per-file license check. Bad real examples come mainly from government pages and from contributors who own the page. Never use a living company's page as a bad example without written permission. | Benjamin Jackson, before M-3 |
 
