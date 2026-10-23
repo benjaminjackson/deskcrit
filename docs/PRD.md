@@ -380,7 +380,7 @@ Example with two findings. The numbers are illustrative.
   "image": { "path": "home.png", "width": 1440, "height": 900 },
   "context": { "purpose": "landing page", "audience": "small business owners", "platform": "web" },
   "packs": [ { "name": "typography", "version": "1.0.0" } ],
-  "model": "jev-1.14",
+  "model": "jev-1.14.0",
   "findings": [
     {
       "criterion": "typography/faint-body-text",
@@ -392,7 +392,7 @@ Example with two findings. The numbers are illustrative.
       "source": "W3C, WCAG 2.2, Success Criterion 1.4.3 Contrast (Minimum)",
       "link": "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum",
       "fix": "Darken the text or lighten the background. For the exact ratio, run axe-core; WCAG wants 4.5:1 for body text and 3:1 for large text.",
-      "model": "jev-1.14"
+      "model": "jev-1.14.0"
     },
     {
       "criterion": "typography/single-focal-point",
@@ -404,7 +404,7 @@ Example with two findings. The numbers are illustrative.
       "source": "Donis A. Dondis, A Primer of Visual Literacy (1973)",
       "link": null,
       "fix": "Pick the one thing the viewer must see first. Make it larger, higher-contrast, or more isolated, and demote the rest by one step in size or weight.",
-      "model": "jev-1.14"
+      "model": "jev-1.14.0"
     }
   ],
   "skipped": [
@@ -443,7 +443,7 @@ The gate document is a report with `mode` set to `gate` and one more field, `gat
 
 ## 10. Jev and TypeSafe constraints
 
-These come from TypeSafe's published limits and known weaknesses for `jev-1.13` and `jev-1.14`, as recorded in [BRIEF.md](../BRIEF.md#jev-specific-constraints-the-design-respects). This document does not add claims about TypeSafe beyond the brief.
+These come from TypeSafe's published limits and known weaknesses for `jev-1.13.0` and `jev-1.14.0`, as recorded in [BRIEF.md](../BRIEF.md#jev-specific-constraints-the-design-respects). This document does not add claims about TypeSafe beyond the brief.
 
 | ID | Constraint | Design response |
 | --- | --- | --- |
