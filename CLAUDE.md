@@ -10,7 +10,24 @@
 - `docs/PRD.md` is the behavioral specification with stable IDs. It is the source of truth for what to build. If `BRIEF.md` and `docs/PRD.md` disagree, `docs/PRD.md` wins and the disagreement is a defect to report.
 - `README.md` is a two-line summary. Do not treat it as a specification.
 
-Current state: there is no source code yet. The first milestone is the spike described in `BRIEF.md` under Milestones: one screenshot, twenty hand-written questions, the danger-zone header, and a spreadsheet comparing Jev's answers with one designer's answers (PRD M-1). That spike decides whether the project continues. Do not build the full pipeline before the spike result is recorded in `docs/PRD.md`.
+Current state: the package scaffold exists. It has the build, lint, type check, and test tools, a placeholder `crit` command, and `CouldNotRunError`. There is no stage code yet. The first milestone is the spike described in `BRIEF.md` under Milestones: one screenshot, twenty hand-written questions, the danger-zone header, and a spreadsheet comparing Jev's answers with one designer's answers (PRD M-1). That spike decides whether the project continues. Do not build the full pipeline before the spike result is recorded in `docs/PRD.md`.
+
+## Layout
+
+These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full planned folder layout, CS-1 the compiler flags, CS-2 the tools and lint rules, and CS-17 the exit code rule. PRD NFR-1 sets the supported Node releases. Add a path here in the pull request that creates it, because an agent reads this list to find its way and a missing path sends it to search; drop this rule if the list grows past what a reader can scan.
+
+- `package.json` declares the `deskcrit` and `crit` commands, the npm scripts, and the dev tool versions.
+- `package-lock.json` pins every installed package for `npm ci`.
+- `.npmrc` makes `npm install` save exact versions (CS-3).
+- `tsconfig.json` holds the TypeScript settings for the type check.
+- `biome.json` holds the lint and format settings.
+- `vitest.config.ts` tells Vitest which unit tests to run.
+- `scripts/build.mjs` bundles the CLI into `dist/crit.js`, which is built and not committed.
+- `scripts/smoke.mjs` runs the built bundle and the packed tarball under both command names.
+- `.github/workflows/ci.yml` runs `npm run ci` on each Node release in the CI matrix.
+- `src/cli/main.ts` holds the placeholder command and sets the exit code.
+- `src/cli/bin.ts` is the bundle entry file.
+- `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
 
 ## How we build: the Phoenix rules
 

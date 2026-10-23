@@ -1,0 +1,27 @@
+# Runs npm run ci (lint, type check, unit tests, build, and smoke checks) on
+# each Node release that NFR-1 names. CI uses no secrets
+# and never runs npm run test:live, so it makes no call to TypeSafe (CS-21).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22, 24, 26]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm run ci
