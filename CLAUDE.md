@@ -29,6 +29,7 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `src/cli/bin.ts` is the bundle entry file.
 - `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
 - `spike/` holds the M-1 spike inputs: the prepared screenshot, the twenty questions, the page purpose, and its attribution.
+- `spike/run.ts`, `spike/request.ts`, `spike/request.test.ts`, `spike/package.json`, and `spike/results/` are the disposable M-1 runner that asks Jev the twenty questions and keeps every run; `spike/` has its own dependencies, so run `npm --prefix spike ci` first.
 
 ## How we build: the Phoenix rules
 
