@@ -53,7 +53,7 @@ import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 
 /** The columns of the sheet, in order. */
-export const COLUMN_NAMES = [
+const COLUMN_NAMES = [
   "question_id",
   "domain",
   "type",
@@ -85,6 +85,8 @@ type SpikeQuestion = {
   question: {
     type: string;
     instructions: string;
+    // Record<string, string> is an object whose keys and values are all
+    // strings, like a Ruby Hash of String to String.
     criteria?: Record<string, string>;
     levels?: string[];
   };
@@ -97,16 +99,16 @@ type AnswerOption = {
   description: string;
 };
 
-/** Reads and parses the questions file. */
-export function readQuestions(questionsPath: string): SpikeQuestion[] {
+/** Reads and parses the questions file, so each sheet row can be built from it (M-1). */
+function readQuestions(questionsPath: string): SpikeQuestion[] {
   const fileText = readFileSync(questionsPath, "utf8");
   // `as SpikeQuestion[]` tells the reader the shape to expect. It checks
   // nothing when the script runs.
   return parseYaml(fileText) as SpikeQuestion[];
 }
 
-/** Lists the answer options of one question, numbered from 1 in YAML order, with "cannot tell" as 0 at the end. */
-export function listAnswerOptions(question: SpikeQuestion): AnswerOption[] {
+/** Lists the answer options of one question, numbered from 1 in YAML order, with "cannot tell" as 0 at the end (M-1). */
+function listAnswerOptions(question: SpikeQuestion): AnswerOption[] {
   const options: AnswerOption[] = [];
   const questionType = question.question.type;
   if (questionType === "noul" || questionType === "choice") {
@@ -146,8 +148,8 @@ export function listAnswerOptions(question: SpikeQuestion): AnswerOption[] {
   return options;
 }
 
-/** Writes the options of one question as the text of the options cell. */
-export function formatOptionsCell(options: AnswerOption[]): string {
+/** Writes the options of one question as the text of the options cell, so Benjamin sees every number and its meaning (M-1). */
+function formatOptionsCell(options: AnswerOption[]): string {
   const parts: string[] = [];
   for (const option of options) {
     if (option.description === "") {
@@ -159,8 +161,8 @@ export function formatOptionsCell(options: AnswerOption[]): string {
   return parts.join(" | ");
 }
 
-/** Builds the blank sheet row of one question: the six fixed columns, then an empty answer and empty notes. */
-export function buildBlankRow(question: SpikeQuestion): string[] {
+/** Builds the blank sheet row of one question: the six fixed columns, then an empty answer and empty notes (M-1). */
+function buildBlankRow(question: SpikeQuestion): string[] {
   const options = listAnswerOptions(question);
   return [
     question.id,
@@ -174,7 +176,7 @@ export function buildBlankRow(question: SpikeQuestion): string[] {
   ];
 }
 
-/** Turns rows into CSV text. Every field is put in double quotes, and a double quote inside a field is doubled. */
+/** Turns rows into CSV text for the answer sheet (M-1). Every field is put in double quotes, and a double quote inside a field is doubled. */
 export function formatCsv(rows: string[][]): string {
   const lines: string[] = [];
   for (const row of rows) {
@@ -188,10 +190,10 @@ export function formatCsv(rows: string[][]): string {
   return `${lines.join("\n")}\n`;
 }
 
-/** Parses CSV text into rows. It handles quoted fields with commas, doubled quotes, and line breaks, Windows line endings, and the byte order mark that spreadsheet apps add. Empty lines are dropped. */
+/** Parses the answer sheet CSV into rows, and drops empty lines (M-1). It reads quoted fields with commas, quotes or line breaks, Windows line endings, and the byte order mark that spreadsheet apps add. */
 export function parseCsv(csvText: string): string[][] {
   let text = csvText;
-  if (text.startsWith("﻿")) {
+  if (text.startsWith("\uFEFF")) {
     text = text.slice(1);
   }
   const rows: string[][] = [];
@@ -247,8 +249,8 @@ export function parseCsv(csvText: string): string[][] {
   return nonEmptyRows;
 }
 
-/** Finds the option that an answer names, by number or by exact option text. Returns undefined when no option matches. */
-export function findAnswerOption(
+/** Finds the option that an answer names, by number or by exact option text (M-1). Returns undefined when no option matches. */
+function findAnswerOption(
   answer: string,
   options: AnswerOption[],
 ): AnswerOption | undefined {
@@ -265,8 +267,8 @@ export function findAnswerOption(
   return undefined;
 }
 
-/** Checks a sheet against the questions. Returns the list of problems, and the rows with each answer rewritten into its option text. The rows are only safe to write when there are no problems. */
-export function checkSheet(
+/** Checks a sheet against the questions and returns the problems, plus the rows with each answer rewritten into its option text (M-1). Write the rows only when there are no problems. */
+function checkSheet(
   sheetRows: string[][],
   questions: SpikeQuestion[],
 ): { problems: string[]; canonicalRows: string[][] } {
@@ -326,7 +328,7 @@ export function checkSheet(
   return { problems, canonicalRows };
 }
 
-/** Writes the blank sheet. It refuses when the sheet file exists, so it never erases answers. Returns the exit code. */
+/** Writes the blank sheet and returns the exit code (M-1). It refuses when the sheet file exists, so it never erases answers. */
 function writeBlankSheet(sheetPath: string, questionsPath: string): number {
   if (existsSync(sheetPath)) {
     console.error(
@@ -344,7 +346,7 @@ function writeBlankSheet(sheetPath: string, questionsPath: string): number {
   return 0;
 }
 
-/** Runs the check step on the sheet file. When it passes, it writes the sheet back with every answer as option text. Returns the exit code. */
+/** Runs the check step on the sheet file and returns the exit code (M-1). When it passes, it writes the sheet back with every answer as option text. */
 function runCheck(sheetPath: string, questionsPath: string): number {
   const questions = readQuestions(questionsPath);
   const sheetText = readFileSync(sheetPath, "utf8");
@@ -358,19 +360,14 @@ function runCheck(sheetPath: string, questionsPath: string): number {
     );
     return 1;
   }
-  const canonicalText = formatCsv(result.canonicalRows);
-  if (canonicalText !== sheetText) {
-    writeFileSync(sheetPath, canonicalText);
-    console.log(
-      `passed: ${questions.length} answers; rewrote ${sheetPath} with option text`,
-    );
-  } else {
-    console.log(`passed: ${questions.length} answers; ${sheetPath} unchanged`);
-  }
+  writeFileSync(sheetPath, formatCsv(result.canonicalRows));
+  console.log(
+    `passed: ${questions.length} answers; wrote ${sheetPath} with option text`,
+  );
   return 0;
 }
 
-/** Reads the command line and runs the blank or check step. */
+/** Reads the command line and runs the blank or check step (M-1). */
 function main(): void {
   // process.argv holds [node path, script path, ...arguments].
   const commandName = process.argv[2];

@@ -16,7 +16,7 @@ import { formatCsv, parseCsv } from "./sheet.ts";
 
 const SCRIPT_PATH = fileURLToPath(new URL("sheet.ts", import.meta.url));
 
-/** Three questions, one of each type, in the same shape as spike/questions.yaml. */
+/** Three questions, one of each type, in the same shape as spike/questions.yaml (M-1). */
 const FIXTURE_QUESTIONS = `
 - id: small-text
   domain: typography
@@ -48,7 +48,7 @@ const FIXTURE_QUESTIONS = `
       "cramped, sparse": Cramped beside sparse, with a "quote".
 `;
 
-/** Makes a temporary folder with the fixture questions and a blank sheet written by the blank step. Returns both paths. */
+/** Makes a temporary folder with the fixture questions and a blank sheet written by the blank step, and returns both paths (M-1). */
 function makeFixture(): { sheetPath: string; questionsPath: string } {
   const folder = mkdtempSync(join(tmpdir(), "answer-sheet-test-"));
   const questionsPath = join(folder, "questions.yaml");
@@ -59,7 +59,7 @@ function makeFixture(): { sheetPath: string; questionsPath: string } {
   return { sheetPath, questionsPath };
 }
 
-/** Runs sheet.ts as a separate Node process and returns its exit code and output. */
+/** Runs sheet.ts as a separate Node process and returns its exit code and output (M-1). */
 function runSheet(
   commandName: string,
   sheetPath: string,
@@ -78,7 +78,7 @@ function runSheet(
   };
 }
 
-/** Reads the sheet, lets the test change its rows, and writes it back. `changeRows` is a function that the caller passes in, written as `(rows) => { ... }`. */
+/** Reads the sheet, lets the test change its rows, and writes it back (M-1). `changeRows` is a function that the caller passes in, written as `(rows) => { ... }`. */
 function editSheet(
   sheetPath: string,
   changeRows: (rows: string[][]) => void,
@@ -88,7 +88,7 @@ function editSheet(
   writeFileSync(sheetPath, formatCsv(rows));
 }
 
-/** Fills every answer in the sheet with the given answers, in row order. */
+/** Fills every answer in the sheet with the given answers, in row order (M-1). */
 function fillAnswers(sheetPath: string, answers: string[]): void {
   editSheet(sheetPath, (rows) => {
     for (let index = 0; index < answers.length; index++) {
@@ -220,20 +220,24 @@ test("check rewrites numbers into option text and accepts exact option text", ()
   assert.equal(secondRows[2][6], "Too long.");
   assert.equal(secondRows[3][6], "even");
 
+  const passedText = readFileSync(fixture.sheetPath, "utf8");
   const thirdResult = runSheet(
     "check",
     fixture.sheetPath,
     fixture.questionsPath,
   );
   assert.equal(thirdResult.status, 0, thirdResult.stderr);
-  assert.match(thirdResult.stdout, /unchanged/);
+  assert.equal(readFileSync(fixture.sheetPath, "utf8"), passedText);
 });
 
 test("check reads a sheet saved by a spreadsheet app with Windows line endings", () => {
   const fixture = makeFixture();
   fillAnswers(fixture.sheetPath, ["1", "1", "1"]);
   const unixText = readFileSync(fixture.sheetPath, "utf8");
-  writeFileSync(fixture.sheetPath, `﻿${unixText.replaceAll("\n", "\r\n")}`);
+  writeFileSync(
+    fixture.sheetPath,
+    `\uFEFF${unixText.replaceAll("\n", "\r\n")}`,
+  );
   const result = runSheet("check", fixture.sheetPath, fixture.questionsPath);
   assert.equal(result.status, 0, result.stderr);
 });
