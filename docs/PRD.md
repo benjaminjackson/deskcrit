@@ -443,7 +443,7 @@ The gate document is a report with `mode` set to `gate` and one more field, `gat
 
 ## 10. Jev and TypeSafe constraints
 
-These come from TypeSafe's published limits and known weaknesses for `jev-1.13.0` and `jev-1.14.0`, as recorded in [BRIEF.md](../BRIEF.md#jev-specific-constraints-the-design-respects). This document does not add claims about TypeSafe beyond the brief.
+These come from TypeSafe's published limits and known weaknesses for `jev-1.13.0` and `jev-1.14.0`, as recorded in [BRIEF.md](../BRIEF.md#jev-specific-constraints-the-design-respects) (BRIEF.md uses the short names `jev-1.13` and `jev-1.14` and is kept as first written). This document does not add claims about TypeSafe beyond the brief.
 
 | ID | Constraint | Design response |
 | --- | --- | --- |
