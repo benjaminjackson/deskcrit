@@ -1,5 +1,5 @@
-# Lint, type check, unit tests, and build on every supported Node release
-# (NFR-1). The matrix must match "engines" in package.json. CI uses no secrets
+# Runs npm run ci (lint, type check, unit tests, build, and smoke checks) on
+# each Node release that NFR-1 names. CI uses no secrets
 # and never runs npm run test:live, so it makes no call to TypeSafe (CS-21).
 name: CI
 
@@ -24,11 +24,4 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: npm
       - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run build
-      - name: Smoke test the bundle
-        run: |
-          test "$(ls dist)" = "crit.js"
-          test "$(node dist/crit.js)" = "deskcrit: no commands yet (crit-cy8.11 adds them)"
+      - run: npm run ci

@@ -14,19 +14,20 @@ Current state: the package scaffold exists. It has the build, lint, type check, 
 
 ## Layout
 
-This list names only the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full planned folder layout. Add a path here in the pull request that creates it.
+These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full planned folder layout, CS-1 the compiler flags, CS-2 the tools and lint rules, and CS-17 the exit code rule. PRD NFR-1 sets the supported Node releases. Add a path here in the pull request that creates it, because an agent reads this list to find its way and a missing path sends it to search; drop this rule if the list grows past what a reader can scan.
 
-- `package.json` declares the `deskcrit` and `crit` commands, the scripts, and the exact dev tool versions. Its `engines` field and the CI matrix cover Node 22, 24, and 26, following PRD NFR-1. Vitest 5 needs Node 22.12 or later, so that is the floor.
-- `package-lock.json` pins every installed package. CI installs from it with `npm ci`.
+- `package.json` declares the `deskcrit` and `crit` commands, the npm scripts, and the dev tool versions.
+- `package-lock.json` pins every installed package for `npm ci`.
 - `.npmrc` makes `npm install` save exact versions (CS-3).
-- `tsconfig.json` sets the compiler flags from CS-1. `tsc` only type-checks, and esbuild writes the output.
-- `biome.json` sets lint and format rules (CS-2). It turns off the rule against default exports for `vitest.config.ts`, because Vitest reads its settings from a default export. It allows `src/index.ts` as the one barrel file.
-- `vitest.config.ts` runs only the unit tests under `src/`. The durable tests in `evals/` are not wired up yet.
-- `scripts/build.mjs` bundles `src/cli/bin.ts` into `dist/crit.js`, with `sharp` left external (NFR-2). `dist/` is built by `npm run build` and by `npm pack`, and is not committed.
-- `.github/workflows/ci.yml` is the CI file. It runs lint, type check, unit tests, build, and a smoke run of the bundle on Node 22, 24, and 26. When the Node releases in long-term support change, update this matrix and `engines` together.
-- `src/cli/main.ts` is the placeholder command. It is the only file that sets the exit code (CS-17).
-- `src/cli/bin.ts` is the bundle entry file. It only calls `run` from `src/cli/main.ts`.
-- `src/shared/could-not-run-error.ts` holds `CouldNotRunError`, the error every stage throws when the run cannot go on (CS-16).
+- `tsconfig.json` holds the TypeScript settings for the type check.
+- `biome.json` holds the lint and format settings.
+- `vitest.config.ts` tells Vitest which unit tests to run.
+- `scripts/build.mjs` bundles the CLI into `dist/crit.js`, which is built and not committed.
+- `scripts/smoke.mjs` runs the built bundle and the packed tarball under both command names.
+- `.github/workflows/ci.yml` runs `npm run ci` on each Node release in the CI matrix.
+- `src/cli/main.ts` holds the placeholder command and sets the exit code.
+- `src/cli/bin.ts` is the bundle entry file.
+- `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
 
 ## How we build: the Phoenix rules
 

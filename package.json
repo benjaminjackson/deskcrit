@@ -12,7 +12,7 @@
     "dist"
   ],
   "engines": {
-    "node": "^22.12.0 || ^24.0.0 || >=26.0.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "build": "node scripts/build.mjs",
@@ -20,7 +20,8 @@
     "lint": "biome check --error-on-warnings",
     "test": "vitest run",
     "test:live": "node -e \"console.error('test:live: no live tests yet; crit-cy8.16 adds them (CS-21)'); process.exitCode = 1\"",
-    "ci": "npm run lint && npm run typecheck && npm test && npm run build",
+    "smoke": "node scripts/smoke.mjs",
+    "ci": "npm run lint && npm run typecheck && npm test && npm run build && npm run smoke",
     "prepack": "npm run build"
   },
   "devDependencies": {
