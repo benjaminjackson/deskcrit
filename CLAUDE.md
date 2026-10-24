@@ -10,7 +10,7 @@
 - `docs/PRD.md` is the behavioral specification with stable IDs. It is the source of truth for what to build. If `BRIEF.md` and `docs/PRD.md` disagree, `docs/PRD.md` wins and the disagreement is a defect to report.
 - `README.md` is a two-line summary. Do not treat it as a specification.
 
-Current state: the package scaffold exists. It has the build, lint, type check, and test tools, a placeholder `crit` command, and `CouldNotRunError`. There is no stage code yet. The first milestone is the spike described in `BRIEF.md` under Milestones: one screenshot, twenty hand-written questions, the danger-zone header, and a spreadsheet comparing Jev's answers with one designer's answers (PRD M-1). That spike decided whether the project continues. Its result is recorded in `docs/PRD.md` M-1: continue, decided by Benjamin Jackson on 2026-10-24, so M-2 work may start under the conditions listed there.
+Current state: the package scaffold exists. It has the build, lint, type check, and test tools, the four stages, and the `crit report` command. The first milestone is the spike described in `BRIEF.md` under Milestones: one screenshot, twenty hand-written questions, the danger-zone header, and a spreadsheet comparing Jev's answers with one designer's answers (PRD M-1). That spike decided whether the project continues. Its result is recorded in `docs/PRD.md` M-1: continue, decided by Benjamin Jackson on 2026-10-24, so M-2 work may start under the conditions listed there.
 
 ## Layout
 
@@ -25,8 +25,12 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `scripts/build.mjs` bundles the CLI into `dist/crit.js`, which is built and not committed.
 - `scripts/smoke.mjs` runs the built bundle and the packed tarball under both command names.
 - `.github/workflows/ci.yml` runs `npm run ci` on each Node release in the CI matrix.
-- `src/cli/main.ts` holds the placeholder command and sets the exit code.
+- `src/cli/main.ts` holds `main`, the one place that writes stdout and stderr and sets the exit code (CS-17).
 - `src/cli/bin.ts` is the bundle entry file.
+- `src/cli/args.ts` parses the `crit report` command line with Node's `parseArgs`.
+- `src/cli/crit-yaml.ts` parses and checks the text of `.crit.yaml`.
+- `src/cli/read-inputs.ts` does every file and environment read for `crit report`: the image, `.crit.yaml`, the pack directories, the facts file, and `TYPESAFE_API_KEY`.
+- `src/cli/report-command.ts` holds `runReport`, which calls prepare, build, ask, and compose and then one renderer, and imports no stage internals (FR-65).
 - `src/cli/render-json.ts` holds `renderReportJson` and `src/cli/render-text.ts` holds `renderReportText`, the pure functions that turn the report document into the `--json` output and the readable report (FR-31, FR-32, FR-33). `src/cli/prd-example-report.fixture.ts` is the PRD section 8.1 example that their tests share, and `src/cli/no-io.test.ts` checks that both renderers do no I/O.
 - `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
 - `src/prepare/prepare.ts` holds `prepareImage`, which checks, turns upright, strips, resizes, and pads one image, records its scale factor, and refuses an image it would shrink below half size.

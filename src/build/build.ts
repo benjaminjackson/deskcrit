@@ -43,6 +43,7 @@ type CriterionSelection = {
 export function buildQuestions(input: BuildInput): BuildResult {
   checkPackNamesUnique(input.packs);
   const selection = selectCriteria(input.packs, input.context, input.facts);
+  checkSomethingToAsk(selection);
   const state = buildState(input.image, input.context, input.facts);
   const questions = buildQuestionsForCriteria(selection.kept);
   checkContextSize(state, questions);
@@ -64,6 +65,24 @@ function checkPackNamesUnique(packs: readonly Pack[]): void {
     }
     seenNames.add(pack.name);
   }
+}
+
+/**
+ * Throw CouldNotRunError when no criterion is left to ask, listing each skipped criterion with its
+ * reason (FR-74). A run that checked nothing is not a pass, so `crit gate` must not exit 0 on it.
+ */
+function checkSomethingToAsk(selection: CriterionSelection): void {
+  if (selection.kept.length > 0) {
+    return;
+  }
+  if (selection.skipped.length === 0) {
+    throw new CouldNotRunError("no criteria to ask");
+  }
+  const lines = ["nothing to ask: every criterion was skipped"];
+  for (const skipped of selection.skipped) {
+    lines.push(`  ${skipped.criterion}: ${skipped.reason}`);
+  }
+  throw new CouldNotRunError(lines.join("\n"));
 }
 
 /**

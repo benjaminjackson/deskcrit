@@ -1,29 +1,95 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readdirSync, rmSync } from "node:fs";
+import {
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-const EXPECTED_OUTPUT = "deskcrit: no commands yet (crit-cy8.11 adds them)\n";
-
 /**
- * Runs one command, and throws unless it exits with code 0 and prints exactly
- * the placeholder line on stdout (FR-59, FR-61).
+ * Runs one command with no arguments, and throws unless it exits with code 2, writes nothing to
+ * stdout, and prints the usage line on stderr (FR-43, FR-59, FR-61).
  */
-function expectPlaceholderRun(command, commandArguments, workingDirectory) {
+function expectUsageRun(command, commandArguments, workingDirectory) {
   const description = [command, ...commandArguments].join(" ");
   const result = spawnSync(command, commandArguments, {
     cwd: workingDirectory,
     encoding: "utf8",
   });
-  if (result.status !== 0) {
+  if (result.status !== 2) {
     throw new Error(
-      `${description} exited with ${result.status}\n${result.stderr}`,
+      `${description} exited with ${result.status}, expected 2\n${result.stderr}`,
     );
   }
-  if (result.stdout !== EXPECTED_OUTPUT) {
+  if (result.stdout !== "") {
     throw new Error(`${description} printed ${JSON.stringify(result.stdout)}`);
   }
+  if (!result.stderr.includes("usage: crit report")) {
+    throw new Error(
+      `${description} stderr has no usage line\n${result.stderr}`,
+    );
+  }
   console.log(`ok: ${description}`);
+}
+
+/**
+ * Runs the bundle on a real image and a real pack with TYPESAFE_API_KEY unset. main checks the
+ * key after it loads the pack, so exit code 2 with the key message proves the bundled yaml and
+ * Ajv code runs (NFR-14, FR-11). The stderr check for "Dynamic require" catches the CommonJS
+ * require failure that the build banner fixes.
+ */
+function expectPackLoadsInBundle() {
+  const workingDirectory = mkdtempSync(join(tmpdir(), "deskcrit-report-"));
+  try {
+    mkdirSync(join(workingDirectory, "minimal"));
+    copyFileSync(
+      "schemas/examples/valid/minimal.yaml",
+      join(workingDirectory, "minimal", "pack.yaml"),
+    );
+    const environment = { ...process.env };
+    delete environment.TYPESAFE_API_KEY;
+    const commandArguments = [
+      resolve("dist/crit.js"),
+      "report",
+      resolve("packs/_example/fixtures/example-contrast.positive.png"),
+      "--pack",
+      "minimal",
+      "--json",
+    ];
+    const description = `node ${commandArguments.join(" ")}`;
+    const result = spawnSync("node", commandArguments, {
+      cwd: workingDirectory,
+      encoding: "utf8",
+      env: environment,
+    });
+    if (result.status !== 2) {
+      throw new Error(
+        `${description} exited with ${result.status}, expected 2\n${result.stderr}`,
+      );
+    }
+    if (result.stdout !== "") {
+      throw new Error(
+        `${description} printed ${JSON.stringify(result.stdout)}`,
+      );
+    }
+    if (result.stderr.includes("Dynamic require")) {
+      throw new Error(
+        `${description} hit a CommonJS require\n${result.stderr}`,
+      );
+    }
+    if (!result.stderr.includes("TYPESAFE_API_KEY")) {
+      throw new Error(
+        `${description} stderr does not name TYPESAFE_API_KEY\n${result.stderr}`,
+      );
+    }
+    console.log(`ok: ${description} loads the pack and stops for the key`);
+  } finally {
+    // The path comes from mkdtempSync, so it is never empty and sits inside the temp folder.
+    rmSync(workingDirectory, { recursive: true, force: true });
+  }
 }
 
 /**
@@ -38,7 +104,8 @@ function runSmokeChecks() {
   }
   console.log("ok: dist/ holds only crit.js");
 
-  expectPlaceholderRun("node", ["dist/crit.js"], process.cwd());
+  expectUsageRun("node", ["dist/crit.js"], process.cwd());
+  expectPackLoadsInBundle();
 
   const packDirectory = mkdtempSync(join(tmpdir(), "deskcrit-pack-"));
   const emptyDirectory = mkdtempSync(join(tmpdir(), "deskcrit-npx-"));
@@ -57,7 +124,7 @@ function runSmokeChecks() {
     }
     const tarballPath = resolve(packDirectory, tarballName);
     for (const binName of ["crit", "deskcrit"]) {
-      expectPlaceholderRun(
+      expectUsageRun(
         "npx",
         ["--yes", "--package", tarballPath, binName],
         emptyDirectory,
