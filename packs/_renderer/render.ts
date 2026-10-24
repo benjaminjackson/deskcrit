@@ -25,7 +25,7 @@ import {
   buildPairEvidence,
   type DefectDeclaration,
   declarationPathFor,
-  findDeclarationProblems,
+  findPackDeclarationProblems,
   type PageSnapshot,
   parseDefectDeclaration,
   templateCriterionId,
@@ -312,6 +312,45 @@ async function takePageSnapshot(page: Page): Promise<PageSnapshot> {
           ", ",
         );
       }
+      // computedStyleMap does not reach pseudo-elements, so their styles come
+      // from getComputedStyle. A defect drawn as a ::before stripe or a
+      // ::first-line grey is then compared too (FR-54 rule 3). A
+      // pseudo-element that draws nothing is recorded as null: ::before and
+      // ::after with no content, ::marker on an element that is not a list
+      // item, and ::placeholder on anything but a field with a placeholder.
+      const pseudoStyles: Record<string, Record<string, string> | null> = {};
+      const elementDisplay = getComputedStyle(element).display;
+      for (const pseudoName of [
+        "::before",
+        "::after",
+        "::first-line",
+        "::first-letter",
+        "::marker",
+        "::placeholder",
+      ]) {
+        const computed = getComputedStyle(element, pseudoName);
+        let generated = true;
+        if (pseudoName === "::before" || pseudoName === "::after") {
+          generated =
+            computed.content !== "none" && computed.content !== "normal";
+        } else if (pseudoName === "::marker") {
+          generated = elementDisplay.includes("list-item");
+        } else if (pseudoName === "::placeholder") {
+          generated =
+            (element.tagName === "INPUT" || element.tagName === "TEXTAREA") &&
+            element.hasAttribute("placeholder");
+        }
+        if (!generated) {
+          pseudoStyles[pseudoName] = null;
+          continue;
+        }
+        const pseudoValues: Record<string, string> = {};
+        for (let index = 0; index < computed.length; index++) {
+          const name = computed.item(index);
+          pseudoValues[name] = computed.getPropertyValue(name);
+        }
+        pseudoStyles[pseudoName] = pseudoValues;
+      }
       let hasOwnText = false;
       if (document.body.contains(element)) {
         for (const childNode of Array.from(element.childNodes)) {
@@ -331,6 +370,7 @@ async function takePageSnapshot(page: Page): Promise<PageSnapshot> {
         isSvg: element instanceof SVGElement,
         hasOwnText,
         styles,
+        pseudoStyles,
       };
     });
     let textEdgeDistance: number | null = null;
@@ -592,60 +632,15 @@ function verifyDefectDeclarations(
   packFolder: string,
   records: RenderRecord[],
 ): boolean {
-  const recordsByTemplate = new Map<
-    string,
-    { positive?: RenderRecord; negative?: RenderRecord }
-  >();
-  for (const record of records) {
-    const pair = recordsByTemplate.get(record.template) ?? {};
-    if (record.defect === "on") {
-      pair.positive = record;
-    } else {
-      pair.negative = record;
-    }
-    recordsByTemplate.set(record.template, pair);
+  const problems = findPackDeclarationProblems(
+    packFolder,
+    records,
+    (criterionId) => readDefectDeclaration(packFolder, criterionId),
+  );
+  for (const problem of problems) {
+    process.stdout.write(`${problem}\n`);
   }
-  let allPass = true;
-  for (const [templatePath, pair] of recordsByTemplate) {
-    const templateId = templatePath.slice(
-      templatePath.lastIndexOf("/") + 1,
-      -".html".length,
-    );
-    const criterionId = templateCriterionId(templateId);
-    const problems: string[] = [];
-    const declaration = readDefectDeclaration(packFolder, criterionId);
-    if (pair.positive === undefined || pair.negative === undefined) {
-      problems.push(
-        `${templatePath}: rendered.json does not hold both a positive and a negative fixture`,
-      );
-    } else if (declaration === null) {
-      problems.push(
-        `${templatePath}: ${declarationPathFor(packFolder, criterionId)} is missing (FR-54 rule 2)`,
-      );
-    } else if (
-      pair.positive.defect_evidence === undefined ||
-      pair.negative.defect_evidence === undefined
-    ) {
-      problems.push(
-        `${templatePath}: rendered.json has no defect evidence; render the pack again (FR-54 rules 2 and 3)`,
-      );
-    } else {
-      problems.push(
-        ...findDeclarationProblems(
-          declaration,
-          pair.positive.fixture,
-          pair.positive.defect_evidence,
-          pair.negative.fixture,
-          pair.negative.defect_evidence,
-        ),
-      );
-    }
-    for (const problem of problems) {
-      process.stdout.write(`${problem}\n`);
-      allPass = false;
-    }
-  }
-  return allPass;
+  return problems.length === 0;
 }
 
 /**

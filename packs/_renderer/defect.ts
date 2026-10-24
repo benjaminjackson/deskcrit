@@ -7,6 +7,12 @@
 // check them against the declaration. Nothing here touches the file system,
 // the network, or Playwright, so the unit tests run without a browser (CS-22).
 
+// css-properties.json lists every longhand property name that the pinned
+// Chromium reports, so a declaration can be checked with no browser. It says
+// how it was made; make it again when Playwright is upgraded.
+import cssProperties from "./css-properties.json" with { type: "json" };
+import type { RenderRecord } from "./jobs.js";
+
 /** The three things the renderer can measure on a fixture. */
 export type DefectMeasure = "font-size" | "contrast-ratio" | "edge-distance";
 
@@ -52,6 +58,12 @@ export type ElementSnapshot = {
   hasOwnText: boolean;
   /** Every computed style property of the element, by name. */
   styles: Record<string, string>;
+  /**
+   * The computed styles of the element's pseudo-elements, keyed by name such
+   * as "::before", so a defect drawn in a pseudo-element is compared too. A
+   * pseudo-element that draws nothing on this side is null.
+   */
+  pseudoStyles: Record<string, Record<string, string> | null>;
 };
 
 /** A whole rendered page, as render.ts reads it from the browser. */
@@ -67,6 +79,11 @@ export type PropertyDifference = {
   element: string;
   positive: string;
   negative: string;
+  /**
+   * True when the property follows currentColor and, on each side, its value
+   * equals that side's `color`. Only then does a declared `color` cover it.
+   */
+  follows_color?: boolean;
 };
 
 /** What rendered.json records for each fixture, so verify can check rules 2 and 3 with no browser. */
@@ -134,6 +151,78 @@ const DERIVED_PROPERTIES: Record<string, string> = {
   "-webkit-text-decorations-in-effect": "text-decoration-line",
 };
 
+/** The four physical sides and the four logical sides of a box. */
+const BOX_SIDES =
+  "(top|right|bottom|left|block-start|block-end|inline-start|inline-end)";
+
+/** The four physical corners and the four logical corners of a box. */
+const BOX_CORNERS =
+  "(top-left|top-right|bottom-left|bottom-right|start-start|start-end|end-start|end-end)";
+
+/**
+ * The shorthands a declaration may use, each with the longhand names it
+ * covers. Only these expand: any other declared name covers only itself, so
+ * a name such as "text" or "border-" cannot match many properties by accident.
+ */
+const SHORTHANDS: Record<string, RegExp> = {
+  margin: new RegExp(`^margin-${BOX_SIDES}$`),
+  padding: new RegExp(`^padding-${BOX_SIDES}$`),
+  inset: /^(top|right|bottom|left|inset-(block|inline)-(start|end))$/,
+  gap: /^(row-gap|column-gap)$/,
+  border: new RegExp(`^border-${BOX_SIDES}-(width|style|color)$`),
+  "border-top": /^border-(top|block-start)-(width|style|color)$/,
+  "border-right": /^border-(right|inline-end)-(width|style|color)$/,
+  "border-bottom": /^border-(bottom|block-end)-(width|style|color)$/,
+  "border-left": /^border-(left|inline-start)-(width|style|color)$/,
+  "border-width": new RegExp(`^border-${BOX_SIDES}-width$`),
+  "border-style": new RegExp(`^border-${BOX_SIDES}-style$`),
+  "border-color": new RegExp(`^border-${BOX_SIDES}-color$`),
+  "border-radius": new RegExp(`^border-${BOX_CORNERS}-radius$`),
+  "border-image": /^border-image-(source|slice|width|outset|repeat)$/,
+  background:
+    /^background-(color|image|position-x|position-y|size|repeat|attachment|origin|clip|blend-mode)$/,
+  font: /^(font-(family|size|style|weight|stretch|variant-.+|feature-settings|kerning|optical-sizing|size-adjust|variation-settings|palette|synthesis-.+)|line-height)$/,
+  "text-decoration":
+    /^(text-decoration-(line|style|color|thickness)|-webkit-text-decorations-in-effect)$/,
+  outline: /^outline-(color|style|width)$/,
+  "list-style": /^list-style-(type|position|image)$/,
+  flex: /^flex-(grow|shrink|basis)$/,
+  columns: /^column-(width|count)$/,
+  "column-rule": /^column-rule-(color|style|width)$/,
+};
+
+/**
+ * Properties that change how large or how pale text looks without changing
+ * its font-size or color. A declaration that measures font size or contrast
+ * ratio must not list them, because the measure would then miss part of the
+ * defect.
+ */
+const PROPERTIES_THAT_HIDE_SIZE_OR_CONTRAST = [
+  "opacity",
+  "filter",
+  "backdrop-filter",
+  "transform",
+  "scale",
+  "zoom",
+  "mix-blend-mode",
+];
+
+/** Says whether a name is a real CSS property: a longhand Chromium reports, a shorthand above, or a custom property. */
+export function isKnownCssProperty(name: string): boolean {
+  if (/^--[A-Za-z0-9_-]+$/.test(name)) {
+    return true;
+  }
+  if (SHORTHANDS[name] !== undefined) {
+    return true;
+  }
+  return CSS_LONGHAND_PROPERTIES.has(name);
+}
+
+/** The longhand names from css-properties.json, as a set. */
+const CSS_LONGHAND_PROPERTIES: ReadonlySet<string> = new Set(
+  cssProperties.names,
+);
+
 /** Returns the criterion id of a template id: "text-reads-faint--3" belongs to "text-reads-faint". */
 export function templateCriterionId(templateId: string): string {
   return templateId.replace(/--\d+$/, "");
@@ -185,6 +274,13 @@ export function parseDefectDeclaration(
       `${where}: properties must be a list of one or more CSS property names`,
     );
   }
+  for (const property of properties) {
+    if (!isKnownCssProperty(property)) {
+      throw new Error(
+        `${where}: "${property}" is not a CSS property name that Chromium reports, a custom property, or a known shorthand`,
+      );
+    }
+  }
   const range = record.range;
   if (range === null) {
     return { properties, range: null };
@@ -205,6 +301,15 @@ export function parseDefectDeclaration(
     throw new Error(
       `${where}: range.from and range.to must be numbers with from not above to`,
     );
+  }
+  if (measure === "font-size" || measure === "contrast-ratio") {
+    for (const property of properties) {
+      if (PROPERTIES_THAT_HIDE_SIZE_OR_CONTRAST.includes(property)) {
+        throw new Error(
+          `${where}: lists ${property}, which changes how large or how pale text looks without changing the ${measure} that verify measures; draw the defect with font-size or color instead`,
+        );
+      }
+    }
   }
   return { properties, range: { measure, from, to } };
 }
@@ -234,29 +339,160 @@ export function compareSnapshots(
     if (positiveElement === undefined || negativeElement === undefined) {
       continue;
     }
-    const propertyNames = new Set([
-      ...Object.keys(positiveElement.styles),
-      ...Object.keys(negativeElement.styles),
+    recordDifferences(
+      positiveElement.path,
+      positiveElement.styles,
+      negativeElement.styles,
+      firstDifferenceByProperty,
+    );
+    const pseudoNames = new Set([
+      ...Object.keys(positiveElement.pseudoStyles),
+      ...Object.keys(negativeElement.pseudoStyles),
     ]);
-    for (const property of propertyNames) {
-      if (firstDifferenceByProperty.has(property)) {
-        continue;
-      }
-      const positiveValue = positiveElement.styles[property] ?? "";
-      const negativeValue = negativeElement.styles[property] ?? "";
-      if (positiveValue !== negativeValue) {
-        firstDifferenceByProperty.set(property, {
-          property,
-          element: positiveElement.path,
-          positive: positiveValue,
-          negative: negativeValue,
-        });
-      }
+    for (const pseudoName of pseudoNames) {
+      comparePseudoElement(
+        `${positiveElement.path}${pseudoName}`,
+        pseudoName,
+        positiveElement.pseudoStyles[pseudoName] ?? null,
+        negativeElement.pseudoStyles[pseudoName] ?? null,
+        firstDifferenceByProperty,
+      );
     }
   }
   const differences = Array.from(firstDifferenceByProperty.values());
   differences.sort(compareByProperty);
   return { domShapesMatch: true, differences };
+}
+
+/**
+ * Properties whose getComputedStyle value on a pseudo-element is a used
+ * value worked out from the layout, so it changes whenever anything moves.
+ * They are not compared on pseudo-elements. Elements use computedStyleMap,
+ * which has no such values, so this list does not apply to them. Reconsider
+ * when a defect is drawn by sizing a pseudo-element; then measure it instead.
+ */
+const PSEUDO_LAYOUT_PROPERTIES = new Set([
+  "width",
+  "height",
+  "inline-size",
+  "block-size",
+  "transform-origin",
+  "perspective-origin",
+]);
+
+/**
+ * Compares one pseudo-element of an element on the two sides. When it draws
+ * on one side only, the difference is recorded under the property that
+ * decides whether it draws: `display` for ::marker (only a list item has one)
+ * and `content` for the others. When it draws on both sides, its styles are
+ * compared like an element's, without the layout properties above.
+ */
+function comparePseudoElement(
+  element: string,
+  pseudoName: string,
+  positiveStyles: Record<string, string> | null,
+  negativeStyles: Record<string, string> | null,
+  firstDifferenceByProperty: Map<string, PropertyDifference>,
+): void {
+  if (positiveStyles === null && negativeStyles === null) {
+    return;
+  }
+  if (positiveStyles === null || negativeStyles === null) {
+    const property = pseudoName === "::marker" ? "display" : "content";
+    if (!firstDifferenceByProperty.has(property)) {
+      firstDifferenceByProperty.set(property, {
+        property,
+        element,
+        positive: positiveStyles === null ? "not drawn" : "drawn",
+        negative: negativeStyles === null ? "not drawn" : "drawn",
+      });
+    }
+    return;
+  }
+  const positiveCompared: Record<string, string> = {};
+  const negativeCompared: Record<string, string> = {};
+  for (const [name, value] of Object.entries(positiveStyles)) {
+    if (!PSEUDO_LAYOUT_PROPERTIES.has(name)) {
+      positiveCompared[name] = value;
+    }
+  }
+  for (const [name, value] of Object.entries(negativeStyles)) {
+    if (!PSEUDO_LAYOUT_PROPERTIES.has(name)) {
+      negativeCompared[name] = value;
+    }
+  }
+  // getComputedStyle turns a unitless line-height such as 1.6 into pixels,
+  // so it changes whenever font-size does. When the two sides keep the same
+  // line-height to font-size ratio, the line-height itself did not change.
+  if (
+    lineHeightRatio(positiveStyles) !== null &&
+    lineHeightRatio(positiveStyles) === lineHeightRatio(negativeStyles)
+  ) {
+    delete positiveCompared["line-height"];
+    delete negativeCompared["line-height"];
+  }
+  recordDifferences(
+    element,
+    positiveCompared,
+    negativeCompared,
+    firstDifferenceByProperty,
+  );
+}
+
+/** Returns line-height divided by font-size, to three decimals, or null when either is not in pixels. */
+function lineHeightRatio(styles: Record<string, string>): number | null {
+  const lineHeight = styles["line-height"] ?? "";
+  const fontSize = styles["font-size"] ?? "";
+  if (!lineHeight.endsWith("px") || !fontSize.endsWith("px")) {
+    return null;
+  }
+  const ratio = Number.parseFloat(lineHeight) / Number.parseFloat(fontSize);
+  return Math.round(ratio * 1000) / 1000;
+}
+
+/**
+ * Adds each property that differs between two style lists to the map, once
+ * per property. For a property that follows currentColor, a difference that
+ * does not follow `color` replaces one that does, so the one that matters for
+ * verify is the one kept.
+ */
+function recordDifferences(
+  element: string,
+  positiveStyles: Record<string, string>,
+  negativeStyles: Record<string, string>,
+  firstDifferenceByProperty: Map<string, PropertyDifference>,
+): void {
+  const propertyNames = new Set([
+    ...Object.keys(positiveStyles),
+    ...Object.keys(negativeStyles),
+  ]);
+  for (const property of propertyNames) {
+    const positiveValue = positiveStyles[property] ?? "";
+    const negativeValue = negativeStyles[property] ?? "";
+    if (positiveValue === negativeValue) {
+      continue;
+    }
+    const difference: PropertyDifference = {
+      property,
+      element,
+      positive: positiveValue,
+      negative: negativeValue,
+    };
+    if (CURRENT_COLOR_PROPERTIES.has(property)) {
+      difference.follows_color =
+        positiveValue === (positiveStyles.color ?? "") &&
+        negativeValue === (negativeStyles.color ?? "");
+    }
+    const recorded = firstDifferenceByProperty.get(property);
+    if (recorded === undefined) {
+      firstDifferenceByProperty.set(property, difference);
+    } else if (
+      recorded.follows_color === true &&
+      difference.follows_color === false
+    ) {
+      firstDifferenceByProperty.set(property, difference);
+    }
+  }
 }
 
 /** Orders differences by property name, by UTF-16 code units, so the order never depends on the locale (CS-18). */
@@ -499,17 +735,19 @@ export function buildPairEvidence(
 
 /**
  * Says whether a property that differs is covered by a declaration. A declared
- * name covers itself, any longer name that starts with it and a hyphen
- * ("margin" covers "margin-left"), the logical name of the same side
- * ("margin-left" covers "margin-inline-start"), and, for `color`, the
- * properties that follow currentColor, and the properties Chromium derives
- * from another one, such as -webkit-text-decorations-in-effect from
- * text-decoration-line.
+ * name covers itself and the logical name of the same side ("margin-left"
+ * covers "margin-inline-start"). A shorthand in SHORTHANDS covers its
+ * longhands ("margin" covers "margin-left"). A declared `color` covers a
+ * property that follows currentColor only where that property's value equals
+ * `color` on both sides. A property Chromium derives from another one, such as
+ * -webkit-text-decorations-in-effect from text-decoration-line, is covered by
+ * that other one.
  */
 export function isPropertyDeclared(
-  property: string,
+  difference: Pick<PropertyDifference, "property" | "follows_color">,
   declaredProperties: string[],
 ): boolean {
+  const property = difference.property;
   let physicalName = property;
   for (const [logicalSide, physicalSide] of LOGICAL_SIDES) {
     physicalName = physicalName.replace(logicalSide, physicalSide);
@@ -520,12 +758,21 @@ export function isPropertyDeclared(
     candidates.push(sourceProperty);
   }
   for (const declared of declaredProperties) {
+    const shorthandPattern = SHORTHANDS[declared];
     for (const candidate of candidates) {
-      if (candidate === declared || candidate.startsWith(`${declared}-`)) {
+      if (candidate === declared) {
+        return true;
+      }
+      // ?.test is skipped, and the result is undefined, when the name is not a shorthand.
+      if (shorthandPattern?.test(candidate) === true) {
         return true;
       }
     }
-    if (declared === "color" && CURRENT_COLOR_PROPERTIES.has(property)) {
+    if (
+      declared === "color" &&
+      CURRENT_COLOR_PROPERTIES.has(property) &&
+      difference.follows_color === true
+    ) {
       return true;
     }
   }
@@ -558,7 +805,7 @@ export function findDeclarationProblems(
     return problems;
   }
   for (const difference of positive.differing_properties) {
-    if (!isPropertyDeclared(difference.property, declaration.properties)) {
+    if (!isPropertyDeclared(difference, declaration.properties)) {
       problems.push(
         `${positiveFixture} and ${negativeFixture} differ in ${difference.property}, which the declaration does not list: ${difference.element} is "${difference.positive}" on and "${difference.negative}" off (FR-54 rule 3)`,
       );
@@ -689,4 +936,68 @@ export function describeRangeMismatch(
     return null;
   }
   return `${criterionId}: GUIDELINES.md says ${guidelineText}, but its .defect.json says ${declaredText}`;
+}
+
+/**
+ * Checks every pair in a pack's rendered.json against its criterion's
+ * declaration and returns every problem, or an empty list. It names a pair
+ * with a side missing, a criterion with no declaration, and records with no
+ * defect evidence. readDeclaration returns null when the criterion has no
+ * .defect.json. render.ts verify and the durable test in evals/ both use it
+ * (FR-54 rules 2 and 3).
+ */
+export function findPackDeclarationProblems(
+  packFolder: string,
+  records: RenderRecord[],
+  readDeclaration: (criterionId: string) => DefectDeclaration | null,
+): string[] {
+  const recordsByTemplate = new Map<
+    string,
+    { positive?: RenderRecord; negative?: RenderRecord }
+  >();
+  for (const record of records) {
+    const pair = recordsByTemplate.get(record.template) ?? {};
+    if (record.defect === "on") {
+      pair.positive = record;
+    } else {
+      pair.negative = record;
+    }
+    recordsByTemplate.set(record.template, pair);
+  }
+  const problems: string[] = [];
+  for (const [templatePath, pair] of recordsByTemplate) {
+    const templateId = templatePath.slice(
+      templatePath.lastIndexOf("/") + 1,
+      -".html".length,
+    );
+    const criterionId = templateCriterionId(templateId);
+    const declaration = readDeclaration(criterionId);
+    if (pair.positive === undefined || pair.negative === undefined) {
+      problems.push(
+        `${templatePath}: rendered.json does not hold both a positive and a negative fixture`,
+      );
+    } else if (declaration === null) {
+      problems.push(
+        `${templatePath}: ${declarationPathFor(packFolder, criterionId)} is missing (FR-54 rule 2)`,
+      );
+    } else if (
+      pair.positive.defect_evidence === undefined ||
+      pair.negative.defect_evidence === undefined
+    ) {
+      problems.push(
+        `${templatePath}: rendered.json has no defect evidence; render the pack again (FR-54 rules 2 and 3)`,
+      );
+    } else {
+      problems.push(
+        ...findDeclarationProblems(
+          declaration,
+          pair.positive.fixture,
+          pair.positive.defect_evidence,
+          pair.negative.fixture,
+          pair.negative.defect_evidence,
+        ),
+      );
+    }
+  }
+  return problems;
 }

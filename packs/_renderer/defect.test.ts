@@ -6,6 +6,7 @@ import {
   describeRangeMismatch,
   type ElementSnapshot,
   findDeclarationProblems,
+  findPackDeclarationProblems,
   isPropertyDeclared,
   type PageSnapshot,
   parseCssColour,
@@ -13,6 +14,7 @@ import {
   parseGuidelineRanges,
   templateCriterionId,
 } from "./defect.js";
+import type { RenderRecord } from "./jobs.js";
 
 /** Builds a page of <html>, <body>, and one <p> with text, with the given styles on the <p>. */
 function pageWithParagraph(
@@ -26,6 +28,7 @@ function pageWithParagraph(
       isSvg: false,
       hasOwnText: false,
       styles: { "background-color": "rgba(0, 0, 0, 0)" },
+      pseudoStyles: {},
     },
     {
       path: "html/body[1]",
@@ -33,6 +36,7 @@ function pageWithParagraph(
       isSvg: false,
       hasOwnText: false,
       styles: { "background-color": "rgb(255, 255, 255)" },
+      pseudoStyles: {},
     },
     {
       path: "html/body[1]/p[0]",
@@ -45,6 +49,7 @@ function pageWithParagraph(
         "text-align": "start",
         ...paragraphStyles,
       },
+      pseudoStyles: {},
     },
   ];
   return { elements, textEdgeDistance };
@@ -127,6 +132,7 @@ test("fails a pair whose two sides have different elements", () => {
     isSvg: false,
     hasOwnText: true,
     styles: {},
+    pseudoStyles: {},
   });
   const problems = problemsFor(FAINT_TEXT, positive, negative);
   expect(problems).toHaveLength(1);
@@ -188,21 +194,143 @@ test("paints a see-through background over its ancestors before measuring contra
 });
 
 test("counts derived and logical property names as part of a declared property", () => {
-  expect(isPropertyDeclared("margin-inline-start", ["margin-left"])).toBe(true);
-  expect(isPropertyDeclared("margin-left", ["margin"])).toBe(true);
-  expect(isPropertyDeclared("inline-size", ["width"])).toBe(true);
+  const covers = (property: string, declared: string[]): boolean =>
+    isPropertyDeclared({ property }, declared);
+  expect(covers("margin-inline-start", ["margin-left"])).toBe(true);
+  expect(covers("margin-left", ["margin"])).toBe(true);
+  expect(covers("inline-size", ["width"])).toBe(true);
+  expect(covers("border-start-start-radius", ["border-top-left-radius"])).toBe(
+    true,
+  );
+  expect(covers("border-top-left-radius", ["border-radius"])).toBe(true);
+  expect(covers("border-left-color", ["border-color"])).toBe(true);
   expect(
-    isPropertyDeclared("border-start-start-radius", ["border-top-left-radius"]),
+    covers("-webkit-text-decorations-in-effect", ["text-decoration"]),
   ).toBe(true);
-  expect(isPropertyDeclared("border-top-color", ["color"])).toBe(true);
+  expect(covers("font-size", ["font"])).toBe(true);
+  expect(covers("line-height", ["font"])).toBe(true);
+  expect(covers("font-size", ["color"])).toBe(false);
+  expect(covers("width", ["color"])).toBe(false);
+});
+
+test("expands only the fixed shorthands, so a longhand name covers no other property", () => {
+  const covers = (property: string, declared: string[]): boolean =>
+    isPropertyDeclared({ property }, declared);
+  expect(covers("text-decoration-color", ["text-decoration-line"])).toBe(false);
+  expect(covers("font-size-adjust", ["font-size"])).toBe(false);
+  expect(covers("border-top-color", ["border-top-width"])).toBe(false);
+  expect(covers("background-color", ["margin"])).toBe(false);
+});
+
+test("lets a currentColor property through a declared color only where it equals color", () => {
   expect(
-    isPropertyDeclared("-webkit-text-decorations-in-effect", [
-      "text-decoration",
+    isPropertyDeclared({ property: "border-top-color", follows_color: true }, [
+      "color",
     ]),
   ).toBe(true);
-  expect(isPropertyDeclared("font-size", ["font"])).toBe(true);
-  expect(isPropertyDeclared("font-size", ["color"])).toBe(false);
-  expect(isPropertyDeclared("width", ["color"])).toBe(false);
+  expect(
+    isPropertyDeclared({ property: "border-top-color", follows_color: false }, [
+      "color",
+    ]),
+  ).toBe(false);
+});
+
+test("fails a border colour set on its own when only color is declared", () => {
+  const problems = problemsFor(
+    FAINT_TEXT,
+    pageWithParagraph({
+      color: "rgb(156, 163, 175)",
+      "border-top-color": "rgb(255, 0, 0)",
+    }),
+    pageWithParagraph({ "border-top-color": "rgb(17, 17, 17)" }),
+  );
+  expect(problems.join("\n")).toContain("differ in border-top-color");
+});
+
+test("passes a border colour that only follows color when color is declared", () => {
+  const problems = problemsFor(
+    FAINT_TEXT,
+    pageWithParagraph({
+      color: "rgb(156, 163, 175)",
+      "border-top-color": "rgb(156, 163, 175)",
+    }),
+    pageWithParagraph({ "border-top-color": "rgb(17, 17, 17)" }),
+  );
+  expect(problems).toEqual([]);
+});
+
+test("fails a defect drawn only in a pseudo-element that the declaration does not list", () => {
+  const positive = pageWithParagraph({ color: "rgb(156, 163, 175)" });
+  const negative = pageWithParagraph({});
+  const positiveParagraph = positive.elements[2];
+  const negativeParagraph = negative.elements[2];
+  if (positiveParagraph === undefined || negativeParagraph === undefined) {
+    throw new Error("the test page has no paragraph");
+  }
+  positiveParagraph.pseudoStyles["::first-line"] = {
+    color: "rgb(156, 163, 175)",
+    opacity: "0.4",
+  };
+  negativeParagraph.pseudoStyles["::first-line"] = {
+    color: "rgb(17, 17, 17)",
+    opacity: "1",
+  };
+  const problems = problemsFor(FAINT_TEXT, positive, negative);
+  expect(problems).toHaveLength(1);
+  expect(problems[0]).toContain(
+    'differ in opacity, which the declaration does not list: html/body[1]/p[0]::first-line is "0.4" on and "1" off',
+  );
+});
+
+test("fails a ::before drawn on one side only unless content is declared", () => {
+  const positive = pageWithParagraph({ color: "rgb(156, 163, 175)" });
+  const negative = pageWithParagraph({});
+  const positiveParagraph = positive.elements[2];
+  const negativeParagraph = negative.elements[2];
+  if (positiveParagraph === undefined || negativeParagraph === undefined) {
+    throw new Error("the test page has no paragraph");
+  }
+  positiveParagraph.pseudoStyles["::before"] = {
+    content: '""',
+    "background-color": "rgb(255, 0, 0)",
+  };
+  negativeParagraph.pseudoStyles["::before"] = null;
+  const problems = problemsFor(FAINT_TEXT, positive, negative);
+  expect(problems).toHaveLength(1);
+  expect(problems[0]).toContain(
+    'differ in content, which the declaration does not list: html/body[1]/p[0]::before is "drawn" on and "not drawn" off',
+  );
+  expect(
+    problemsFor(
+      { properties: ["color", "content"], range: FAINT_TEXT.range },
+      positive,
+      negative,
+    ),
+  ).toEqual([]);
+});
+
+test("ignores a pseudo-element line-height that only follows its font size", () => {
+  const positive = pageWithParagraph({ "font-size": "22px" });
+  const negative = pageWithParagraph({});
+  const positiveParagraph = positive.elements[2];
+  const negativeParagraph = negative.elements[2];
+  if (positiveParagraph === undefined || negativeParagraph === undefined) {
+    throw new Error("the test page has no paragraph");
+  }
+  positiveParagraph.pseudoStyles["::first-line"] = {
+    "font-size": "22px",
+    "line-height": "35.2px",
+  };
+  negativeParagraph.pseudoStyles["::first-line"] = {
+    "font-size": "20px",
+    "line-height": "32px",
+  };
+  const problems = problemsFor(
+    { properties: ["font-size"], range: null },
+    positive,
+    negative,
+  );
+  expect(problems).toEqual([]);
 });
 
 test("computes the WCAG contrast ratio of known colour pairs", () => {
@@ -301,4 +429,110 @@ test("says how a GUIDELINES.md range and a declared range differ", () => {
   ).toBe(
     "text-reads-faint: GUIDELINES.md says contrast-ratio 2.5 to 4.4, but its .defect.json says contrast-ratio 1.5 to 4.4",
   );
+});
+
+test("refuses a declared name that is not a CSS property", () => {
+  for (const name of ["text", "", "border-", "colour"]) {
+    expect(() =>
+      parseDefectDeclaration(
+        JSON.stringify({ properties: [name], range: null }),
+        "a.defect.json",
+      ),
+    ).toThrow("is not a CSS property name");
+  }
+  expect(
+    parseDefectDeclaration(
+      JSON.stringify({
+        properties: ["margin", "border-radius", "--color-text", "text-align"],
+        range: null,
+      }),
+      "a.defect.json",
+    ).properties,
+  ).toHaveLength(4);
+});
+
+test("refuses opacity, filter, transform, zoom, or mix-blend-mode with a font size or contrast range", () => {
+  for (const name of [
+    "opacity",
+    "filter",
+    "transform",
+    "zoom",
+    "mix-blend-mode",
+  ]) {
+    expect(() =>
+      parseDefectDeclaration(
+        JSON.stringify({
+          properties: ["color", name],
+          range: { measure: "contrast-ratio", from: 2.5, to: 4.4 },
+        }),
+        "a.defect.json",
+      ),
+    ).toThrow(`lists ${name}, which changes how large or how pale text looks`);
+  }
+  expect(() =>
+    parseDefectDeclaration(
+      JSON.stringify({
+        properties: ["font-size", "transform"],
+        range: { measure: "font-size", from: 11, to: 14 },
+      }),
+      "a.defect.json",
+    ),
+  ).toThrow("lists transform");
+  expect(
+    parseDefectDeclaration(
+      JSON.stringify({
+        properties: ["margin", "transform"],
+        range: { measure: "edge-distance", from: 0, to: 8 },
+      }),
+      "a.defect.json",
+    ).range?.measure,
+  ).toBe("edge-distance");
+});
+
+/** Builds one rendered.json record for findPackDeclarationProblems. */
+function renderRecord(
+  template: string,
+  defect: "on" | "off",
+  evidence: RenderRecord["defect_evidence"],
+): RenderRecord {
+  const side = defect === "on" ? "positive" : "negative";
+  const fixture = `${template.slice(template.lastIndexOf("/") + 1, -".html".length)}.${side}.png`;
+  return {
+    fixture,
+    template,
+    defect,
+    png_sha256: "0",
+    source_sha256: {},
+    viewport: { width: 1280, height: 800 },
+    device_scale_factor: 1,
+    browser_version: "test",
+    defect_evidence: evidence,
+  };
+}
+
+test("names a criterion with no .defect.json and a pair with no defect evidence", () => {
+  const evidence = buildPairEvidence(
+    pageWithParagraph({ color: "rgb(156, 163, 175)" }),
+    pageWithParagraph({}),
+  );
+  const records = [
+    renderRecord("pack/templates/faint.html", "on", evidence.positive),
+    renderRecord("pack/templates/faint.html", "off", evidence.negative),
+    renderRecord("pack/templates/faint--2.html", "on", undefined),
+    renderRecord("pack/templates/faint--2.html", "off", undefined),
+    renderRecord("pack/templates/undeclared.html", "on", evidence.positive),
+    renderRecord("pack/templates/undeclared.html", "off", evidence.negative),
+    renderRecord("pack/templates/lonely.html", "on", evidence.positive),
+  ];
+  const problems = findPackDeclarationProblems(
+    "pack",
+    records,
+    (criterionId) =>
+      criterionId === "faint" || criterionId === "lonely" ? FAINT_TEXT : null,
+  );
+  expect(problems).toEqual([
+    "pack/templates/faint--2.html: rendered.json has no defect evidence; render the pack again (FR-54 rules 2 and 3)",
+    "pack/templates/undeclared.html: pack/templates/undeclared.defect.json is missing (FR-54 rule 2)",
+    "pack/templates/lonely.html: rendered.json does not hold both a positive and a negative fixture",
+  ]);
 });
