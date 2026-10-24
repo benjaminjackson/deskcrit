@@ -27,7 +27,7 @@
     "lint": "biome check --error-on-warnings",
     "pretest": "npm run build",
     "test": "vitest run",
-    "test:live": "npm run test:live:packs && node evals/agreement/run-agreement.ts --live",
+    "test:live": "npm run test:live:packs; packs_code=$?; node evals/agreement/run-agreement.ts --live; agreement_code=$?; if [ $packs_code -gt $agreement_code ]; then exit $packs_code; fi; exit $agreement_code",
     "test:live:packs": "node evals/packs-test/run-live.ts",
     "eval:agreement": "node evals/agreement/run-agreement.ts",
     "eval:wobble": "node evals/wobble/run-wobble.ts",

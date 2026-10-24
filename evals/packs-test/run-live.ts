@@ -12,33 +12,40 @@ import { runCritBundle } from "../support/run-crit-bundle.ts";
 /** This folder, the working directory of every run, so crit reads its .crit.yaml and pinned model. */
 const PACKS_TEST_FOLDER = fileURLToPath(new URL(".", import.meta.url));
 
-/** One live case: the pack, the exit code it must give, and the lines stdout must hold. */
+/**
+ * One live case: the pack, the exit code it must give, and the lines stdout must hold. Each entry
+ * of `stdoutLines` lists the lines that are accepted for it, and stdout must hold at least one.
+ */
 type LiveCase = {
   readonly packDirectory: string;
   readonly exitCode: number;
-  readonly stdoutLines: readonly string[];
+  readonly stdoutLines: readonly (readonly string[])[];
 };
 
 const liveCases: readonly LiveCase[] = [
   {
     packDirectory: join("packs", "all-agree"),
     exitCode: 0,
-    stdoutLines: ["all-agree: 2 agreed, 0 disagreed"],
+    stdoutLines: [["all-agree: 2 agreed, 0 disagreed"]],
   },
   {
     packDirectory: join("packs", "positive-disagrees"),
     exitCode: 1,
     stdoutLines: [
-      "solid-red positive fixtures/white.png: pass",
-      "positive-disagrees: 1 agreed, 1 disagreed",
+      // Uncertain on a positive fixture is a disagreement too (FR-50), so both verdicts are accepted.
+      [
+        "solid-red positive fixtures/white.png: pass",
+        "solid-red positive fixtures/white.png: uncertain",
+      ],
+      ["positive-disagrees: 1 agreed, 1 disagreed"],
     ],
   },
   {
     packDirectory: join("packs", "negative-disagrees"),
     exitCode: 1,
     stdoutLines: [
-      "solid-red negative fixtures/dark-red.png: fail",
-      "negative-disagrees: 1 agreed, 1 disagreed",
+      ["solid-red negative fixtures/dark-red.png: fail"],
+      ["negative-disagrees: 1 agreed, 1 disagreed"],
     ],
   },
 ];
@@ -63,9 +70,15 @@ async function runLiveCases(apiKey: string): Promise<number> {
     if (run.exitCode !== liveCase.exitCode) {
       problems.push(`exit code ${run.exitCode}, expected ${liveCase.exitCode}`);
     }
-    for (const line of liveCase.stdoutLines) {
-      if (!run.stdout.includes(line)) {
-        problems.push(`stdout does not hold "${line}"`);
+    for (const acceptedLines of liveCase.stdoutLines) {
+      let found = false;
+      for (const line of acceptedLines) {
+        if (run.stdout.includes(line)) {
+          found = true;
+        }
+      }
+      if (!found) {
+        problems.push(`stdout does not hold "${acceptedLines.join('" or "')}"`);
       }
     }
     process.stdout.write(`== ${liveCase.packDirectory}\n${run.stdout}`);
