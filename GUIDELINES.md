@@ -6,7 +6,7 @@ Each guideline has four parts. **Rule** is the testable form a reviewer would ap
 
 Scope: the design, not the writing. There is no content design section: reading level, sentence length, tone, and terminology belong to a content linter, so that research was dropped. Nielsen's heuristics are kept whole, including the ones that touch wording, because those are usability judgments about the screen rather than prose rules. `deskcrit` does no measurement of its own: it prepares the image, asks the questions, and reads the answers. Rules that are pure formulas, need the DOM, or need a running app are not in this catalog. An entry marked **Not encoded (NG-10)** stays in the catalog as research, but no pack encodes it, because it reads what the content says, needs detail too fine to see, or cannot be judged from one image (PRD NG-10). The mark says which.
 
-Every source was checked against the web in a second pass. A source that could not be confirmed is marked `UNVERIFIED:` in place. Rules that the research flagged as folk wisdom (rule of thirds, golden ratio, Z-pattern) are labelled in their own entries and should carry low weight.
+A source that could not be confirmed against its book, standard, or paper is marked `UNVERIFIED:` in place. The rule of thirds and the golden ratio are folk wisdom, not tested findings, so their entries say so and they carry low weight.
 
 ---
 
@@ -190,7 +190,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 ### White space is gathered, not scattered
 - **Rule:** Ruder holds that the printed and the unprinted areas must stand in tension, and that the tension comes from contrast. Considered work gathers empty space into a few large, shaped areas set against dense ones. Average work spreads the same small gap between everything, so no space does any work, and it runs content up to the edges of the page.
 - **Source:** Ruder, *Typography: A Manual of Design* (1967), chapters "Contrasts" and "Form and counter-form"; Kunz, *Typography: Macro- and Microaesthetics* (1998), part two, on space and on form and counterform.
-- **Judged by:** askable, as two criteria. First question: "Is the empty space spread as equal small gaps between every element, with no larger open area anywhere on the page?" Second question: "Does any text or box touch the edge of the page or sit within a few pixels of it?" In the wording test the second question moved a clear positive from 0.15 to 0.74.
+- **Judged by:** askable. Question: "Is the empty space spread as equal small gaps between every element, with no larger open area anywhere on the page?" Content that runs up to the edge of the page is a basics check, under "Content keeps clear of the page edge".
 
 ### Figure and ground are unambiguous
 - **Rule:** Text and key shapes separate clearly from what lies behind them. Text on a photo or texture needs a calm area, a panel, or a scrim behind it.
@@ -234,6 +234,51 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Source:** UNVERIFIED: no section on optical correction was found. Kunz, *Typography: Macro- and Microaesthetics*, part one, on the microaesthetic qualities of letters and signs.
 - **Judged by:** not encoded.
 - **Not encoded (NG-10):** optical offsets are a pixel or two, too fine to see.
+
+
+---
+
+## Basics: checks for common mistakes
+
+These checks catch plain mistakes that coding agents often make. They are kept in a separate "basics" pack, so that a caller who wants only the high bar of the typography and layout packs can switch them off. In EV-4, Jev judged these checks most reliably (0.87 to 0.99), because each one asks about a plain visible feature. The questions follow the same two rules as the typography and layout sections: yes means the defect is there, and the question names a feature that can be seen.
+
+### Body text is not too small to read
+- **Rule:** Paragraph text is set at a reading size. Lupton gives 9 to 11 pt as the common range for printed text. No WCAG success criterion sets a minimum text size, and the reading list gives no figure for screens, so the figure is not checked.
+- **Source:** Lupton, *Thinking with Type* (2nd ed. 2010), "Letter" chapter, "Size".
+- **Judged by:** askable. Question: "Is the paragraph text so small that its letters cannot be told apart at the size of the image?"
+
+### Paragraphs are not set in a decorative face
+- **Rule:** Paragraphs are set in a face made for reading. Script, blackletter, and other decorative faces are for a few words of display.
+- **Source:** Bringhurst, *The Elements of Typographic Style* (1992), chapter 6 "Choosing and combining type", section 6.2.1 (choose faces that suit the task).
+- **Judged by:** askable. Question: "Are paragraphs of text set in a script, blackletter, or other decorative typeface?"
+
+### Text does not read as faint
+- **Rule:** Text has a contrast ratio of at least 4.5:1 against its background, or 3:1 for large text. The ratio is not checked; Jev is asked only whether text looks pale against its background.
+- **Source:** W3C, *WCAG 2.2*, SC 1.4.3 Contrast (Minimum).
+- **Link:** https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
+- **Judged by:** askable as a visual judgment. Question: "Is there text that is pale against its background, such as light grey text on white?"
+
+### Paragraphs are not centred or right-aligned
+- **Rule:** Paragraphs of several lines are set flush left. Centring is for a few short lines. Tschichold rejects central-axis setting as rigid, and Bringhurst treats flush-left, ragged-right setting as the default for text.
+- **Source:** Tschichold, *The New Typography* (1928), chapter "The principles of the new typography"; Bringhurst, *The Elements of Typographic Style*, section 2.1.3 "Set ragged if ragged setting suits the text and the page".
+- **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
+- **Judged by:** askable. Question: "Is a paragraph of four or more lines centred or right-aligned?"
+
+### Content keeps clear of the page edge
+- **Rule:** Text and boxes sit inside the type area, with a margin between them and the edge of the page.
+- **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981), sections "Margin proportions" and "Construction of the type area".
+- **Judged by:** askable. Question: "Does any text or box touch the edge of the page or sit within a few pixels of it?" In the wording test of 2026-10-24 this question moved a clear positive from 0.15 to 0.74.
+
+### Basics checks dropped for lack of a source
+These checks were in the earlier catalog, but no book on the reading list and no WCAG criterion holds them, so no pack encodes them:
+- Captions and labels too small: no source on the list or in WCAG gives a minimum size for secondary text.
+- Long text in all capitals: the earlier sources were Butterick and a general Bringhurst section, and no book on the list was found to say it.
+- Wall of text: the only source was Nielsen, and Lupton shows unbroken text blocks as good practice.
+- Boxed regions that split or join groups: the only sources were Palmer and Nielsen Norman Group.
+- One block that mixes alignments: the only source was a book that this catalog no longer cites.
+- Secondary items styled as strongly as the primary one: the only sources were *Refactoring UI* and Material Design.
+- Cramped and sparse regions side by side: the only sources were Vignelli and Material Design, and Ruder asks for exactly that contrast of dense and open.
+- Z-pattern: folk wisdom, with Edmund Arnold as the only source.
 
 
 ---
@@ -472,7 +517,7 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Source:** WCAG 2.2 SC 2.5.8 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to hit. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show. The layout entry on touch and click targets has the same mark.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show.
 
 ### Focus visible
 - **Rule:** Every keyboard-focusable element shows a visible focus indicator when focused. Removing the outline with `outline: none` and not replacing it fails.
@@ -553,14 +598,14 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Source:** Apple, *Human Interface Guidelines: Accessibility* (Buttons, Layout and 'Hit targets')
 - **Link:** https://developer.apple.com/design/human-interface-guidelines/accessibility
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show. The layout entry on touch and click targets has the same mark.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show.
 
 ### Material touch target size
 - **Rule:** Touch targets are at least 48 by 48 dp, with at least 8 dp between targets. A visual icon can be smaller if the tap area is 48 dp.
 - **Source:** Google, *Android Accessibility Help: Touch target size* (48x48 dp, 8 dp spacing; the Material 3 structure page is JavaScript-rendered and could not be read)
 - **Link:** https://support.google.com/accessibility/android/answer/7101858?hl=en
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show. The layout entry on touch and click targets has the same mark.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show.
 
 ### Dyslexia-friendly typography
 - **Rule:** Use a common sans-serif such as Arial, Verdana, or Calibri at 12 to 14 pt (about 16 to 19 px) or larger. Left-align text with no justification. Avoid italics, underline, and all caps for running text. Use wide letter and word spacing.
@@ -852,7 +897,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** Apple HIG, "Layout"; Material Design, "Accessibility: touch targets"; W3C, *WCAG 2.2* SC 2.5.8 (2023).
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show. The layout entry on touch and click targets has the same mark.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show.
 
 ### Mobile thumb zones
 - **Rule:** On phone-sized layouts, the frequent actions sit in the lower, easy-reach area of the screen (bottom nav, bottom primary button) and not in the top corners. Destructive or rare actions go in hard-to-reach areas.
@@ -1113,7 +1158,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** John Thomas Smith, *Remarks on Rural Scenery* (1797); Michael Freeman, *The Photographer's Eye* (2007).
 - **Link:** https://archive.org/details/bim_eighteenth-century_remarks-on-rural-scenery_smith-john-thomas_1797
 - **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because whether a subject's place in the frame is arbitrary or chosen is not a visible defect, and the layout entry on the rule of thirds says absence is not a defect.
+- **Not encoded (NG-10):** breaks NG-10 because whether a subject's place in the frame is arbitrary or chosen is not a visible defect, and a centred subject is not a defect either.
 
 ### Golden ratio and proportional division (use sparingly)
 - **Rule:** Major divisions of the frame follow a consistent proportional logic (golden section, root rectangles, simple ratios) rather than arbitrary splits. This is a soft guide, not a requirement.
