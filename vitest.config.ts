@@ -12,6 +12,7 @@ export default defineConfig({
       "packs/_renderer/*.test.ts",
       "evals/*.test.ts",
       "evals/agreement/*.test.ts",
+      "evals/wobble/*.test.ts",
     ],
   },
 });
