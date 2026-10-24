@@ -628,6 +628,20 @@ describe("checkPack", () => {
   });
 });
 
+describe("OQ-24 (d): requires paths start with facts.", () => {
+  it("loads a requires path that starts with facts.", () => {
+    const yamlText = `${packHeader + noulCriterion}    requires: [facts.viewport_width]\n`;
+    expect(checkPack(yamlText).ok).toBe(true);
+  });
+
+  it("rejects a requires path that does not start with facts., naming the criterion and the field", () => {
+    const yamlText = `${packHeader + noulCriterion}    requires: [viewport_width]\n`;
+    expect(readPlaces(yamlText)).toEqual([
+      { criterion: "faint-body-text", field: "requires.0" },
+    ]);
+  });
+});
+
 describe("loadPack", () => {
   it("returns the pack when it is valid", () => {
     const pack = loadPack(packHeader + noulCriterion, "packs/test-pack");

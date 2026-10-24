@@ -200,17 +200,22 @@ describe("FR-13, US-7: requires skips", () => {
     expect(result.skipped).toHaveLength(5);
   });
 
-  it("throws CouldNotRunError that names the pack, criterion, and path when a requires path does not start with facts.", () => {
+  it("throws a plain Error that names the pack, criterion, and path when a requires path does not start with facts.", () => {
     const broken = [
       makePack("layout", [
         makeNoulCriterion("reflow", { requires: ["viewport_width"] }),
       ]),
     ];
     for (const facts of [undefined, { viewport_width: 320 }]) {
-      expect(() => buildQuestions(makeInput(broken, { facts }))).toThrow(
-        CouldNotRunError,
-      );
-      expect(() => buildQuestions(makeInput(broken, { facts }))).toThrow(
+      let caught: unknown;
+      try {
+        buildQuestions(makeInput(broken, { facts }));
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(Error);
+      expect(caught).not.toBeInstanceOf(CouldNotRunError);
+      expect((caught as Error).message).toBe(
         "pack layout, criterion reflow: the requires path viewport_width does not start with facts.",
       );
     }
