@@ -178,11 +178,13 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Rule:** An image takes its width from the columns and its top and bottom from the lines of text, so pictures and text share the same edges.
 - **Source:** Müller-Brockmann, *Grid Systems in Graphic Design*, sections "Construction of the grid" and "The photograph in the grid system".
 - **Judged by:** askable. Question: "Does an image beside a column of text start or end at a different height from that column's first or last line?" An offset of a few pixels will likely be missed.
+- **Not encoded (R-4):** left out of the layout pack because Jev did not reach the EV-4 floor on it.
 
 ### Break the grid decisively or not at all
 - **Rule:** An element that leaves the grid does so by a clear amount, so that the break reads as a choice. An element that is almost aligned reads as an error: Arnheim shows that a placement which is neither clearly here nor clearly there makes the eye waver and the whole look unfinished.
 - **Source:** Arnheim, *Art and Visual Perception*, chapter I "Balance" (ambiguous placements and small differences); Samara, *Making and Breaking the Grid*, part "Breaking the Grid". UNVERIFIED: the point that a break must read as deliberate was not found in Samara's text.
 - **Judged by:** askable. Question: "Is there an element that sits slightly out of line with the elements above or below it, as if it were meant to line up but missed?" In the wording test an 8 px offset between card tops scored only 0.45 whatever the wording, so offsets of a few pixels are likely below what Jev sees.
+- **Not encoded (R-4):** left out of the layout pack because Jev did not reach the EV-4 floor on it.
 
 ### Space shows the groups
 - **Rule:** The gap between items in one group is clearly smaller than the gap between groups, and a label sits nearer its own field than the one before it. Equal gaps everywhere erase the groups.
@@ -190,6 +192,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Link:** https://www.gestalttheory.net/download/Wertheimer1923_Lehre_von_der_Gestalt.pdf
 - **Judged by:** not encoded. Two criteria were tried; the first question was: "Does a run of content that holds several groups, such as sections under their own headings, flow on with no break in the spacing, so that the eye cannot tell where one group ends and the next begins?"
 - **Not encoded (R-4):** `groups-not-separated` was removed under R-4: 4 of 5 positives quiet after two rewordings, 2026-10-24.
+- **Not encoded (R-4):** the second criterion, a label as close to the field above as to its own, was left out of the layout pack because Jev did not reach the EV-4 floor on it.
 
 ### Unrelated elements do not crowd each other
 - **Rule:** Elements that do not belong together keep clear space between them. A caption or paragraph below a diagram has a visible gap above it, not a few pixels.
@@ -244,7 +247,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 ### No rules, boxes, or ornament where space would do
 - **Rule:** Lines, borders, and decoration that carry no information compete with the content. Tufte calls it non-data ink and chartjunk; Lupton shows that tables are often over-ruled and are clearer with the rules removed or replaced by a pale tone; Tschichold rejects ornament.
 - **Source:** Tufte, *The Visual Display of Quantitative Information* (1983, 2nd ed. 2001), chapter 4 "Data-ink and graphical redesign" and chapter 5 "Chartjunk: vibrations, grids, and ducks"; Lupton, *Thinking with Type* (1st ed. 2004), "Grid" chapter, "Data tables", p. 157: "The rules and boxes used in data tables should illuminate the relationships among data, not trap each entry inside a heavily guarded cell." P. 159 supports replacing rules with a pale tone: "The redesign (above) eliminates many of the ruled lines, replacing them, where needed, with a pale tone that unifies the long horizontal rows of data."; Tschichold, *The New Typography*, chapter "The principles of the new typography".
-- **Judged by:** askable. Question: "Is every cell, card, or section enclosed in a dark border or separated by heavy rules, so that the lines are as strong as the content?"
+- **Judged by:** askable. Question: "Is each cell, card, or section drawn inside its own dark outline, so that the page reads as a grid of boxed compartments, or are its rows and sections divided by thick dark lines?"
 - **Defect range:** `heavy-rules-and-boxes`: not measured. Every cell, card, or section enclosed in a near-black border or rule 1 to 2 px wide.
 
 ### Optical alignment over mathematical alignment
