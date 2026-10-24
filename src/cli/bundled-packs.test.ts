@@ -43,6 +43,26 @@ function namesOf(packs: readonly { name: string }[]): string[] {
   return packs.map((pack) => pack.name);
 }
 
+/** The text of packs/typography/pack.yaml, for the tests that swap in other texts. */
+function typographyText(): string {
+  return readFileSync(
+    join(repositoryRoot, "packs", "typography", "pack.yaml"),
+    "utf8",
+  );
+}
+
+/**
+ * Load bundled-packs.ts again with these texts in place of the embedded ones. vi.doMock swaps
+ * the module for the import that follows it, and afterEach puts the real module back. The
+ * reloaded module has its own copy of CouldNotRunError, so these tests check the message only.
+ */
+async function loadWithTexts(
+  texts: { name: string; yamlText: string }[],
+): Promise<typeof import("./bundled-packs.js")> {
+  vi.doMock("./bundled-pack-texts.js", () => ({ BUNDLED_PACK_TEXTS: texts }));
+  return import("./bundled-packs.js");
+}
+
 afterEach(() => {
   vi.doUnmock("./bundled-pack-texts.js");
   vi.resetModules();
@@ -98,21 +118,40 @@ describe("loadBundledPacks (FR-11, FR-51)", () => {
     );
   });
 
-  it("rejects a bundled pack with a field the schema does not define (FR-44, NFR-13)", async () => {
-    const typographyText = readFileSync(
-      join(repositoryRoot, "packs", "typography", "pack.yaml"),
-      "utf8",
+  it("throws when one name is given twice (FR-4)", () => {
+    expect(() => loadBundledPacks(["layout", "typography", "layout"])).toThrow(
+      "pack layout is named twice in .crit.yaml",
     );
-    // vi.doMock swaps the module of embedded texts for this test only; the import after it
-    // loads bundled-packs.ts again so that it sees the swapped module.
-    vi.doMock("./bundled-pack-texts.js", () => ({
-      BUNDLED_PACK_TEXTS: [
-        { name: "typography", yamlText: `${typographyText}\ncolour: red\n` },
-      ],
-    }));
-    const reloaded = await import("./bundled-packs.js");
+  });
+
+  it("rejects a bundled pack with a field the schema does not define (FR-44, NFR-13)", async () => {
+    const reloaded = await loadWithTexts([
+      { name: "typography", yamlText: `${typographyText()}\ncolour: red\n` },
+    ]);
     expect(() => reloaded.loadBundledPacks(["typography"])).toThrow(
       "bundled pack typography: invalid pack",
+    );
+  });
+
+  it("rejects a bundled pack whose name is not its folder name (FR-51)", async () => {
+    const reloaded = await loadWithTexts([
+      { name: "type", yamlText: typographyText() },
+    ]);
+    expect(() => reloaded.loadBundledPacks(["type"])).toThrow(
+      "bundled pack folder type holds a pack named typography",
+    );
+    expect(() => reloaded.loadBundledPacks()).toThrow(
+      "bundled pack folder type holds a pack named typography; the folder name and the pack name must match",
+    );
+  });
+
+  it("throws when every pack is wanted and none is bundled (FR-74)", async () => {
+    const reloaded = await loadWithTexts([]);
+    expect(() => reloaded.loadBundledPacks()).toThrow(
+      "no packs: no bundled pack was found and no --pack was given",
+    );
+    expect(() => reloaded.loadBundledPacks([])).toThrow(
+      "no packs: no bundled pack was found and no --pack was given",
     );
   });
 });
@@ -123,15 +162,22 @@ describe("the built dist/crit.js (FR-44, FR-53, NFR-2)", () => {
     "utf8",
   );
 
+  // This exact comparison is the real guarantee that the bundle holds the pack.yaml texts and
+  // nothing else from packs/ (FR-44, FR-53).
   it("holds the text of every packs/*/pack.yaml, and only those texts", () => {
-    // esbuild reprints the embedded strings as template literals, so the test finds the array
-    // that the build plugin wrote and evaluates it to get the strings back.
-    const declaration = "var BUNDLED_PACK_TEXTS = ";
-    const start = bundleText.indexOf(declaration);
+    // esbuild reprints the embedded strings as template literals, so the test cannot search for
+    // the file text. The build plugin writes a marker comment before and after the list, and the
+    // test evaluates only the code between them to get the strings back.
+    const startMarker = "/*! crit-bundled-packs-start */";
+    const endMarker = "/*! crit-bundled-packs-end */";
+    const start = bundleText.indexOf(startMarker);
+    const end = bundleText.indexOf(endMarker);
     expect(start).toBeGreaterThan(-1);
-    const end = bundleText.indexOf("}];\n", start);
-    const arrayText = bundleText.slice(start + declaration.length, end + 2);
-    const embedded: unknown = new Function(`return ${arrayText};`)();
+    expect(end).toBeGreaterThan(start);
+    const listCode = bundleText.slice(start + startMarker.length, end);
+    const embedded: unknown = new Function(
+      `${listCode}\nreturn BUNDLED_PACK_TEXTS;`,
+    )();
     const expected = packFolderNames().map((name) => ({
       name,
       yamlText: readFileSync(
@@ -142,7 +188,7 @@ describe("the built dist/crit.js (FR-44, FR-53, NFR-2)", () => {
     expect(embedded).toEqual(expected);
   });
 
-  it("holds no fixture image, rendered.json, or ATTRIBUTION.md text", () => {
+  it("holds no PNG chunk name, no ATTRIBUTION.md first line, and no rendered.json png_sha256 key", () => {
     // Every PNG file has an IHDR chunk name near its start, so a bundled image would show it.
     expect(bundleText).not.toContain("IHDR");
     for (const name of packFolderNames()) {

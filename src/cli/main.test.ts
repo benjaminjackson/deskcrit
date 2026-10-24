@@ -427,6 +427,12 @@ describe("could not run: exit 2, a message that names the input, and empty stdou
       message: "pack minimal is not a bundled pack; the bundled packs are: ",
     },
     {
+      name: "a pack named twice in .crit.yaml (FR-11)",
+      argv: ["report", "page.png"],
+      files: { ".crit.yaml": "packs: [layout, layout]\n" },
+      message: "pack layout is named twice in .crit.yaml",
+    },
+    {
       name: "a --pack directory with the name of a bundled pack (FR-11)",
       argv: ["report", "page.png", "--pack", "my-typography"],
       files: {

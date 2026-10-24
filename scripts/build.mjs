@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
 // This script makes three outputs in dist/: the CLI bundle dist/crit.js, the library bundle
@@ -18,6 +19,20 @@ const requireBanner =
   'import { createRequire as __critCreateRequire } from "node:module";\nconst require = __critCreateRequire(import.meta.url);';
 
 /**
+ * The packs/ folder at the repository root, found from this script's own path, so the build reads
+ * the same folder as src/cli/bundled-pack-texts.ts whatever the current directory is.
+ */
+const PACKS_DIRECTORY = fileURLToPath(new URL("../packs/", import.meta.url));
+
+/**
+ * The comments the plugin writes before and after the embedded list. A `/*!` comment is a legal
+ * comment, which esbuild keeps in place with `legalComments: "inline"`, so the bundle test can find
+ * the list between them.
+ */
+const BUNDLED_PACKS_START_MARKER = "/*! crit-bundled-packs-start */";
+const BUNDLED_PACKS_END_MARKER = "/*! crit-bundled-packs-end */";
+
+/**
  * Reads the text of every packs/<name>/pack.yaml, sorted by name with a plain comparator (CS-18).
  * A folder whose name starts with `_` is not a pack, and a folder with no pack.yaml is skipped.
  * These are the same rules as src/cli/bundled-pack-texts.ts. Only pack.yaml is read, so fixtures
@@ -25,11 +40,11 @@ const requireBanner =
  */
 function readBundledPackTexts() {
   const names = [];
-  for (const entry of readdirSync("packs", { withFileTypes: true })) {
+  for (const entry of readdirSync(PACKS_DIRECTORY, { withFileTypes: true })) {
     if (!entry.isDirectory() || entry.name.startsWith("_")) {
       continue;
     }
-    if (!existsSync(join("packs", entry.name, "pack.yaml"))) {
+    if (!existsSync(join(PACKS_DIRECTORY, entry.name, "pack.yaml"))) {
       continue;
     }
     names.push(entry.name);
@@ -48,7 +63,10 @@ function readBundledPackTexts() {
   }
   const sources = [];
   for (const name of names) {
-    const yamlText = readFileSync(join("packs", name, "pack.yaml"), "utf8");
+    const yamlText = readFileSync(
+      join(PACKS_DIRECTORY, name, "pack.yaml"),
+      "utf8",
+    );
     sources.push({ name, yamlText });
   }
   return sources;
@@ -68,7 +86,7 @@ const bundledPacksPlugin = {
       () => {
         const sources = readBundledPackTexts();
         return {
-          contents: `export const BUNDLED_PACK_TEXTS = ${JSON.stringify(sources)};\n`,
+          contents: `${BUNDLED_PACKS_START_MARKER}\nexport const BUNDLED_PACK_TEXTS = ${JSON.stringify(sources)};\n${BUNDLED_PACKS_END_MARKER}\n`,
           loader: "js",
         };
       },
@@ -100,6 +118,8 @@ await build({
     js: `#!/usr/bin/env node\n${requireBanner}`,
   },
   plugins: [bundledPacksPlugin],
+  // Keeps the two marker comments around the embedded pack list where the plugin put them.
+  legalComments: "inline",
   logLevel: "info",
 });
 
