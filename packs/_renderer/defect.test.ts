@@ -279,7 +279,7 @@ test("fails a defect drawn only in a pseudo-element that the declaration does no
   const problems = problemsFor(FAINT_TEXT, positive, negative);
   expect(problems).toHaveLength(1);
   expect(problems[0]).toContain(
-    'differ in opacity, which the declaration does not list: html/body[1]/p[0]::first-line is "0.4" on and "1" off',
+    'differ in ::first-line opacity, which the declaration does not list: html/body[1]/p[0]::first-line is "0.4" on and "1" off',
   );
 });
 
@@ -299,11 +299,11 @@ test("fails a ::before drawn on one side only unless content is declared", () =>
   const problems = problemsFor(FAINT_TEXT, positive, negative);
   expect(problems).toHaveLength(1);
   expect(problems[0]).toContain(
-    'differ in content, which the declaration does not list: html/body[1]/p[0]::before is "drawn" on and "not drawn" off',
+    'differ in ::before content, which the declaration does not list: html/body[1]/p[0]::before is "drawn" on and "not drawn" off',
   );
   expect(
     problemsFor(
-      { properties: ["color", "content"], range: FAINT_TEXT.range },
+      { properties: ["color", "::before content"], range: null },
       positive,
       negative,
     ),
@@ -323,8 +323,8 @@ test("ignores a pseudo-element line-height that only follows its font size", () 
     "line-height": "35.2px",
   };
   negativeParagraph.pseudoStyles["::first-line"] = {
-    "font-size": "20px",
-    "line-height": "32px",
+    "font-size": "16px",
+    "line-height": "25.6px",
   };
   const problems = problemsFor(
     { properties: ["font-size"], range: null },
@@ -656,4 +656,107 @@ test("refuses a measured range with no clean side", () => {
       "- **Defect range:** `text-reads-faint`: contrast ratio from 2.5 to 4.4.",
     ),
   ).toThrow("line 1");
+});
+
+/** Builds a faint-text pair whose positive also sets the given styles on one pseudo-element of the paragraph. */
+function pairWithPseudoStyles(
+  pseudoName: string,
+  positivePseudo: Record<string, string>,
+  negativePseudo: Record<string, string>,
+): { positive: PageSnapshot; negative: PageSnapshot } {
+  const positive = pageWithParagraph({ color: "rgb(156, 163, 175)" });
+  const negative = pageWithParagraph({});
+  const positiveParagraph = positive.elements[2];
+  const negativeParagraph = negative.elements[2];
+  if (positiveParagraph === undefined || negativeParagraph === undefined) {
+    throw new Error("the test page has no paragraph");
+  }
+  positiveParagraph.pseudoStyles[pseudoName] = positivePseudo;
+  negativeParagraph.pseudoStyles[pseudoName] = negativePseudo;
+  return { positive, negative };
+}
+
+for (const pseudoName of ["::first-line", "::first-letter"]) {
+  test(`fails a ${pseudoName} colour that a declared element color does not cover`, () => {
+    // The positive's first line is near white, which the contrast measure on
+    // the paragraph itself never sees.
+    const { positive, negative } = pairWithPseudoStyles(
+      pseudoName,
+      { color: "rgb(242, 242, 242)" },
+      { color: "rgb(17, 17, 17)" },
+    );
+    const problems = problemsFor(FAINT_TEXT, positive, negative);
+    expect(problems).toEqual([
+      `x.positive.png and x.negative.png differ in ${pseudoName} color, which the declaration does not list: html/body[1]/p[0]${pseudoName} is "rgb(242, 242, 242)" on and "rgb(17, 17, 17)" off (FR-54 rule 3)`,
+    ]);
+  });
+
+  test(`passes a ${pseudoName} colour that only inherits the element's color`, () => {
+    const { positive, negative } = pairWithPseudoStyles(
+      pseudoName,
+      {
+        color: "rgb(156, 163, 175)",
+        "border-top-color": "rgb(156, 163, 175)",
+      },
+      { color: "rgb(17, 17, 17)", "border-top-color": "rgb(17, 17, 17)" },
+    );
+    expect(problemsFor(FAINT_TEXT, positive, negative)).toEqual([]);
+  });
+}
+
+test("refuses a pseudo-element name in a declaration with a font size or contrast range", () => {
+  for (const measure of ["contrast-ratio", "font-size"]) {
+    expect(() =>
+      parseDefectDeclaration(
+        JSON.stringify({
+          properties: ["color", "::first-line color"],
+          range: { measure, from: 2.5, to: 4.4, clean_side: "above" },
+        }),
+        "a.defect.json",
+      ),
+    ).toThrow(
+      "lists ::first-line color, a pseudo-element property, but the renderer measures",
+    );
+  }
+  expect(
+    parseDefectDeclaration(
+      JSON.stringify({
+        properties: ["display", "::marker display", "::first-letter font"],
+        range: null,
+      }),
+      "a.defect.json",
+    ).properties,
+  ).toHaveLength(3);
+  for (const name of ["::after-all color", "::first-line colour"]) {
+    expect(() =>
+      parseDefectDeclaration(
+        JSON.stringify({ properties: [name], range: null }),
+        "a.defect.json",
+      ),
+    ).toThrow("is not a CSS property name");
+  }
+});
+
+test("covers a pseudo-element difference only with a name for the same pseudo-element", () => {
+  expect(
+    isPropertyDeclared({ property: "::first-line color" }, ["color"]),
+  ).toBe(false);
+  expect(
+    isPropertyDeclared({ property: "::first-line color" }, [
+      "::first-line color",
+    ]),
+  ).toBe(true);
+  expect(
+    isPropertyDeclared({ property: "::first-letter font-size" }, [
+      "::first-letter font",
+    ]),
+  ).toBe(true);
+  expect(
+    isPropertyDeclared({ property: "::first-letter color" }, [
+      "::first-line color",
+    ]),
+  ).toBe(false);
+  expect(
+    isPropertyDeclared({ property: "color" }, ["::first-line color"]),
+  ).toBe(false);
 });

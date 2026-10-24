@@ -223,6 +223,45 @@ const PROPERTIES_THAT_HIDE_SIZE_OR_CONTRAST = [
   "mix-blend-mode",
 ];
 
+/** The pseudo-elements render.ts compares, in the form a declaration names them. */
+const PSEUDO_ELEMENT_NAMES = [
+  "::before",
+  "::after",
+  "::first-line",
+  "::first-letter",
+  "::marker",
+  "::placeholder",
+];
+
+/**
+ * Splits a property key into its pseudo-element and its property:
+ * "::first-line color" gives "::first-line" and "color", and "color" gives
+ * "" and "color".
+ */
+export function splitPseudoKey(key: string): {
+  pseudo: string;
+  property: string;
+} {
+  const match = /^(::[a-z-]+) (.+)$/.exec(key);
+  if (match === null) {
+    return { pseudo: "", property: key };
+  }
+  return { pseudo: match[1] ?? "", property: match[2] ?? "" };
+}
+
+/**
+ * Says whether a declared name is valid: a CSS property name, or one of the
+ * compared pseudo-elements, a space, and a CSS property name, such as
+ * "::first-line color".
+ */
+function isKnownDeclaredName(name: string): boolean {
+  const { pseudo, property } = splitPseudoKey(name);
+  if (pseudo !== "" && !PSEUDO_ELEMENT_NAMES.includes(pseudo)) {
+    return false;
+  }
+  return isKnownCssProperty(property);
+}
+
 /** Says whether a name is a real CSS property: a longhand Chromium reports, a shorthand above, or a custom property. */
 export function isKnownCssProperty(name: string): boolean {
   if (/^--[A-Za-z0-9_-]+$/.test(name)) {
@@ -291,9 +330,9 @@ export function parseDefectDeclaration(
     );
   }
   for (const property of properties) {
-    if (!isKnownCssProperty(property)) {
+    if (!isKnownDeclaredName(property)) {
       throw new Error(
-        `${where}: "${property}" is not a CSS property name that Chromium reports, a custom property, or a known shorthand`,
+        `${where}: "${property}" is not a CSS property name that Chromium reports, a custom property, or a known shorthand, alone or after one of ${PSEUDO_ELEMENT_NAMES.join(", ")} and a space`,
       );
     }
   }
@@ -331,6 +370,11 @@ export function parseDefectDeclaration(
   }
   if (measure === "font-size" || measure === "contrast-ratio") {
     for (const property of properties) {
+      if (splitPseudoKey(property).pseudo !== "") {
+        throw new Error(
+          `${where}: lists ${property}, a pseudo-element property, but the renderer measures ${measure} only on an element's own text; draw a measured defect on the element itself`,
+        );
+      }
       if (PROPERTIES_THAT_HIDE_SIZE_OR_CONTRAST.includes(property)) {
         throw new Error(
           `${where}: lists ${property}, which changes how large or how pale text looks without changing the ${measure} that verify measures; draw the defect with font-size or color instead`,
@@ -371,6 +415,7 @@ export function compareSnapshots(
     }
     recordDifferences(
       positiveElement.path,
+      "",
       positiveElement.styles,
       negativeElement.styles,
       firstDifferenceByProperty,
@@ -383,6 +428,7 @@ export function compareSnapshots(
       comparePseudoElement(
         `${positiveElement.path}${pseudoName}`,
         pseudoName,
+        { positive: positiveElement.styles, negative: negativeElement.styles },
         positiveElement.pseudoStyles[pseudoName] ?? null,
         negativeElement.pseudoStyles[pseudoName] ?? null,
         firstDifferenceByProperty,
@@ -411,15 +457,25 @@ const PSEUDO_LAYOUT_PROPERTIES = new Set([
 ]);
 
 /**
- * Compares one pseudo-element of an element on the two sides. When it draws
- * on one side only, the difference is recorded under the property that
- * decides whether it draws: `display` for ::marker (only a list item has one)
- * and `content` for the others. When it draws on both sides, its styles are
- * compared like an element's, without the layout properties above.
+ * Compares one pseudo-element of an element on the two sides. Every
+ * difference is keyed by the pseudo-element's name, such as "::first-line
+ * color", so a declaration covers it only when it names it in that form, and
+ * a declaration with a measured range cannot (the renderer measures only the
+ * element's own text). When the pseudo-element draws on one side only, the
+ * difference is keyed by the property that decides whether it draws:
+ * "::marker display" (only a list item has a marker) and "<pseudo> content"
+ * for the others. When it draws on both sides, its styles are compared like
+ * an element's, without the layout properties above and without any value it
+ * only inherits from its element: such a value equals the element's own on
+ * both sides, and the element's difference is already recorded.
  */
 function comparePseudoElement(
   element: string,
   pseudoName: string,
+  elementStyles: {
+    positive: Record<string, string>;
+    negative: Record<string, string>;
+  },
   positiveStyles: Record<string, string> | null,
   negativeStyles: Record<string, string> | null,
   firstDifferenceByProperty: Map<string, PropertyDifference>,
@@ -428,7 +484,8 @@ function comparePseudoElement(
     return;
   }
   if (positiveStyles === null || negativeStyles === null) {
-    const property = pseudoName === "::marker" ? "display" : "content";
+    const bareProperty = pseudoName === "::marker" ? "display" : "content";
+    const property = `${pseudoName} ${bareProperty}`;
     if (!firstDifferenceByProperty.has(property)) {
       firstDifferenceByProperty.set(property, {
         property,
@@ -442,14 +499,24 @@ function comparePseudoElement(
   const positiveCompared: Record<string, string> = {};
   const negativeCompared: Record<string, string> = {};
   for (const [name, value] of Object.entries(positiveStyles)) {
-    if (!PSEUDO_LAYOUT_PROPERTIES.has(name)) {
-      positiveCompared[name] = value;
+    if (PSEUDO_LAYOUT_PROPERTIES.has(name)) {
+      continue;
     }
+    if (followsElement(name, positiveStyles, negativeStyles, elementStyles)) {
+      continue;
+    }
+    positiveCompared[name] = value;
+    negativeCompared[name] = negativeStyles[name] ?? "";
   }
   for (const [name, value] of Object.entries(negativeStyles)) {
-    if (!PSEUDO_LAYOUT_PROPERTIES.has(name)) {
-      negativeCompared[name] = value;
+    if (PSEUDO_LAYOUT_PROPERTIES.has(name) || name in positiveCompared) {
+      continue;
     }
+    if (followsElement(name, positiveStyles, negativeStyles, elementStyles)) {
+      continue;
+    }
+    positiveCompared[name] = positiveStyles[name] ?? "";
+    negativeCompared[name] = value;
   }
   // getComputedStyle turns a unitless line-height such as 1.6 into pixels,
   // so it changes whenever font-size does. When the two sides keep the same
@@ -463,10 +530,47 @@ function comparePseudoElement(
   }
   recordDifferences(
     element,
+    `${pseudoName} `,
     positiveCompared,
     negativeCompared,
     firstDifferenceByProperty,
   );
+}
+
+/**
+ * Says whether a pseudo-element's property only follows its element on both
+ * sides: its value equals the element's own value, or it is a currentColor
+ * property equal to the pseudo-element's color while that color equals the
+ * element's color. Such a value changes only when the element changes, and
+ * the element's own difference is already recorded.
+ */
+function followsElement(
+  name: string,
+  positiveStyles: Record<string, string>,
+  negativeStyles: Record<string, string>,
+  elementStyles: {
+    positive: Record<string, string>;
+    negative: Record<string, string>;
+  },
+): boolean {
+  const sides: [Record<string, string>, Record<string, string>][] = [
+    [positiveStyles, elementStyles.positive],
+    [negativeStyles, elementStyles.negative],
+  ];
+  for (const [pseudoStyles, ownStyles] of sides) {
+    const value = pseudoStyles[name];
+    if (value === ownStyles[name]) {
+      continue;
+    }
+    const followsColor =
+      CURRENT_COLOR_PROPERTIES.has(name) &&
+      value === pseudoStyles.color &&
+      pseudoStyles.color === ownStyles.color;
+    if (!followsColor) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /** Returns line-height divided by font-size, to three decimals, or null when either is not in pixels. */
@@ -488,6 +592,7 @@ function lineHeightRatio(styles: Record<string, string>): number | null {
  */
 function recordDifferences(
   element: string,
+  keyPrefix: string,
   positiveStyles: Record<string, string>,
   negativeStyles: Record<string, string>,
   firstDifferenceByProperty: Map<string, PropertyDifference>,
@@ -502,8 +607,9 @@ function recordDifferences(
     if (positiveValue === negativeValue) {
       continue;
     }
+    const key = `${keyPrefix}${property}`;
     const difference: PropertyDifference = {
-      property,
+      property: key,
       element,
       positive: positiveValue,
       negative: negativeValue,
@@ -513,14 +619,14 @@ function recordDifferences(
         positiveValue === (positiveStyles.color ?? "") &&
         negativeValue === (negativeStyles.color ?? "");
     }
-    const recorded = firstDifferenceByProperty.get(property);
+    const recorded = firstDifferenceByProperty.get(key);
     if (recorded === undefined) {
-      firstDifferenceByProperty.set(property, difference);
+      firstDifferenceByProperty.set(key, difference);
     } else if (
       recorded.follows_color === true &&
       difference.follows_color === false
     ) {
-      firstDifferenceByProperty.set(property, difference);
+      firstDifferenceByProperty.set(key, difference);
     }
   }
 }
@@ -766,7 +872,10 @@ export function buildPairEvidence(
 /**
  * Says whether a property that differs is covered by a declaration. A declared
  * name covers itself and the logical name of the same side ("margin-left"
- * covers "margin-inline-start"). A shorthand in SHORTHANDS covers its
+ * covers "margin-inline-start"). A difference in a pseudo-element, keyed such
+ * as "::first-line color", is covered only by a declared name for the same
+ * pseudo-element, such as "::first-line color" or "::first-line font". A
+ * shorthand in SHORTHANDS covers its
  * longhands ("margin" covers "margin-left"). A declared `color` covers a
  * property that follows currentColor only where that property's value equals
  * `color` on both sides. A property Chromium derives from another one, such as
@@ -777,7 +886,7 @@ export function isPropertyDeclared(
   difference: Pick<PropertyDifference, "property" | "follows_color">,
   declaredProperties: string[],
 ): boolean {
-  const property = difference.property;
+  const { pseudo, property } = splitPseudoKey(difference.property);
   let physicalName = property;
   for (const [logicalSide, physicalSide] of LOGICAL_SIDES) {
     physicalName = physicalName.replace(logicalSide, physicalSide);
@@ -787,7 +896,14 @@ export function isPropertyDeclared(
   if (sourceProperty !== undefined) {
     candidates.push(sourceProperty);
   }
-  for (const declared of declaredProperties) {
+  for (const declaredName of declaredProperties) {
+    // A pseudo-element difference counts only when the declaration names the
+    // same pseudo-element, and an element difference only when it names none.
+    const declaredParts = splitPseudoKey(declaredName);
+    if (declaredParts.pseudo !== pseudo) {
+      continue;
+    }
+    const declared = declaredParts.property;
     const shorthandPattern = SHORTHANDS[declared];
     for (const candidate of candidates) {
       if (candidate === declared) {
