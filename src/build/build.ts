@@ -133,8 +133,9 @@ function findPlatformExclusion(
 /**
  * Return the first `requires` path, in the order listed, that the facts do not have, or undefined
  * when all are there (FR-13, US-7). A key whose value is null or empty counts as present. When no
- * facts file was given, every path is missing. A path that does not start with "facts." throws
- * CouldNotRunError, because the pack schema does not check the prefix and the path names no fact.
+ * facts file was given, every path is missing. A path that does not start with "facts." throws a
+ * plain Error, because that is a broken invariant: the pack schema rejects such a path when the
+ * pack loads (OQ-24 d), and every pack reaches build through the loader.
  */
 function findMissingFactsPath(
   packName: string,
@@ -146,7 +147,7 @@ function findMissingFactsPath(
   }
   for (const path of criterion.requires) {
     if (!path.startsWith("facts.")) {
-      throw new CouldNotRunError(
+      throw new Error(
         `pack ${packName}, criterion ${criterion.id}: the requires path ${path} does not start with facts.`,
       );
     }
