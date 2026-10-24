@@ -74,6 +74,7 @@ jobs:
           TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
         run: |
           set -o pipefail
+          # crit writes no key and no raw SDK error to stderr (NFR-14, CS-19), so stderr goes into the artifact too.
           if [ -z "$TYPESAFE_API_KEY" ]; then
             echo "The TYPESAFE_API_KEY secret is not set, so crit packs test cannot run."
             exit 2
@@ -90,7 +91,7 @@ jobs:
             pack_name=$(basename "$pack_directory")
             echo "::group::crit packs test $pack_name"
             exit_code=0
-            node ../../dist/crit.js packs test "$pack_directory" | tee "$RUNNER_TEMP/packs-test/$pack_name.txt" || exit_code=$?
+            node ../../dist/crit.js packs test "$pack_directory" 2>&1 | tee "$RUNNER_TEMP/packs-test/$pack_name.txt" || exit_code=$?
             echo "::endgroup::"
             if [ "$exit_code" -gt "$highest_exit_code" ]; then
               highest_exit_code=$exit_code

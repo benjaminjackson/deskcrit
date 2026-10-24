@@ -122,6 +122,12 @@ function writeSamplePack(samplePack: SamplePack): string {
   temporaryFolders.push(packsRoot);
   const fixturesPath = join(packsRoot, "sample", "fixtures");
   mkdirSync(fixturesPath, { recursive: true });
+  // Every sample pack has the template that renderedEntryValues names, so its entries count as rendered.
+  mkdirSync(join(packsRoot, "sample", "templates"));
+  writeFileSync(
+    join(packsRoot, "sample", "templates", "sample.html"),
+    "<!doctype html>\n",
+  );
   if (samplePack.packYaml !== undefined) {
     writeFileSync(join(packsRoot, "sample", "pack.yaml"), samplePack.packYaml);
   }
@@ -160,6 +166,13 @@ describe("the real packs folder", () => {
     expect([...packNames].sort()).toEqual(packNames);
   });
 
+  test("every pack also has a fixtures/ folder, so a pack that loses it fails", () => {
+    const fixtureFolders = listFixtureFolders(PACKS_FOLDER);
+    for (const packName of listPackDirectories(PACKS_FOLDER)) {
+      expect(fixtureFolders).toContain(packName);
+    }
+  });
+
   for (const folderName of listFixtureFolders(PACKS_FOLDER)) {
     test(`${folderName}: every fixture follows the FR-54 rules`, () => {
       expect(checkPackFixtures(PACKS_FOLDER, folderName)).toEqual([]);
@@ -175,8 +188,8 @@ describe("the committed broken pack", () => {
     ).map((problem) => problem.message);
     expect(messages).toEqual([
       "broken-pack/fixtures/captured.png: has no browser version (FR-54)",
-      "broken-pack/fixtures/fair-use.png: claims fair use, which FR-54 does not accept as a rights basis (FR-54)",
-      'broken-pack/fixtures/non-commercial.png: has the license "CC BY-NC 4.0" with the NC (non-commercial) term, which FR-54 refuses (FR-54)',
+      'broken-pack/fixtures/fair-use.png: has fair use in its Rights basis "fair use", which FR-54 refuses (FR-54)',
+      'broken-pack/fixtures/non-commercial.png: has the NC (non-commercial) term in its License "CC BY-NC 4.0", which FR-54 refuses (FR-54)',
       "broken-pack/fixtures/orphan.png: has an entry in ATTRIBUTION.md but is not an image in fixtures/ (FR-54)",
       "broken-pack/fixtures/unlisted.png: has no entry in ATTRIBUTION.md (FR-54)",
       "broken-pack/pack.yaml: has no license field (FR-54)",
@@ -294,24 +307,46 @@ describe("checkPackFixtures", () => {
     ]);
   });
 
-  test("refuses fair use and fair dealing by name", () => {
+  test("refuses fair use and fair dealing by name, in any case", () => {
     expect(
       checkOneEntry({ ...capturedEntryValues(), rightsBasis: "fair use" }),
     ).toEqual([
-      "sample/fixtures/a.png: claims fair use, which FR-54 does not accept as a rights basis (FR-54)",
+      'sample/fixtures/a.png: has fair use in its Rights basis "fair use", which FR-54 refuses (FR-54)',
     ]);
     expect(
-      checkOneEntry({ ...capturedEntryValues(), rightsBasis: "fair dealing" }),
+      checkOneEntry({ ...capturedEntryValues(), rightsBasis: "Fair Dealing" }),
     ).toEqual([
-      "sample/fixtures/a.png: claims fair dealing, which FR-54 does not accept as a rights basis (FR-54)",
+      'sample/fixtures/a.png: has fair dealing in its Rights basis "Fair Dealing", which FR-54 refuses (FR-54)',
     ]);
   });
 
-  test("refuses the NC and ND terms by name whatever the basis", () => {
+  test("refuses a refused term in the License whatever the basis", () => {
+    expect(
+      checkOneEntry({ ...capturedEntryValues(), license: "fair use" }),
+    ).toEqual([
+      'sample/fixtures/a.png: has fair use in its License "fair use", which FR-54 refuses (FR-54)',
+    ]);
+    expect(
+      checkOneEntry({
+        ...capturedEntryValues(),
+        rightsBasis: "public domain with the source named",
+        license: "All Rights Reserved",
+      }),
+    ).toEqual([
+      'sample/fixtures/a.png: has all rights reserved in its License "All Rights Reserved", which FR-54 refuses (FR-54)',
+    ]);
+  });
+
+  test("refuses the NC and ND terms by name, in any case, whatever the basis", () => {
     expect(
       checkOneEntry({ ...capturedEntryValues(), license: "CC BY-NC-SA 4.0" }),
     ).toEqual([
-      'sample/fixtures/a.png: has the license "CC BY-NC-SA 4.0" with the NC (non-commercial) term, which FR-54 refuses (FR-54)',
+      'sample/fixtures/a.png: has the NC (non-commercial) term in its License "CC BY-NC-SA 4.0", which FR-54 refuses (FR-54)',
+    ]);
+    expect(
+      checkOneEntry({ ...capturedEntryValues(), license: "cc by-nc 4.0" }),
+    ).toEqual([
+      'sample/fixtures/a.png: has the NC (non-commercial) term in its License "cc by-nc 4.0", which FR-54 refuses (FR-54)',
     ]);
     expect(
       checkOneEntry({
@@ -320,7 +355,23 @@ describe("checkPackFixtures", () => {
         license: "CC BY-ND 4.0",
       }),
     ).toEqual([
-      'sample/fixtures/a.png: has the license "CC BY-ND 4.0" with the ND (no derivatives) term, which FR-54 refuses (FR-54)',
+      'sample/fixtures/a.png: has the ND (no derivatives) term in its License "CC BY-ND 4.0", which FR-54 refuses (FR-54)',
+    ]);
+    expect(
+      checkOneEntry({
+        ...capturedEntryValues(),
+        rightsBasis: "Creative Commons NonCommercial",
+      }),
+    ).toEqual([
+      'sample/fixtures/a.png: has the NC (non-commercial) term in its Rights basis "Creative Commons NonCommercial", which FR-54 refuses (FR-54)',
+    ]);
+    expect(
+      checkOneEntry({
+        ...capturedEntryValues(),
+        license: "Attribution-NoDerivatives 4.0",
+      }),
+    ).toEqual([
+      'sample/fixtures/a.png: has the ND (no derivatives) term in its License "Attribution-NoDerivatives 4.0", which FR-54 refuses (FR-54)',
     ]);
   });
 
@@ -370,10 +421,29 @@ describe("checkPackFixtures", () => {
         ...capturedEntryValues(),
         rightsBasis: "public domain with the source named",
         source: "none",
+        license: "Public domain",
       }),
     ).toEqual([
       "sample/fixtures/a.png: is public domain but its Source does not name the source (FR-54)",
     ]);
+  });
+
+  test("refuses public domain whose License does not name public domain, and accepts one that does", () => {
+    const publicDomain = {
+      ...capturedEntryValues(),
+      rightsBasis: "public domain with the source named",
+      source: "a scan from a public archive",
+    };
+    expect(checkOneEntry({ ...publicDomain, license: "MIT" })).toEqual([
+      'sample/fixtures/a.png: is public domain but its License "MIT" does not name public domain, such as "Public domain" or CC0 (FR-54)',
+    ]);
+    for (const license of [
+      "Public domain",
+      "CC0 1.0",
+      "Public Domain Mark 1.0",
+    ]) {
+      expect(checkOneEntry({ ...publicDomain, license })).toEqual([]);
+    }
   });
 
   test("refuses written permission without a pull request URL, and accepts one with it", () => {
@@ -381,7 +451,7 @@ describe("checkPackFixtures", () => {
       ...capturedEntryValues(),
       rightsBasis:
         "written permission from the owner attached to the pull request",
-      license: "all rights reserved",
+      license: "used with the written permission of the owner",
     };
     expect(
       checkOneEntry({ ...writtenPermission, source: "email from the owner" }),
@@ -401,6 +471,18 @@ describe("checkPackFixtures", () => {
       checkOneEntry({ ...renderedEntryValues(), license: "Apache 2.0" }),
     ).toEqual([
       'sample/fixtures/a.png: is own work with the license "Apache 2.0", which differs from the pack license "MIT" (FR-54)',
+    ]);
+  });
+
+  test("treats an entry whose named template does not exist as a live capture", () => {
+    expect(
+      checkOneEntry({
+        ...renderedEntryValues(),
+        source: "packs/sample/templates/missing.html, defect=on",
+      }),
+    ).toEqual([
+      'sample/fixtures/a.png: is a live capture but its Capture date "not applicable" is not in the form YYYY-MM-DD (FR-54)',
+      'sample/fixtures/a.png: is a live capture but its Source URL "not applicable" is not an http or https URL (FR-54)',
     ]);
   });
 

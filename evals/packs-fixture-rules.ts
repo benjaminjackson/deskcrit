@@ -268,24 +268,52 @@ function isBlank(value: string): boolean {
 }
 
 /**
- * Returns the name of the non-commercial or no-derivatives term in a license or basis text, or
- * undefined. FR-54 refuses both terms whatever the rights basis says.
+ * The terms that FR-54 refuses in a Rights basis or License value, whatever the basis, each with
+ * its name for the message. The patterns ignore case. NC and ND match only as whole tokens, so
+ * "CC BY-NC 4.0" matches and "and" does not.
  */
-function findRefusedLicenseTerm(text: string): string | undefined {
-  if (
-    /(^|[^A-Za-z])NC([^A-Za-z]|$)/.test(text) ||
-    /noncommercial|non-commercial/i.test(text)
-  ) {
-    return "NC (non-commercial)";
-  }
-  if (
-    /(^|[^A-Za-z])ND([^A-Za-z]|$)/.test(text) ||
-    /noderivatives|no-derivatives/i.test(text)
-  ) {
-    return "ND (no derivatives)";
+const REFUSED_TERMS: readonly {
+  readonly name: string;
+  readonly pattern: RegExp;
+}[] = [
+  { name: "fair use", pattern: /fair use/i },
+  { name: "fair dealing", pattern: /fair dealing/i },
+  { name: "all rights reserved", pattern: /all rights reserved/i },
+  {
+    name: "the NC (non-commercial) term",
+    pattern: /(^|[^a-z])nc([^a-z]|$)|non-?commercial/i,
+  },
+  {
+    name: "the ND (no derivatives) term",
+    pattern: /(^|[^a-z])nd([^a-z]|$)|no-?derivatives/i,
+  },
+];
+
+/**
+ * Returns one problem for the first refused term in the Rights basis or License of an entry, or
+ * undefined. It runs on every entry before the basis is read, so no basis can carry a refused term (FR-54).
+ */
+function findRefusedTerm(entry: AttributionEntry): string | undefined {
+  const checkedLabels: readonly AttributionLabel[] = [
+    "Rights basis",
+    "License",
+  ];
+  for (const label of checkedLabels) {
+    const value = entry.fields[label];
+    if (value === undefined) {
+      continue;
+    }
+    for (const term of REFUSED_TERMS) {
+      if (term.pattern.test(value)) {
+        return `has ${term.name} in its ${label} "${value}", which FR-54 refuses`;
+      }
+    }
   }
   return undefined;
 }
+
+/** A License value that names public domain, such as "Public domain", "CC0 1.0", or "Public Domain Mark 1.0" (FR-54). */
+const PUBLIC_DOMAIN_LICENSE_PATTERN = /public domain|(^|[^a-z])cc0([^a-z]|$)/i;
 
 /** Escapes the characters that have a meaning in a regular expression, so a folder name matches only itself. */
 function escapeForPattern(text: string): string {
@@ -323,9 +351,9 @@ function isImageFile(filePath: string): boolean {
 }
 
 /**
- * Checks the rights basis and license of one entry against FR-54: fair use, fair dealing, and the
- * NC and ND terms are refused by name, any other unknown basis is refused with the list of four,
- * and each of the four bases has its own requirement.
+ * Checks the rights basis and license of one entry against FR-54: a refused term is refused by
+ * name, any other unknown basis is refused with the list of four, and each of the four bases has
+ * its own requirement.
  */
 function findRightsProblems(
   entry: AttributionEntry,
@@ -337,25 +365,9 @@ function findRightsProblems(
     return problems;
   }
   const license = entry.fields.License ?? "";
-  const lowerBasis = basisText.toLowerCase();
-  if (lowerBasis.includes("fair use")) {
-    problems.push(
-      "claims fair use, which FR-54 does not accept as a rights basis",
-    );
-    return problems;
-  }
-  if (lowerBasis.includes("fair dealing")) {
-    problems.push(
-      "claims fair dealing, which FR-54 does not accept as a rights basis",
-    );
-    return problems;
-  }
-  const refusedTerm =
-    findRefusedLicenseTerm(license) ?? findRefusedLicenseTerm(basisText);
+  const refusedTerm = findRefusedTerm(entry);
   if (refusedTerm !== undefined) {
-    problems.push(
-      `has the license "${license}" with the ${refusedTerm} term, which FR-54 refuses`,
-    );
+    problems.push(refusedTerm);
     return problems;
   }
   const basis = readRightsBasis(basisText);
@@ -382,6 +394,11 @@ function findRightsProblems(
       if (isBlank(source)) {
         problems.push(
           "is public domain but its Source does not name the source",
+        );
+      }
+      if (!PUBLIC_DOMAIN_LICENSE_PATTERN.test(license)) {
+        problems.push(
+          `is public domain but its License "${license}" does not name public domain, such as "Public domain" or CC0`,
         );
       }
       break;
@@ -416,21 +433,27 @@ function findRightsProblems(
 }
 
 /**
- * Checks the capture details of one entry (FR-54). An entry whose Source is a template of this
- * folder is a rendered fixture and needs the viewport, device scale factor, and browser version.
+ * Checks the capture details of one entry (FR-54). An entry whose Source names a template that
+ * exists in this folder's templates/ is a rendered fixture and needs the viewport, device scale factor, and browser version.
  * Any other entry is a live capture and also needs an http(s) Source URL and a YYYY-MM-DD capture date.
  * A label that is missing is already reported by the parser, so it is skipped here.
  */
 function findCaptureProblems(
   entry: AttributionEntry,
+  packsRoot: string,
   folderName: string,
 ): string[] {
   const problems: string[] = [];
+  // The template name is captured in group 1 and may not hold a "/", so it names a file directly in templates/.
   const renderedSourcePattern = new RegExp(
-    `^packs/${escapeForPattern(folderName)}/templates/[^\\s,]+\\.html, defect=(on|off)$`,
+    `^packs/${escapeForPattern(folderName)}/templates/([^\\s,/]+\\.html), defect=(on|off)$`,
   );
   const source = entry.fields.Source;
-  const isRendered = source !== undefined && renderedSourcePattern.test(source);
+  const templateName =
+    source === undefined ? undefined : renderedSourcePattern.exec(source)?.[1];
+  const isRendered =
+    templateName !== undefined &&
+    existsSync(join(packsRoot, folderName, "templates", templateName));
   if (source !== undefined && !isRendered) {
     const sourceUrl = entry.fields["Source URL"];
     if (sourceUrl !== undefined && !/^https?:\/\/\S+$/.test(sourceUrl)) {
@@ -581,7 +604,7 @@ export function checkPackFixtures(
     for (const text of findRightsProblems(entry, attribution.packLicense)) {
       addFixtureProblem(entry.file, text);
     }
-    for (const text of findCaptureProblems(entry, folderName)) {
+    for (const text of findCaptureProblems(entry, packsRoot, folderName)) {
       addFixtureProblem(entry.file, text);
     }
   }
