@@ -39,6 +39,14 @@
  *     questions, and the mean derived confidence for noul questions, which
  *     report none.
  *
+ * With --overview (crit-zs9), it reads the two results files under
+ * spike/results/overview/ instead, the slice alone and the slice with the
+ * whole-page overview, both with the purpose line, and applies the same rules
+ * to them. It then writes overview_comparison.csv,
+ * overview_agreement_summary.csv, overview_run_costs.csv and
+ * overview_cost_summary.csv, and leaves the four files above unchanged. The
+ * `image` column holds the variant name.
+ *
  * Exit codes: 0 when the files are written, 1 when a check fails.
  */
 
@@ -77,13 +85,40 @@ const IMAGE_NAMES: Record<string, string> = {
   "spike/screenshot.png": "whole_page",
 };
 
-/** The four Jev conditions, in the order the CSV files list them. */
-const CONDITIONS: { image: string; purpose: string }[] = [
+/** True when the script compares the crit-zs9 overview runs instead of the four M-1 conditions. */
+const OVERVIEW_MODE = process.argv.includes("--overview");
+
+/** The four M-1 Jev conditions, in the order the CSV files list them. */
+const M1_CONDITIONS: { image: string; purpose: string }[] = [
   { image: "slice", purpose: "with_purpose" },
   { image: "slice", purpose: "without_purpose" },
   { image: "whole_page", purpose: "with_purpose" },
   { image: "whole_page", purpose: "without_purpose" },
 ];
+
+/** The two crit-zs9 variants. The `image` slot holds the variant name that each results file records. */
+const OVERVIEW_CONDITIONS: { image: string; purpose: string }[] = [
+  { image: "slice_alone", purpose: "with_purpose" },
+  { image: "slice_with_overview", purpose: "with_purpose" },
+];
+
+/** The conditions this run of the script compares. */
+let CONDITIONS = M1_CONDITIONS;
+if (OVERVIEW_MODE) {
+  CONDITIONS = OVERVIEW_CONDITIONS;
+}
+
+/** The folder under spike/ that holds the results files this run reads. */
+let RESULTS_FOLDER_NAME = "results";
+if (OVERVIEW_MODE) {
+  RESULTS_FOLDER_NAME = join("results", "overview");
+}
+
+/** The prefix of every CSV file this run writes, so the overview files never replace the M-1 files. */
+let OUTPUT_PREFIX = "";
+if (OVERVIEW_MODE) {
+  OUTPUT_PREFIX = "overview_";
+}
 
 /** The summary metrics that cost_summary.csv copies. */
 const SUMMARY_METRICS = [
@@ -138,6 +173,8 @@ type ResultsFile = {
   fileName: string;
   condition: string;
   image: { path: string; sha256: string; width: number; height: number };
+  variant?: string;
+  overview_image?: { path: string; sha256: string } | null;
   questions_file: { path: string; sha256: string };
   runs: ResultRun[];
   summary: Record<string, unknown>;
@@ -310,7 +347,7 @@ function readHumanAnswers(sheetQuestions: SheetQuestion[]): HumanAnswer[] {
 function readResultsFiles(
   sheetQuestions: SheetQuestion[],
 ): Map<string, ResultsFile> {
-  const resultsFolder = join(SPIKE_FOLDER, "results");
+  const resultsFolder = join(SPIKE_FOLDER, RESULTS_FOLDER_NAME);
   const questionsHash = hashFile(join(SPIKE_FOLDER, "questions.yaml"));
   const resultsByCondition = new Map<string, ResultsFile>();
   const fileNames = readdirSync(resultsFolder).filter((name) =>
@@ -321,7 +358,10 @@ function readResultsFiles(
       readFileSync(join(resultsFolder, fileName), "utf8"),
     ) as ResultsFile;
     results.fileName = fileName;
-    const imageName = IMAGE_NAMES[results.image.path];
+    let imageName = IMAGE_NAMES[results.image.path];
+    if (OVERVIEW_MODE) {
+      imageName = results.variant;
+    }
     if (imageName === undefined) {
       addProblem(`${fileName}: unknown image path ${results.image.path}`);
       continue;
@@ -337,6 +377,17 @@ function readResultsFiles(
     ) {
       addProblem(
         `${fileName}: image sha256 differs from ${results.image.path}`,
+      );
+    }
+    const overviewImage = results.overview_image;
+    if (
+      overviewImage !== undefined &&
+      overviewImage !== null &&
+      hashFile(join(REPOSITORY_ROOT, overviewImage.path)) !==
+        overviewImage.sha256
+    ) {
+      addProblem(
+        `${fileName}: overview image sha256 differs from ${overviewImage.path}`,
       );
     }
     if (results.questions_file.sha256 !== questionsHash) {
@@ -357,7 +408,9 @@ function readResultsFiles(
   for (const condition of CONDITIONS) {
     const conditionKey = `${condition.image}/${condition.purpose}`;
     if (!resultsByCondition.has(conditionKey)) {
-      addProblem(`spike/results: no results file for ${conditionKey}`);
+      addProblem(
+        `spike/${RESULTS_FOLDER_NAME}: no results file for ${conditionKey}`,
+      );
     }
   }
   return resultsByCondition;
@@ -871,6 +924,10 @@ function buildRunCosts(
       ]);
     }
   }
+  if (OVERVIEW_MODE) {
+    // The overview runs sent no text-only baseline.
+    return rows;
+  }
   const baselines: Record<string, unknown>[] = [];
   for (const purpose of ["with_purpose", "without_purpose"]) {
     const results = resultsByCondition.get(`whole_page/${purpose}`);
@@ -978,20 +1035,23 @@ function main(): void {
     reportProblemsAndExit();
   }
   writeFileSync(
-    join(SPIKE_FOLDER, "comparison.csv"),
+    join(SPIKE_FOLDER, `${OUTPUT_PREFIX}comparison.csv`),
     formatCsv(comparison.rows),
   );
   writeFileSync(
-    join(SPIKE_FOLDER, "agreement_summary.csv"),
+    join(SPIKE_FOLDER, `${OUTPUT_PREFIX}agreement_summary.csv`),
     formatCsv(summaryRows),
   );
-  writeFileSync(join(SPIKE_FOLDER, "run_costs.csv"), formatCsv(runCostRows));
   writeFileSync(
-    join(SPIKE_FOLDER, "cost_summary.csv"),
+    join(SPIKE_FOLDER, `${OUTPUT_PREFIX}run_costs.csv`),
+    formatCsv(runCostRows),
+  );
+  writeFileSync(
+    join(SPIKE_FOLDER, `${OUTPUT_PREFIX}cost_summary.csv`),
     formatCsv(costSummaryRows),
   );
   console.log(
-    "wrote spike/comparison.csv, agreement_summary.csv, run_costs.csv, cost_summary.csv",
+    `wrote spike/${OUTPUT_PREFIX}comparison.csv, ${OUTPUT_PREFIX}agreement_summary.csv, ${OUTPUT_PREFIX}run_costs.csv, ${OUTPUT_PREFIX}cost_summary.csv`,
   );
 }
 

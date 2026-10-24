@@ -36,3 +36,9 @@ This slice shows part of the same page at full size. In the whole-page screensho
 - Padded: no. The short side is 1280 px, which is not under 280 px.
 - Preparation: ImageMagick 7 (`magick`) cropped the raw capture, removed the alpha channel, and removed all metadata (`-alpha off -strip`). A short Python script then copied the file keeping only the IHDR, IDAT, and IEND chunks. The pixels did not change after the crop.
 - Rights basis, third-party content, people and data: the same as for `spike/screenshot.png` above. The page is a work of the U.S. federal government and is in the public domain under 17 U.S.C. 105.
+
+## spike/page-overview.png
+
+- Source: `spike/screenshot.png`, made by `node spike/overview.ts make-image` (crit-zs9).
+- Preparation: sharp 0.35.5 resized the screenshot to 410 x 1248 px and drew a 4 px red outline around rows 166 to 653, which are CSS rows 520 to 2040, the rows that `spike/slice.png` holds. The size keeps the slice and the overview together under the TypeSafe area limit of 2,458,624 px.
+- Rights basis, third-party content, people and data: the same as for `spike/screenshot.png` above.
