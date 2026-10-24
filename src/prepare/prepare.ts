@@ -14,43 +14,21 @@ export const MIN_SIDE_PIXELS = 280;
  */
 export const MAX_SIDE_PIXELS = 1568;
 
+/**
+ * The smallest scale factor prepare accepts. An image that would shrink to
+ * less than half its size is refused, because its text becomes too small to
+ * judge, and crit cannot cut the page safely itself (FR-73).
+ */
+export const MIN_SCALE_FACTOR = 0.5;
+
 /** The image formats prepare accepts and writes (FR-5, NFR-7). */
 export type ImageFormat = "png" | "jpeg";
 
 /**
- * One full-width slice of the page, ready to send to TypeSafe (FR-70). Compose
- * maps a Box region on the slice back to the original image by dividing its
- * coordinates by scaleFactor and then adding originalTop to y (FR-72).
- */
-export type PreparedSlice = {
-  /** The position of the slice, counted from 0 at the top (FR-70). */
-  index: number;
-  /** The encoded slice, with no metadata, in the page's format (FR-6). */
-  bytes: Uint8Array;
-  /** The width of the prepared slice, padding included. */
-  width: number;
-  /** The height of the prepared slice, padding included. */
-  height: number;
-  /** The top edge of the slice, in pixels of the upright original image. */
-  originalTop: number;
-  /** The height of the slice, in pixels of the upright original image. */
-  originalHeight: number;
-  /**
-   * Prepared pixels divided by original pixels, measured on the width. It is
-   * 1 when the width was not scaled down.
-   */
-  scaleFactor: number;
-  /** True when a side was padded up to MIN_SIDE_PIXELS (FR-8). */
-  padded: boolean;
-};
-
-/**
- * The image prepare returns, ready to send to TypeSafe (FR-7, FR-8, FR-70,
- * NFR-7). The top-level fields describe the downscaled whole page. Compose
- * maps a Box region on it back to the original image by dividing its
+ * The image prepare returns, ready to send to TypeSafe (FR-7, FR-8, NFR-7).
+ * Compose maps a Box region on it back to the original image by dividing its
  * coordinates by scaleFactor. The page sits at the top-left, so no offset is
- * needed (FR-8, US-11). The slices list holds the cut page (FR-70). When the
- * page needs no cut, it holds one slice that is the whole page.
+ * needed (FR-8, US-11).
  */
 export type PreparedImage = {
   /** The encoded image, with no metadata (FR-6). */
@@ -73,11 +51,6 @@ export type PreparedImage = {
   scaleFactor: number;
   /** True when a side was padded up to MIN_SIDE_PIXELS (FR-8). */
   padded: boolean;
-  /**
-   * The slices from top to bottom (FR-70). A page that needs no cut has one
-   * slice with the same bytes, size, scale factor, and padding as the page.
-   */
-  slices: PreparedSlice[];
 };
 
 /** The upright, sRGB pixels of the input, one byte per channel. */
@@ -95,21 +68,12 @@ type FittedSize = {
   scaleFactor: number;
 };
 
-/** One encoded image and its final size, padding included. */
-type RenderedImage = {
-  bytes: Uint8Array;
-  width: number;
-  height: number;
-  padded: boolean;
-};
-
-/** Where one slice sits in the upright original image, in its pixels. */
-type SliceBounds = {
-  originalTop: number;
-  originalHeight: number;
-};
-
 const INVALID_IMAGE_MESSAGE = "the image is not a valid PNG or JPEG";
+
+const TOO_LARGE_MESSAGE =
+  "the image would shrink below half size to fit TypeSafe's 1568 px limit, " +
+  "so its text would be too small to judge; send the page in parts, such as " +
+  "one screenshot for each section or each screen height";
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const JPEG_SIGNATURE = [0xff, 0xd8, 0xff];
@@ -121,7 +85,8 @@ const JPEG_QUALITY = 90;
  * Turns the bytes of one PNG or JPEG into an image TypeSafe accepts: upright,
  * in sRGB, with no metadata, each side from 280 to 1568 pixels, in the input's
  * format. The same bytes always give the same output bytes, and the input is
- * not changed (FR-5, FR-6, FR-7, FR-8, FR-10, NFR-7, US-11).
+ * not changed. An image that would shrink below half size is refused (FR-5,
+ * FR-6, FR-7, FR-8, FR-10, FR-73, NFR-7, US-11).
  */
 export async function prepareImage(
   imageBytes: Uint8Array,
@@ -129,74 +94,25 @@ export async function prepareImage(
   const format = detectFormat(imageBytes);
   const upright = await decodeUpright(imageBytes);
   const fitted = fitWithinLimits(upright.width, upright.height);
-  const page = await renderImage(upright, fitted, upright, format);
-
-  const sliceScale = fitWidthWithinLimit(upright.width);
-  const sliceBoundsList = planSlices(upright.height, sliceScale.scaleFactor);
-  const slices: PreparedSlice[] = [];
-  if (sliceBoundsList.length === 1) {
-    // No cut: the whole page is the only slice, so its output stays exactly
-    // what it was before slicing existed (FR-70).
-    slices.push({
-      index: 0,
-      bytes: page.bytes,
-      width: page.width,
-      height: page.height,
-      originalTop: 0,
-      originalHeight: upright.height,
-      scaleFactor: fitted.scaleFactor,
-      padded: page.padded,
-    });
-  } else {
-    for (let index = 0; index < sliceBoundsList.length; index++) {
-      const bounds = sliceBoundsList[index];
-      if (bounds === undefined) {
-        throw new Error(`prepare lost slice ${index}`);
-      }
-      const slice = await prepareSlice(upright, bounds, sliceScale, format);
-      slices.push({ index, ...slice });
-    }
+  if (fitted.scaleFactor < MIN_SCALE_FACTOR) {
+    throw new CouldNotRunError(TOO_LARGE_MESSAGE);
   }
-
-  return {
-    bytes: page.bytes,
-    format,
-    width: page.width,
-    height: page.height,
-    originalWidth: upright.width,
-    originalHeight: upright.height,
-    scaleFactor: fitted.scaleFactor,
-    padded: page.padded,
-    slices,
-  };
-}
-
-/**
- * Scales the pixels to the fitted size, pads a side under MIN_SIDE_PIXELS
- * with the page's top-left colour at the bottom and right, and encodes the
- * result. The page and every slice go through this one function, so they
- * share one resize, padding, and encoder rule (FR-7, FR-8, FR-10, FR-70).
- */
-async function renderImage(
-  source: UprightPixels,
-  fitted: FittedSize,
-  page: UprightPixels,
-  format: ImageFormat,
-): Promise<RenderedImage> {
+  // Pad a side under MIN_SIDE_PIXELS with the page's top-left colour at the
+  // bottom and right (FR-8).
   const finalWidth = Math.max(fitted.width, MIN_SIDE_PIXELS);
   const finalHeight = Math.max(fitted.height, MIN_SIDE_PIXELS);
   const padded = finalWidth > fitted.width || finalHeight > fitted.height;
 
-  let pipeline = sharp(source.pixels, {
+  let pipeline = sharp(upright.pixels, {
     raw: {
-      width: source.width,
-      height: source.height,
-      channels: source.channels,
+      width: upright.width,
+      height: upright.height,
+      channels: upright.channels,
     },
   });
-  if (fitted.width !== source.width || fitted.height !== source.height) {
-    // fit "fill" makes sharp use the exact sizes computed by the caller, so
-    // the rounding rule lives in this file and not inside sharp.
+  if (fitted.width !== upright.width || fitted.height !== upright.height) {
+    // fit "fill" makes sharp use the exact sizes computed by fitWithinLimits,
+    // so the rounding rule lives in this file and not inside sharp.
     pipeline = pipeline.resize({
       width: fitted.width,
       height: fitted.height,
@@ -210,123 +126,21 @@ async function renderImage(
       left: 0,
       right: finalWidth - fitted.width,
       bottom: finalHeight - fitted.height,
-      background: readTopLeftColour(page),
+      background: readTopLeftColour(upright),
     });
   }
   const encoded = await encodeImage(pipeline, format);
+
   return {
     bytes: new Uint8Array(encoded),
+    format,
     width: finalWidth,
     height: finalHeight,
+    originalWidth: upright.width,
+    originalHeight: upright.height,
+    scaleFactor: fitted.scaleFactor,
     padded,
   };
-}
-
-/**
- * Cuts one full-width band of rows out of the upright pixels, scales it by
- * the width scale factor, and encodes it. The band is cut in original pixels
- * before the resize, so its top offset is a whole original pixel (FR-70).
- */
-async function prepareSlice(
-  upright: UprightPixels,
-  bounds: SliceBounds,
-  sliceScale: FittedSize,
-  format: ImageFormat,
-): Promise<Omit<PreparedSlice, "index">> {
-  const rowLength = upright.width * upright.channels;
-  // subarray gives a view of the rows from originalTop to the slice bottom,
-  // with no copy, so the input pixels are never changed.
-  const bandPixels = upright.pixels.subarray(
-    bounds.originalTop * rowLength,
-    (bounds.originalTop + bounds.originalHeight) * rowLength,
-  );
-  const band: UprightPixels = {
-    pixels: bandPixels,
-    width: upright.width,
-    height: bounds.originalHeight,
-    channels: upright.channels,
-  };
-  const fitted: FittedSize = {
-    width: sliceScale.width,
-    height: scaleSide(bounds.originalHeight, sliceScale.scaleFactor),
-    scaleFactor: sliceScale.scaleFactor,
-  };
-  const rendered = await renderImage(band, fitted, upright, format);
-  return {
-    bytes: rendered.bytes,
-    width: rendered.width,
-    height: rendered.height,
-    originalTop: bounds.originalTop,
-    originalHeight: bounds.originalHeight,
-    scaleFactor: sliceScale.scaleFactor,
-    padded: rendered.padded,
-  };
-}
-
-/**
- * Works out the width a slice is scaled to and the scale factor: the width
- * becomes 1568 when it is wider, and is never scaled up (FR-7, FR-70). The
- * height in the result is not used.
- */
-function fitWidthWithinLimit(width: number): FittedSize {
-  if (width <= MAX_SIDE_PIXELS) {
-    return { width, height: 0, scaleFactor: 1 };
-  }
-  return {
-    width: MAX_SIDE_PIXELS,
-    height: 0,
-    scaleFactor: MAX_SIDE_PIXELS / width,
-  };
-}
-
-/**
- * Scales one side by the scale factor and rounds it to the nearest whole
- * pixel, never below 1 (FR-7, FR-8).
- */
-function scaleSide(length: number, scaleFactor: number): number {
-  if (scaleFactor === 1) {
-    return length;
-  }
-  return Math.max(1, Math.round(length * scaleFactor));
-}
-
-/**
- * Chooses where to cut the page, in original pixels, using the OQ-22
- * proposed defaults: the height test reads the height after the width is
- * scaled, the cut uses the fewest slices whose scaled height fits in 1568,
- * all slices have one height, and slices do not overlap. When the original
- * height does not divide evenly, the last slice is shorter by the remainder.
- * A page that fits gives one slice (FR-70, OQ-22).
- */
-function planSlices(
-  originalHeight: number,
-  scaleFactor: number,
-): SliceBounds[] {
-  const scaledHeight = scaleSide(originalHeight, scaleFactor);
-  if (scaledHeight <= MAX_SIDE_PIXELS) {
-    return [{ originalTop: 0, originalHeight }];
-  }
-  let sliceCount = Math.ceil(scaledHeight / MAX_SIDE_PIXELS);
-  let sliceHeight = Math.ceil(originalHeight / sliceCount);
-  // Rounding can push a scaled slice one pixel over the limit, so add a
-  // slice until every slice fits.
-  while (scaleSide(sliceHeight, scaleFactor) > MAX_SIDE_PIXELS) {
-    sliceCount = sliceCount + 1;
-    sliceHeight = Math.ceil(originalHeight / sliceCount);
-  }
-  const boundsList: SliceBounds[] = [];
-  for (
-    let originalTop = 0;
-    originalTop < originalHeight;
-    originalTop = originalTop + sliceHeight
-  ) {
-    const remaining = originalHeight - originalTop;
-    boundsList.push({
-      originalTop,
-      originalHeight: Math.min(sliceHeight, remaining),
-    });
-  }
-  return boundsList;
 }
 
 /**

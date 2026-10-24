@@ -38,8 +38,7 @@ type CriterionSelection = {
  * Build the one state and the questions for one prepared image (FR-12 to FR-17, NFR-9 to NFR-11,
  * US-7, US-8). It skips criteria for platform or missing facts, makes one question per kept
  * criterion plus a Box question when `locate` is true, and throws CouldNotRunError when the context
- * for a question is over the limit. The steps are separate functions so that asking per slice
- * (FR-71) can call them once per image.
+ * for a question is over the limit.
  */
 export function buildQuestions(input: BuildInput): BuildResult {
   checkPackNamesUnique(input.packs);

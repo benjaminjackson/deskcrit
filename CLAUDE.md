@@ -29,7 +29,7 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `src/cli/bin.ts` is the bundle entry file.
 - `src/cli/render-json.ts` holds `renderReportJson` and `src/cli/render-text.ts` holds `renderReportText`, the pure functions that turn the report document into the `--json` output and the readable report (FR-31, FR-32, FR-33). `src/cli/prd-example-report.fixture.ts` is the PRD section 8.1 example that their tests share, and `src/cli/no-io.test.ts` checks that both renderers do no I/O.
 - `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
-- `src/prepare/prepare.ts` holds `prepareImage`, which checks, turns upright, strips, resizes, and pads one image and records its scale factor.
+- `src/prepare/prepare.ts` holds `prepareImage`, which checks, turns upright, strips, resizes, and pads one image, records its scale factor, and refuses an image it would shrink below half size.
 - `src/shared/state.ts`, `src/shared/question.ts`, `src/shared/answer.ts`, and `src/shared/usage.ts` hold the State, Question, Answer, and Usage types that pass between the stages, and nothing else defines them.
 - `src/shared/pack.ts` holds the Pack, Criterion, PackQuestion, Predicate, and PackProblem types that the pack loader returns and build and compose read.
 - `src/packs/load-pack.ts` holds `checkPack` and `loadPack`, which parse one pack's YAML text and check it against `schemas/pack.schema.json` and the rules the schema cannot express. It reads no files.

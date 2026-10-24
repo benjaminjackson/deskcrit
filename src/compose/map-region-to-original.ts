@@ -3,16 +3,6 @@
 
 import type { Region } from "../shared/answer.js";
 
-/**
- * How the prepared image sits on the original: prepare multiplied the original by `scaleFactor`,
- * and the prepared image starts `originalTop` pixels down the original. For a whole image that
- * prepare did not cut, `originalTop` is 0 (FR-8). A slice of a cut page has its own (FR-72).
- */
-export type PreparedFrame = {
-  readonly scaleFactor: number;
-  readonly originalTop: number;
-};
-
 /** The size of the original image in pixels. */
 export type OriginalSize = {
   readonly width: number;
@@ -21,20 +11,19 @@ export type OriginalSize = {
 
 /**
  * Returns the region in whole pixels of the original image, or null when nothing of it is left
- * inside the original (FR-8, US-11). It divides by the scale factor and adds the top offset, then
- * clamps each edge to the original's bounds, so a region that reaches into prepare's padding is cut
+ * inside the original (FR-8, US-11). `scaleFactor` is what prepare multiplied the original by, and
+ * prepare placed the image at the top-left, so no offset is needed. It divides by the scale factor, then clamps each edge to the original's bounds, so a region that reaches into prepare's padding is cut
  * at the image edge. Then it rounds each edge, so the rounded rectangle stays inside the bounds.
  */
 export function mapRegionToOriginal(
   region: Region,
-  frame: PreparedFrame,
+  scaleFactor: number,
   original: OriginalSize,
 ): Region | null {
-  const scaleFactor = frame.scaleFactor;
   const left = region.x / scaleFactor;
-  const top = region.y / scaleFactor + frame.originalTop;
+  const top = region.y / scaleFactor;
   const right = (region.x + region.width) / scaleFactor;
-  const bottom = (region.y + region.height) / scaleFactor + frame.originalTop;
+  const bottom = (region.y + region.height) / scaleFactor;
 
   const roundedLeft = Math.round(clamp(left, 0, original.width));
   const roundedTop = Math.round(clamp(top, 0, original.height));
