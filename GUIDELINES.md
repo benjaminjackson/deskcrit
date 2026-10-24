@@ -72,7 +72,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Rule:** Justified lines keep their word spaces even. Lines with holes between the words break the even grey of the column, so justify only where the measure is wide enough and hyphenation is on.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.1 and 2.1.2, pp. 26-27 (from the scan's OCR text): "A reasonable maximum in justified text is M/2", and short justified lines "will lead to white acne or pig bristles"; Hochuli, *Detail in Typography* (2008), chapter "The line", p. 34: "If the measure is too narrow – with less than around 50 characters per line – even wordspacing becomes difficult, if not impossible. The wordspaces become obviously uneven and large 'holes' appear."
 - **Judged by:** not encoded. Question tried: "In a paragraph whose lines all end at the same right edge, do some lines look stretched, with holes between the words that break the even texture of the text?" Reworded once under R-4 on 2026-10-24, after the old question ("In justified text, do some lines have gaps between words that are much wider than the gaps in the lines around them?") left all 5 positives quiet in its first run (a482a92).
-- **Not encoded (R-4):** `justified-word-gaps` was removed under R-4: 5 of 5 positives quiet after one rewording, 2026-10-24.
+- **Not encoded (R-4):** `justified-word-gaps` was removed under R-4: 5 of 5 positives quiet after one rewording (87d2a2a), 2026-10-24.
 
 ### Rivers of white space
 - **Rule:** Seen from a distance, a block of text shows no channels of white that run down or across several lines.
@@ -148,7 +148,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Rule:** At display sizes, the space between letter pairs looks even: no gaps in pairs such as "AV", "To", and "Wa", and no collisions.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.8, p. 32 (from the scan's OCR text): "Kern consistently and modestly or not at all." P. 33 (from the scan's OCR text) adds: "Especially at larger sizes, it is common to kern combinations involving commas and periods." Lupton, *Thinking with Type* (1st ed. 2004), p. 80, supports only that large type needs fine-tuning: "Because the space between characters expands as the type size increases, designers often fine-tune letterspacing when working with large letters." Hochuli, *Detail in Typography* (2008), p. 30: "individual letters should not touch. A small 'hole' between two letters is less bad than letters that collide with each other."
 - **Judged by:** not encoded. Question tried: "In a large heading, does the spacing between the letters look uneven, so that at some point a letter seems to stand apart from the letter next to it and the word looks broken there?" Reworded once under R-4 on 2026-10-24, after the old question ("In a large headline, is there a pair of letters, such as AV, To, or Wa, with a gap between them that is visibly wider than the gaps between the other letters?") left all 5 positives quiet in its first run (a482a92).
-- **Not encoded (R-4):** `display-kerning-gap` was removed under R-4: 5 of 5 positives quiet after one rewording, 2026-10-24.
+- **Not encoded (R-4):** `display-kerning-gap` was removed under R-4: 5 of 5 positives quiet after one rewording (87d2a2a), 2026-10-24.
 - **Not encoded (NG-10), body text:** the defect grows with type size. At text size, the space between two letters is too fine to see.
 
 ### Ligatures
