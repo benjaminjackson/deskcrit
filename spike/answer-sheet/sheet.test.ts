@@ -336,7 +336,7 @@ test("check reads a sheet saved with Windows line endings, including inside a qu
     rows[1][notesColumn] = "first line\nsecond line";
   });
   const unixText = readFileSync(fixture.sheetPath, "utf8");
-  writeFileSync(fixture.sheetPath, `﻿${unixText.replaceAll("\n", "\r\n")}`);
+  writeFileSync(fixture.sheetPath, `\uFEFF${unixText.replaceAll("\n", "\r\n")}`);
   const result = runSheet("check", fixture.sheetPath, fixture.questionsPath);
   assert.equal(result.status, 0, result.stderr);
   const rows = parseCsv(readFileSync(fixture.sheetPath, "utf8"));

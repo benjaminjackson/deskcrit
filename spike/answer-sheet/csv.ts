@@ -36,8 +36,8 @@ export function formatCsv(rows: string[][]): string {
 /** Parses the answer sheet CSV into rows, and drops empty lines (M-1). It reads quoted fields with commas, quotes or line breaks, Windows line endings, and the byte order mark that spreadsheet apps add. */
 export function parseCsv(csvText: string): string[][] {
   let text = csvText;
-  // "﻿" is the byte order mark that Excel puts at the start of a file.
-  if (text.startsWith("﻿")) {
+  // "\uFEFF" is the byte order mark that Excel puts at the start of a file.
+  if (text.startsWith("\uFEFF")) {
     text = text.slice(1);
   }
   const rows: string[][] = [];
