@@ -279,7 +279,7 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 
 ### Captions and labels are not too small to read
 - **Rule:** Captions, labels, and legal text stay large enough to read. Apple gives 11 pt as the smallest text size on iOS. The figure is not checked.
-- **Source:** Apple, *Human Interface Guidelines*, "Typography". UNVERIFIED: the 11 pt minimum was not checked on the page, which needs a browser to render.
+- **Source:** Apple, *Human Interface Guidelines*, "Typography", table of default and minimum sizes: iOS and iPadOS, default 17 pt, minimum 11 pt. Checked on the rendered page on 2026-10-24.
 - **Link:** https://developer.apple.com/design/human-interface-guidelines/typography
 - **Judged by:** askable as a visual judgment. Question: "Are captions or labels so small that their letters cannot be told apart at the size of the image?"
 
@@ -303,7 +303,7 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 
 ### Secondary actions are not styled as strongly as the primary one
 - **Rule:** A view has one high-emphasis action. Other actions use lower-emphasis styles, such as outlined or text buttons.
-- **Source:** Material Design 3, "Buttons" guidelines, on emphasis levels. UNVERIFIED: the page needs a browser to render, and the point was not checked on it.
+- **Source:** Material Design 3, "Buttons" guidelines: "Use visually-prominent filled buttons for the most important actions", and "Buttons with primary actions should have a higher visual emphasis through size, color, or shape." Checked on the rendered page on 2026-10-24.
 - **Link:** https://m3.material.io/components/buttons/guidelines
 - **Judged by:** askable. Question: "Are two or more buttons in one view styled as the same filled, high-emphasis button?"
 
