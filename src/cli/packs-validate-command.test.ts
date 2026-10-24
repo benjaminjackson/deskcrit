@@ -8,6 +8,7 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -77,7 +78,7 @@ describe("crit packs validate", () => {
       expect(result.stderr).toBe("");
       expect(result.stdout).toMatch(
         new RegExp(
-          `^packs/${packName}: pack ${packName} is valid \\(\\d+ criteria\\)\\n$`,
+          `^packs/${packName}: pack ${packName} is valid \\(\\d+ criteri(on|a)\\)\\n$`,
         ),
       );
       expect(result.exitCode).toBe(0);
@@ -118,8 +119,37 @@ describe("crit packs validate", () => {
       ["fixtures/a.png", "fixtures/b.png"],
     );
     const result = await runValidate("my-pack", workingDirectory);
-    expect(result.stdout).toBe("my-pack: pack minimal is valid (1 criteria)\n");
+    expect(result.stdout).toBe(
+      "my-pack: pack minimal is valid (1 criterion)\n",
+    );
     expect(result.exitCode).toBe(0);
+  });
+
+  it("does not follow a fixtures link to a folder outside the pack", async () => {
+    const outside = join(workingDirectory, "outside");
+    mkdirSync(outside);
+    writeFileSync(join(outside, "a.png"), "");
+    writeFileSync(join(outside, "b.png"), "");
+    const directory = join(workingDirectory, "my-pack");
+    mkdirSync(directory);
+    symlinkSync(outside, join(directory, "fixtures"), "dir");
+    const minimal = readFileSync(
+      join(repositoryRoot, "schemas/examples/valid/minimal.yaml"),
+      "utf8",
+    );
+    writeFileSync(
+      join(directory, "pack.yaml"),
+      `${minimal}    fixtures:\n      positive:\n        - fixtures/a.png\n      negative:\n        - fixtures/b.png\n`,
+    );
+    const result = await runValidate("my-pack", workingDirectory);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toContain(
+      "field fixtures.positive.0: fixtures/a.png is not a file in the pack directory",
+    );
+    expect(result.stderr).toContain(
+      "field fixtures.negative.0: fixtures/b.png is not a file in the pack directory",
+    );
+    expect(result.exitCode).toBe(1);
   });
 
   it("stops with exit 2 for a missing directory", async () => {

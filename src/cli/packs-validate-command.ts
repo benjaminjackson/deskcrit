@@ -5,7 +5,7 @@
 
 import type { Dirent } from "node:fs";
 import { readdir, readFile, stat } from "node:fs/promises";
-import { join, relative, resolve, sep } from "node:path";
+import { join, resolve } from "node:path";
 import { validatePackText } from "../packs/validate-pack.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
 import type { PackProblem } from "../shared/pack.js";
@@ -47,9 +47,10 @@ export async function runPacksValidate(
   }
   if (validation.phase === "ok") {
     const criterionCount = validation.pack.criteria.length;
+    const criterionWord = criterionCount === 1 ? "criterion" : "criteria";
     return {
       valid: true,
-      stdoutText: `${directory}: pack ${validation.pack.name} is valid (${criterionCount} criteria)\n`,
+      stdoutText: `${directory}: pack ${validation.pack.name} is valid (${criterionCount} ${criterionWord})\n`,
       stderrText: "",
     };
   }
@@ -90,34 +91,43 @@ async function readPackFile(
 
 /**
  * List every file under the pack directory as a path relative to it with "/" between folders, so
- * the pure fixture check can look each fixture path up (FR-49). Only plain files count: a folder
- * or a symbolic link is not a fixture.
+ * the pure fixture check can look each fixture path up (FR-49). It walks the folders itself and
+ * never enters a symbolic link, because a link to a folder outside the pack would let files from
+ * there pass as fixtures. Only plain files count: a folder or a symbolic link is not a fixture.
  */
 async function listFilesInDirectory(
   packDirectory: string,
   directoryLabel: string,
 ): Promise<ReadonlySet<string>> {
-  let entries: Dirent[];
-  try {
-    entries = await readdir(packDirectory, {
-      recursive: true,
-      withFileTypes: true,
-    });
-  } catch {
-    throw new CouldNotRunError(`${directoryLabel}: cannot list files`);
-  }
   const files = new Set<string>();
-  for (const entry of entries) {
-    if (!entry.isFile()) {
-      continue;
+  // Each folder still to read, as a path relative to the pack directory; "" is the pack itself.
+  const foldersToRead: string[] = [""];
+  while (foldersToRead.length > 0) {
+    const folder = foldersToRead.pop() ?? "";
+    let entries: Dirent[];
+    try {
+      entries = await readdir(join(packDirectory, folder), {
+        withFileTypes: true,
+      });
+    } catch {
+      throw new CouldNotRunError(`${directoryLabel}: cannot list files`);
     }
-    // parentPath is the folder that holds the entry. Splitting on the platform separator and
-    // joining with "/" gives the same form on Windows as on macOS and Linux.
-    const relativePath = relative(
-      packDirectory,
-      join(entry.parentPath, entry.name),
-    );
-    files.add(relativePath.split(sep).join("/"));
+    for (const entry of entries) {
+      const relativePath =
+        folder === "" ? entry.name : `${folder}/${entry.name}`;
+      // A Dirent describes the entry itself, not what a link points to, so a link to a folder
+      // reports isSymbolicLink() true and isDirectory() false.
+      if (entry.isSymbolicLink()) {
+        continue;
+      }
+      if (entry.isDirectory()) {
+        foldersToRead.push(relativePath);
+        continue;
+      }
+      if (entry.isFile()) {
+        files.add(relativePath);
+      }
+    }
   }
   return files;
 }

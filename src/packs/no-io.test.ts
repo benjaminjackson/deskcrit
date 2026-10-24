@@ -13,6 +13,10 @@ const forbiddenPatterns: RegExp[] = [
   /from\s+["']node:/,
   /require\(/,
   /\bprocess\./,
+  /console\./,
+  // Node's built-in modules without the node: prefix, and dynamic import().
+  /from\s+["'](fs|path|child_process|os)(\/[^"']*)?["']/,
+  /\bimport\(/,
   // The loader imports schemas/pack.schema.json, which esbuild bundles, so that path is allowed.
   /from\s+["']\.\.\/(?!shared\/|\.\.\/schemas\/)/,
   /\bDate\b/,
