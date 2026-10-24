@@ -178,7 +178,14 @@ describe("FR-13, US-7: requires skips", () => {
   });
 
   it("skips a criterion whose path is absent and names the first missing path", () => {
-    const result = buildQuestions(makeInput(packs, { facts: { other: 1 } }));
+    // One criterion with no requires stays, so build has a question to ask (FR-74).
+    const packsWithOneKept = [
+      ...packs,
+      makePack("other", [makeNoulCriterion("kept")]),
+    ];
+    const result = buildQuestions(
+      makeInput(packsWithOneKept, { facts: { other: 1 } }),
+    );
     const reflow = result.skipped.find(
       (entry) => entry.criterion === "layout/reflow-at-320",
     );
@@ -194,10 +201,18 @@ describe("FR-13, US-7: requires skips", () => {
     expect(listIds(result.questions)).not.toContain("layout/reflow-at-320");
   });
 
-  it("skips every criterion with requires when no facts file is given", () => {
-    const result = buildQuestions(makeInput(packs));
-    expect(result.questions).toEqual([]);
-    expect(result.skipped).toHaveLength(5);
+  it("throws CouldNotRunError that lists every skipped criterion when no facts file is given and all need facts (FR-74)", () => {
+    expect(() => buildQuestions(makeInput(packs))).toThrow(CouldNotRunError);
+    expect(() => buildQuestions(makeInput(packs))).toThrow(
+      [
+        "nothing to ask: every criterion was skipped",
+        "  layout/reflow-at-320: requires facts.viewport_width, which the facts file does not have",
+        "  layout/nested: requires facts.viewport.height, which the facts file does not have",
+        "  layout/two-paths: requires facts.viewport_width, which the facts file does not have",
+        "  layout/null-value: requires facts.nothing, which the facts file does not have",
+        "  layout/inherited: requires facts.constructor, which the facts file does not have",
+      ].join("\n"),
+    );
   });
 
   it("throws a plain Error that names the pack, criterion, and path when a requires path does not start with facts.", () => {
@@ -228,6 +243,8 @@ describe("FR-13, US-7: requires skips", () => {
           applies_to: ["web"],
           requires: ["facts.viewport_width"],
         }),
+        // A criterion that stays, so build has a question to ask (FR-74).
+        makeNoulCriterion("kept"),
       ]),
     ];
     const result = buildQuestions(
@@ -496,17 +513,23 @@ describe("CS-18, CS-6: determinism and no argument changes", () => {
     expect(input).toEqual(before);
   });
 
-  it("returns no questions and the normal state when every criterion is skipped", () => {
-    const result = buildQuestions(
-      makeInput(
-        [makePack("p", [makeNoulCriterion("a", { applies_to: ["print"] })])],
-        {
-          context: { platform: "web" },
-        },
-      ),
+  it("throws CouldNotRunError with each skipped criterion and its reason when every criterion is skipped (FR-74)", () => {
+    const input = makeInput(
+      [makePack("p", [makeNoulCriterion("a", { applies_to: ["print"] })])],
+      {
+        context: { platform: "web" },
+      },
     );
-    expect(result.questions).toEqual([]);
-    expect(result.state.context).toEqual({ platform: "web" });
+    expect(() => buildQuestions(input)).toThrow(CouldNotRunError);
+    expect(() => buildQuestions(input)).toThrow(
+      "nothing to ask: every criterion was skipped\n  p/a: the criterion applies_to does not include platform web",
+    );
+  });
+
+  it("throws CouldNotRunError when no pack has a criterion (FR-74)", () => {
+    const input = makeInput([makePack("empty", [])]);
+    expect(() => buildQuestions(input)).toThrow(CouldNotRunError);
+    expect(() => buildQuestions(input)).toThrow("no criteria to ask");
   });
 
   it("throws CouldNotRunError that names the pack when two packs have the same name", () => {
