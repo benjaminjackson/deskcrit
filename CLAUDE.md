@@ -52,6 +52,7 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `evals/golden.test.ts` is the EV-1 golden-output test: it runs `dist/crit.js` on each case in `evals/golden/cases/` and compares stdout, stderr, and the exit code with the stored files.
 - `evals/schema.test.ts` is the EV-2 test: it validates the stdout of each JSON golden case against `schemas/report.schema.json`.
 - `evals/support/run-crit.ts` runs the bundle as a child process with only PATH in its environment and reads the golden cases.
+- `evals/support/pinned-model-and-schema.ts` holds `readPinnedModel`, which reads the model that a folder's `.crit.yaml` pins, and `compileReportValidator`, which compiles `schemas/report.schema.json`. The agreement harness and the wobble check both use them.
 - `evals/support/write-expected.mjs` rewrites the expected files of the golden cases; a person runs it by hand and reviews the diff, and an agent never runs it to make a test pass.
 - `evals/golden/` holds the golden inputs: `images/`, `facts/`, `packs/` (two packs written for the tests), `answers/page.answers.json` (recorded once with `--save-answers`), and `cases/<name>/` with `case.json` and the `expected.*` files.
 - `spike/` holds the M-1 spike inputs: the prepared screenshot, the twenty questions, the page purpose, and its attribution.
