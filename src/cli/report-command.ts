@@ -5,12 +5,17 @@
 
 // The JSON import is bundled by esbuild, so package.json is never read from disk at run time.
 import packageJson from "../../package.json" with { type: "json" };
-import type { AskResult, TypeSafeAdapter } from "../ask/adapter.js";
-import { ask } from "../ask/ask.js";
-import { buildQuestions } from "../build/build.js";
-import { compose } from "../compose/compose.js";
-import { prepareImage } from "../prepare/prepare.js";
-import { CouldNotRunError } from "../shared/could-not-run-error.js";
+// The stage functions come from the package entry point under their public names, so the CLI
+// runs exactly what a library caller runs (FR-63, FR-65).
+import {
+  type AskResult,
+  ask,
+  build,
+  CouldNotRunError,
+  compose,
+  prepare,
+  type TypeSafeAdapter,
+} from "../index.js";
 import { checkRecordedAnswers, writeAnswersFile } from "./answers-file.js";
 import type { RecordedAnswers, ReportInputs } from "./read-inputs.js";
 import { renderReportJson } from "./render-json.js";
@@ -47,7 +52,7 @@ export async function runReport(
     inputs.imagePath,
     inputs.imageBytes,
   );
-  const built = buildQuestions({
+  const built = build({
     packs: inputs.packs,
     image: prepared,
     context: inputs.context,
@@ -90,9 +95,9 @@ export async function runReport(
 async function prepareNamingImage(
   imagePath: string,
   imageBytes: Uint8Array,
-): ReturnType<typeof prepareImage> {
+): ReturnType<typeof prepare> {
   try {
-    return await prepareImage(imageBytes);
+    return await prepare(imageBytes);
   } catch (error) {
     if (error instanceof CouldNotRunError) {
       throw new CouldNotRunError(`${imagePath}: ${error.message}`);

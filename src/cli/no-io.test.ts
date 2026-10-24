@@ -65,19 +65,15 @@ for (const name of rendererFileNames) {
 }
 
 /**
- * The only modules report-command.ts may import: the four stage entry files, the adapter type,
- * src/shared/, the renderers, read-inputs.ts for its input type, answers-file.ts for --answers and
- * --save-answers, and package.json for the version
- * (FR-65, CS-6). A stage internal, such as compose/verdict.js, is not on the list.
+ * The only modules report-command.ts may import: the package entry point src/index.ts, which holds
+ * the four stage functions, the adapter type, and CouldNotRunError, so the CLI runs what a library
+ * caller runs; the renderers; read-inputs.ts for its input type; answers-file.ts for --answers and
+ * --save-answers; and package.json for the version (FR-63, FR-65, CS-6). A stage file, such as
+ * compose/verdict.js or even compose/compose.js, is not on the list.
  */
 const reportCommandAllowedImports: readonly string[] = [
   "../../package.json",
-  "../ask/adapter.js",
-  "../ask/ask.js",
-  "../build/build.js",
-  "../compose/compose.js",
-  "../prepare/prepare.js",
-  "../shared/could-not-run-error.js",
+  "../index.js",
   "./answers-file.js",
   "./read-inputs.js",
   "./render-json.js",
