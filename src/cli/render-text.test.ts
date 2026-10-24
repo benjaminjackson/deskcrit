@@ -140,9 +140,46 @@ describe("renderReportText", () => {
     expect(lastLine(text)).toContain("model: jev-1.14.0");
   });
 
-  test("shows neither skipped criteria nor regions", () => {
+  test("shows a Skipped group after Pass with each criterion and its reason", () => {
+    const text = renderReportText(reportWithFindings(findingsOfEveryVerdict));
+    expect(text).toContain("Skipped (1)");
+    expect(text).toContain(
+      "  layout/reflow-at-320: requires facts.viewport_width, which the facts file does not have",
+    );
+    expect(text.indexOf("Skipped (1)")).toBeGreaterThan(
+      text.indexOf("Pass (1)"),
+    );
+    expect(text.indexOf("Skipped (1)")).toBeLessThan(text.indexOf("Requests:"));
+  });
+
+  test("lists skipped criteria in the order the report gives them", () => {
+    const report: Report = {
+      ...prdExampleReport,
+      skipped: [
+        { criterion: "pack/zeta", reason: "first reason" },
+        { criterion: "pack/alpha", reason: "second reason" },
+      ],
+    };
+    const text = renderReportText(report);
+    expect(text).toContain("Skipped (2)");
+    expect(text.indexOf("pack/zeta: first reason")).toBeLessThan(
+      text.indexOf("pack/alpha: second reason"),
+    );
+  });
+
+  test("shows no Skipped group when nothing was skipped", () => {
+    const text = renderReportText({ ...prdExampleReport, skipped: [] });
+    expect(text).not.toContain("Skipped");
+  });
+
+  test("shows the probability of true on a noul finding and a confidence on a score finding", () => {
     const text = renderReportText(prdExampleReport);
-    expect(text).not.toContain("layout/reflow-at-320");
+    expect(text).toContain("Probability: 0.84");
+    expect(text).toContain("Confidence: 0.72");
+  });
+
+  test("shows no region", () => {
+    const text = renderReportText(prdExampleReport);
     expect(text).not.toContain("540");
   });
 
