@@ -2,7 +2,7 @@
 
 The guidelines the seven first-party packs encode, one domain per section.
 
-Each guideline has four parts. **Rule** is the testable form a reviewer would apply. **Source** is the original book, standard, or paper, not a blog that repeats it. **Link** appears when the source is online or is not a well-known book. **Judged by** says how the rule becomes a Jev question. `askable` means the rule is asked as written. `askable as a visual judgment` means the rule carries a figure (a ratio, a pixel size, a count) that `deskcrit` does not check. Jev is asked only whether the defect is visible. An exact result needs a measuring tool such as axe-core.
+Each guideline has four parts. **Rule** is the testable form a reviewer would apply. **Source** is the original book, standard, or paper, not a blog that repeats it. **Link** appears when the source is online or is not a well-known book. **Judged by** says how the rule becomes a Jev question. `askable` means the rule is asked as written. `askable as a visual judgment` means the rule carries a figure (a ratio, a pixel size, a count) that `deskcrit` does not check. Jev is asked only whether the defect is visible. An exact result needs a measuring tool such as axe-core. An entry that a pack encodes also has a **Defect range** line for each criterion, which states the realistic range of the defect that the criterion's fixtures must sit inside (PRD FR-54 rule 2). The line has one of two fixed forms, so a test can compare it with the criterion's `.defect.json` file: "`<criterion-id>`: <font size, contrast ratio, or edge distance> from <a> to <b>[ px], clean above|below." when the fixture renderer can measure it, where "clean above" or "clean below" names the side of the range that is free of the defect, or "`<criterion-id>`: not measured. <the range in words>" when it cannot.
 
 Scope: the design, not the writing. There is no content design section: reading level, sentence length, tone, and terminology belong to a content linter, so that research was dropped. Nielsen's heuristics are kept whole, including the ones that touch wording, because those are usability judgments about the screen rather than prose rules. `deskcrit` does no measurement of its own: it prepares the image, asks the questions, and reads the answers. Rules that are pure formulas, need the DOM, or need a running app are not in this catalog. An entry marked **Not encoded (NG-10)** stays in the catalog as research, but no pack encodes it, because it reads what the content says, needs detail too fine to see, or cannot be judged from one image (PRD NG-10). The mark says which.
 
@@ -18,22 +18,22 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 
 ### Line length (measure)
 - **Rule:** A single column of paragraph text must not run so wide that the eye loses its place on the way back to the start of the next line. Bringhurst gives 45 to 75 characters as the comfortable range, 66 as the ideal, and 40 to 50 for text set in several columns.
-- **Source:** Bringhurst, *The Elements of Typographic Style* (1992), section 2.1.2 "Choose a comfortable measure".
+- **Source:** Bringhurst, *The Elements of Typographic Style* (Version 3.0, 2004), section 2.1.2 "Choose a comfortable measure", p. 26 (from the scan's OCR text): "Anything from 45 to 75 characters is widely regarded as a satisfactory length of line for a single-column page".
 - **Judged by:** askable. Question: "Do the lines of paragraph text run across nearly the full width of the page?" The character counts are not checked, because Jev cannot count characters (JC-2).
 
 ### Leading suits the measure
 - **Rule:** Line spacing is chosen for the typeface, the text, and the measure together, and the longer the line, the more space it needs between lines. A wide paragraph set with tight line spacing is the common fault.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.2.1 "Choose a basic leading that suits the typeface, text and measure"; Hochuli, *Detail in Typography* (2008), chapter "Linespacing, the column".
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.2.1 "Choose a basic leading that suits the typeface, text and measure", p. 37 (read from the page image): "Longer measures need more lead than short ones."; Hochuli, *Detail in Typography* (Hyphen Press, 2008), chapter "Linespacing, the column", p. 47: "The longer the line, the more linespacing it needs, for a given typeface and type size."
 - **Judged by:** askable, as two criteria, one for tight leading and one for loose leading. First question: "Do the lines of a paragraph touch or overlap, so that the descenders of one line run into the next line?" The question must describe what the image shows: on the EV-4 fixture, whose lines overlap, a question about descenders that "nearly touch" scored 0.09. Second question: "Is the blank space between the lines of a paragraph as tall as the letters themselves or taller, so that each line looks like a separate line and not part of one block?" Only the clear case is askable in either direction, because a paragraph that is a little tight or a little loose differs by a few pixels, and Jev will likely miss it.
 
 ### Heading lines hold together
 - **Rule:** A heading of two or more lines needs tighter line spacing than text, so that it reads as one unit. With text spacing it falls apart into separate lines; set too tight, its lines collide.
-- **Source:** Lupton, *Thinking with Type* (2nd ed. 2010), "Text" chapter, "Line spacing"; Hochuli, *Detail in Typography*, chapter "Linespacing, the column".
+- **Source:** Bringhurst, *The Elements of Typographic Style* (Version 3.0, 2004), p. 37 (read from the page image), supports the "lines collide" half: "A short burst of advertising copy or a title might be set with negative leading (18/15, for example), so long as the ascenders and descenders don't collide." Section 2.1.6, p. 30 (from the scan's OCR text), adds that a multi-line heading in letterspaced capitals needs extra space between its lines. UNVERIFIED: the first half, that heading lines need tighter spacing than text, was not found in the 1st edition (2004) of Lupton (the 2nd edition was not checked). Lupton, *Thinking with Type* (1st ed. 2004), pp. 82-83 on line spacing, say nothing about headings. Hochuli, *Detail in Typography* (2008): UNVERIFIED: not found in Hochuli for the first half of the rule (the book leaves heading hierarchy to macrotypography, p. 7). For the "lines collide" half only, p. 28 faults a two-line capitals heading because "the lines in capitals are too tightly set, not optically spaced, and have too little interlinear space."
 - **Judged by:** askable, as two criteria. First question: "Do the lines of a multi-line heading touch or overlap each other?" Second question: "Is the gap between the lines of a heading as large as the gap between the heading and the text below it?"
 
 ### Typefaces in concord or in clear contrast, never in conflict
 - **Rule:** Type elements relate either by concord, which keeps to one family and varies it little, or by contrast, which makes them plainly different. Faces that are alike enough to look like a mistake but different enough to clash are in conflict, and a page that mixes several unrelated faces has no relationship at all.
-- **Source:** Dair, *Design with Type* (1967), chapter 7 "Relationships" and chapter 8 "Relationships of concord and contrast"; Lupton, *Thinking with Type*, "Letter" chapter, "Mixing typefaces".
+- **Source:** Dair, *Design with Type* (1967), chapter 7 "Relationships" and chapter 8 "Relationships of concord and contrast". UNVERIFIED: not found in Lupton, *Thinking with Type* (1st ed. 2004), which has no section on mixing typefaces, so the rule rests on Dair.
 - **Judged by:** askable. Question: "Does the page use three or more typefaces of clearly different styles, such as a script, a serif, and a sans serif?"
 - **Not encoded (NG-10), conflict half only:** telling two near-identical faces apart needs letterform detail too fine to see.
 
@@ -50,42 +50,42 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 
 ### Sizes come from a scale
 - **Rule:** Text sizes come from a small, deliberate scale, so that each size reads as its own level. Many sizes that are almost the same show that sizes were picked one at a time.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.1.1 "Don't compose without a scale".
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.1.1 "Don't compose without a scale", p. 45 (from the scan's OCR text): "limit yourself, at first, to a modest set of distinct and related intervals."
 - **Judged by:** askable. Question: "Are there two or more text sizes on the page that are almost the same, such as two body sizes side by side?" Sizes that differ by a pixel or two will likely be missed.
 
 ### One change at a time for emphasis
 - **Rule:** Emphasis inside text changes one thing: italic, or bold, or small capitals. A phrase that is bold, italic, underlined, and coloured at once shouts, and considered work never stacks them.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.5.1 "Change one parameter at a time"; Hochuli, *Detail in Typography*, chapter "Emphasis".
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.5.1 "Change one parameter at a time" (partly supported: p. 60 (from the scan's OCR text) is about headings, not stacked emphasis inside text); Lupton, *Thinking with Type* (1st ed. 2004), p. 94: "Emphasizing a word or phrase within a body of text usually requires only one signal." The same page shows "bold, italic, underlined caps!" as a type crime; Hochuli, *Detail in Typography* (2008), p. 44: "Other forms of emphasis – text set in capitals, the semi-bold or bold versions of the text type, underlining, a larger size of type, a different typeface, the use of a second colour or tones – produce a restless effect, and hinder linear reading." Hochuli supports this in part only: the book does not discuss stacking several signals.
 - **Judged by:** askable. Question: "Is a word or phrase emphasized in several ways at once, for example bold and italic and underlined, or bold capitals in a colour?"
 
 ### Even word spacing in justified text
 - **Rule:** Justified lines keep their word spaces even. Lines with holes between the words break the even grey of the column, so justify only where the measure is wide enough and hyphenation is on.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.3 and 2.1.10 "Don't stretch the space until it is broken"; Hochuli, *Detail in Typography*, chapter "The line", on the space between words.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.1 and 2.1.2, pp. 26-27 (from the scan's OCR text): "A reasonable maximum in justified text is M/2", and short justified lines "will lead to white acne or pig bristles"; Hochuli, *Detail in Typography* (2008), chapter "The line", p. 34: "If the measure is too narrow – with less than around 50 characters per line – even wordspacing becomes difficult, if not impossible. The wordspaces become obviously uneven and large 'holes' appear."
 - **Judged by:** askable. Question: "In justified text, do some lines have gaps between words that are much wider than the gaps in the lines around them?"
 
 ### Rivers of white space
 - **Rule:** Seen from a distance, a block of text shows no channels of white that run down or across several lines.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.3 and 2.1.10 (uneven word spacing in justified text; the book does not use the word "rivers" as a rule); Hochuli, *Detail in Typography*, chapter "The line".
+- **Source:** Bringhurst, *The Elements of Typographic Style*, supports the rule only in part; the nearest passage is the "white acne" one in sections 2.1.1 and 2.1.2, pp. 26-27 (from the scan's OCR text), on short justified lines, and the book does not use the word "rivers" as a rule; Hochuli, *Detail in Typography* (2008), chapter "Linespacing, the column", p. 47: "Vertical 'rivers' of white space occur on a page when the wordspaces in several lines fall exactly, or almost exactly, under one another."
 - **Judged by:** askable. Question: "Do channels of white space run down through several lines of a text block?"
 
 ### Rag quality in ragged-right text
 - **Rule:** The right edge of ragged text is gently uneven. It does not form a staircase, a wedge, or a regular long-short pattern.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.3 "Set ragged if ragged setting suits the text and the page"; Hochuli, *Detail in Typography*, chapters "The line" and "Linespacing, the column".
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.3 "Set ragged if ragged setting suits the text and the page", p. 28 (from the scan's OCR text), partly supported: software rag can look like "a neatly pinched piecrust"; Hochuli, *Detail in Typography* (2008), chapter "The line", p. 35 (from OCR, not checked against the page image): "Wherever possible, irregular rhythms, 'staircases' 'holes' and single words standing at the end of lines should be avoided."
 - **Judged by:** askable. Question: "Does the ragged right edge of a paragraph form a staircase or a wedge, with lines getting steadily shorter or longer, or alternating long and short?"
 
 ### Widows, orphans, and runts
 - **Rule:** A paragraph does not end with one short word alone on its last line, and a column does not begin with the last line of a paragraph. A heading does not sit at the foot of a column with its text in the next one.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.4.2 (no short last-line word) and 2.4.8 (never begin a page with the last line of a paragraph).
+- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.4.2 (no short last-line word) and 2.4.8 (never begin a page with the last line of a paragraph). Both are supported. UNVERIFIED: a heading at the foot of a column was not found in Bringhurst.
 - **Judged by:** askable, as two criteria. First question: "Does a paragraph end with a single short word alone on its last line?" Second question: "Is a heading the last thing at the bottom of a column, with its text starting in the next column?"
 
 ### Paragraph marks: indent or space, not both
 - **Rule:** Paragraphs are marked either by a first-line indent or by space between them, never both. The first paragraph after a heading starts flush left, and an indent is at least one en wide.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.3.1 "Set opening paragraphs flush left" and 2.3.2 (mark the paragraphs after the first with an indent of at least one en).
+- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.3.1 "Set opening paragraphs flush left" and 2.3.2 (mark the paragraphs after the first with an indent of at least one en). P. 39 (from the scan's OCR text) supports the first-paragraph rule: "If a paragraph is preceded by a title or subhead, the indent is superfluous and can therefore be omitted." UNVERIFIED: the rule "never both indent and space" is not stated.
 - **Judged by:** askable, as two criteria. First question: "Are paragraphs marked both with a first-line indent and with a blank space between them?" Second question: "Is the first paragraph after a heading indented?"
 
 ### Headings sit with the text they introduce
 - **Rule:** A heading sits closer to the text it introduces than to the text before it. Equal space above and below makes the heading float between sections.
-- **Source:** UNVERIFIED: the point was not found in the text of either book. Bringhurst, *The Elements of Typographic Style*, section 2.2.2 (add and delete vertical space in measured intervals); Lupton, *Thinking with Type*, "Text" chapter, "Hierarchy".
+- **Source:** Partly supported by Bringhurst, *The Elements of Typographic Style* (Version 3.0, 2004), section 2.2.2, p. 38 (from the scan's OCR text): subheads may be "leaded asymmetrically, with more space above than below", and every worked example puts more space above the heading than below. This is a permitted choice, not a requirement. UNVERIFIED: not found in the 1st edition (2004) of Lupton (the 2nd edition was not checked) or in Hochuli, *Detail in Typography* (2008). Lupton, *Thinking with Type*, "Text" chapter, "Hierarchy".
 - **Judged by:** askable. Question: "Does a heading sit as close to the text above it as to the text below it, or closer?"
 
 ### Lines of text align across columns
@@ -95,53 +95,53 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 
 ### Hanging bullets and punctuation
 - **Rule:** The left edge of a text block stays crisp. In a bulleted or numbered list, the wrapped lines of an item align with its first word, not with the bullet, and quotation marks at the start of a line hang into the margin.
-- **Source:** Lupton, *Thinking with Type*, "Text" chapter, "Alignment" (hanging punctuation keeps quotation marks from biting into the left edge) and "Marking paragraphs" (outdents and hanging indentation).
+- **Source:** UNVERIFIED: not found in Lupton, *Thinking with Type* (1st ed. 2004) for the quote-hang point or for the rule that wrapped list lines align with the first word. P. 85 covers punctuation only at the right edge of flush-right text. P. 102 shows hanging indentation as a paragraph style: "Outdent, or hanging indentation". Partly supported by Bringhurst, *The Elements of Typographic Style* (Version 3.0, 2004), section 4.4.2, p. 71 (from the scan's OCR text): a list "should be clarified as much as possible through spatial positioning and pointing, usually done with bullets, dashes or numerals", and numbers can be made visible "by hanging them in the margin". It does not state that wrapped lines align with the first word.
 - **Judged by:** askable, as two criteria. First question: "In a bulleted or numbered list, do the wrapped lines of an item start under the bullet or number instead of under the first word of the item?" The punctuation half is askable at display and headline sizes only (large headlines, pull quotes, display text). Second question: "In a large pull quote, does the opening quotation mark sit inside the left edge of the text, so that the first letter of the first line starts to the right of the lines below it?"
 - **Not encoded (NG-10), punctuation half in body text:** the defect grows with type size. In body text, a quotation mark that does not hang moves the edge by a few pixels, which is too fine to see.
 
 ### Display type is spaced tighter than text
 - **Rule:** As type gets larger, the space between its letters and words looks wider, so headlines need tighter letter and word spacing than text. A large heading set with the spacing of text looks loose.
-- **Source:** Lupton, *Thinking with Type*, "Text" chapter, "Kerning" (with large type, normal word spacing often looks too wide) and "Tracking" (designers reduce the spacing of large text).
+- **Source:** Lupton, *Thinking with Type* (1st ed. 2004), p. 80: "Because the space between characters expands as the type size increases, designers often fine-tune letterspacing when working with large letters." Lupton supports adjusting large type but not tightening it as a rule: on p. 81 she says negative tracking "is rarely desirable" and "should be used sparingly". Bringhurst, section 2.1.1, p. 26 (from the scan's OCR text): "At larger sizes, when letterfit is tightened, the spacing of words can be tightened as well." Hochuli, *Detail in Typography* (2008), p. 34, paraphrased: smaller type sizes need proportionally more word space and larger sizes proportionally less, so a large headline needs tighter word spaces than text.
 - **Judged by:** askable. Question: "Does a heading set at display size, several times larger than the body text, have gaps between its letters or words that are wide enough to see as gaps?" A difference of a pixel or two between letters will likely be missed.
 
 ### Weight and stroke thickness at small sizes
 - **Rule:** Hairline and very light weights are for large sizes. Small text needs enough stroke thickness to hold up against its background.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 6.2.3 (very light weights of Helvetica "reduce coarseness but do little to increase readability").
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 6.2.3 (very light weights of Helvetica "reduce coarseness but do little to increase readability"). Partly supported: the page cited, p. 97 (from the scan's OCR text), holds only that remark about Helvetica, not a rule about small sizes.
 - **Judged by:** askable. Question: "Is small text, such as captions or labels, set in a hairline or very thin weight?"
 
 ### Letterspacing (tracking) of text
 - **Rule:** Lower-case text keeps the spacing its typeface was designed with. Tracked-out or squeezed lower case in text is a defect.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.7 "Don't letterspace the lower case without a reason"; Hochuli, *Detail in Typography*, chapter "The word", on letterspacing.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.7 "Don't letterspace the lower case without a reason", p. 31 (from the scan's OCR text) (the line, credited to Goudy, that people who letterspace lower case would steal sheep); Hochuli, *Detail in Typography* (2008), chapter "The word", p. 25: "too tight letterspacing produces blotchy, uneven words." Hochuli allows a few extra units of letterspacing for narrow faces at small sizes.
 - **Judged by:** not encoded.
 - **Not encoded (NG-10):** differences in tracking at text size are too fine to see.
 
 ### Letterspace capitals and small caps
 - **Rule:** Strings of capitals and small capitals are letterspaced, and lower case is not.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.6 "Letterspace all strings of capitals and small caps"; Lupton, *Thinking with Type*, "Text" chapter, "Tracking".
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.6 "Letterspace all strings of capitals and small caps", p. 30 (from the scan's OCR text): "The normal value for letterspacing these sequences of small or full caps is 5% to 10% of the type size."; Lupton, *Thinking with Type* (1st ed. 2004), p. 81: "It is common practice to letterspace capitals and small capitals, which appear more regal when standing apart." Hochuli, *Detail in Typography* (2008), p. 25: "Widely spaced capitals require a great deal of space around them, and particularly above and below." P. 30 supports the question about capitals that touch: "individual letters should not touch."
 - **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large heading or label set in capitals, do neighbouring capitals touch, with no visible space between them?"
 - **Not encoded (NG-10), body text:** the defect grows with type size. In capitals at text size, differences in tracking are too fine to see.
 
 ### Kerning
 - **Rule:** At display sizes, the space between letter pairs looks even: no gaps in pairs such as "AV", "To", and "Wa", and no collisions.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.8 "Kern consistently and modestly or not at all"; Lupton, *Thinking with Type*, "Text" chapter, "Kerning".
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.8, p. 32 (from the scan's OCR text): "Kern consistently and modestly or not at all." P. 33 (from the scan's OCR text) adds: "Especially at larger sizes, it is common to kern combinations involving commas and periods." Lupton, *Thinking with Type* (1st ed. 2004), p. 80, supports only that large type needs fine-tuning: "Because the space between characters expands as the type size increases, designers often fine-tune letterspacing when working with large letters." Hochuli, *Detail in Typography* (2008), p. 30: "individual letters should not touch. A small 'hole' between two letters is less bad than letters that collide with each other."
 - **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large headline, is there a pair of letters, such as AV, To, or Wa, with a gap between them that is visibly wider than the gaps between the other letters?"
 - **Not encoded (NG-10), body text:** the defect grows with type size. At text size, the space between two letters is too fine to see.
 
 ### Ligatures
 - **Rule:** In a face whose f reaches into the next letter, the f joins the following i or l as a ligature. A large headline that sets "fi" or "fl" as two separate letters shows the hook of the f striking the dot of the i or the top of the l.
-- **Source:** Butterick, *Practical Typography*, "Ligatures": "The only time ligatures are mandatory is when you have an actual overlap between the letters f and i." Checked on the page on 2026-10-24. This is the one typography entry with a source outside the reading list: Benjamin Jackson asked for a checkable citation on 2026-10-24, and no text of a book on the list could be checked. Reconsider when a book on the list can be checked for the same point.
+- **Source:** Bringhurst, *The Elements of Typographic Style* (Version 3.0, 2004), section 3.3.1, p. 50 (read from the page image): "Reaching into the space in front of it, the arm of the f will collide with certain letters" and "in display work, such ligatures can be crucial." Second source: Butterick, *Practical Typography*, "Ligatures": "The only time ligatures are mandatory is when you have an actual overlap between the letters f and i." Checked on the page on 2026-10-24. Second source: Hochuli, *Detail in Typography* (2008), p. 30, says letters should not collide ("individual letters should not touch"), which supports the rule.
 - **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large headline, does the top of a letter f touch or run into the dot of a following i?" The source makes a ligature mandatory only for an f that overlaps an i, so the question names only that pair.
 - **Not encoded (NG-10), body text:** the defect grows with type size. At text size, the collision is a pixel or two and too fine to see.
 
 ### Real italics, bold, and small caps (no faux styles)
 - **Rule:** True italic and bold cuts of a family are used. Slanted romans, smeared bolds, and small caps made by shrinking capitals are defects.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 3.4.3 (use artificially sloped romans sparingly or not at all) and 3.2.2 (faked small caps).
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.4.3, p. 56 (from the scan's OCR text): "Use sloped romans sparingly and artificially sloped romans more sparingly still."; section 3.2.2 (faked small caps).
 - **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text), for faux italics. Question: "Is a large italic heading made of upright letters that are only slanted, with the same letter shapes as the upright face?"
 - **Not encoded (NG-10), body text, faux bold, and faux small caps:** the defect grows with type size. At text size, telling a true italic from a slanted regular face needs letterform detail too fine to see, and a thickened bold or shrunken small caps differ from the real ones by strokes too thin to compare.
 
 ### Typographic details: quotes, dashes, and spaces
 - **Rule:** Curly quotation marks and apostrophes, true en and em dashes, ellipsis characters, and one space after a sentence.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.4 (single word space between sentences), 5.2.1 (dashes), 5.2.7 (ellipses), and 5.4.1 (quotation marks).
+- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.4 (single word space between sentences; supported) and 5.2.1 (dashes; supported, p. 80 (from the scan's OCR text)). UNVERIFIED: section 5.2.7 contradicts the ellipsis-character point, and section 5.4.1 has nothing on straight versus curly quotation marks, so the curly-quotes point rests on no checked source.
 - **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text), for quotes and dashes. Question: "In a large heading or pull quote, is there a straight quotation mark or apostrophe instead of a curly one, or a short hyphen where a dash belongs?"
 - **Not encoded (NG-10), body text, ellipses, and spaces:** the defect grows with type size. In body text it reads single characters, which is content and detail too fine to see.
 
@@ -153,7 +153,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 
 ### Line breaks in headings and short text
 - **Rule:** Headings, buttons, and captions break at natural phrase boundaries and do not split a word, a number and its unit, or a name across lines.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.4 "Etiquette of hyphenation and pagination", especially 2.4.6 (link short numerical expressions with hard spaces); Hochuli, *Detail in Typography*, chapter "The line".
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.4 "Etiquette of hyphenation and pagination", section 2.4.6 (link short numerical expressions with hard spaces), which supports a number and its unit; Hochuli, *Detail in Typography* (2008). UNVERIFIED: breaks in headings were not found in Bringhurst or in Hochuli.
 - **Judged by:** not encoded.
 - **Not encoded (NG-10):** it reads the words to judge where a line breaks, which is the content.
 
@@ -232,7 +232,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 
 ### No rules, boxes, or ornament where space would do
 - **Rule:** Lines, borders, and decoration that carry no information compete with the content. Tufte calls it non-data ink and chartjunk; Lupton shows that tables are often over-ruled and are clearer with the rules removed or replaced by a pale tone; Tschichold rejects ornament.
-- **Source:** Tufte, *The Visual Display of Quantitative Information* (1983, 2nd ed. 2001), chapter 4 "Data-ink and graphical redesign" and chapter 5 "Chartjunk: vibrations, grids, and ducks"; Lupton, *Thinking with Type*, "Grid" chapter, "Data tables"; Tschichold, *The New Typography*, chapter "The principles of the new typography".
+- **Source:** Tufte, *The Visual Display of Quantitative Information* (1983, 2nd ed. 2001), chapter 4 "Data-ink and graphical redesign" and chapter 5 "Chartjunk: vibrations, grids, and ducks"; Lupton, *Thinking with Type* (1st ed. 2004), "Grid" chapter, "Data tables", p. 157: "The rules and boxes used in data tables should illuminate the relationships among data, not trap each entry inside a heavily guarded cell." P. 159 supports replacing rules with a pale tone: "The redesign (above) eliminates many of the ruled lines, replacing them, where needed, with a pale tone that unifies the long horizontal rows of data."; Tschichold, *The New Typography*, chapter "The principles of the new typography".
 - **Judged by:** askable. Question: "Is every cell, card, or section enclosed in a dark border or separated by heavy rules, so that the lines are as strong as the content?"
 
 ### Optical alignment over mathematical alignment
@@ -252,30 +252,34 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 
 ### Body text is not too small to read
 - **Rule:** Paragraph text is set at a reading size. Lupton gives 9 to 11 pt as the common range for printed text. No WCAG success criterion sets a minimum text size, and the reading list gives no figure for screens, so the figure is not checked.
-- **Source:** Lupton, *Thinking with Type* (2nd ed. 2010), "Letter" chapter, "Size".
+- **Source:** Lupton, *Thinking with Type* (1st ed. 2004), p. 37, caption: "Sizes between 9 and 11 pts are common for printed text."
 - **Judged by:** askable. Question: "Is the paragraph text so small that its letters cannot be told apart at the size of the image?"
 
 ### Paragraphs are not set in a decorative face
 - **Rule:** Paragraphs are set in a face made for reading. Script, blackletter, and other decorative faces are for a few words of display.
-- **Source:** Bringhurst, *The Elements of Typographic Style* (1992), chapter 6 "Choosing and combining type", section 6.2.1 (choose faces that suit the task).
+- **Source:** Bringhurst, *The Elements of Typographic Style* (Version 3.0, 2004), chapter 6 "Choosing and combining type", section 6.2.1 (choose faces that suit the task), p. 95 (from the scan's OCR text): a text face is "unlikely to be carrying excess ornament". This supports the rule in part: the passage is about faces for text, and says nothing of script or blackletter by name.
 - **Judged by:** askable. Question: "Are paragraphs of text set in a script, blackletter, or other decorative typeface?"
+- **Defect range:** `decorative-face-for-paragraphs`: not measured. Paragraphs of reading length set in a script, blackletter, or other display face, at the size the page sets its body text or a little larger.
 
 ### Text does not read as faint
 - **Rule:** Text has a contrast ratio of at least 4.5:1 against its background, or 3:1 for large text. The ratio is not checked; Jev is asked only whether text looks pale against its background.
 - **Source:** W3C, *WCAG 2.2*, SC 1.4.3 Contrast (Minimum).
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
 - **Judged by:** askable as a visual judgment. Question: "Is there text that is pale against its background, such as light grey text on white?"
+- **Defect range:** `text-reads-faint`: contrast ratio from 2.5 to 4.4, clean above.
 
 ### Paragraphs are not centred or right-aligned
-- **Rule:** Paragraphs of several lines are set flush left. Centring is for a few short lines. Tschichold rejects central-axis setting as rigid, and Bringhurst treats flush-left, ragged-right setting as the default for text.
-- **Source:** Tschichold, *The New Typography* (1928), chapter "The principles of the new typography"; Bringhurst, *The Elements of Typographic Style*, section 2.1.3 "Set ragged if ragged setting suits the text and the page".
+- **Rule:** Paragraphs of several lines are set flush left. Centring is for a few short lines. Tschichold rejects central-axis setting as rigid, and Bringhurst makes ragged setting conditional on the text and the page.
+- **Source:** Tschichold, *The New Typography* (1928), chapter "The principles of the new typography"; Bringhurst, *The Elements of Typographic Style*, section 2.1.3 "Set ragged if ragged setting suits the text and the page" (the rule is conditional, so flush left as a default is overstated).
 - **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
 - **Judged by:** askable. Question: "Is a paragraph of four or more lines centred or right-aligned?"
+- **Defect range:** `centred-or-right-paragraphs`: not measured. A paragraph of four or more lines set centred or flush right.
 
 ### Content keeps clear of the page edge
 - **Rule:** Text and boxes sit inside the type area, with a margin between them and the edge of the page.
 - **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981), sections "Margin proportions" and "Construction of the type area".
 - **Judged by:** askable. Question: "Does any text or box touch the edge of the page or sit within a few pixels of it?" In the wording test of 2026-10-24 this question moved a clear positive from 0.15 to 0.74.
+- **Defect range:** `content-touches-page-edge`: edge distance from 0 to 8 px, clean above.
 
 ### Captions and labels are not too small to read
 - **Rule:** Captions, labels, and legal text stay large enough to read. Apple gives 11 pt as the smallest text size on iOS. The figure is not checked.
@@ -285,15 +289,17 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 
 ### Long text is not set in all capitals
 - **Rule:** Capitals suit headings shorter than one line, labels, and captions. A whole sentence or paragraph in capitals is hard to read.
-- **Source:** Butterick, *Practical Typography*, "All caps" ("Caps are suitable for headings shorter than one line"; "Don't capitalize whole paragraphs").
+- **Source:** Butterick, *Practical Typography*, "All caps" ("Caps are suitable for headings shorter than one line"; "Don't capitalize whole paragraphs"); Hochuli, *Detail in Typography* (2008), p. 23 (from OCR, not checked against the page image): "Text in capitals is particularly difficult to read and needs a large amount of space."
 - **Link:** https://practicaltypography.com/all-caps.html
 - **Judged by:** askable. Question: "Is a sentence or paragraph that runs to more than one line set entirely in capital letters?"
+- **Defect range:** `all-caps-long-text`: not measured. A sentence or paragraph of two or more lines set entirely in capitals, at the size of the text around it.
 
 ### Text is broken into chunks
 - **Rule:** Text that people skim is broken up by headings, short paragraphs, and lists. A long unbroken block of text on a screen is a defect.
 - **Source:** Nielsen, "How Users Read on the Web" (Nielsen Norman Group, 1997).
 - **Link:** https://www.nngroup.com/articles/how-users-read-on-the-web/
 - **Judged by:** askable. Question: "Is there a block of text many lines long with no heading, list, or paragraph break inside it?"
+- **Defect range:** `wall-of-text`: not measured. One block of text many lines long, with no heading, list, or paragraph break inside it.
 
 ### Boxes do not split or join groups
 - **Rule:** Items inside one shared boundary, such as a card, a panel, a tint, or a border, read as a group. Unrelated items do not share a box, and related items are not split across boxes.
@@ -306,6 +312,7 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 - **Source:** Material Design 3, "Buttons" guidelines: "Use visually-prominent filled buttons for the most important actions", and "Buttons with primary actions should have a higher visual emphasis through size, color, or shape." Checked on the rendered page on 2026-10-24.
 - **Link:** https://m3.material.io/components/buttons/guidelines
 - **Judged by:** askable. Question: "Are two or more buttons in one view styled as the same filled, high-emphasis button?"
+- **Defect range:** `competing-primary-buttons`: not measured. Two or more buttons in one view with the same filled, high-emphasis style.
 
 ### Basics checks dropped for lack of a source
 These checks were in the earlier catalog, but no source this section may cite holds them, so no pack encodes them:
