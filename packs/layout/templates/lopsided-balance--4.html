@@ -7,31 +7,36 @@
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* An analytics dashboard: a dark sidebar down the left edge, one dark chart card 500 x 340 px, and three small pale stat cards. Without the defect the chart card sits at the right and the stat cards at the left of the content area. The defect moves the chart card next to the sidebar, with the stat cards beneath it, so everything dark is on the left and the right 460 px is empty. (OQ-17) */
-      body { background: #f4f5f7; }
-      aside { position: absolute; left: 0; top: 0; width: 240px; height: 800px; background: #14181f; color: #c9d1dc; padding: 28px 24px; }
-      aside b { color: #fff; font-size: 18px; display: block; margin-bottom: 28px; }
-      aside p { font-size: 15px; padding: 9px 0; }
-      h1 { position: absolute; left: 280px; top: 32px; font-size: 24px; }
-      .chart { position: absolute; left: 740px; top: 100px; width: 500px; height: 340px; background: #1b2433; color: #fff; padding: 24px; border-radius: 6px; }
-      .chart h2 { font-size: 16px; font-weight: 400; color: #a9b6c8; margin-bottom: 8px; }
-      .chart .big { font-size: 40px; font-weight: 700; }
-      .bars { position: absolute; left: 24px; right: 24px; bottom: 24px; height: 160px; background: linear-gradient(90deg, #4f8cff 0 8%, transparent 8% 12%, #4f8cff 12% 20%, transparent 20% 24%, #4f8cff 24% 32%, transparent 32% 36%, #4f8cff 36% 44%, transparent 44% 48%, #4f8cff 48% 56%, transparent 56% 60%, #4f8cff 60% 68%, transparent 68% 72%, #4f8cff 72% 80%, transparent 80% 84%, #4f8cff 84% 92%, transparent 92%); clip-path: polygon(0 40%, 12% 40%, 12% 60%, 24% 60%, 24% 30%, 36% 30%, 36% 55%, 48% 55%, 48% 15%, 60% 15%, 60% 45%, 72% 45%, 72% 25%, 84% 25%, 84% 0, 100% 0, 100% 100%, 0 100%); }
-      .stat { position: absolute; left: 280px; width: 420px; height: 96px; background: #fff; border: 1px solid #e3e6ea; border-radius: 6px; padding: 16px 20px; }
-      .stat span { font-size: 14px; color: var(--color-muted); display: block; }
-      .stat b { font-size: 26px; }
-      [data-defect="on"] .chart { left: 280px; }
-      [data-defect="on"] .stat { top: 476px !important; }
-      [data-defect="on"] .s2 { top: 582px !important; }
-      [data-defect="on"] .s3 { top: 688px !important; }
+      /* A walking-holiday page in two columns. The left column holds a large dark photo of a valley, 600 x 600 px. The right column holds the title and a short intro at the top, and below them a dark green booking panel with dates, price, and a button. Without the defect the panel counters the photo. The defect hides the panel, so the right column ends after the intro and the lower right of the page is empty while the dark photo fills the left. (OQ-17) */
+      header { position: absolute; left: 0; top: 0; width: 1280px; height: 60px; padding: 0 48px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #dde3dc; }
+      header b { font-size: 19px; color: #1d2a22; }
+      header span { font-size: 14px; color: var(--color-muted); margin-left: 26px; }
+      .photo { position: absolute; left: 48px; top: 100px; width: 600px; height: 600px; border-radius: 6px; background: linear-gradient(180deg, #4d5f5a 0%, #2c3b35 38%, #1a2620 39%, #22332b 70%, #121b16 100%); }
+      .side { position: absolute; left: 696px; top: 100px; width: 536px; }
+      .kicker { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #3d6b52; margin-bottom: 8px; }
+      h1 { font-size: 36px; line-height: 1.12; color: #1d2a22; margin-bottom: 12px; }
+      .intro { font-size: 16px; line-height: 1.5; color: #4a554e; margin-bottom: 28px; }
+      .booking { background: #1f3a2c; color: #eef3ef; border-radius: 6px; padding: 28px; }
+      .booking h2 { font-size: 20px; margin-bottom: 14px; }
+      .booking li { list-style: none; display: flex; justify-content: space-between; font-size: 15px; padding: 9px 0; border-bottom: 1px solid #36533f; }
+      .booking .price { font-size: 28px; font-weight: 700; margin: 18px 0 16px; }
+      .booking a { display: inline-block; background: #f2c14e; color: #1d2a22; font-weight: 700; font-size: 15px; padding: 12px 22px; border-radius: 4px; }
+      [data-defect="on"] .booking { display: none; }
     </style>
   </head>
   <body>
-    <aside><b>Tallymark</b><p>Overview</p><p>Orders</p><p>Customers</p><p>Reports</p><p>Settings</p></aside>
-    <h1>Overview, last 30 days</h1>
-    <div class="chart"><h2>Revenue</h2><div class="big">$48,210</div><div class="bars"></div></div>
-    <div class="stat s1" style="top:100px"><span>Orders</span><b>1,284</b></div>
-    <div class="stat s2" style="top:216px"><span>Average basket</span><b>$37.55</b></div>
-    <div class="stat s3" style="top:332px"><span>Returning customers</span><b>41%</b></div>
+    <header><b>Fellside Walks</b><nav><span>Holidays</span><span>Day walks</span><span>Our guides</span><span>Contact</span></nav></header>
+    <div class="photo"></div>
+    <div class="side">
+      <div class="kicker">Six days, guided</div>
+      <h1>The Long Valley, inn to inn</h1>
+      <p class="intro">Walk 12 to 16 km a day along the river and over two low passes. Your bags go ahead by van, and each night is a different inn.</p>
+      <div class="booking">
+        <h2>Departures in 2027</h2>
+        <ul><li><span>3 to 8 May</span><span>4 places left</span></li><li><span>7 to 12 June</span><span>9 places left</span></li><li><span>6 to 11 September</span><span>12 places left</span></li></ul>
+        <div class="price">From 1,240 per person</div>
+        <a>Choose a date</a>
+      </div>
+    </div>
   </body>
 </html>
