@@ -9,6 +9,16 @@
 # heading-floats, list-wrap-under-bullet, display-quote-not-hung,
 # display-type-loose, thin-small-text, and display-straight-quotes. Add one back when someone
 # finds a source that states its rule.
+# EV-4 on 2026-10-24 (jev-1.14.0): display-caps-tight, heading-lines-collide, and
+# headings-differ-only-in-size were decided by the first run and ship with fail.
+# heading-indistinct agreed on every fixture after one rewording (a482a92) and ships with fail.
+# display-kerning-gap and justified-word-gaps left all five positives quiet in their first run on
+# pairs a person judged real (a482a92). Each is reworded once under R-4 and is not yet scored in
+# its new form. Thirteen criteria still left positives quiet after one rewording (a482a92) and
+# were removed under R-4: measure-too-long, body-leading-too-tight, body-leading-too-loose,
+# too-many-typefaces, near-identical-sizes, stacked-emphasis, rivers-of-white, rag-staircase,
+# paragraph-runt, first-paragraph-indented, baselines-misaligned, faux-italic-display, and
+# display-ligature-missing. GUIDELINES.md records the result for each one.
 # Every question is a noul in the defect form: true means the defect is
 # there (JC-5). Each question names a feature that can be seen, not a degree,
 # and none asks Jev to count, measure, or name a colour (NFR-9, JC-2).
@@ -20,93 +30,6 @@ version: 0.1.0
 title: Typography, legibility, and readability
 license: MIT
 criteria:
-  # GUIDELINES.md: Line length (measure)
-  - id: measure-too-long
-    title: "Lines of paragraph text run nearly the full page width"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.1.2 \"Choose a comfortable measure\", p. 26."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Does a paragraph of body text stretch in one column from the left margin of the page to the right margin, with no sidebar, image, or second column beside it, so that its lines are as wide as the page's content area? Judge only what is visible."
-      criteria:
-        "true": "A paragraph of body text stretches in one column from the left margin to the right margin, with nothing beside it, and its lines are as wide as the content area."
-        "false": "Every paragraph of body text is set in a column narrower than the content area, with empty space, an image, or another column beside it."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Narrow the text column so that a line holds about 45 to 75 characters, 66 at best, and 40 to 50 when the text is set in several columns (Bringhurst, The Elements of Typographic Style, 2.1.2, p. 26). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/measure-too-long.positive.png
-        - fixtures/measure-too-long--2.positive.png
-        - fixtures/measure-too-long--3.positive.png
-        - fixtures/measure-too-long--4.positive.png
-        - fixtures/measure-too-long--5.positive.png
-      negative:
-        - fixtures/measure-too-long.negative.png
-        - fixtures/measure-too-long--2.negative.png
-        - fixtures/measure-too-long--3.negative.png
-        - fixtures/measure-too-long--4.negative.png
-        - fixtures/measure-too-long--5.negative.png
-
-  # GUIDELINES.md: Leading suits the measure
-  - id: body-leading-too-tight
-    title: "Lines of a paragraph touch or overlap"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.2.1 \"Choose a basic leading that suits the typeface, text and measure\", p. 37; Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"Linespacing, the column\", p. 47."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: In a paragraph, do the tails of letters such as g, p, and y in one line touch the tall letters such as h, l, and d in the line below, so that the lines run together into one dark mass? Judge only what is visible."
-      criteria:
-        "true": "In a paragraph, the tails of letters such as g, p, and y touch the tall letters of the line below, and the lines run together into one dark mass."
-        "false": "In every paragraph, a thin strip of blank space separates each line from the next."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Open the line spacing of the paragraph text so the lines stand clear of each other, and give a longer line more space between lines (Bringhurst, The Elements of Typographic Style, 2.2.1, p. 37; Hochuli, Detail in Typography, \"Linespacing, the column\", p. 47). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/body-leading-too-tight.positive.png
-        - fixtures/body-leading-too-tight--2.positive.png
-        - fixtures/body-leading-too-tight--3.positive.png
-        - fixtures/body-leading-too-tight--4.positive.png
-        - fixtures/body-leading-too-tight--5.positive.png
-      negative:
-        - fixtures/body-leading-too-tight.negative.png
-        - fixtures/body-leading-too-tight--2.negative.png
-        - fixtures/body-leading-too-tight--3.negative.png
-        - fixtures/body-leading-too-tight--4.negative.png
-        - fixtures/body-leading-too-tight--5.negative.png
-
-  # GUIDELINES.md: Leading suits the measure
-  - id: body-leading-too-loose
-    title: "Lines of a paragraph sit so far apart they read as separate lines"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.2.1 \"Choose a basic leading that suits the typeface, text and measure\", p. 37; Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"Linespacing, the column\", p. 47."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Do the lines of a paragraph read as separate stripes of text with an empty band under each one, so the paragraph does not hold together as one even grey block? Judge only what is visible."
-      criteria:
-        "true": "The lines of a paragraph read as separate stripes with an empty band under each one, and the paragraph does not hold together as one block."
-        "false": "Every paragraph holds together as one even grey block, with its lines close enough that no empty band shows between them."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Close up the line spacing of the paragraph text so the lines read as one block, chosen for the typeface, the text, and the measure together (Bringhurst, The Elements of Typographic Style, 2.2.1, p. 37; Hochuli, Detail in Typography, \"Linespacing, the column\", p. 47). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/body-leading-too-loose.positive.png
-        - fixtures/body-leading-too-loose--2.positive.png
-        - fixtures/body-leading-too-loose--3.positive.png
-        - fixtures/body-leading-too-loose--4.positive.png
-        - fixtures/body-leading-too-loose--5.positive.png
-      negative:
-        - fixtures/body-leading-too-loose.negative.png
-        - fixtures/body-leading-too-loose--2.negative.png
-        - fixtures/body-leading-too-loose--3.negative.png
-        - fixtures/body-leading-too-loose--4.negative.png
-        - fixtures/body-leading-too-loose--5.negative.png
-
   # GUIDELINES.md: Heading lines hold together
   - id: heading-lines-collide
     title: "Lines of a multi-line heading touch or overlap"
@@ -135,35 +58,6 @@ criteria:
         - fixtures/heading-lines-collide--3.negative.png
         - fixtures/heading-lines-collide--4.negative.png
         - fixtures/heading-lines-collide--5.negative.png
-
-  # GUIDELINES.md: Typefaces in concord or in clear contrast, never in conflict
-  - id: too-many-typefaces
-    title: "The page mixes three or more unrelated typefaces"
-    source: "Dair, Design with Type (1967), chapter 7 \"Relationships\" and chapter 8 \"Relationships of concord and contrast\"."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Do different blocks of text on the page each have letter shapes from a different kind of typeface, so that one block is in a serif, another in a sans serif, and another in a third kind such as a script, a slab serif, or a decorative face? Judge only what is visible."
-      criteria:
-        "true": "Blocks of text on the page use letter shapes from at least three different kinds of typeface, such as a serif, a sans serif, and a script or slab serif."
-        "false": "All the text on the page uses one typeface, or one serif and one sans serif."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Keep to one family varied a little (concord) or to two faces that are plainly different (contrast), and drop the rest (Dair, Design with Type, chapters 7 and 8). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/too-many-typefaces.positive.png
-        - fixtures/too-many-typefaces--2.positive.png
-        - fixtures/too-many-typefaces--3.positive.png
-        - fixtures/too-many-typefaces--4.positive.png
-        - fixtures/too-many-typefaces--5.positive.png
-      negative:
-        - fixtures/too-many-typefaces.negative.png
-        - fixtures/too-many-typefaces--2.negative.png
-        - fixtures/too-many-typefaces--3.negative.png
-        - fixtures/too-many-typefaces--4.negative.png
-        - fixtures/too-many-typefaces--5.negative.png
 
   # GUIDELINES.md: Weak contrast is worse than none
   - id: heading-indistinct
@@ -224,74 +118,16 @@ criteria:
         - fixtures/headings-differ-only-in-size--4.negative.png
         - fixtures/headings-differ-only-in-size--5.negative.png
 
-  # GUIDELINES.md: Sizes come from a scale
-  - id: near-identical-sizes
-    title: "Two text sizes on the page are almost the same"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 3.1.1 \"Don't compose without a scale\", p. 45."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Are there two blocks of ordinary paragraph text, in the same typeface and weight and with no heading role, where the letters of one block are a little larger than the letters of the other, so that the two blocks do not match when seen side by side or one after the other? Judge only what is visible."
-      criteria:
-        "true": "Two blocks of ordinary paragraph text in the same typeface and weight have letters of slightly different sizes, so the two blocks do not match."
-        "false": "All ordinary paragraph text on the page has letters of one size, and any other text size is plainly a heading, a caption, or a label."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Take text sizes from a small, deliberate scale, and merge sizes that are almost the same into one step of it (Bringhurst, The Elements of Typographic Style, 3.1.1, p. 45). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/near-identical-sizes.positive.png
-        - fixtures/near-identical-sizes--2.positive.png
-        - fixtures/near-identical-sizes--3.positive.png
-        - fixtures/near-identical-sizes--4.positive.png
-        - fixtures/near-identical-sizes--5.positive.png
-      negative:
-        - fixtures/near-identical-sizes.negative.png
-        - fixtures/near-identical-sizes--2.negative.png
-        - fixtures/near-identical-sizes--3.negative.png
-        - fixtures/near-identical-sizes--4.negative.png
-        - fixtures/near-identical-sizes--5.negative.png
-
-  # GUIDELINES.md: One change at a time for emphasis
-  - id: stacked-emphasis
-    title: "A phrase is emphasized in several ways at once"
-    source: "Lupton, Thinking with Type (1st ed. 2004), p. 94."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Inside a paragraph, is there a word or phrase that is both bold and underlined, both bold and italic, both italic and underlined, or bold or underlined and also in a different colour from the text around it? Judge only what is visible."
-      criteria:
-        "true": "Inside a paragraph, a word or phrase combines two or more of bold, italic, underline, and a different colour."
-        "false": "Every word or phrase that stands out inside a paragraph uses only one of bold, italic, underline, or colour, or no word stands out."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Emphasize with one change only: italic, or bold, or small capitals, and remove the others (Lupton, Thinking with Type, p. 94; Hochuli, Detail in Typography, p. 44). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/stacked-emphasis.positive.png
-        - fixtures/stacked-emphasis--2.positive.png
-        - fixtures/stacked-emphasis--3.positive.png
-        - fixtures/stacked-emphasis--4.positive.png
-        - fixtures/stacked-emphasis--5.positive.png
-      negative:
-        - fixtures/stacked-emphasis.negative.png
-        - fixtures/stacked-emphasis--2.negative.png
-        - fixtures/stacked-emphasis--3.negative.png
-        - fixtures/stacked-emphasis--4.negative.png
-        - fixtures/stacked-emphasis--5.negative.png
-
   # GUIDELINES.md: Even word spacing in justified text
   - id: justified-word-gaps
     title: "Justified lines have holes between words"
     source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), sections 2.1.1 and 2.1.2, pp. 26-27; Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"The line\", p. 34."
     question:
       type: noul
-      instructions: "In the image at screenshot: In justified text, do some lines have gaps between words that are much wider than the gaps in the lines around them? Judge only what is visible."
+      instructions: "In the image at screenshot: In a paragraph whose lines all end at the same right edge, do some lines look stretched, with holes between the words that break the even texture of the text? Judge only what is visible."
       criteria:
-        "true": "In justified text, some lines have gaps between words that are much wider than in the lines around them."
-        "false": "The gaps between words are even from line to line, or the text is not justified."
+        "true": "In a paragraph whose lines all end at the same right edge, some lines look stretched, with holes between the words that break the even texture of the text."
+        "false": "The word spaces look even in every paragraph whose lines end at the same right edge, or no paragraph on the page has lines that all end at the same right edge."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -311,161 +147,16 @@ criteria:
         - fixtures/justified-word-gaps--4.negative.png
         - fixtures/justified-word-gaps--5.negative.png
 
-  # GUIDELINES.md: Rivers of white space
-  - id: rivers-of-white
-    title: "Channels of white run down through a text block"
-    source: "Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"Linespacing, the column\", p. 47."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: In a block of text, do the spaces between words in several lines in a row fall under one another, so that they join into a crooked white streak running down through the grey of the text? Judge only what is visible."
-      criteria:
-        "true": "In a block of text, the spaces between words in several lines in a row fall under one another and join into a crooked white streak running down through the text."
-        "false": "The spaces between words fall in different places from line to line, and no white streak runs down through any block of text."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Even out the word spacing so no channel of white runs through the block: set it ragged right, widen the measure, or turn on hyphenation (Hochuli, Detail in Typography, \"Linespacing, the column\", p. 47; Bringhurst, The Elements of Typographic Style, 2.1.1 and 2.1.2, pp. 26-27). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/rivers-of-white.positive.png
-        - fixtures/rivers-of-white--2.positive.png
-        - fixtures/rivers-of-white--3.positive.png
-        - fixtures/rivers-of-white--4.positive.png
-        - fixtures/rivers-of-white--5.positive.png
-      negative:
-        - fixtures/rivers-of-white.negative.png
-        - fixtures/rivers-of-white--2.negative.png
-        - fixtures/rivers-of-white--3.negative.png
-        - fixtures/rivers-of-white--4.negative.png
-        - fixtures/rivers-of-white--5.negative.png
-
-  # GUIDELINES.md: Rag quality in ragged-right text
-  - id: rag-staircase
-    title: "The ragged right edge forms a staircase or a wedge"
-    source: "Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"The line\", p. 35."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Trace the right ends of the lines of a left-aligned paragraph. Do they form a regular shape, either a straight diagonal slope where each line is shorter or longer than the one above, or a regular zigzag of long, short, long, short? Judge only what is visible."
-      criteria:
-        "true": "The right ends of the lines of a paragraph form a straight diagonal slope or a regular long-short zigzag."
-        "false": "The right ends of the lines of every paragraph form an irregular edge with no slope and no repeating pattern."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Rebreak the lines so the right edge is gently uneven, with no staircase, wedge, or regular long-short pattern (Bringhurst, The Elements of Typographic Style, 2.1.3, p. 28; Hochuli, Detail in Typography, \"The line\", p. 35). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/rag-staircase.positive.png
-        - fixtures/rag-staircase--2.positive.png
-        - fixtures/rag-staircase--3.positive.png
-        - fixtures/rag-staircase--4.positive.png
-        - fixtures/rag-staircase--5.positive.png
-      negative:
-        - fixtures/rag-staircase.negative.png
-        - fixtures/rag-staircase--2.negative.png
-        - fixtures/rag-staircase--3.negative.png
-        - fixtures/rag-staircase--4.negative.png
-        - fixtures/rag-staircase--5.negative.png
-
-  # GUIDELINES.md: Widows, orphans, and runts
-  - id: paragraph-runt
-    title: "A paragraph ends with one short word alone on its last line"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.4.2."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Look at the last line of each paragraph. Is there a last line that holds only one short word, with the rest of that line left empty? Judge only what is visible."
-      criteria:
-        "true": "The last line of a paragraph holds only one short word, and the rest of that line is empty."
-        "false": "The last line of every paragraph holds several words."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Rebreak the paragraph, or adjust its wording or measure, so its last line carries more than one short word (Bringhurst, The Elements of Typographic Style, 2.4.2). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/paragraph-runt.positive.png
-        - fixtures/paragraph-runt--2.positive.png
-        - fixtures/paragraph-runt--3.positive.png
-        - fixtures/paragraph-runt--4.positive.png
-        - fixtures/paragraph-runt--5.positive.png
-      negative:
-        - fixtures/paragraph-runt.negative.png
-        - fixtures/paragraph-runt--2.negative.png
-        - fixtures/paragraph-runt--3.negative.png
-        - fixtures/paragraph-runt--4.negative.png
-        - fixtures/paragraph-runt--5.negative.png
-
-  # GUIDELINES.md: Paragraph marks: indent or space, not both
-  - id: first-paragraph-indented
-    title: "The first paragraph after a heading is indented"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.3.1 \"Set opening paragraphs flush left\", p. 39."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Directly under a heading, does the first line of the paragraph start to the right of the heading's left edge and of the left edge of that paragraph's other lines? Judge only what is visible."
-      criteria:
-        "true": "Directly under a heading, the first line of the paragraph starts to the right of the heading's left edge and of the paragraph's other lines."
-        "false": "Directly under every heading, the first line of the paragraph starts on the same left edge as the heading and the paragraph's other lines."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Set the first paragraph after each heading flush left, and indent only the paragraphs that follow it (Bringhurst, The Elements of Typographic Style, 2.3.1, p. 39). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/first-paragraph-indented.positive.png
-        - fixtures/first-paragraph-indented--2.positive.png
-        - fixtures/first-paragraph-indented--3.positive.png
-        - fixtures/first-paragraph-indented--4.positive.png
-        - fixtures/first-paragraph-indented--5.positive.png
-      negative:
-        - fixtures/first-paragraph-indented.negative.png
-        - fixtures/first-paragraph-indented--2.negative.png
-        - fixtures/first-paragraph-indented--3.negative.png
-        - fixtures/first-paragraph-indented--4.negative.png
-        - fixtures/first-paragraph-indented--5.negative.png
-
-  # GUIDELINES.md: Lines of text align across columns
-  - id: baselines-misaligned
-    title: "Lines in side-by-side columns sit at different heights"
-    source: "Müller-Brockmann, Grid Systems in Graphic Design (1981), section \"Construction of the grid\"."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Look across the gap between two columns of text that sit side by side. Is a line of text in one column level with the blank space between two lines in the other column, so that the lines of the two columns do not form straight rows across the gap? Judge only what is visible."
-      criteria:
-        "true": "Across the gap between two side-by-side text columns, a line in one column is level with the blank space between two lines in the other column, so the lines do not form straight rows."
-        "false": "Each line in one column is level with a line in the column beside it, so the lines form straight rows across the gap, or the page has no side-by-side text columns."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Put neighbouring columns on one shared set of baselines, so their lines sit at the same heights (Müller-Brockmann, Grid Systems in Graphic Design, \"Construction of the grid\"). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/baselines-misaligned.positive.png
-        - fixtures/baselines-misaligned--2.positive.png
-        - fixtures/baselines-misaligned--3.positive.png
-        - fixtures/baselines-misaligned--4.positive.png
-        - fixtures/baselines-misaligned--5.positive.png
-      negative:
-        - fixtures/baselines-misaligned.negative.png
-        - fixtures/baselines-misaligned--2.negative.png
-        - fixtures/baselines-misaligned--3.negative.png
-        - fixtures/baselines-misaligned--4.negative.png
-        - fixtures/baselines-misaligned--5.negative.png
-
   # GUIDELINES.md: Kerning
   - id: display-kerning-gap
     title: "A letter pair in a large headline has a visible gap"
     source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.1.8, pp. 32-33."
     question:
       type: noul
-      instructions: "In the image at screenshot: In a large headline, is there a pair of letters, such as AV, To, or Wa, with a gap between them that is visibly wider than the gaps between the other letters? Judge only what is visible."
+      instructions: "In the image at screenshot: In a large heading, does the spacing between the letters look uneven, so that at some point a letter seems to stand apart from the letter next to it and the word looks broken there? Judge only what is visible."
       criteria:
-        "true": "In a large headline, a pair of letters has a gap that is visibly wider than the gaps between the other letters."
-        "false": "In every large headline, the spaces between letters look even."
+        "true": "In a large heading, the spacing between the letters looks uneven: at some point a letter seems to stand apart from the letter next to it, and the word looks broken there."
+        "false": "The letters of every large heading look evenly spaced, or the page has no large heading."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -513,61 +204,3 @@ criteria:
         - fixtures/display-caps-tight--3.negative.png
         - fixtures/display-caps-tight--4.negative.png
         - fixtures/display-caps-tight--5.negative.png
-
-  # GUIDELINES.md: Real italics, bold, and small caps (no faux styles)
-  - id: faux-italic-display
-    title: "A large italic heading is a slanted roman"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 3.4.3, p. 56."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: In a large slanted heading, do the letters look like ordinary upright letters tipped to the right, for example a two-storey a with a hook over its bowl and round letters that look stretched on a slant, and not the flowing, pen-like shapes of a true italic? Judge only what is visible."
-      criteria:
-        "true": "A large slanted heading uses upright letter shapes tipped to the right, such as a two-storey a, and not true italic shapes."
-        "false": "Every large slanted heading uses flowing true italic shapes, such as a one-storey a, or the page has no large slanted heading."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Set italic headings in the family's true italic cut, not in a slanted roman (Bringhurst, The Elements of Typographic Style, 3.4.3, p. 56). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/faux-italic-display.positive.png
-        - fixtures/faux-italic-display--2.positive.png
-        - fixtures/faux-italic-display--3.positive.png
-        - fixtures/faux-italic-display--4.positive.png
-        - fixtures/faux-italic-display--5.positive.png
-      negative:
-        - fixtures/faux-italic-display.negative.png
-        - fixtures/faux-italic-display--2.negative.png
-        - fixtures/faux-italic-display--3.negative.png
-        - fixtures/faux-italic-display--4.negative.png
-        - fixtures/faux-italic-display--5.negative.png
-
-  # GUIDELINES.md: Ligatures
-  - id: display-ligature-missing
-    title: "In a large headline, the f strikes the dot of the following i"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 3.3.1, p. 50; Butterick, Practical Typography, \"Ligatures\"."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: In a large headline, where a letter f is followed by a letter i, do the two letters merge at the top, so that the curved top of the f and the dot of the i run together into one dark blob with no gap between them? Judge only what is visible."
-      criteria:
-        "true": "In a large headline, the curved top of an f and the dot of the following i run together into one dark blob with no gap between them."
-        "false": "In every large headline, the top of each f and the dot of a following i are separate with a gap between them, or they are joined in one designed fi letter with no separate dot, or no headline has an f followed by an i."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Turn on the face's fi ligature in large headlines wherever the f overlaps a following i, so the two letters join cleanly (Bringhurst, The Elements of Typographic Style, 3.3.1, p. 50; Butterick, Practical Typography, \"Ligatures\"). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/display-ligature-missing.positive.png
-        - fixtures/display-ligature-missing--2.positive.png
-        - fixtures/display-ligature-missing--3.positive.png
-        - fixtures/display-ligature-missing--4.positive.png
-        - fixtures/display-ligature-missing--5.positive.png
-      negative:
-        - fixtures/display-ligature-missing.negative.png
-        - fixtures/display-ligature-missing--2.negative.png
-        - fixtures/display-ligature-missing--3.negative.png
-        - fixtures/display-ligature-missing--4.negative.png
-        - fixtures/display-ligature-missing--5.negative.png

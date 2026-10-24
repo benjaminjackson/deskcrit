@@ -19,15 +19,15 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 ### Line length (measure)
 - **Rule:** A single column of paragraph text must not run so wide that the eye loses its place on the way back to the start of the next line. Bringhurst gives 45 to 75 characters as the comfortable range, 66 as the ideal, and 40 to 50 for text set in several columns.
 - **Source:** Bringhurst, *The Elements of Typographic Style* (Version 3.0, 2004), section 2.1.2 "Choose a comfortable measure", p. 26 (from the scan's OCR text): "Anything from 45 to 75 characters is widely regarded as a satisfactory length of line for a single-column page".
-- **Judged by:** askable. Question: "Does a paragraph of body text stretch in one column from the left margin of the page to the right margin, with no sidebar, image, or second column beside it, so that its lines are as wide as the page's content area?" The character counts are not checked, because Jev cannot count characters (JC-2).
-- **Defect range:** `measure-too-long`: not measured. Paragraph text in one column whose lines run most of the page width, about 110 or more characters to the line.
+- **Judged by:** not encoded. Question tried: "Does a paragraph of body text stretch in one column from the left margin of the page to the right margin, with no sidebar, image, or second column beside it, so that its lines are as wide as the page's content area?"
+- **Not encoded (R-4):** `measure-too-long` was removed under R-4: 1 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Leading suits the measure
 - **Rule:** Line spacing is chosen for the typeface, the text, and the measure together, and the longer the line, the more space it needs between lines. A wide paragraph set with tight line spacing is the common fault.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.2.1 "Choose a basic leading that suits the typeface, text and measure", p. 37 (read from the page image): "Longer measures need more lead than short ones."; Hochuli, *Detail in Typography* (Hyphen Press, 2008), chapter "Linespacing, the column", p. 47: "The longer the line, the more linespacing it needs, for a given typeface and type size."
-- **Judged by:** askable, as two criteria, one for tight leading and one for loose leading. First question: "In a paragraph, do the tails of letters such as g, p, and y in one line touch the tall letters such as h, l, and d in the line below, so that the lines run together into one dark mass?" The question must describe what the image shows: on the EV-4 fixture, whose lines overlap, a question about descenders that "nearly touch" scored 0.09. Second question: "Do the lines of a paragraph read as separate stripes of text with an empty band under each one, so the paragraph does not hold together as one even grey block?" Only the clear case is askable in either direction, because a paragraph that is a little tight or a little loose differs by a few pixels, and Jev will likely miss it.
-- **Defect range:** `body-leading-too-tight`: not measured. Paragraph text whose line spacing is less than its type size, so ascenders and descenders of neighbouring lines nearly meet.
-- **Defect range:** `body-leading-too-loose`: not measured. Paragraph text whose line spacing is more than about twice its type size, so the lines read as separate strips.
+- **Judged by:** not encoded. It was tried as two criteria, one for tight leading and one for loose leading. First question tried: "In a paragraph, do the tails of letters such as g, p, and y in one line touch the tall letters such as h, l, and d in the line below, so that the lines run together into one dark mass?" The question must describe what the image shows: on the EV-4 fixture, whose lines overlap, a question about descenders that "nearly touch" scored 0.09. Second question tried: "Do the lines of a paragraph read as separate stripes of text with an empty band under each one, so the paragraph does not hold together as one even grey block?"
+- **Not encoded (R-4):** `body-leading-too-tight` was removed under R-4: 5 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
+- **Not encoded (R-4):** `body-leading-too-loose` was removed under R-4: 5 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Heading lines hold together
 - **Rule:** A heading of two or more lines needs tighter line spacing than text, so that it reads as one unit. With text spacing it falls apart into separate lines; set too tight, its lines collide.
@@ -39,9 +39,9 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 ### Typefaces in concord or in clear contrast, never in conflict
 - **Rule:** Type elements relate either by concord, which keeps to one family and varies it little, or by contrast, which makes them plainly different. Faces that are alike enough to look like a mistake but different enough to clash are in conflict, and a page that mixes several unrelated faces has no relationship at all.
 - **Source:** Dair, *Design with Type* (1967), chapter 7 "Relationships" and chapter 8 "Relationships of concord and contrast". UNVERIFIED: not found in Lupton, *Thinking with Type* (1st ed. 2004), which has no section on mixing typefaces, so the rule rests on Dair.
-- **Judged by:** askable. Question: "Do different blocks of text on the page each have letter shapes from a different kind of typeface, so that one block is in a serif, another in a sans serif, and another in a third kind such as a script, a slab serif, or a decorative face?"
+- **Judged by:** not encoded. Question tried: "Do different blocks of text on the page each have letter shapes from a different kind of typeface, so that one block is in a serif, another in a sans serif, and another in a third kind such as a script, a slab serif, or a decorative face?"
 - **Not encoded (NG-10), conflict half only:** telling two near-identical faces apart needs letterform detail too fine to see.
-- **Defect range:** `too-many-typefaces`: not measured. One page that sets its headings, text, and labels in four or more unrelated typefaces.
+- **Not encoded (R-4):** `too-many-typefaces` was removed under R-4: 1 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Weak contrast is worse than none
 - **Rule:** When two elements are meant to differ, the difference must be obvious at a glance in at least one of Dair's seven kinds of contrast: size, weight, structure, form, colour, direction, and texture. A heading one step bolder or one size larger than its text looks like an accident, not a choice.
@@ -59,46 +59,46 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 ### Sizes come from a scale
 - **Rule:** Text sizes come from a small, deliberate scale, so that each size reads as its own level. Many sizes that are almost the same show that sizes were picked one at a time.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.1.1 "Don't compose without a scale", p. 45 (from the scan's OCR text): "limit yourself, at first, to a modest set of distinct and related intervals."
-- **Judged by:** askable. Question: "Are there two blocks of ordinary paragraph text, in the same typeface and weight and with no heading role, where the letters of one block are a little larger than the letters of the other, so that the two blocks do not match when seen side by side or one after the other?" Sizes that differ by a pixel or two will likely be missed.
-- **Defect range:** `near-identical-sizes`: not measured. Two blocks of text on one page whose sizes differ by one to three pixels, too close to read as two levels.
+- **Judged by:** not encoded. Question tried: "Are there two blocks of ordinary paragraph text, in the same typeface and weight and with no heading role, where the letters of one block are a little larger than the letters of the other, so that the two blocks do not match when seen side by side or one after the other?"
+- **Not encoded (R-4):** `near-identical-sizes` was removed under R-4: 5 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### One change at a time for emphasis
 - **Rule:** Emphasis inside text changes one thing: italic, or bold, or small capitals. A phrase that is bold, italic, underlined, and coloured at once shouts, and considered work never stacks them.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.5.1 "Change one parameter at a time" (partly supported: p. 60 (from the scan's OCR text) is about headings, not stacked emphasis inside text); Lupton, *Thinking with Type* (1st ed. 2004), p. 94: "Emphasizing a word or phrase within a body of text usually requires only one signal." The same page shows "bold, italic, underlined caps!" as a type crime; Hochuli, *Detail in Typography* (2008), p. 44: "Other forms of emphasis – text set in capitals, the semi-bold or bold versions of the text type, underlining, a larger size of type, a different typeface, the use of a second colour or tones – produce a restless effect, and hinder linear reading." Hochuli supports this in part only: the book does not discuss stacking several signals.
-- **Judged by:** askable. Question: "Inside a paragraph, is there a word or phrase that is both bold and underlined, both bold and italic, both italic and underlined, or bold or underlined and also in a different colour from the text around it?"
-- **Defect range:** `stacked-emphasis`: not measured. A word or phrase in running text emphasised with three or more changes at once, such as bold, italic, underline, capitals, or colour.
+- **Judged by:** not encoded. Question tried: "Inside a paragraph, is there a word or phrase that is both bold and underlined, both bold and italic, both italic and underlined, or bold or underlined and also in a different colour from the text around it?"
+- **Not encoded (R-4):** `stacked-emphasis` was removed under R-4: 1 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Even word spacing in justified text
 - **Rule:** Justified lines keep their word spaces even. Lines with holes between the words break the even grey of the column, so justify only where the measure is wide enough and hyphenation is on.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.1 and 2.1.2, pp. 26-27 (from the scan's OCR text): "A reasonable maximum in justified text is M/2", and short justified lines "will lead to white acne or pig bristles"; Hochuli, *Detail in Typography* (2008), chapter "The line", p. 34: "If the measure is too narrow – with less than around 50 characters per line – even wordspacing becomes difficult, if not impossible. The wordspaces become obviously uneven and large 'holes' appear."
-- **Judged by:** askable. Question: "In justified text, do some lines have gaps between words that are much wider than the gaps in the lines around them?"
+- **Judged by:** askable. Question: "In a paragraph whose lines all end at the same right edge, do some lines look stretched, with holes between the words that break the even texture of the text?" Reworded once under R-4 on 2026-10-24, after the old question ("In justified text, do some lines have gaps between words that are much wider than the gaps in the lines around them?") left all 5 positives quiet in its first run on pairs a person judged real (a482a92).
 - **Defect range:** `justified-word-gaps`: not measured. Ordinary copy justified with no hyphenation in a column of about 30 to 45 characters, so the browser stretches the word spaces of lines that hold few words; the clean version is set flush left.
 
 ### Rivers of white space
 - **Rule:** Seen from a distance, a block of text shows no channels of white that run down or across several lines.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, supports the rule only in part; the nearest passage is the "white acne" one in sections 2.1.1 and 2.1.2, pp. 26-27 (from the scan's OCR text), on short justified lines, and the book does not use the word "rivers" as a rule; Hochuli, *Detail in Typography* (2008), chapter "Linespacing, the column", p. 47: "Vertical 'rivers' of white space occur on a page when the wordspaces in several lines fall exactly, or almost exactly, under one another."
-- **Judged by:** askable. Question: "In a block of text, do the spaces between words in several lines in a row fall under one another, so that they join into a crooked white streak running down through the grey of the text?"
-- **Defect range:** `rivers-of-white`: not measured. Justified columns whose wide word spaces line up across three or more lines into a visible channel of white.
+- **Judged by:** not encoded. Question tried: "In a block of text, do the spaces between words in several lines in a row fall under one another, so that they join into a crooked white streak running down through the grey of the text?"
+- **Not encoded (R-4):** `rivers-of-white` was removed under R-4: 5 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Rag quality in ragged-right text
 - **Rule:** The right edge of ragged text is gently uneven. It does not form a staircase, a wedge, or a regular long-short pattern.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.3 "Set ragged if ragged setting suits the text and the page", p. 28 (from the scan's OCR text), partly supported: software rag can look like "a neatly pinched piecrust"; Hochuli, *Detail in Typography* (2008), chapter "The line", p. 35 (from OCR, not checked against the page image): "Wherever possible, irregular rhythms, 'staircases' 'holes' and single words standing at the end of lines should be avoided."
-- **Judged by:** askable. Question: "Trace the right ends of the lines of a left-aligned paragraph. Do they form a regular shape, either a straight diagonal slope where each line is shorter or longer than the one above, or a regular zigzag of long, short, long, short?"
-- **Defect range:** `rag-staircase`: not measured. Flush-left text with no hyphenation whose line endings step steadily in or out, by 10 px or more a line, over four or more lines in a row, or alternate long and short down a paragraph; the clean version wraps the same words at a width a few pixels different, with an irregular edge.
+- **Judged by:** not encoded. Question tried: "Trace the right ends of the lines of a left-aligned paragraph. Do they form a regular shape, either a straight diagonal slope where each line is shorter or longer than the one above, or a regular zigzag of long, short, long, short?"
+- **Not encoded (R-4):** `rag-staircase` was removed under R-4: 5 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Widows, orphans, and runts
 - **Rule:** A paragraph does not end with one short word alone on its last line, and a column does not begin with the last line of a paragraph. A heading does not sit at the foot of a column with its text in the next one.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.4.2 (no short last-line word) and 2.4.8 (never begin a page with the last line of a paragraph). Both are supported. UNVERIFIED: a heading at the foot of a column was not found in Bringhurst.
-- **Judged by:** askable for the paragraph half. Question: "Look at the last line of each paragraph. Is there a last line that holds only one short word, with the rest of that line left empty?"
+- **Judged by:** not encoded. Question tried for the paragraph half: "Look at the last line of each paragraph. Is there a last line that holds only one short word, with the rest of that line left empty?"
 - **Not encoded (FR-45), the heading half:** a heading at the foot of a column was not found in Bringhurst or any other checked source, so the `heading-at-column-foot` criterion came out of the pack on 2026-10-24.
-- **Defect range:** `paragraph-runt`: not measured. A paragraph whose last line holds one short word or part of a word.
+- **Not encoded (R-4):** `paragraph-runt` was removed under R-4: 4 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Paragraph marks: indent or space, not both
 - **Rule:** Paragraphs are marked either by a first-line indent or by space between them, never both. The first paragraph after a heading starts flush left, and an indent is at least one en wide.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.3.1 "Set opening paragraphs flush left" and 2.3.2 (mark the paragraphs after the first with an indent of at least one en). P. 39 (from the scan's OCR text) supports the first-paragraph rule: "If a paragraph is preceded by a title or subhead, the indent is superfluous and can therefore be omitted." UNVERIFIED: the rule "never both indent and space" is not stated.
-- **Judged by:** askable for the first paragraph after a heading. Question: "Directly under a heading, does the first line of the paragraph start to the right of the heading's left edge and of the left edge of that paragraph's other lines?"
+- **Judged by:** not encoded. Question tried for the first paragraph after a heading: "Directly under a heading, does the first line of the paragraph start to the right of the heading's left edge and of the left edge of that paragraph's other lines?"
 - **Not encoded (FR-45), indent and space together:** Bringhurst does not state the rule "never both indent and space", so the `paragraph-indent-and-space` criterion came out of the pack on 2026-10-24.
-- **Defect range:** `first-paragraph-indented`: not measured. The first paragraph after a heading indented by about 1 to 2 em, like the paragraphs after it.
+- **Not encoded (R-4):** `first-paragraph-indented` was removed under R-4: 5 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Headings sit with the text they introduce
 - **Rule:** A heading sits closer to the text it introduces than to the text before it. Equal space above and below makes the heading float between sections.
@@ -109,8 +109,8 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 ### Lines of text align across columns
 - **Rule:** In a considered grid the lines of text in neighbouring columns sit on the same baselines, and the top and bottom of each picture line up with lines of text. In a refined grid, captions, titles, and subtitles keep to the same line intervals.
 - **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981), section "Construction of the grid" (each grid field holds a set number of lines; the first line stands at the top of the field and the last on its bottom; picture edges align with the ascenders and descenders of the text).
-- **Judged by:** askable. Question: "Look across the gap between two columns of text that sit side by side. Is a line of text in one column level with the blank space between two lines in the other column, so that the lines of the two columns do not form straight rows across the gap?" An offset of a few pixels will likely be missed; an offset of about half a line is visible.
-- **Defect range:** `baselines-misaligned`: not measured. Neighbouring columns of text whose lines sit a fraction of a line out of step, offset by about a third to two thirds of the line spacing.
+- **Judged by:** not encoded. Question tried: "Look across the gap between two columns of text that sit side by side. Is a line of text in one column level with the blank space between two lines in the other column, so that the lines of the two columns do not form straight rows across the gap?"
+- **Not encoded (R-4):** `baselines-misaligned` was removed under R-4: 5 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Hanging bullets and punctuation
 - **Rule:** The left edge of a text block stays crisp. In a bulleted or numbered list, the wrapped lines of an item align with its first word, not with the bullet, and quotation marks at the start of a line hang into the margin.
@@ -147,23 +147,23 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 ### Kerning
 - **Rule:** At display sizes, the space between letter pairs looks even: no gaps in pairs such as "AV", "To", and "Wa", and no collisions.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.8, p. 32 (from the scan's OCR text): "Kern consistently and modestly or not at all." P. 33 (from the scan's OCR text) adds: "Especially at larger sizes, it is common to kern combinations involving commas and periods." Lupton, *Thinking with Type* (1st ed. 2004), p. 80, supports only that large type needs fine-tuning: "Because the space between characters expands as the type size increases, designers often fine-tune letterspacing when working with large letters." Hochuli, *Detail in Typography* (2008), p. 30: "individual letters should not touch. A small 'hole' between two letters is less bad than letters that collide with each other."
-- **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large headline, is there a pair of letters, such as AV, To, or Wa, with a gap between them that is visibly wider than the gaps between the other letters?"
+- **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large heading, does the spacing between the letters look uneven, so that at some point a letter seems to stand apart from the letter next to it and the word looks broken there?" Reworded once under R-4 on 2026-10-24, after the old question ("In a large headline, is there a pair of letters, such as AV, To, or Wa, with a gap between them that is visibly wider than the gaps between the other letters?") left all 5 positives quiet in its first run on pairs a person judged real (a482a92).
 - **Not encoded (NG-10), body text:** the defect grows with type size. At text size, the space between two letters is too fine to see.
 - **Defect range:** `display-kerning-gap`: not measured. A headline of about 64 to 92 px set with the font's kerning turned off, so the pairs that the font kerns, such as To, Wa, and Yo, show gaps of a few pixels wider than the letters around them; the clean version keeps the font's kerning on.
 
 ### Ligatures
 - **Rule:** In a face whose f reaches into the next letter, the f joins the following i or l as a ligature. A large headline that sets "fi" or "fl" as two separate letters shows the hook of the f striking the dot of the i or the top of the l.
 - **Source:** Bringhurst, *The Elements of Typographic Style* (Version 3.0, 2004), section 3.3.1, p. 50 (read from the page image): "Reaching into the space in front of it, the arm of the f will collide with certain letters" and "in display work, such ligatures can be crucial." Second source: Butterick, *Practical Typography*, "Ligatures": "The only time ligatures are mandatory is when you have an actual overlap between the letters f and i." Checked on the page on 2026-10-24. Second source: Hochuli, *Detail in Typography* (2008), p. 30, says letters should not collide ("individual letters should not touch"), which supports the rule.
-- **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large headline, where a letter f is followed by a letter i, do the two letters merge at the top, so that the curved top of the f and the dot of the i run together into one dark blob with no gap between them?" The source makes a ligature mandatory only for an f that overlaps an i, so the question names only that pair.
+- **Judged by:** not encoded. Question tried, at display and headline sizes only: "In a large headline, where a letter f is followed by a letter i, do the two letters merge at the top, so that the curved top of the f and the dot of the i run together into one dark blob with no gap between them?"
 - **Not encoded (NG-10), body text:** the defect grows with type size. At text size, the collision is a pixel or two and too fine to see.
-- **Defect range:** `display-ligature-missing`: not measured. A headline of about 84 to 112 px in a face whose f reaches over a following i, set with ligatures turned off at the same letter spacing, so the f collides with the dot of the i; the clean version keeps the face's fi ligature on.
+- **Not encoded (R-4):** `display-ligature-missing` was removed under R-4: 5 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Real italics, bold, and small caps (no faux styles)
 - **Rule:** True italic and bold cuts of a family are used. Slanted romans, smeared bolds, and small caps made by shrinking capitals are defects.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.4.3, p. 56 (from the scan's OCR text): "Use sloped romans sparingly and artificially sloped romans more sparingly still."; section 3.2.2 (faked small caps).
-- **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text), for faux italics. Question: "In a large slanted heading, do the letters look like ordinary upright letters tipped to the right, for example a two-storey a with a hook over its bowl and round letters that look stretched on a slant, and not the flowing, pen-like shapes of a true italic?"
+- **Judged by:** not encoded. Question tried, at display and headline sizes only, for faux italics: "In a large slanted heading, do the letters look like ordinary upright letters tipped to the right, for example a two-storey a with a hook over its bowl and round letters that look stretched on a slant, and not the flowing, pen-like shapes of a true italic?"
 - **Not encoded (NG-10), body text, faux bold, and faux small caps:** the defect grows with type size. At text size, telling a true italic from a slanted regular face needs letterform detail too fine to see, and a thickened bold or shrunken small caps differ from the real ones by strokes too thin to compare.
-- **Defect range:** `faux-italic-display`: not measured. A large italic heading drawn by slanting the roman, in a face that has a true italic.
+- **Not encoded (R-4):** `faux-italic-display` was removed under R-4: 5 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Typographic details: quotes, dashes, and spaces
 - **Rule:** Curly quotation marks and apostrophes, true en and em dashes, ellipsis characters, and one space after a sentence.
