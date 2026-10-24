@@ -56,7 +56,7 @@ function verdictGroupHeading(verdict: Verdict): string {
 
 /**
  * Returns the lines for one finding: title, criterion id, verdict, confidence, source, link, and
- * fix (FR-32). A `noul` finding shows its probability where other findings show a confidence, and a
+ * fix (FR-32). A `noul` finding shows its defect probability where other findings show a confidence, and a
  * null link prints no line (FR-20, FR-26).
  */
 function findingLines(finding: Finding): string[] {
@@ -69,11 +69,11 @@ function findingLines(finding: Finding): string[] {
       `${FINDING_INDENT}Confidence: ${finding.confidence.toFixed(CONFIDENCE_DECIMAL_PLACES)}`,
     );
   } else {
-    // A `noul` finding has no confidence, so its line shows the probability of `true` (FR-32).
+    // A `noul` finding has no confidence, so its line shows the probability of `true`, which is the probability that the defect is present (FR-32).
     const probabilityOfTrue = finding.distribution.true;
     if (probabilityOfTrue !== undefined) {
       lines.push(
-        `${FINDING_INDENT}Probability: ${probabilityOfTrue.toFixed(CONFIDENCE_DECIMAL_PLACES)}`,
+        `${FINDING_INDENT}Defect probability: ${probabilityOfTrue.toFixed(CONFIDENCE_DECIMAL_PLACES)}`,
       );
     }
   }

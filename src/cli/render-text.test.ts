@@ -174,7 +174,7 @@ describe("renderReportText", () => {
 
   test("shows the probability of true on a noul finding and a confidence on a score finding", () => {
     const text = renderReportText(prdExampleReport);
-    expect(text).toContain("Probability: 0.84");
+    expect(text).toContain("Defect probability: 0.84");
     expect(text).toContain("Confidence: 0.72");
   });
 

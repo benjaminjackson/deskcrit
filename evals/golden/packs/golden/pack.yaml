@@ -1,4 +1,4 @@
-# The pack the EV-1 and EV-2 golden cases run. It is written for the tests and is not a first-party pack, so a change to the typography or layout packs cannot change these golden outputs. It mixes noul, choice and score criteria, one locate criterion, one criterion that requires a fact, and one criterion for another platform. The thresholds are set so the recorded answers in evals/golden/answers/page.answers.json give at least one fail, warn, uncertain and pass finding (FR-28).
+# The pack the EV-1 and EV-2 golden cases run. It is written for the tests and is not a first-party pack, so a change to the typography or layout packs cannot change these golden outputs. Every noul question asks whether the defect is present, so true always means the defect is there. It mixes noul, choice and score criteria, one locate criterion, one criterion that requires a fact, and one criterion for another platform. The thresholds are set so the recorded answers in evals/golden/answers/page.answers.json give at least one fail, warn, uncertain and pass finding (FR-28).
 name: golden
 version: 1.0.0
 title: Golden test pack
@@ -36,15 +36,15 @@ criteria:
     fix: Darken the chart labels until they stand out from the background.
   - id: heading-larger-than-body
     title: The heading is not larger than the body text
-    source: Robin Williams, The Non-Designer's Design Book
+    source: Carl Dair, Design with Type
     question:
       type: noul
-      instructions: Is the heading in the image at image clearly larger than the body text?
+      instructions: Is the heading in the image at image not clearly larger than the body text?
       criteria:
-        true: The heading is clearly larger than the body text.
-        false: The heading is not clearly larger than the body text.
+        true: The heading is not clearly larger than the body text.
+        false: The heading is clearly larger than the body text.
     pass_when:
-      probability_at_least: 0.7
+      probability_at_most: 0.3
     fix: Make the heading larger or bolder than the body text.
   - id: line-length
     title: Lines of body text are too long or too short
@@ -63,7 +63,7 @@ criteria:
     fix: Set the text column width so lines hold 45 to 75 characters.
   - id: competing-focal-points
     title: Several elements compete to be seen first
-    source: Robin Williams, The Non-Designer's Design Book
+    source: Carl Dair, Design with Type
     question:
       type: score
       instructions: How many elements in the image at image compete to be seen first?
