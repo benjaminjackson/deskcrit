@@ -185,6 +185,11 @@ function runHarness(argv: readonly string[]): {
   const packResults: PackResult[] = [];
   for (const packDirectory of packDirectories) {
     const pack = readPackFixtures(packDirectory);
+    // Record the set before the first request, so a run that stops part way still counts as
+    // scored and the next live run on the same fixtures is refused (EV-4 rule 5).
+    if (live) {
+      recordFrozenSet(pack, pinnedModel);
+    }
     const verdictsByFixture = new Map<string, FixtureVerdicts>();
     for (const fixture of listFixtureImages(pack)) {
       const report = runCritOnFixture(
@@ -202,9 +207,6 @@ function runHarness(argv: readonly string[]): {
       }
       verdictsByFixture.set(fixture, verdicts);
       addUsage(usageTotals, report.usage);
-    }
-    if (live) {
-      recordFrozenSet(pack, pinnedModel);
     }
     const fixtureRows = scoreFixtureTests(pack.criteria, verdictsByFixture);
     const labels = readPackLabels(pack);
@@ -310,10 +312,11 @@ function refuseSecondRunOnSameSet(
 }
 
 /**
- * Record the fixture set a live run scored, next to its answers (EV-4 rule 5): the SHA-256 of the
- * set in rendered.json.sha256, so a later reader can check which set the run used, and its PNG
- * hashes added to the scored PNG list, so the guard knows each scored fixture. A pack with no
- * rendered.json, such as one made of captured pages only, gets no files.
+ * Record the fixture set a live run is about to score, next to its answers, before the first
+ * request is sent (EV-4 rule 5): the SHA-256 of the set in rendered.json.sha256, so a later
+ * reader can check which set the run used, and its PNG hashes added to the scored PNG list, so
+ * the guard knows each scored fixture. A pack with no rendered.json, such as one made of captured
+ * pages only, gets no files.
  */
 function recordFrozenSet(pack: PackFixtures, pinnedModel: string): void {
   const currentPngHashes = readFixtureSetPngHashes(pack);
