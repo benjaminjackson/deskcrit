@@ -52,7 +52,7 @@ Charts use inline SVG in the same template, and the same switch reaches SVG elem
 
 ## Blind fixtures and the defect declaration
 
-`docs/PRD.md` FR-54 rules 1 to 4 and EV-4 rule 5 say how fixtures stay blind to Jev's scores. Do not change a fixture because of a score. Commit the fixtures before any scored run, and get the realism check of rule 4 first.
+`docs/PRD.md` FR-54 rules 1 to 4 and EV-4 rule 5 say how fixtures stay blind to Jev's scores. Do not change a fixture because of a score. Commit the fixtures before any scored run, and get the blind review of rule 4 first.
 
 Each criterion has one declaration, `packs/<pack>/templates/<criterion-id>.defect.json`, that all its numbered templates (`<criterion-id>--2.html` and so on) share:
 
@@ -69,7 +69,7 @@ Each criterion has one declaration, `packs/<pack>/templates/<criterion-id>.defec
 
 `render` reads every element's computed values, and those of its `::before`, `::after`, `::first-line`, `::first-letter`, `::marker`, and `::placeholder`, on both sides of a pair and records in `rendered.json` which properties differ and what it measured. `verify` then fails when the two sides have different elements, when they differ in a property that the declaration does not list, when a positive fixture is outside the range, or when a negative fixture is not on the clean side. `check` renders again and fails when the recorded evidence has changed. `evals/fixture-declarations.test.ts` runs the same check as `verify` in `npm run ci`.
 
-`sheets` puts each pair side by side at full size, one row per template, and shows no score. An agent can look through a copy of the `sheets/` folder for obvious extremes first; then Benjamin Jackson checks every sheet (FR-54 rule 4).
+`sheets` puts each pair side by side at full size, one row per template, and shows no score. An agent can look through a copy of the `sheets/` folder for obvious extremes first. Then Benjamin Jackson reviews the fixtures in one blind pass: each image on its own, in a shuffled order, with the criterion's question, answered Yes, No, Can't tell, or Looks fake. The first three answers are the EV-5 labels, and Looks fake rejects the image as unrealistic (FR-54 rule 4).
 
 Rules for every template:
 
