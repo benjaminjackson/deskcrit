@@ -29,6 +29,12 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `src/cli/bin.ts` is the bundle entry file.
 - `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
 - `src/prepare/prepare.ts` holds `prepareImage`, which checks, turns upright, strips, resizes, and pads one image and records its scale factor.
+- `src/shared/state.ts`, `src/shared/question.ts`, `src/shared/answer.ts`, and `src/shared/usage.ts` hold the State, Question, Answer, and Usage types that pass between the stages, and nothing else defines them.
+- `src/ask/adapter.ts` holds the `TypeSafeAdapter` type from FR-20, `src/ask/ask.ts` holds `ask`, and `src/ask/stub.ts` holds the stub adapter. `src/ask/no-io.test.ts` checks that no file in `src/ask/` outside `src/ask/typesafe/` imports the SDK or does I/O.
+- `schemas/pack.schema.json` is the pack JSON Schema (JSON Schema 2020-12), the checked form of the pack schema table in PRD section 7.8.
+- `schemas/pack.schema.test.ts` checks the schema against the example packs in `schemas/examples/valid/` and `schemas/examples/invalid/`. Each invalid example breaks one rule, and its `# expect:` line names the error path and keyword.
+- `schemas/report.schema.json` is the JSON Schema (draft 2020-12) for the document that `crit report --json` writes (PRD section 8.1). It is part of the slow layer.
+- `src/schemas/report.schema.test.ts` is the disposable unit test that checks that schema with Ajv.
 - `spike/` holds the M-1 spike inputs: the prepared screenshot, the twenty questions, the page purpose, and its attribution.
 - `spike/answer-sheet/` holds the disposable M-1 script that writes and checks `spike/human_answers.csv`, the sheet where Benjamin Jackson answers the twenty questions before he sees any Jev answer. It has its own `package.json`. Run `npm ci --prefix spike/answer-sheet` once first, then `node spike/answer-sheet/sheet.ts blank` or `check`.
 - `spike/run.ts`, `spike/request.ts`, `spike/request.test.ts`, `spike/package.json`, and `spike/results/` are the disposable M-1 runner that asks Jev the twenty questions and keeps every run; `spike/` has its own dependencies, so run `npm --prefix spike ci` first.

@@ -1,0 +1,32 @@
+# Two choice criteria: one uses option_is, one uses option_in.
+name: typography
+version: 1.0.0
+title: Typography
+license: MIT
+criteria:
+  - id: line-length
+    title: Lines of body text are too long or too short
+    source: Robert Bringhurst, The Elements of Typographic Style
+    question:
+      type: choice
+      instructions: How long are the lines of body text in the image at image?
+      criteria:
+        short: Most lines hold fewer than 45 characters.
+        comfortable: Most lines hold 45 to 75 characters.
+        long: Most lines hold more than 75 characters.
+    pass_when:
+      option_is: comfortable
+    fix: Set the text column width so lines hold 45 to 75 characters.
+  - id: text-alignment
+    title: Body text is justified with gaps
+    source: Robert Bringhurst, The Elements of Typographic Style
+    question:
+      type: choice
+      instructions: How is the body text in the image at image aligned?
+      criteria:
+        left: Left aligned with a ragged right edge.
+        justified-even: Justified with even word spacing.
+        justified-gappy: Justified with wide gaps between words.
+    warn_when:
+      option_in: [justified-gappy]
+    fix: Align the text left, or turn on hyphenation.
