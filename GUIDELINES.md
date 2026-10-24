@@ -166,11 +166,13 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Rule:** Every block takes its edges from one underlying grid of columns, margins, and intervals, so the same column lines recur from the top of the page to the bottom. A block whose edges match no other block shows that it was placed by eye.
 - **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981), sections "Grid and design philosophy" and "Construction of the grid"; Samara, *Making and Breaking the Grid* (3rd ed. 2023), part "Making the Grid".
 - **Judged by:** askable. Question: "Is there a block whose left or right edge lines up with no other block on the page?" An offset of a few pixels will likely be missed.
+- **Defect range:** `off-grid-block`: not measured. One block moved 24 to 36 px off the column line that the other blocks share.
 
 ### Equal intervals between columns
 - **Rule:** The space between columns, cards, or grid fields is one fixed interval across the page.
 - **Source:** Müller-Brockmann, *Grid Systems in Graphic Design*, section "Construction of the grid" (the fields are separated by a fixed space, such as one empty line).
 - **Judged by:** askable. Question: "Is one gap between columns or cards visibly wider or narrower than the other gaps in the same row?"
+- **Defect range:** `uneven-gutters`: not measured. One gap in a row of equal gaps made 12 to 18 px wider than the others, such as 36 px among 24 px gaps.
 
 ### Pictures fit the grid
 - **Rule:** An image takes its width from the columns and its top and bottom from the lines of text, so pictures and text share the same edges.
@@ -187,53 +189,63 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Source:** Arnheim, *Art and Visual Perception*, chapter II "Shape", on grouping by similarity, where similarity of location is Wertheimer's rule of proximity; Wertheimer, "Untersuchungen zur Lehre von der Gestalt II" (1923).
 - **Link:** https://www.gestalttheory.net/download/Wertheimer1923_Lehre_von_der_Gestalt.pdf
 - **Judged by:** askable, as two criteria. First question: "Are the gaps between separate groups the same size as the gaps between items inside a group?" Second question: "Does a form label sit as close to the field above it as to its own field, or closer?"
+- **Defect range:** `groups-not-separated`: not measured. The gap between groups set equal to the gap between the items inside a group, at 12 to 18 px.
 
 ### Unrelated elements do not crowd each other
 - **Rule:** Elements that do not belong together keep clear space between them. A caption or paragraph below a diagram has a visible gap above it, not a few pixels.
 - **Source:** Arnheim, *Art and Visual Perception*, chapter II "Shape", on grouping by similarity of location (elements that sit close are seen as one group).
 - **Judged by:** askable. Question: "Does a caption, paragraph, or control nearly touch an image, diagram, or box that it does not belong to?" Evidence: in M-1, Benjamin Jackson saw the text below a diagram sit too close to it (spike/human_answers.csv, on `edges-misaligned`), and no other entry covered it (PRD OQ-18).
+- **Defect range:** `crowded-unrelated-elements`: not measured. A caption, paragraph, or control left about 1 px from an image, diagram, or box that it does not belong to.
 
 ### White space is gathered, not scattered
 - **Rule:** Ruder holds that the printed and the unprinted areas must stand in tension, and that the tension comes from contrast. Considered work gathers empty space into a few large, shaped areas set against dense ones. Average work spreads the same small gap between everything, so no space does any work, and it runs content up to the edges of the page.
 - **Source:** Ruder, *Typography: A Manual of Design* (1967), chapters "Contrasts" and "Form and counter-form"; Kunz, *Typography: Macro- and Microaesthetics* (1998), part two, on space and on form and counterform.
 - **Judged by:** askable. Question: "Is the empty space spread as equal small gaps between every element, with no larger open area anywhere on the page?" Content that runs up to the edge of the page is a basics check, under "Content keeps clear of the page edge".
+- **Defect range:** `white-space-scattered`: not measured. Every gap and inset on the page set to one small step, such as 24 px, with no larger open area anywhere.
 
 ### Figure and ground are unambiguous
 - **Rule:** Text and key shapes separate clearly from what lies behind them. Text on a photo or texture needs a calm area, a panel, or a scrim behind it.
 - **Source:** Arnheim, *Art and Visual Perception*, chapter V "Space", section "Figure and ground"; Ruder, *Typography: A Manual of Design*, chapter "Form and counter-form".
 - **Judged by:** askable. Question: "Does text or a key shape sit on a busy photo or pattern with no panel, shadow, or calm area behind it?"
+- **Defect range:** `figure-merges-with-ground`: not measured. Text or a key shape set straight on a busy photo or pattern, with the panel, scrim, or shadow behind it taken away.
 
 ### Balance
 - **Rule:** Visual weight comes from size, darkness, colour, and isolation, and where an element sits changes its weight. A layout may be symmetrical or not, but a heavy side needs a counterweight.
 - **Source:** Arnheim, *Art and Visual Perception*, chapter I "Balance", sections "Weight" and "Psychological and physical balance".
 - **Judged by:** askable. Question: "Is one side of the page heavy with large or dark elements while the other side is empty, with nothing to counter them?"
+- **Defect range:** `lopsided-balance`: not measured. The large or dark elements of a page placed on its left or right side, with the other side empty and nothing to counter them.
 
 ### One element dominates
 - **Rule:** The order of importance is plain: one element is seen first and the rest follow. Tschichold asks that logical order be shown by differences of size, and Hofmann builds compositions from contrasts such as much against little.
 - **Source:** Tschichold, *The New Typography* (1928), chapter "The principles of the new typography"; Hofmann, *Graphic Design Manual* (1965), the text chapters "The line" and "Confrontation".
 - **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
 - **Judged by:** askable. Question: "Are there three or more elements of the same size and weight competing to be seen first, with none clearly stronger than the others?"
+- **Defect range:** `no-dominant-element`: not measured. Three or more elements given the same size, weight, and strength of colour, with none clearly stronger than the others.
 
 ### Contrast of scale gives the page tension
 - **Rule:** Considered layouts set strong contrasts against each other: one very large element against small ones, a vertical against horizontals, dense against open. Hofmann finds the strongest tension where one element comes close to overpowering another. Average layouts make every image, card, and heading about the same size.
 - **Source:** Hofmann, *Graphic Design Manual*, the text chapters "The line" and "Confrontation" (contrasts such as much and little, horizontal and vertical, light and dark); Ruder, *Typography: A Manual of Design*, chapter "Contrasts".
 - **Judged by:** askable, as a warning only, because an even layout is dull rather than wrong. Question: "Are all the main elements on the page, such as images, cards, and headings, about the same size, with no element much larger than the rest?"
+- **Defect range:** `uniform-scale`: not measured. All the main elements of a page, such as images, cards, and headings, set to about the same size.
 
 ### No central axis by default
 - **Rule:** Tschichold rejects the habit of centring everything on one axis, because it fixes the form before the content is read and makes the layout rigid. An asymmetric arrangement that follows the order of the content is the considered default; centring is a choice for a few short lines.
 - **Source:** Tschichold, *The New Typography*, chapter "The principles of the new typography" (central-axis setting and asymmetry).
 - **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
 - **Judged by:** askable, as a warning only, because a centred layout is a style and not an error. Question: "Is every block on the page, including headings, paragraphs of several lines, and buttons, centred on one vertical axis?"
+- **Defect range:** `everything-centred`: not measured. Every block on the page, including headings, paragraphs of several lines, and buttons, centred on one vertical axis.
 
 ### Repeated elements follow one programme
 - **Rule:** Gerstner treats design as a programme: a set of rules from which each solution is chosen. Elements of one kind (cards, buttons, section headings) therefore share one style and one spacing, and a variant appears only where the rules call for it.
 - **Source:** Gerstner, *Designing Programmes* (1964), the introduction ("instead of solutions for problems, programmes for solutions"); Müller-Brockmann, *Grid Systems in Graphic Design*, section "Grid and design philosophy" (the grid as the will to systematize).
 - **Judged by:** askable. Question: "Are elements of the same kind, such as cards, buttons, or section headings, styled differently from one another?"
+- **Defect range:** `inconsistent-repeated-styles`: not measured. One element in a set of the same kind, such as cards, buttons, or section headings, styled differently from the others in a way that shows at the size of the page.
 
 ### No rules, boxes, or ornament where space would do
 - **Rule:** Lines, borders, and decoration that carry no information compete with the content. Tufte calls it non-data ink and chartjunk; Lupton shows that tables are often over-ruled and are clearer with the rules removed or replaced by a pale tone; Tschichold rejects ornament.
 - **Source:** Tufte, *The Visual Display of Quantitative Information* (1983, 2nd ed. 2001), chapter 4 "Data-ink and graphical redesign" and chapter 5 "Chartjunk: vibrations, grids, and ducks"; Lupton, *Thinking with Type* (1st ed. 2004), "Grid" chapter, "Data tables", p. 157: "The rules and boxes used in data tables should illuminate the relationships among data, not trap each entry inside a heavily guarded cell." P. 159 supports replacing rules with a pale tone: "The redesign (above) eliminates many of the ruled lines, replacing them, where needed, with a pale tone that unifies the long horizontal rows of data."; Tschichold, *The New Typography*, chapter "The principles of the new typography".
 - **Judged by:** askable. Question: "Is every cell, card, or section enclosed in a dark border or separated by heavy rules, so that the lines are as strong as the content?"
+- **Defect range:** `heavy-rules-and-boxes`: not measured. Every cell, card, or section enclosed in a near-black border or rule 1 to 2 px wide.
 
 ### Optical alignment over mathematical alignment
 - **Rule:** Round and pointed shapes overshoot, and icons centre by visual mass rather than by bounding box, so that they look aligned.
