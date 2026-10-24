@@ -1,6 +1,6 @@
 # packs/
 
-This folder holds the source of the first-party packs (PRD FR-53) and the tool that renders their fixture images (PRD OQ-17). A folder whose name starts with `_` is not a pack: `_renderer/` is the renderer and `_example/` is a worked example. Tools that list packs skip these folders.
+This folder holds the source of the first-party packs (PRD FR-53) and the tool that renders their fixture images (PRD OQ-17). A folder whose name starts with `_` is not a pack: `_renderer/` is the renderer, `_example/` is a worked example, and `_adversarial/` holds the EV-7 fixtures. Tools that list packs skip these folders.
 
 ## Rendering fixtures
 
@@ -76,7 +76,7 @@ Rules for every template:
 - The page is 1280x800 at device scale factor 1. Both sides are inside the 280 to 1568 pixel image limit (FR-7), so prepare sends the image without resizing it. Do not make content taller than the page.
 - Use only fonts from `_renderer/fonts/`. Each font there has its license file and an open license. The renderer refuses any request that is not a file in the repository, including WebSockets and files elsewhere on the disk such as system fonts. It fails if a declared font does not load, or if any text is drawn with a font installed on the machine.
 - The shipped faces are Inter 300, 400 and 700 (@fontsource/inter 5.3.0), Source Serif 4 400 and 700 (@fontsource/source-serif-4 5.3.1), and Pacifico 400, a script face (@fontsource/pacifico 5.3.0). All are SIL Open Font License 1.1 and each has its `OFL-*.txt` next to the files. Adding a font changes every `rendered.json` source hash, so re-render every pack after you add one. A font that only one pack's templates use goes in that pack's own `fonts/` folder with its license, and the template stylesheets that use it declare its `@font-face` rule, so the shared files stay the same; `packs/typography/fonts/` holds EB Garamond 400 this way.
-- Use invented text only. Show no face of a real person, no personal data, and no logged-in state (FR-54). Do not put text in the design that praises or condemns it (NFR-12).
+- Use invented text only. Show no face of a real person, no personal data, and no logged-in state (FR-54). Do not put text in the design that praises or condemns it (NFR-12). The one exception is `_adversarial/`, whose EV-7 fixtures carry such text on purpose to check that it does not change the verdict.
 - The render fails if a PNG is over 2 MB, and names the file (FR-54).
 
 ## The ATTRIBUTION.md entry format
