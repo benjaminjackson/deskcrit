@@ -7,12 +7,20 @@
 // --save-answers into runs/<pack>/<model>/. Replay mode (`npm run eval:agreement`) scores those
 // saved answers with --answers, needs no key, and makes no network call (FR-42).
 //
-// Usage: node evals/agreement/run-agreement.ts [--live] [--pack <dir>]...
+// Usage: node evals/agreement/run-agreement.ts [--live] [--rerun-same-set] [--pack <dir>]...
+// A live run refuses a fixture set it already scored with the same model (EV-4 rule 5), unless a
+// person passes --rerun-same-set. Only a person passes it, never an agent (EV-4 rule 5).
 // Without --pack it measures every first-party pack under packs/. Exit 0 when every fixture agrees,
 // 1 when any EV-4 fixture disagrees, and 2 when the harness could not run (FR-24).
 
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { parseDocument } from "yaml";
@@ -20,6 +28,7 @@ import {
   compileReportValidator,
   readPinnedModel,
 } from "../support/pinned-model-and-schema.ts";
+import { hashFrozenFixtureSet } from "./frozen-set.ts";
 import {
   type FixtureLabel,
   type LabelPackCheck,
@@ -133,6 +142,7 @@ function runHarness(argv: readonly string[]): {
     args: [...argv],
     options: {
       live: { type: "boolean", default: false },
+      "rerun-same-set": { type: "boolean", default: false },
       pack: { type: "string", multiple: true },
     },
     strict: true,
@@ -153,6 +163,11 @@ function runHarness(argv: readonly string[]): {
   const packDirectories = listPackDirectories(parsed.values.pack ?? []);
   const validateReport =
     compileReportValidator<ReportDocument>(REPORT_SCHEMA_PATH);
+  if (live && !(parsed.values["rerun-same-set"] ?? false)) {
+    for (const packDirectory of packDirectories) {
+      refuseSecondRunOnSameSet(readPackFixtures(packDirectory), pinnedModel);
+    }
+  }
 
   const usageTotals: UsageTotals = {
     requests: 0,
@@ -181,6 +196,9 @@ function runHarness(argv: readonly string[]): {
       }
       verdictsByFixture.set(fixture, verdicts);
       addUsage(usageTotals, report.usage);
+    }
+    if (live) {
+      recordFrozenSet(pack, pinnedModel);
     }
     const fixtureRows = scoreFixtureTests(pack.criteria, verdictsByFixture);
     const labels = readPackLabels(pack);
@@ -214,6 +232,62 @@ function runHarness(argv: readonly string[]): {
   sections.push(formatCoverage(coverage));
   const exitCode = anyDisagreed ? EXIT_CODE_DISAGREED : EXIT_CODE_AGREED;
   return { text: `${sections.join("\n\n")}\n`, exitCode };
+}
+
+/**
+ * Return the hash of the pack's frozen fixture set, the sorted PNG hashes in its
+ * fixtures/rendered.json, or null when the pack has no rendered.json, such as a pack made of
+ * captured pages only (EV-4 rule 5).
+ */
+function hashFixtureSet(pack: PackFixtures): string | null {
+  const renderedJsonPath = join(pack.directory, "fixtures", "rendered.json");
+  if (!existsSync(renderedJsonPath)) {
+    return null;
+  }
+  return hashFrozenFixtureSet(readFileSync(renderedJsonPath, "utf8"));
+}
+
+/** The path of the file that keeps the hash of the fixture set a live run scored. */
+function frozenSetHashPath(pack: PackFixtures, pinnedModel: string): string {
+  return join(RUNS_DIRECTORY, pack.name, pinnedModel, "rendered.json.sha256");
+}
+
+/**
+ * Throw before any request is sent when a live run already scored this exact fixture set with
+ * this model, because EV-4 rule 5 says the first scored run decides and no criterion is run
+ * again on the same set. A person who must run it again, for example after a run that stopped
+ * part way, passes --rerun-same-set.
+ */
+function refuseSecondRunOnSameSet(
+  pack: PackFixtures,
+  pinnedModel: string,
+): void {
+  const currentHash = hashFixtureSet(pack);
+  const hashPath = frozenSetHashPath(pack, pinnedModel);
+  if (currentHash === null || !existsSync(hashPath)) {
+    return;
+  }
+  const storedHash = readFileSync(hashPath, "utf8").trim();
+  if (storedHash === currentHash) {
+    throw new Error(
+      `${pack.name}: a live run with ${pinnedModel} already scored this fixture set (${hashPath}), and EV-4 rule 5 allows no second run on the same set; no request was sent. A person may pass --rerun-same-set to run it again.`,
+    );
+  }
+}
+
+/**
+ * Write the SHA-256 of the pack's fixtures/rendered.json next to the answers of a live run, so a
+ * later reader can check which frozen fixture set the run scored (EV-4 rule 5). A pack with no
+ * rendered.json, such as one made of captured pages only, gets no file.
+ */
+function recordFrozenSet(pack: PackFixtures, pinnedModel: string): void {
+  const hash = hashFixtureSet(pack);
+  if (hash === null) {
+    return;
+  }
+  const hashPath = frozenSetHashPath(pack, pinnedModel);
+  mkdirSync(dirname(hashPath), { recursive: true });
+  writeFileSync(hashPath, `${hash}\n`);
 }
 
 /** Say whether TYPESAFE_API_KEY is set, without reading its value into any output (CS-19, NFR-14). */
