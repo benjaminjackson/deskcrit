@@ -15,16 +15,22 @@ name: basics
 version: 0.1.0
 title: Basics, checks for common mistakes
 license: MIT
+# EV-4 on 2026-10-24 (jev-1.14.0, frozen 140-fixture set): all-caps-long-text,
+# centred-or-right-paragraphs, competing-primary-buttons, and text-reads-faint agreed on 20 of 20
+# fixtures in the first run (5488c3c). decorative-face-for-paragraphs agreed on 20 of 20 after one
+# rewording (1be6fd7) and ships with fail. content-touches-page-edge and wall-of-text still missed
+# positives after one rewording and were removed under R-4. GUIDELINES.md records the result for
+# each one.
 criteria:
   - id: decorative-face-for-paragraphs
     title: 'Paragraphs are set in a decorative face'
     source: 'Bringhurst, The Elements of Typographic Style (1992), chapter 6 "Choosing and combining type", section 6.2.1 (choose faces that suit the task).'
     question:
       type: noul
-      instructions: 'In the image at screenshot: Are paragraphs of text set in a script, blackletter, or other decorative typeface?'
+      instructions: 'In the image at screenshot: Is the running text, the sentences people are meant to read, set in a handwriting or brush script, blackletter, or other display typeface instead of a plain text face?'
       criteria:
-        "true": 'Paragraphs of text are set in a script, blackletter, or other decorative typeface.'
-        "false": 'Paragraphs of text are set in a plain typeface made for reading.'
+        "true": 'The running text is set in a handwriting or brush script, blackletter, or other display typeface, even if the passages are short or sit in boxes.'
+        "false": 'The running text is set in a plain typeface made for reading, and any display typeface is kept to headings or a few words.'
     fail_when: { probability_at_least: 0.7 }
     pass_when: { probability_at_most: 0.3 }
     fix: 'Set paragraphs in a face made for reading, and keep script, blackletter, and other decorative faces for a few words of display (Bringhurst, The Elements of Typographic Style, 6.2.1).'
@@ -126,42 +132,6 @@ criteria:
         - fixtures/centred-or-right-paragraphs--9.negative.png
         - fixtures/centred-or-right-paragraphs--10.negative.png
 
-  - id: content-touches-page-edge
-    title: 'Content touches the page edge'
-    source: 'Müller-Brockmann, Grid Systems in Graphic Design (1981), sections "Margin proportions" and "Construction of the type area".'
-    question:
-      type: noul
-      instructions: 'In the image at screenshot: Does any text or box touch the edge of the page or sit within a few pixels of it?'
-      criteria:
-        "true": 'Some text or a box touches the edge of the page or sits within a few pixels of it.'
-        "false": 'All text and boxes sit inside a clear margin from every edge of the page.'
-    fail_when: { probability_at_least: 0.7 }
-    pass_when: { probability_at_most: 0.3 }
-    fix: 'Keep text and boxes inside the type area, with a margin between them and every edge of the page (Müller-Brockmann, Grid Systems in Graphic Design, "Margin proportions").'
-    fixtures:
-      positive:
-        - fixtures/content-touches-page-edge.positive.png
-        - fixtures/content-touches-page-edge--2.positive.png
-        - fixtures/content-touches-page-edge--3.positive.png
-        - fixtures/content-touches-page-edge--4.positive.png
-        - fixtures/content-touches-page-edge--5.positive.png
-        - fixtures/content-touches-page-edge--6.positive.png
-        - fixtures/content-touches-page-edge--7.positive.png
-        - fixtures/content-touches-page-edge--8.positive.png
-        - fixtures/content-touches-page-edge--9.positive.png
-        - fixtures/content-touches-page-edge--10.positive.png
-      negative:
-        - fixtures/content-touches-page-edge.negative.png
-        - fixtures/content-touches-page-edge--2.negative.png
-        - fixtures/content-touches-page-edge--3.negative.png
-        - fixtures/content-touches-page-edge--4.negative.png
-        - fixtures/content-touches-page-edge--5.negative.png
-        - fixtures/content-touches-page-edge--6.negative.png
-        - fixtures/content-touches-page-edge--7.negative.png
-        - fixtures/content-touches-page-edge--8.negative.png
-        - fixtures/content-touches-page-edge--9.negative.png
-        - fixtures/content-touches-page-edge--10.negative.png
-
   - id: all-caps-long-text
     title: 'Long text is set in all capitals'
     source: 'Butterick, Practical Typography, "All caps" ("Caps are suitable for headings shorter than one line"; "Don''t capitalize whole paragraphs").'
@@ -198,43 +168,6 @@ criteria:
         - fixtures/all-caps-long-text--8.negative.png
         - fixtures/all-caps-long-text--9.negative.png
         - fixtures/all-caps-long-text--10.negative.png
-
-  - id: wall-of-text
-    title: 'Text is not broken into chunks'
-    source: 'Nielsen, "How Users Read on the Web" (Nielsen Norman Group, 1997).'
-    link: https://www.nngroup.com/articles/how-users-read-on-the-web/
-    question:
-      type: noul
-      instructions: 'In the image at screenshot: Is there a block of text many lines long with no heading, list, or paragraph break inside it?'
-      criteria:
-        "true": 'There is a block of text many lines long with no heading, list, or paragraph break inside it.'
-        "false": 'Every long run of text is broken up by headings, lists, or paragraph breaks.'
-    fail_when: { probability_at_least: 0.7 }
-    pass_when: { probability_at_most: 0.3 }
-    fix: 'Break long text into chunks with headings, short paragraphs, and lists, so people can skim it (Nielsen, "How Users Read on the Web").'
-    fixtures:
-      positive:
-        - fixtures/wall-of-text.positive.png
-        - fixtures/wall-of-text--2.positive.png
-        - fixtures/wall-of-text--3.positive.png
-        - fixtures/wall-of-text--4.positive.png
-        - fixtures/wall-of-text--5.positive.png
-        - fixtures/wall-of-text--6.positive.png
-        - fixtures/wall-of-text--7.positive.png
-        - fixtures/wall-of-text--8.positive.png
-        - fixtures/wall-of-text--9.positive.png
-        - fixtures/wall-of-text--10.positive.png
-      negative:
-        - fixtures/wall-of-text.negative.png
-        - fixtures/wall-of-text--2.negative.png
-        - fixtures/wall-of-text--3.negative.png
-        - fixtures/wall-of-text--4.negative.png
-        - fixtures/wall-of-text--5.negative.png
-        - fixtures/wall-of-text--6.negative.png
-        - fixtures/wall-of-text--7.negative.png
-        - fixtures/wall-of-text--8.negative.png
-        - fixtures/wall-of-text--9.negative.png
-        - fixtures/wall-of-text--10.negative.png
 
   - id: competing-primary-buttons
     title: 'Secondary actions are styled as strongly as the primary one'
