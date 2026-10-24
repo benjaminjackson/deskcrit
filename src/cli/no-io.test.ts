@@ -66,7 +66,8 @@ for (const name of rendererFileNames) {
 
 /**
  * The only modules report-command.ts may import: the four stage entry files, the adapter type,
- * src/shared/, the renderers, read-inputs.ts for its input type, and package.json for the version
+ * src/shared/, the renderers, read-inputs.ts for its input type, answers-file.ts for --answers and
+ * --save-answers, and package.json for the version
  * (FR-65, CS-6). A stage internal, such as compose/verdict.js, is not on the list.
  */
 const reportCommandAllowedImports: readonly string[] = [
@@ -77,6 +78,7 @@ const reportCommandAllowedImports: readonly string[] = [
   "../compose/compose.js",
   "../prepare/prepare.js",
   "../shared/could-not-run-error.js",
+  "./answers-file.js",
   "./read-inputs.js",
   "./render-json.js",
   "./render-text.js",

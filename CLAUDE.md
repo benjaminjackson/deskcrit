@@ -35,6 +35,8 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
 - `src/prepare/prepare.ts` holds `prepareImage`, which checks, turns upright, strips, resizes, and pads one image, records its scale factor, and refuses an image it would shrink below half size.
 - `src/shared/state.ts`, `src/shared/question.ts`, `src/shared/answer.ts`, and `src/shared/usage.ts` hold the State, Question, Answer, and Usage types that pass between the stages, and nothing else defines them.
+- `src/shared/answers-mismatch.ts` holds `findAnswersMismatch`, the rule that a list of answers fits the questions build made. Ask and the `--answers` path both use it.
+- `src/cli/answers-file.ts` holds the answers file that `--save-answers` writes and `--answers` reads (FR-42, OQ-26): `readAnswersFile`, the one function that checks its shape, `checkRecordedAnswers`, and `writeAnswersFile`. It does no I/O; `src/cli/read-inputs.ts` reads the file and `src/cli/main.ts` writes it.
 - `src/shared/pack.ts` holds the Pack, Criterion, PackQuestion, Predicate, and PackProblem types that the pack loader returns and build and compose read.
 - `src/packs/load-pack.ts` holds `checkPack` and `loadPack`, which parse one pack's YAML text and check it against `schemas/pack.schema.json` and the rules the schema cannot express. It reads no files.
 - `src/build/build.ts` holds `buildQuestions`, which skips criteria by platform and facts, makes one question per criterion plus a Box question when `locate` is true, and builds the state with the image once. `src/build/types.ts` holds its input and output types. `src/build/no-io.test.ts` checks that build does no I/O and imports only `src/shared/`.

@@ -43,6 +43,19 @@ describe("parseReportArguments", () => {
     });
   });
 
+  it("reads --save-answers and --answers, and allows both together (FR-42, FR-60, OQ-26)", () => {
+    const parsed = parseReportArguments([
+      "report",
+      "home.png",
+      "--save-answers",
+      "out.json",
+      "--answers",
+      "in.json",
+    ]);
+    expect(parsed.saveAnswersPath).toBe("out.json");
+    expect(parsed.answersPath).toBe("in.json");
+  });
+
   it("splits a pair on the first = so the value may hold =", () => {
     const parsed = parseReportArguments([
       "report",
@@ -85,6 +98,22 @@ describe("parseReportArguments", () => {
       name: "a pair with an empty key",
       argv: ["report", "x.png", "--context", "=web"],
       message: "--context =web: the key is empty",
+    },
+    {
+      name: "--answers given twice",
+      argv: ["report", "x.png", "--answers", "a.json", "--answers", "b.json"],
+      message: "--answers is given more than once",
+    },
+    {
+      name: "--save-answers given twice",
+      argv: [
+        "report",
+        "x.png",
+        "--save-answers",
+        "a.json",
+        "--save-answers=b.json",
+      ],
+      message: "--save-answers is given more than once",
     },
     {
       name: "an unknown context key",
