@@ -34,7 +34,23 @@ const GUIDELINE_MEASURE_WORDS: Record<
 };
 
 /** A measured range, both ends included. */
-export type DefectRange = { measure: DefectMeasure; from: number; to: number };
+/**
+ * Which side of a range is free of the defect: "above" when larger values are
+ * clean (more contrast, more space to the edge), "below" when smaller ones are.
+ */
+export type CleanSide = "above" | "below";
+
+/**
+ * A measured range, both ends included, and the side of it that is free of
+ * the defect. A negative fixture must sit on the clean side, one step past the
+ * range at the precision the range is written in (FR-54 rule 2).
+ */
+export type DefectRange = {
+  measure: DefectMeasure;
+  from: number;
+  to: number;
+  clean_side: CleanSide;
+};
 
 /**
  * One criterion's packs/<pack>/templates/<criterion-id>.defect.json: the CSS
@@ -292,6 +308,12 @@ export function parseDefectDeclaration(
   const measure = rangeRecord.measure;
   const from = rangeRecord.from;
   const to = rangeRecord.to;
+  const cleanSide = rangeRecord.clean_side;
+  for (const key of Object.keys(rangeRecord)) {
+    if (!["measure", "from", "to", "clean_side"].includes(key)) {
+      throw new Error(`${where}: unknown field range.${key}`);
+    }
+  }
   if (!isDefectMeasure(measure)) {
     throw new Error(
       `${where}: range.measure must be one of ${DEFECT_MEASURES.join(", ")}`,
@@ -300,6 +322,11 @@ export function parseDefectDeclaration(
   if (typeof from !== "number" || typeof to !== "number" || from > to) {
     throw new Error(
       `${where}: range.from and range.to must be numbers with from not above to`,
+    );
+  }
+  if (cleanSide !== "above" && cleanSide !== "below") {
+    throw new Error(
+      `${where}: range.clean_side must be "above" or "below", the side of the range that is free of the defect`,
     );
   }
   if (measure === "font-size" || measure === "contrast-ratio") {
@@ -311,7 +338,10 @@ export function parseDefectDeclaration(
       }
     }
   }
-  return { properties, range: { measure, from, to } };
+  return {
+    properties,
+    range: { measure, from, to, clean_side: cleanSide },
+  };
 }
 
 /**
@@ -779,6 +809,42 @@ export function isPropertyDeclared(
   return false;
 }
 
+/** Counts the decimal places a number is written with, so 4.4 gives 1 and 8 gives 0. */
+function countDecimals(value: number): number {
+  const text = String(value);
+  const pointIndex = text.indexOf(".");
+  if (pointIndex === -1) {
+    return 0;
+  }
+  return text.length - pointIndex - 1;
+}
+
+/**
+ * Returns the first value on the clean side of a range: one step past the
+ * edge, where a step is the smallest unit the range is written in. A contrast
+ * range of 2.5 to 4.4 that is clean above starts its clean side at 4.5, the
+ * WCAG minimum for body text; an edge distance of 0 to 8 px starts it at 9 px.
+ * A value between the edge and that first clean value is too close to the
+ * defect to count as free of it (FR-54 rule 2).
+ */
+export function firstCleanValue(range: DefectRange): number {
+  const decimals = Math.max(countDecimals(range.from), countDecimals(range.to));
+  const step = 10 ** -decimals;
+  const edge =
+    range.clean_side === "above" ? range.to + step : range.from - step;
+  // Rounding to the range's own precision removes floating point error, such as 4.4 + 0.1 = 4.5000000000000004.
+  return Number(edge.toFixed(decimals));
+}
+
+/** Says whether a value sits on the clean side of a range, at or past its first clean value. */
+function isOnCleanSide(value: number, range: DefectRange): boolean {
+  const threshold = firstCleanValue(range);
+  if (range.clean_side === "above") {
+    return value >= threshold;
+  }
+  return value <= threshold;
+}
+
 /** Says whether a measured value lies inside a range, both ends included. */
 function isInside(value: number, range: DefectRange): boolean {
   return value >= range.from && value <= range.to;
@@ -787,8 +853,9 @@ function isInside(value: number, range: DefectRange): boolean {
 /**
  * Checks one pair against its declaration and returns every problem as a
  * sentence that names the fixture, or an empty list when the pair passes. The
- * positive must sit inside the declared range and the negative outside it
- * (rule 2), and the two sides must differ only in declared properties (rule 3).
+ * positive must sit inside the declared range and the negative on its clean
+ * side (rule 2), and the two sides must differ only in declared properties
+ * (rule 3).
  */
 export function findDeclarationProblems(
   declaration: DefectDeclaration,
@@ -839,9 +906,10 @@ export function findDeclarationProblems(
           `${fixture}: ${range.measure} ${value} is outside the declared range ${range.from} to ${range.to} (FR-54 rule 2)`,
         );
       }
-      if (!mustBeInside && isInside(value, range)) {
+      if (!mustBeInside && !isOnCleanSide(value, range)) {
+        const comparison = range.clean_side === "above" ? "or more" : "or less";
         problems.push(
-          `${fixture}: ${range.measure} ${value} is inside the declared defect range ${range.from} to ${range.to}, but a negative fixture must sit outside it (FR-54 rule 2)`,
+          `${fixture}: ${range.measure} ${value} is not on the clean side of the declared defect range ${range.from} to ${range.to}; a negative fixture must be ${firstCleanValue(range)} ${comparison} (FR-54 rule 2)`,
         );
       }
     }
@@ -859,7 +927,7 @@ const GUIDELINE_RANGE_PREFIX = "- **Defect range:** ";
  * Reads every `Defect range` line in GUIDELINES.md, keyed by criterion id. A
  * line has one of two fixed forms:
  *
- *   - **Defect range:** `text-reads-faint`: contrast ratio from 2.5 to 4.4.
+ *   - **Defect range:** `text-reads-faint`: contrast ratio from 2.5 to 4.4, clean above.
  *   - **Defect range:** `wall-of-text`: not measured. <words for the range>
  *
  * It throws on a line that starts like a range line but has neither form, or
@@ -897,7 +965,7 @@ export function parseGuidelineRanges(
     for (const measure of DEFECT_MEASURES) {
       const { words, unit } = GUIDELINE_MEASURE_WORDS[measure];
       const pattern = new RegExp(
-        `^${words} from (\\d+(?:\\.\\d+)?) to (\\d+(?:\\.\\d+)?)${unit}\\.$`,
+        `^${words} from (\\d+(?:\\.\\d+)?) to (\\d+(?:\\.\\d+)?)${unit}, clean (above|below)\\.$`,
       );
       const rangeMatch = pattern.exec(statement);
       if (rangeMatch !== null) {
@@ -905,12 +973,13 @@ export function parseGuidelineRanges(
           measure,
           from: Number(rangeMatch[1]),
           to: Number(rangeMatch[2]),
+          clean_side: rangeMatch[3] === "below" ? "below" : "above",
         };
       }
     }
     if (parsedRange === null) {
       throw new Error(
-        `GUIDELINES.md line ${lineIndex + 1}: "${statement}" is not "<measure> from <a> to <b>[ px]." or "not measured. <words>"`,
+        `GUIDELINES.md line ${lineIndex + 1}: "${statement}" is not "<measure> from <a> to <b>[ px], clean above|below." or "not measured. <words>"`,
       );
     }
     ranges.set(criterionId, parsedRange);
@@ -927,11 +996,11 @@ export function describeRangeMismatch(
   const guidelineText =
     guidelineRange === null
       ? "not measured"
-      : `${guidelineRange.measure} ${guidelineRange.from} to ${guidelineRange.to}`;
+      : `${guidelineRange.measure} ${guidelineRange.from} to ${guidelineRange.to}, clean ${guidelineRange.clean_side}`;
   const declaredText =
     declaredRange === null
       ? "not measured"
-      : `${declaredRange.measure} ${declaredRange.from} to ${declaredRange.to}`;
+      : `${declaredRange.measure} ${declaredRange.from} to ${declaredRange.to}, clean ${declaredRange.clean_side}`;
   if (guidelineText === declaredText) {
     return null;
   }

@@ -57,15 +57,15 @@ Each criterion has one declaration, `packs/<pack>/templates/<criterion-id>.defec
 ```json
 {
   "properties": ["color"],
-  "range": { "measure": "contrast-ratio", "from": 2.5, "to": 4.4 }
+  "range": { "measure": "contrast-ratio", "from": 2.5, "to": 4.4, "clean_side": "above" }
 }
 ```
 
 - `properties` lists the CSS properties that the `[data-defect="on"]` rules change. Each name must be a property that the pinned Chromium reports (`_renderer/css-properties.json`), a custom property, or one of the shorthands in `_renderer/defect.ts` (`margin`, `padding`, `border`, `border-radius`, `font`, and others). A shorthand covers its longhands, and a name covers the logical name of the same side (`margin-left` covers `margin-inline-start`). A declared `color` covers a property that follows `currentColor` only where its value equals `color`. With a `font-size` or `contrast-ratio` range, a declaration may not list `opacity`, `filter`, `transform`, `zoom`, or `mix-blend-mode`, because they change how text looks without changing what is measured.
-- `range` is the realistic range of the defect, or `null` when the renderer cannot measure it. The measures are `font-size` (px, on text whose size the defect changes), `contrast-ratio` (WCAG, on text whose contrast the defect changes), and `edge-distance` (px, from the nearest line of text to an edge of the page).
+- `range` is the realistic range of the defect, or `null` when the renderer cannot measure it. `clean_side` is `above` or `below`, the side of the range that is free of the defect. A negative fixture must sit on that side, at or past the first value one step beyond the range at the precision it is written in: 4.5 or more for a range that ends at 4.4, 9 px or more for one that ends at 8 px. The measures are `font-size` (px, on text whose size the defect changes), `contrast-ratio` (WCAG, on text whose contrast the defect changes), and `edge-distance` (px, from the nearest line of text to an edge of the page).
 - GUIDELINES.md states the same range in the criterion's `Defect range` line, and `packs/_renderer/guideline-ranges.test.ts` fails when the two differ.
 
-`render` reads every element's computed values, and those of its `::before`, `::after`, `::first-line`, `::first-letter`, `::marker`, and `::placeholder`, on both sides of a pair and records in `rendered.json` which properties differ and what it measured. `verify` then fails when the two sides have different elements, when they differ in a property that the declaration does not list, when a positive fixture is outside the range, or when a negative fixture is inside it. `check` renders again and fails when the recorded evidence has changed. `evals/fixture-declarations.test.ts` runs the same check as `verify` in `npm run ci`.
+`render` reads every element's computed values, and those of its `::before`, `::after`, `::first-line`, `::first-letter`, `::marker`, and `::placeholder`, on both sides of a pair and records in `rendered.json` which properties differ and what it measured. `verify` then fails when the two sides have different elements, when they differ in a property that the declaration does not list, when a positive fixture is outside the range, or when a negative fixture is not on the clean side. `check` renders again and fails when the recorded evidence has changed. `evals/fixture-declarations.test.ts` runs the same check as `verify` in `npm run ci`.
 
 `sheets` puts each pair side by side at full size, one row per template, and shows no score. An agent can look through a copy of the `sheets/` folder for obvious extremes first; then Benjamin Jackson checks every sheet (FR-54 rule 4).
 

@@ -2,7 +2,7 @@
 
 The guidelines the seven first-party packs encode, one domain per section.
 
-Each guideline has four parts. **Rule** is the testable form a reviewer would apply. **Source** is the original book, standard, or paper, not a blog that repeats it. **Link** appears when the source is online or is not a well-known book. **Judged by** says how the rule becomes a Jev question. `askable` means the rule is asked as written. `askable as a visual judgment` means the rule carries a figure (a ratio, a pixel size, a count) that `deskcrit` does not check. Jev is asked only whether the defect is visible. An exact result needs a measuring tool such as axe-core. An entry that a pack encodes also has a **Defect range** line for each criterion, which states the realistic range of the defect that the criterion's fixtures must sit inside (PRD FR-54 rule 2). The line has one of two fixed forms, so a test can compare it with the criterion's `.defect.json` file: "`<criterion-id>`: <font size, contrast ratio, or edge distance> from <a> to <b>[ px]." when the fixture renderer can measure it, or "`<criterion-id>`: not measured. <the range in words>" when it cannot.
+Each guideline has four parts. **Rule** is the testable form a reviewer would apply. **Source** is the original book, standard, or paper, not a blog that repeats it. **Link** appears when the source is online or is not a well-known book. **Judged by** says how the rule becomes a Jev question. `askable` means the rule is asked as written. `askable as a visual judgment` means the rule carries a figure (a ratio, a pixel size, a count) that `deskcrit` does not check. Jev is asked only whether the defect is visible. An exact result needs a measuring tool such as axe-core. An entry that a pack encodes also has a **Defect range** line for each criterion, which states the realistic range of the defect that the criterion's fixtures must sit inside (PRD FR-54 rule 2). The line has one of two fixed forms, so a test can compare it with the criterion's `.defect.json` file: "`<criterion-id>`: <font size, contrast ratio, or edge distance> from <a> to <b>[ px], clean above|below." when the fixture renderer can measure it, where "clean above" or "clean below" names the side of the range that is free of the defect, or "`<criterion-id>`: not measured. <the range in words>" when it cannot.
 
 Scope: the design, not the writing. There is no content design section: reading level, sentence length, tone, and terminology belong to a content linter, so that research was dropped. Nielsen's heuristics are kept whole, including the ones that touch wording, because those are usability judgments about the screen rather than prose rules. `deskcrit` does no measurement of its own: it prepares the image, asks the questions, and reads the answers. Rules that are pure formulas, need the DOM, or need a running app are not in this catalog. An entry marked **Not encoded (NG-10)** stays in the catalog as research, but no pack encodes it, because it reads what the content says, needs detail too fine to see, or cannot be judged from one image (PRD NG-10). The mark says which.
 
@@ -266,7 +266,7 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 - **Source:** W3C, *WCAG 2.2*, SC 1.4.3 Contrast (Minimum).
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
 - **Judged by:** askable as a visual judgment. Question: "Is there text that is pale against its background, such as light grey text on white?"
-- **Defect range:** `text-reads-faint`: contrast ratio from 2.5 to 4.4.
+- **Defect range:** `text-reads-faint`: contrast ratio from 2.5 to 4.4, clean above.
 
 ### Paragraphs are not centred or right-aligned
 - **Rule:** Paragraphs of several lines are set flush left. Centring is for a few short lines. Tschichold rejects central-axis setting as rigid, and Bringhurst makes ragged setting conditional on the text and the page.
@@ -279,7 +279,7 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 - **Rule:** Text and boxes sit inside the type area, with a margin between them and the edge of the page.
 - **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981), sections "Margin proportions" and "Construction of the type area".
 - **Judged by:** askable. Question: "Does any text or box touch the edge of the page or sit within a few pixels of it?" In the wording test of 2026-10-24 this question moved a clear positive from 0.15 to 0.74.
-- **Defect range:** `content-touches-page-edge`: edge distance from 0 to 8 px.
+- **Defect range:** `content-touches-page-edge`: edge distance from 0 to 8 px, clean above.
 
 ### Captions and labels are not too small to read
 - **Rule:** Captions, labels, and legal text stay large enough to read. Apple gives 11 pt as the smallest text size on iOS. The figure is not checked.

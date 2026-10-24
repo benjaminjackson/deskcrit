@@ -7,6 +7,7 @@ import {
   type ElementSnapshot,
   findDeclarationProblems,
   findPackDeclarationProblems,
+  firstCleanValue,
   isPropertyDeclared,
   type PageSnapshot,
   parseCssColour,
@@ -73,7 +74,7 @@ function problemsFor(
 
 const FAINT_TEXT: DefectDeclaration = {
   properties: ["color"],
-  range: { measure: "contrast-ratio", from: 2.5, to: 4.4 },
+  range: { measure: "contrast-ratio", from: 2.5, to: 4.4, clean_side: "above" },
 };
 
 test("passes a pair whose positive is inside the range and whose negative is outside it", () => {
@@ -107,7 +108,7 @@ test("fails a negative fixture inside the declared defect range", () => {
     pageWithParagraph({ color: "rgb(156, 163, 175)" }),
   );
   expect(problems.join("\n")).toContain(
-    "x.negative.png: contrast-ratio 2.54 is inside the declared defect range",
+    "x.negative.png: contrast-ratio 2.54 is not on the clean side of the declared defect range 2.5 to 4.4; a negative fixture must be 4.5 or more",
   );
 });
 
@@ -163,7 +164,7 @@ test("measures the edge distance of the whole page on each side", () => {
   const problems = problemsFor(
     {
       properties: ["margin"],
-      range: { measure: "edge-distance", from: 0, to: 8 },
+      range: { measure: "edge-distance", from: 0, to: 8, clean_side: "above" },
     },
     pageWithParagraph({ "margin-left": "0px" }, 12),
     pageWithParagraph({ "margin-left": "64px" }, 64),
@@ -378,8 +379,8 @@ test("refuses a declaration with a missing field, an unknown field, or a reverse
 test("reads both forms of a GUIDELINES.md Defect range line", () => {
   const markdown = [
     "### Text does not read as faint",
-    "- **Defect range:** `text-reads-faint`: contrast ratio from 2.5 to 4.4.",
-    "- **Defect range:** `content-touches-page-edge`: edge distance from 0 to 8 px.",
+    "- **Defect range:** `text-reads-faint`: contrast ratio from 2.5 to 4.4, clean above.",
+    "- **Defect range:** `content-touches-page-edge`: edge distance from 0 to 8 px, clean below.",
     "- **Defect range:** `wall-of-text`: not measured. One block many lines long.",
   ].join("\n");
   const ranges = parseGuidelineRanges(markdown);
@@ -387,11 +388,13 @@ test("reads both forms of a GUIDELINES.md Defect range line", () => {
     measure: "contrast-ratio",
     from: 2.5,
     to: 4.4,
+    clean_side: "above",
   });
   expect(ranges.get("content-touches-page-edge")).toEqual({
     measure: "edge-distance",
     from: 0,
     to: 8,
+    clean_side: "below",
   });
   expect(ranges.get("wall-of-text")).toBeNull();
 });
@@ -416,18 +419,18 @@ test("says how a GUIDELINES.md range and a declared range differ", () => {
   expect(
     describeRangeMismatch(
       "text-reads-faint",
-      { measure: "contrast-ratio", from: 2.5, to: 4.4 },
-      { measure: "contrast-ratio", from: 2.5, to: 4.4 },
+      { measure: "contrast-ratio", from: 2.5, to: 4.4, clean_side: "above" },
+      { measure: "contrast-ratio", from: 2.5, to: 4.4, clean_side: "above" },
     ),
   ).toBeNull();
   expect(
     describeRangeMismatch(
       "text-reads-faint",
-      { measure: "contrast-ratio", from: 2.5, to: 4.4 },
-      { measure: "contrast-ratio", from: 1.5, to: 4.4 },
+      { measure: "contrast-ratio", from: 2.5, to: 4.4, clean_side: "above" },
+      { measure: "contrast-ratio", from: 1.5, to: 4.4, clean_side: "above" },
     ),
   ).toBe(
-    "text-reads-faint: GUIDELINES.md says contrast-ratio 2.5 to 4.4, but its .defect.json says contrast-ratio 1.5 to 4.4",
+    "text-reads-faint: GUIDELINES.md says contrast-ratio 2.5 to 4.4, clean above, but its .defect.json says contrast-ratio 1.5 to 4.4, clean above",
   );
 });
 
@@ -463,7 +466,12 @@ test("refuses opacity, filter, transform, zoom, or mix-blend-mode with a font si
       parseDefectDeclaration(
         JSON.stringify({
           properties: ["color", name],
-          range: { measure: "contrast-ratio", from: 2.5, to: 4.4 },
+          range: {
+            measure: "contrast-ratio",
+            from: 2.5,
+            to: 4.4,
+            clean_side: "above",
+          },
         }),
         "a.defect.json",
       ),
@@ -473,7 +481,7 @@ test("refuses opacity, filter, transform, zoom, or mix-blend-mode with a font si
     parseDefectDeclaration(
       JSON.stringify({
         properties: ["font-size", "transform"],
-        range: { measure: "font-size", from: 11, to: 14 },
+        range: { measure: "font-size", from: 11, to: 14, clean_side: "above" },
       }),
       "a.defect.json",
     ),
@@ -482,7 +490,12 @@ test("refuses opacity, filter, transform, zoom, or mix-blend-mode with a font si
     parseDefectDeclaration(
       JSON.stringify({
         properties: ["margin", "transform"],
-        range: { measure: "edge-distance", from: 0, to: 8 },
+        range: {
+          measure: "edge-distance",
+          from: 0,
+          to: 8,
+          clean_side: "above",
+        },
       }),
       "a.defect.json",
     ).range?.measure,
@@ -535,4 +548,112 @@ test("names a criterion with no .defect.json and a pair with no defect evidence"
     "pack/templates/undeclared.html: pack/templates/undeclared.defect.json is missing (FR-54 rule 2)",
     "pack/templates/lonely.html: rendered.json does not hold both a positive and a negative fixture",
   ]);
+});
+
+test("fails a negative fainter than every positive, below the range", () => {
+  // #e5e7eb on white is 1.24:1: outside the range, but on its faint side.
+  const problems = problemsFor(
+    FAINT_TEXT,
+    pageWithParagraph({ color: "rgb(156, 163, 175)" }),
+    pageWithParagraph({ color: "rgb(229, 231, 235)" }),
+  );
+  expect(problems).toEqual([
+    "x.negative.png: contrast-ratio 1.24 is not on the clean side of the declared defect range 2.5 to 4.4; a negative fixture must be 4.5 or more (FR-54 rule 2)",
+  ]);
+});
+
+test("fails a negative just past the range edge but short of the first clean value", () => {
+  // #787878 on white is 4.42:1 and #767676 is 4.54:1.
+  const positive = pageWithParagraph({ color: "rgb(156, 163, 175)" });
+  const tooClose = problemsFor(
+    FAINT_TEXT,
+    positive,
+    pageWithParagraph({ color: "rgb(120, 120, 120)" }),
+  );
+  expect(tooClose.join("\n")).toContain(
+    "x.negative.png: contrast-ratio 4.42 is not on the clean side",
+  );
+  const clean = problemsFor(
+    FAINT_TEXT,
+    positive,
+    pageWithParagraph({ color: "rgb(118, 118, 118)" }),
+  );
+  expect(clean).toEqual([]);
+});
+
+test("checks a range whose clean side is below it", () => {
+  const tooLarge = {
+    properties: ["font-size"],
+    range: {
+      measure: "font-size" as const,
+      from: 40,
+      to: 64,
+      clean_side: "below" as const,
+    },
+  };
+  expect(
+    problemsFor(
+      tooLarge,
+      pageWithParagraph({ "font-size": "48px" }),
+      pageWithParagraph({ "font-size": "18px" }),
+    ),
+  ).toEqual([]);
+  expect(
+    problemsFor(
+      tooLarge,
+      pageWithParagraph({ "font-size": "48px" }),
+      pageWithParagraph({ "font-size": "72px" }),
+    ),
+  ).toEqual([
+    "x.negative.png: font-size 72 is not on the clean side of the declared defect range 40 to 64; a negative fixture must be 39 or less (FR-54 rule 2)",
+  ]);
+});
+
+test("starts the clean side one step past the edge, at the range's own precision", () => {
+  expect(
+    firstCleanValue({
+      measure: "contrast-ratio",
+      from: 2.5,
+      to: 4.4,
+      clean_side: "above",
+    }),
+  ).toBe(4.5);
+  expect(
+    firstCleanValue({
+      measure: "contrast-ratio",
+      from: 2,
+      to: 2.9,
+      clean_side: "above",
+    }),
+  ).toBe(3);
+  expect(
+    firstCleanValue({
+      measure: "edge-distance",
+      from: 0,
+      to: 8,
+      clean_side: "above",
+    }),
+  ).toBe(9);
+  expect(
+    firstCleanValue({
+      measure: "font-size",
+      from: 40,
+      to: 64,
+      clean_side: "below",
+    }),
+  ).toBe(39);
+});
+
+test("refuses a measured range with no clean side", () => {
+  expect(() =>
+    parseDefectDeclaration(
+      '{"properties": ["color"], "range": {"measure": "contrast-ratio", "from": 2.5, "to": 4.4}}',
+      "a.defect.json",
+    ),
+  ).toThrow('range.clean_side must be "above" or "below"');
+  expect(() =>
+    parseGuidelineRanges(
+      "- **Defect range:** `text-reads-faint`: contrast ratio from 2.5 to 4.4.",
+    ),
+  ).toThrow("line 1");
 });
