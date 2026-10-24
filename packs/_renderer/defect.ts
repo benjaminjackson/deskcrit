@@ -80,6 +80,10 @@ export type ElementSnapshot = {
    * pseudo-element that draws nothing on this side is null.
    */
   pseudoStyles: Record<string, Record<string, string> | null>;
+  /** The element's own text nodes joined in order, not trimmed, so a change of words between the two sides shows. */
+  text: string;
+  /** The element's attributes by name, except data-defect on <html>, which is the one thing the defect switch sets. */
+  attributes: Record<string, string>;
 };
 
 /** A whole rendered page, as render.ts reads it from the browser. */
@@ -100,6 +104,12 @@ export type PropertyDifference = {
    * equals that side's `color`. Only then does a declared `color` cover it.
    */
   follows_color?: boolean;
+  /**
+   * For an "attribute <name>" difference, the side that does not have the
+   * attribute at all. Its value is then recorded as "", so a missing
+   * attribute cannot be mistaken for one whose value is any given string.
+   */
+  absent_on?: "positive" | "negative";
 };
 
 /** What rendered.json records for each fixture, so verify can check rules 2 and 3 with no browser. */
@@ -434,10 +444,87 @@ export function compareSnapshots(
         firstDifferenceByProperty,
       );
     }
+    recordTextAndAttributeDifferences(
+      positiveElement,
+      negativeElement,
+      firstDifferenceByProperty,
+    );
   }
   const differences = Array.from(firstDifferenceByProperty.values());
   differences.sort(compareByProperty);
   return { domShapesMatch: true, differences };
+}
+
+/** The key of a difference in an element's own text. */
+const TEXT_CONTENT_KEY = "text content";
+
+/** The start of the key of a difference in one attribute, such as "attribute d". */
+const ATTRIBUTE_KEY_PREFIX = "attribute ";
+
+/**
+ * Says whether a difference key names an element's text or one of its
+ * attributes, not a style. No declaration can cover such a difference,
+ * because every defect is a style change and the defect switch sets only
+ * data-defect on <html> (FR-54 rule 3).
+ */
+export function isTextOrAttributeKey(property: string): boolean {
+  if (property === TEXT_CONTENT_KEY) {
+    return true;
+  }
+  return property.startsWith(ATTRIBUTE_KEY_PREFIX);
+}
+
+/**
+ * Records where one element's own text or attributes differ between the two
+ * sides, keyed "text content" or "attribute <name>", once per key with the
+ * first element where it differs. A change of words, or of an SVG shape's d,
+ * points, or width attribute, is then not hidden behind equal styles. When
+ * one side does not have the attribute, absent_on names that side and its
+ * value is recorded as "".
+ */
+function recordTextAndAttributeDifferences(
+  positiveElement: ElementSnapshot,
+  negativeElement: ElementSnapshot,
+  firstDifferenceByProperty: Map<string, PropertyDifference>,
+): void {
+  if (
+    positiveElement.text !== negativeElement.text &&
+    !firstDifferenceByProperty.has(TEXT_CONTENT_KEY)
+  ) {
+    firstDifferenceByProperty.set(TEXT_CONTENT_KEY, {
+      property: TEXT_CONTENT_KEY,
+      element: positiveElement.path,
+      positive: positiveElement.text,
+      negative: negativeElement.text,
+    });
+  }
+  const attributeNames = new Set([
+    ...Object.keys(positiveElement.attributes),
+    ...Object.keys(negativeElement.attributes),
+  ]);
+  for (const attributeName of attributeNames) {
+    const positiveValue = positiveElement.attributes[attributeName];
+    const negativeValue = negativeElement.attributes[attributeName];
+    if (positiveValue === negativeValue) {
+      continue;
+    }
+    const key = `${ATTRIBUTE_KEY_PREFIX}${attributeName}`;
+    if (firstDifferenceByProperty.has(key)) {
+      continue;
+    }
+    const difference: PropertyDifference = {
+      property: key,
+      element: positiveElement.path,
+      positive: positiveValue ?? "",
+      negative: negativeValue ?? "",
+    };
+    if (positiveValue === undefined) {
+      difference.absent_on = "positive";
+    } else if (negativeValue === undefined) {
+      difference.absent_on = "negative";
+    }
+    firstDifferenceByProperty.set(key, difference);
+  }
 }
 
 /**
@@ -967,6 +1054,22 @@ function isInside(value: number, range: DefectRange): boolean {
 }
 
 /**
+ * Prints one side's value of a text or attribute difference for a problem
+ * message. JSON.stringify quotes the value and escapes newlines and quote
+ * marks, so text that spans lines stays on one line. A missing attribute is
+ * the bare word absent, with no quotes, so it cannot look like a real value.
+ */
+function describeSideValue(
+  difference: PropertyDifference,
+  side: "positive" | "negative",
+): string {
+  if (difference.absent_on === side) {
+    return "absent";
+  }
+  return JSON.stringify(difference[side]);
+}
+
+/**
  * Checks one pair against its declaration and returns every problem as a
  * sentence that names the fixture, or an empty list when the pair passes. The
  * positive must sit inside the declared range and the negative on its clean
@@ -988,6 +1091,12 @@ export function findDeclarationProblems(
     return problems;
   }
   for (const difference of positive.differing_properties) {
+    if (isTextOrAttributeKey(difference.property)) {
+      problems.push(
+        `${positiveFixture} and ${negativeFixture} differ in ${difference.property} of ${difference.element}: ${describeSideValue(difference, "positive")} on and ${describeSideValue(difference, "negative")} off; a defect may change only styles, so text and attributes must match (FR-54 rule 3)`,
+      );
+      continue;
+    }
     if (!isPropertyDeclared(difference, declaration.properties)) {
       problems.push(
         `${positiveFixture} and ${negativeFixture} differ in ${difference.property}, which the declaration does not list: ${difference.element} is "${difference.positive}" on and "${difference.negative}" off (FR-54 rule 3)`,
