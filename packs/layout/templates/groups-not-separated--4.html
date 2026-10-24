@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: groups-not-separated (4)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A directory of three offices, each with a name line and two contact lines. Inside an office the lines are
+         6 px apart and offices are 52 px apart. The defect sets every gap to 18 px and makes the office name look like the other lines (OQ-17). */
+      body { background: #f4f6f2; }
+      main { margin: 56px 0 0 96px; width: 700px; }
+      h1 { font-size: 30px; margin-bottom: 30px; }
+      .office { margin-bottom: 52px; }
+      .name { font-size: 20px; font-weight: 700; color: #35523a; margin-bottom: 6px; }
+      .line { font-size: 17px; color: var(--color-text); margin-bottom: 6px; }
+      .office .line:last-child { margin-bottom: 0; }
+      [data-defect="on"] .office { margin-bottom: 18px; }
+      [data-defect="on"] .name { font-size: 17px; color: var(--color-text); margin-bottom: 18px; }
+      [data-defect="on"] .line { margin-bottom: 18px; }
+      [data-defect="on"] .office .line:last-child { margin-bottom: 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Where to find us</h1>
+      <div class="office"><div class="name">Riverside office</div><div class="line">12 Alder Row, open weekdays nine to five</div><div class="line">Phone 555 0142</div></div>
+      <div class="office"><div class="name">Hilltop depot</div><div class="line">3 Quarry Lane, open Monday to Saturday</div><div class="line">Phone 555 0177</div></div>
+      <div class="office"><div class="name">Market stall</div><div class="line">Square 7, open on Saturday mornings</div><div class="line">Phone 555 0109</div></div>
+    </main>
+  </body>
+</html>

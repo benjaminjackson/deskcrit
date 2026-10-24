@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: inconsistent-repeated-styles--3</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A settings list of five rows that each end in an Edit button. The defect gives most of the
+         buttons their own size, shape, color, and weight, and changes some row labels (OQ-17). */
+      main { margin: 56px 120px 0; }
+      h1 { font-size: 30px; font-weight: 700; margin-bottom: 28px; }
+      .row { display: flex; align-items: center; justify-content: space-between; height: 92px; border-bottom: 1px solid var(--color-border); }
+      .label h2 { font-size: 18px; font-weight: 700; }
+      .label p { color: var(--color-muted); font-size: 15px; }
+      .button { display: inline-block; border: 2px solid var(--color-accent); color: var(--color-accent); font-weight: 700; font-size: 15px; padding: 8px 22px; border-radius: 6px; }
+      [data-defect="on"] .r2 .button { background: #15803d; border-color: #15803d; color: #fff; border-radius: 22px; font-size: 18px; padding: 12px 34px; }
+      [data-defect="on"] .r3 .button { border: none; color: #7e22ce; font-weight: 400; text-decoration: underline; }
+      [data-defect="on"] .r4 .button { background: #1f2328; border-color: #1f2328; color: #fff; border-radius: 0; font-size: 12px; padding: 4px 10px; }
+      [data-defect="on"] .r5 .button { border-color: #c2410c; color: #c2410c; border-width: 4px; border-radius: 14px; }
+      [data-defect="on"] .r2 .label h2 { font-family: var(--font-serif); font-size: 24px; }
+      [data-defect="on"] .r4 .label h2 { color: #c2410c; font-weight: 400; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Account settings</h1>
+      <div class="row r1"><div class="label"><h2>Display name</h2><p>Shown on your public notes.</p></div><span class="button">Edit</span></div>
+      <div class="row r2"><div class="label"><h2>Email address</h2><p>Where weekly summaries are sent.</p></div><span class="button">Edit</span></div>
+      <div class="row r3"><div class="label"><h2>Password</h2><p>Last changed four months ago.</p></div><span class="button">Edit</span></div>
+      <div class="row r4"><div class="label"><h2>Time zone</h2><p>Used for reminders and due dates.</p></div><span class="button">Edit</span></div>
+      <div class="row r5"><div class="label"><h2>Language</h2><p>Menus and messages.</p></div><span class="button">Edit</span></div>
+    </main>
+  </body>
+</html>

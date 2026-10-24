@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: uneven-gutters (5)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* Six product cards, three per row, with 28 px column gaps. The defect makes the gaps 90 px and 8 px in
+         both rows, so the columns are unevenly spaced (OQ-17). */
+      main { margin: 40px 70px 0; }
+      h1 { font-size: 28px; margin-bottom: 22px; }
+      .row { display: flex; margin-bottom: 24px; }
+      .item { width: 340px; height: 300px; border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; }
+      .item + .item { margin-left: 28px; }
+      .swatch { height: 170px; }
+      .item .info { padding: 14px 16px; }
+      .item h2 { font-size: 18px; } .item p { color: var(--color-muted); }
+      .s1 { background: #e8c872; } .s2 { background: #9fc3d6; } .s3 { background: #d9a3a3; } .s4 { background: #b5d6a7; } .s5 { background: #c9b6e0; } .s6 { background: #e5b98a; }
+      [data-defect="on"] .item:nth-child(2) { margin-left: 90px; }
+      [data-defect="on"] .item:nth-child(3) { margin-left: 8px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Ceramic mugs</h1>
+      <div class="row">
+        <div class="item"><div class="swatch s1"></div><div class="info"><h2>Dune mug</h2><p>Sand glaze, 300 ml</p></div></div>
+        <div class="item"><div class="swatch s2"></div><div class="info"><h2>Tide mug</h2><p>Blue glaze, 300 ml</p></div></div>
+        <div class="item"><div class="swatch s3"></div><div class="info"><h2>Clay mug</h2><p>Rose glaze, 350 ml</p></div></div>
+      </div>
+      <div class="row">
+        <div class="item"><div class="swatch s4"></div><div class="info"><h2>Moss mug</h2><p>Green glaze, 350 ml</p></div></div>
+        <div class="item"><div class="swatch s5"></div><div class="info"><h2>Dusk mug</h2><p>Lilac glaze, 250 ml</p></div></div>
+        <div class="item"><div class="swatch s6"></div><div class="info"><h2>Ember mug</h2><p>Amber glaze, 250 ml</p></div></div>
+      </div>
+    </main>
+  </body>
+</html>

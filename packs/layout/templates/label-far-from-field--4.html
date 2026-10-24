@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: label-far-from-field (4)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A dark ferry booking form with small capital labels above wide fields and drop-down boxes. Each label
+         sits 6 px above its own field and 32 px below the field before it. The defect puts each label 3 px
+         under the field before it and 40 px above its own field (OQ-17). */
+      body { background: #0f1b2b; color: #e8eef6; }
+      main { margin: 48px 0 0 160px; width: 560px; }
+      h1 { font-size: 30px; font-weight: 400; margin-bottom: 4px; }
+      .field { margin-top: 32px; }
+      label { display: block; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #8fb3dc; margin-bottom: 6px; }
+      .box { height: 46px; border-radius: 6px; background: #1c2c42; border: 1px solid #36506f; position: relative; }
+      .select::after { content: ""; position: absolute; right: 18px; top: 18px; border: 6px solid transparent; border-top-color: #8fb3dc; }
+      .button { margin-top: 36px; display: inline-block; background: #3d8bfd; color: #fff; padding: 12px 28px; border-radius: 6px; font-weight: 700; }
+      [data-defect="on"] .field { margin-top: 3px; }
+      [data-defect="on"] .field:first-of-type { margin-top: 32px; }
+      [data-defect="on"] label { margin-bottom: 40px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Book a crossing</h1>
+      <div class="field"><label>Departure harbour</label><div class="box select"></div></div>
+      <div class="field"><label>Arrival harbour</label><div class="box select"></div></div>
+      <div class="field"><label>Date of travel</label><div class="box"></div></div>
+      <div class="field"><label>Vehicle registration</label><div class="box"></div></div>
+      <div class="button">Find sailings</div>
+    </main>
+  </body>
+</html>

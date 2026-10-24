@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: uneven-gutters (2)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* Four equal event cards in one row with 32 px gaps. The defect shrinks the first two gaps to 16 px and widens the third to 64 px, so one gap is four times as wide as its neighbours (OQ-17). */
+      body { background: #fdf8f1; font-family: var(--font-serif); }
+      main { margin: 72px 80px 0; }
+      h1 { font-size: 38px; margin-bottom: 36px; }
+      .row { display: flex; }
+      .card { width: 252px; height: 400px; background: #fff; border: 1px solid #e3d8c6; }
+      .card .pic { height: 190px; }
+      .card .text { padding: 18px; }
+      .card h2 { font-size: 22px; margin-bottom: 8px; }
+      .card p { font-family: var(--font-sans); font-size: 15px; color: var(--color-muted); }
+      .one { background: #c97b5a; } .two { background: #6c8f7a; } .three { background: #5f7fa8; } .four { background: #b08fb5; }
+      .card + .card { margin-left: 32px; }
+      [data-defect="on"] .card.b { margin-left: 16px; }
+      [data-defect="on"] .card.c { margin-left: 16px; }
+      [data-defect="on"] .card.d { margin-left: 64px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Winter evening workshops</h1>
+      <div class="row">
+        <div class="card a"><div class="pic one"></div><div class="text"><h2>Linocut prints</h2><p>Carve a small block and print three copies to take home.</p></div></div>
+        <div class="card b"><div class="pic two"></div><div class="text"><h2>Bread baking</h2><p>Shape and score a loaf, then bake it in the hall oven.</p></div></div>
+        <div class="card c"><div class="pic three"></div><div class="text"><h2>Bookbinding</h2><p>Stitch a pocket notebook with a linen spine.</p></div></div>
+        <div class="card d"><div class="pic four"></div><div class="text"><h2>Candle making</h2><p>Pour and trim two beeswax candles for the dark months.</p></div></div>
+      </div>
+    </main>
+  </body>
+</html>

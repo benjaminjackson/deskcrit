@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: white-space-scattered-2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A serif article page about a village bell. The off side sets the title large at the top left,
+         one dense text column beneath it, and leaves the right half of the page open. The on side breaks
+         the same pieces into boxes that fill the page edge to edge, each 10px from the next (OQ-17). */
+      body { font-family: var(--font-serif); }
+      .page { margin: 64px 0 0 80px; width: 520px; display: grid; gap: 6px; }
+      h1 { font-size: 52px; line-height: 1.1; font-weight: 700; margin-bottom: 14px; }
+      .by { font-family: var(--font-sans); font-size: 15px; color: var(--color-muted); margin-bottom: 18px; }
+      .box { font-size: 18px; line-height: 1.5; }
+      .quote { font-style: italic; font-size: 20px; margin-top: 18px; }
+      .side { position: absolute; left: 760px; top: 70px; width: 330px; font-size: 17px; color: var(--color-muted); }
+      [data-defect="on"] .page { margin: 28px; width: auto; height: 744px; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 150px 1fr 1fr 130px; gap: 10px; }
+      [data-defect="on"] .page > * { background: #f0ece2; padding: 14px 18px; margin: 0; }
+      [data-defect="on"] h1 { grid-column: 1 / span 2; font-size: 40px; }
+      [data-defect="on"] .by { grid-column: 3; }
+      [data-defect="on"] .p1 { grid-column: 1; grid-row: 2 / span 2; }
+      [data-defect="on"] .p2 { grid-column: 2; grid-row: 2 / span 2; }
+      [data-defect="on"] .quote { grid-column: 3; grid-row: 2; }
+      [data-defect="on"] .side { position: static; width: auto; grid-column: 3; grid-row: 3; }
+      [data-defect="on"] .foot { grid-column: 1 / span 3; grid-row: 4; }
+
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <h1>A short history of the village bell</h1>
+      <div class="by">By the parish archive team</div>
+      <p class="box p1">The bell was cast in a field behind the church in the spring of 1788, when the old one cracked during a winter service. Villagers brought pots and pans to be melted into the new metal.</p>
+      <p class="box p2">For a century it rang the hours, called the harvest workers in from the fields, and warned of floods when the river rose.</p>
+      <p class="box quote">Its note was said to carry as far as the next valley.</p>
+      <p class="box side">The bell is rung by hand on the first Sunday of each month.</p>
+      <p class="box foot">Visitors may climb the tower on open days. Ask the vicar for a place.</p>
+    </main>
+  </body>
+</html>

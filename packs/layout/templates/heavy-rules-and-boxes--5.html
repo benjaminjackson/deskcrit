@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: heavy rules and boxes, variant 5</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion heavy-rules-and-boxes. A dashboard of eight number tiles sits in two rows of four. The defect only draws a dark 3 px
+ * border on every cell, card, or section, so the lines are as strong as the
+ * text. Without it the same content is separated by space and a pale tone or
+ * a pale hairline. Nothing else changes (OQ-17).
+ */
+
+body { background: #f3f5f8; }
+main { margin: 56px 80px 0; }
+h1 { font-size: 34px; font-weight: 700; margin-bottom: 30px; }
+.tiles { display: grid; grid-template-columns: repeat(4, 260px); gap: 32px; }
+.tile { height: 190px; padding: 26px; background: #fff; border: 3px solid transparent; }
+.name { font-size: 18px; color: var(--color-muted); }
+.num { font-size: 64px; font-weight: 300; margin-top: 18px; }
+
+[data-defect="on"] .tile { border-color: #111; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Library today</h1>
+      <div class="tiles">
+      <div class="tile"><p class="name">Visitors today</p><p class="num">1,284</p></div>
+      <div class="tile"><p class="name">Books lent</p><p class="num">342</p></div>
+      <div class="tile"><p class="name">New members</p><p class="num">17</p></div>
+      <div class="tile"><p class="name">Overdue loans</p><p class="num">29</p></div>
+      <div class="tile"><p class="name">Room bookings</p><p class="num">8</p></div>
+      <div class="tile"><p class="name">Open hours left</p><p class="num">3</p></div>
+      <div class="tile"><p class="name">Volunteers in</p><p class="num">11</p></div>
+      <div class="tile"><p class="name">Donations</p><p class="num">210</p></div>
+      </div>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: off-grid-block (5)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A gallery of eight tiles on four column lines. The defect slides the last tile of the second row 52 px
+         to the right, so it starts and ends between two column lines (OQ-17). */
+      body { background: #14202b; color: #e8eef4; }
+      main { margin: 48px 72px 0; }
+      h1 { font-size: 28px; font-weight: 300; letter-spacing: 1px; margin-bottom: 28px; }
+      .grid { display: grid; grid-template-columns: repeat(4, 262px); column-gap: 24px; row-gap: 24px; }
+      .tile { height: 250px; border-radius: 6px; padding: 16px; display: flex; align-items: flex-end; font-size: 15px; }
+      .a { background: #3d6b8c; } .b { background: #8c5a3d; } .c { background: #4f7d5e; } .d { background: #7a5c8c; }
+      [data-defect="on"] .shifted { transform: translateX(52px); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Field trip photos</h1>
+      <div class="grid">
+        <div class="tile a">Lighthouse</div><div class="tile b">Rope shed</div><div class="tile c">Salt marsh</div><div class="tile d">Ferry deck</div>
+        <div class="tile c">Pebble beach</div><div class="tile d">Net loft</div><div class="tile a">Boat yard</div><div class="tile b shifted">Fish market</div>
+      </div>
+    </main>
+  </body>
+</html>

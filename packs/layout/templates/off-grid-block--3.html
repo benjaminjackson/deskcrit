@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: off-grid-block (3)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* Article column and a sidebar share a left line each. The defect pulls the sign-up box out of the sidebar,
+         50 px left into the gutter and 40 px past the right line (OQ-17). */
+      body { font-family: var(--font-serif); }
+      main { margin: 56px 80px 0; display: grid; grid-template-columns: 680px 320px; column-gap: 88px; }
+      h1 { font-size: 40px; line-height: 1.15; margin-bottom: 20px; }
+      article p { font-size: 19px; margin-bottom: 18px; }
+      aside > div { border: 2px solid var(--color-border); padding: 22px; margin-bottom: 24px; background: #fbf7ef; }
+      aside h2 { font-size: 20px; margin-bottom: 8px; }
+      aside p { font-size: 16px; color: var(--color-muted); }
+      aside .signup { background: #e8f0e6; }
+      [data-defect="on"] aside .signup { margin-left: -64px; margin-right: -44px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <article>
+        <h1>A short guide to the tide tables</h1>
+        <p>Tide tables list the time and height of each high and low water for one harbour. Read the harbour name first, because the same coast can differ by an hour from one bay to the next.</p>
+        <p>Times are printed in local time unless the header says otherwise. Heights are measured from the chart datum, the level below which the water rarely falls.</p>
+        <p>On a spring tide the range is largest, and the current in narrow channels runs fastest about two hours after the turn.</p>
+        <p>Plan a landing for the hour before high water and leave a margin for wind, which can hold the sea back or push it up the shore.</p>
+      </article>
+      <aside>
+        <div><h2>Chart datum</h2><p>The reference level for every height in the table.</p></div>
+        <div class="signup"><h2>Weekly tide mail</h2><p>One short note with the next seven days for your harbour.</p></div>
+        <div><h2>Harbours</h2><p>North quay, Mill bay, Rook point, Salt cove.</p></div>
+      </aside>
+    </main>
+  </body>
+</html>

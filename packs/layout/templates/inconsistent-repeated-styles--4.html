@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: inconsistent-repeated-styles--4</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A long-read article with four section headings that share one style. The defect gives each
+         later heading its own font, size, color, and alignment (OQ-17). */
+      body { font-family: var(--font-serif); }
+      main { margin: 48px 220px 0; }
+      h1 { font-size: 40px; font-weight: 700; margin-bottom: 20px; }
+      h2 { font-family: var(--font-sans); font-size: 24px; font-weight: 700; color: var(--color-text); margin: 20px 0 6px; }
+      p { font-size: 18px; line-height: 1.5; }
+      [data-defect="on"] .h-b { font-family: var(--font-display); font-weight: 400; font-size: 30px; color: #c2410c; }
+      [data-defect="on"] .h-c { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #7e22ce; text-align: right; }
+      [data-defect="on"] .h-d { font-family: var(--font-serif); font-size: 36px; font-weight: 400; font-style: italic; color: #15803d; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>How the old canal lock works</h1>
+      <h2 class="h-a">Filling the chamber</h2>
+      <p>A keeper opens small paddles in the upper gates, and water flows in until the chamber level matches the higher pound.</p>
+      <h2 class="h-b">Opening the gates</h2>
+      <p>With the levels equal, the heavy oak gates swing open with a gentle push on the long balance beam.</p>
+      <h2 class="h-c">Moving the boat</h2>
+      <p>The boat is hauled in, the gates are closed behind it, and the lower paddles are drawn to let the water out.</p>
+      <h2 class="h-d">Leaving below</h2>
+      <p>When the chamber matches the lower pound, the far gates open and the boat carries on downstream.</p>
+    </main>
+  </body>
+</html>

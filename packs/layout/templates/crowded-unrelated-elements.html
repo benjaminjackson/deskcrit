@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: crowded-unrelated-elements</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A section with a bar diagram in a box, then a paragraph from the next section below it with a clear
+         gap. The defect pulls the paragraph up to a few pixels under the diagram (OQ-17). */
+      main { margin: 48px 0 0 120px; width: 900px; }
+      h1 { font-size: 30px; font-weight: 700; margin-bottom: 20px; }
+      .diagram { display: block; border: 2px solid #8c959f; background: #eef3fa; }
+      .bar { fill: #0b5cad; }
+      .axis { stroke: #59636e; stroke-width: 2; }
+      .label { font-family: var(--font-sans); font-size: 15px; fill: #1f2328; }
+      .next { margin-top: 40px; }
+      .next h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+      .next p { font-size: 18px; }
+      [data-defect="on"] .next { margin-top: -4px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Visitors to the botanical garden</h1>
+      <svg class="diagram" width="900" height="330" viewBox="0 0 900 340" role="img" aria-label="Visitors by season">
+        <line class="axis" x1="40" y1="300" x2="860" y2="300" />
+        <rect class="bar" x="90" y="120" width="140" height="180" />
+        <rect class="bar" x="290" y="40" width="140" height="260" />
+        <rect class="bar" x="490" y="90" width="140" height="210" />
+        <rect class="bar" x="690" y="200" width="140" height="100" />
+        <text class="label" x="160" y="325" text-anchor="middle">Spring</text>
+        <text class="label" x="360" y="325" text-anchor="middle">Summer</text>
+        <text class="label" x="560" y="325" text-anchor="middle">Autumn</text>
+        <text class="label" x="760" y="325" text-anchor="middle">Winter</text>
+      </svg>
+      <div class="next">
+        <h2>Getting there</h2>
+        <p>The number twelve bus stops at the east gate every twenty minutes. Parking is free after four in the afternoon, and the cycle racks are beside the glasshouse.</p>
+      </div>
+    </main>
+  </body>
+</html>

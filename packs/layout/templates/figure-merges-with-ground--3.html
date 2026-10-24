@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: figure-merges-with-ground--3</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A bar chart of monthly rainfall on a sand coloured panel. Without the defect the bars are deep teal and the labels are dark. The defect colours the bars and their value labels in sand tones close to the panel colour, so the bars barely separate from the panel behind them. */
+      body { background: #fff; }
+      .panel { margin: 64px 100px; height: 672px; background: #e8dcc4; border-radius: 14px; padding: 40px 56px; }
+      h1 { font-size: 30px; font-weight: 700; color: #2b2418; margin-bottom: 8px; }
+      .sub { font-size: 18px; color: #4a4030; margin-bottom: 24px; }
+      .bar { fill: #1f6f78; }
+      .value { fill: #2b2418; font-size: 18px; font-weight: 700; font-family: var(--font-sans); }
+      .month { fill: #4a4030; font-size: 18px; font-family: var(--font-sans); }
+      .axis { stroke: #4a4030; stroke-width: 2; }
+      [data-defect="on"] .bar { fill: #dccdae; }
+      [data-defect="on"] .value { fill: #d3c3a2; }
+      [data-defect="on"] .axis { stroke: #d9ccb0; }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h1>Rainfall by month</h1>
+      <div class="sub">Millimetres, measured at the hill station</div>
+      <svg width="968" height="470" viewBox="0 0 968 470">
+        <line class="axis" x1="20" y1="420" x2="948" y2="420" />
+        <rect class="bar" x="50" y="200" width="100" height="220" /><text class="value" x="100" y="188" text-anchor="middle">88</text><text class="month" x="100" y="452" text-anchor="middle">May</text>
+        <rect class="bar" x="190" y="260" width="100" height="160" /><text class="value" x="240" y="248" text-anchor="middle">64</text><text class="month" x="240" y="452" text-anchor="middle">June</text>
+        <rect class="bar" x="330" y="310" width="100" height="110" /><text class="value" x="380" y="298" text-anchor="middle">44</text><text class="month" x="380" y="452" text-anchor="middle">July</text>
+        <rect class="bar" x="470" y="280" width="100" height="140" /><text class="value" x="520" y="268" text-anchor="middle">56</text><text class="month" x="520" y="452" text-anchor="middle">Aug</text>
+        <rect class="bar" x="610" y="150" width="100" height="270" /><text class="value" x="660" y="138" text-anchor="middle">108</text><text class="month" x="660" y="452" text-anchor="middle">Sept</text>
+        <rect class="bar" x="750" y="60" width="100" height="360" /><text class="value" x="800" y="48" text-anchor="middle">144</text><text class="month" x="800" y="452" text-anchor="middle">Oct</text>
+      </svg>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: inconsistent-repeated-styles--2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A shop grid of four plant cards that share one style. The defect restyles the fourth card:
+         different corner radius, serif title, tinted background, and a different price and button (OQ-17). */
+      main { margin: 56px 64px 0; }
+      h1 { font-size: 30px; font-weight: 700; margin-bottom: 8px; }
+      .sub { color: var(--color-muted); margin-bottom: 36px; }
+      .grid { display: flex; gap: 24px; }
+      .card { width: 272px; border: 2px solid var(--color-border); border-radius: 10px; padding: 24px; height: 400px; }
+      .swatch { height: 150px; border-radius: 6px; background: #cfe5d3; margin-bottom: 20px; }
+      .card h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+      .card p { color: var(--color-muted); font-size: 15px; margin-bottom: 16px; }
+      .price { font-size: 20px; font-weight: 700; color: var(--color-text); margin-bottom: 16px; }
+      .button { display: inline-block; background: var(--color-accent); color: #fff; font-weight: 700; padding: 10px 20px; border-radius: 6px; font-size: 15px; }
+      [data-defect="on"] .odd { border-radius: 28px; background: #fff4e0; border-color: #e08a00; padding: 12px; }
+      [data-defect="on"] .odd .swatch { border-radius: 50%; width: 150px; margin-left: auto; margin-right: auto; background: #f3c27a; }
+      [data-defect="on"] .odd h2 { font-family: var(--font-serif); font-size: 28px; font-weight: 400; text-align: center; }
+      [data-defect="on"] .odd p { text-align: center; }
+      [data-defect="on"] .odd .price { color: #c2410c; font-size: 28px; text-align: center; }
+      [data-defect="on"] .odd .button { display: block; text-align: center; background: transparent; color: #c2410c; border: 2px solid #c2410c; border-radius: 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Houseplants this week</h1>
+      <p class="sub">Potted, watered, and ready to take home.</p>
+      <div class="grid">
+        <div class="card"><div class="swatch"></div><h2>Snake plant</h2><p>Tolerates dim corners and missed waterings.</p><div class="price">£14</div><span class="button">Add to basket</span></div>
+        <div class="card"><div class="swatch"></div><h2>Trailing ivy</h2><p>Spills over shelves and likes a bright window.</p><div class="price">£9</div><span class="button">Add to basket</span></div>
+        <div class="card"><div class="swatch"></div><h2>Peace lily</h2><p>White flowers in spring, droops when thirsty.</p><div class="price">£16</div><span class="button">Add to basket</span></div>
+        <div class="card odd"><div class="swatch"></div><h2>Rubber fig</h2><p>Glossy leaves that grow tall in a sunny room.</p><div class="price">£22</div><span class="button">Add to basket</span></div>
+      </div>
+    </main>
+  </body>
+</html>

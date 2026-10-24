@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: picture off text lines</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion picture-off-text-lines. A tower picture sits left of a column of article text. The defect only moves the picture
+ * with its position offset, so its top and bottom no longer sit on the first
+ * and last lines of the text. Nothing else changes (OQ-17).
+ */
+
+.spread {
+  display: flex;
+  align-items: stretch;
+  gap: 48px;
+  margin: 150px 0 0 120px;
+}
+
+.pic {
+  position: relative;
+  width: 340px;
+  flex: none;
+  background: #cfe3ee;
+}
+
+.pic svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* text-box trims the column so its first line starts at the cap line and its last line ends on the baseline */
+.text {
+  width: 640px;
+  font-family: var(--font-serif);
+  font-size: 19px;
+  line-height: 30px;
+  text-box: trim-both cap alphabetic;
+}
+
+.text h1 {
+  font-size: 40px;
+  line-height: 48px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.text p {
+  margin-bottom: 14px;
+}
+
+.text p:last-child {
+  margin-bottom: 0;
+}
+
+[data-defect="on"] .pic {
+  top: 80px;
+}
+    </style>
+  </head>
+  <body>
+    <main class="spread">
+      <div class="pic"><svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="300" fill="#cfe3ee"/><rect y="215" width="300" height="85" fill="#2f6f8f"/><path d="M0 232 Q75 214 150 232 T300 232 V300 H0Z" fill="#245a75"/><path d="M122 215 L132 80 H168 L178 215Z" fill="#f4efe6"/><path d="M127 150 H173 L170 120 H130Z" fill="#c8453b"/><rect x="136" y="52" width="28" height="28" fill="#f2c14e"/><path d="M130 52 L150 28 L170 52Z" fill="#c8453b"/></svg></div>
+      <article class="text">
+        <h1>The light at Gull Point</h1>
+        <p>For more than a century the white tower at Gull Point has marked the mouth of the estuary, and the keepers who once climbed its ninety steps each evening are remembered by the brass plaques in the lamp room.</p>
+        <p>Today the lamp turns on a timer, but the tower is open to visitors on summer weekends. Climb to the gallery on a clear morning and you can follow the ferry all the way across the bay to the harbour wall.</p>
+        <p>Tickets are sold at the cottage by the car park, and the tea room beside it bakes scones every morning.</p>
+      </article>
+    </main>
+  </body>
+</html>

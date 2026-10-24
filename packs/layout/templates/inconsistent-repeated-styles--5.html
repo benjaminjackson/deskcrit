@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: inconsistent-repeated-styles--5</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A schedule of four talk rows that each have a date badge, a title, and a link button.
+         The defect restyles the third row's badge and button, and its title (OQ-17). */
+      main { margin: 56px 96px 0; }
+      h1 { font-size: 32px; font-weight: 700; margin-bottom: 28px; }
+      .row { display: flex; align-items: center; gap: 24px; height: 100px; border-bottom: 1px solid var(--color-border); }
+      .badge { width: 72px; height: 72px; border-radius: 8px; background: #e3eefa; color: var(--color-accent); text-align: center; font-weight: 700; font-size: 26px; line-height: 1.1; padding-top: 10px; }
+      .badge small { display: block; font-size: 13px; font-weight: 400; }
+      .title { flex: 1; }
+      .title h2 { font-size: 20px; font-weight: 700; }
+      .title p { color: var(--color-muted); font-size: 15px; }
+      .link { color: var(--color-accent); font-weight: 700; border: 2px solid var(--color-accent); border-radius: 6px; padding: 8px 18px; font-size: 15px; }
+      [data-defect="on"] .odd .badge { border-radius: 36px; background: #c2410c; color: #fff; width: 96px; height: 96px; padding-top: 22px; font-size: 30px; }
+      [data-defect="on"] .odd .title h2 { font-family: var(--font-serif); font-weight: 400; font-size: 28px; color: #c2410c; }
+      [data-defect="on"] .odd .link { background: #c2410c; border-color: #c2410c; color: #fff; border-radius: 30px; font-size: 20px; padding: 12px 30px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Evening talks this month</h1>
+      <div class="row"><div class="badge">04<small>Nov</small></div><div class="title"><h2>Reading old maps</h2><p>Room 2, doors at six</p></div><span class="link">Details</span></div>
+      <div class="row"><div class="badge">11<small>Nov</small></div><div class="title"><h2>Keeping bees in a small garden</h2><p>Room 1, doors at six</p></div><span class="link">Details</span></div>
+      <div class="row odd"><div class="badge">18<small>Nov</small></div><div class="title"><h2>Mending wool coats</h2><p>Room 2, doors at seven</p></div><span class="link">Details</span></div>
+      <div class="row"><div class="badge">25<small>Nov</small></div><div class="title"><h2>Night sky for beginners</h2><p>Roof terrace, doors at seven</p></div><span class="link">Details</span></div>
+    </main>
+  </body>
+</html>

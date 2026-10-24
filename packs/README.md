@@ -29,6 +29,8 @@ Each criterion has one template, `packs/<pack>/templates/<criterion-id>.html`, w
 - `packs/<pack>/fixtures/<criterion-id>.positive.png` from `defect=on`. The criterion must fire on it.
 - `packs/<pack>/fixtures/<criterion-id>.negative.png` from `defect=off`. The criterion must stay quiet on it.
 
+A first-party criterion needs 5 positive and 5 negative fixtures (FR-54). The first pair comes from `<criterion-id>.html`. The other four pairs come from `<criterion-id>--2.html` to `<criterion-id>--5.html`, which the renderer treats as templates of their own and which write `<criterion-id>--2.positive.png` and so on. Each one is a different design, not a copy.
+
 A template loads `../../_renderer/base.js` first in `<head>`, then `../../_renderer/base.css`. `base.js` copies the switch to `<html data-defect="on">` or `"off"`. Draw the defect only in rules under `[data-defect="on"]`, so the two images differ only in the defect. To see either side, open the template in a browser with the query string.
 
 Charts use inline SVG in the same template, and the same switch reaches SVG elements:

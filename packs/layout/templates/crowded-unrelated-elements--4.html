@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: crowded-unrelated-elements--4</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* Two pricing cards side by side with a note about opening hours under the right card. Off: a clear
+         gap separates the note from the cards. On: the note sits pressed against the bottom edge of the right card. */
+      main { margin: 56px 0 0 120px; width: 1040px; }
+      h1 { font-family: var(--font-serif); font-size: 38px; margin-bottom: 28px; }
+      .row { display: flex; gap: 40px; }
+      .plan { width: 500px; border-radius: 12px; padding: 32px; background: #f1f6ef; border: 1px solid #b7cfae; height: 380px; }
+      .plan.pro { background: #14301f; color: #fff; border-color: #14301f; }
+      .plan h2 { font-size: 28px; margin-bottom: 6px; }
+      .plan .price { font-size: 48px; font-weight: 700; margin: 12px 0; }
+      .plan p { font-size: 18px; margin-bottom: 8px; }
+      .note { margin-top: 28px; font-size: 16px; color: var(--color-muted); }
+      [data-defect="on"] .note { margin-top: -2px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Plans for community gardens</h1>
+      <div class="row">
+        <div class="plan"><h2>Sprout</h2><div class="price">Free</div><p>Up to ten members</p><p>One shared noticeboard</p><p>Email support</p></div>
+        <div class="plan pro"><h2>Orchard</h2><div class="price">$12 a month</div><p>Unlimited members</p><p>Rota and plot map</p><p>Phone support</p></div>
+      </div>
+      <p class="note">The garden centre closes early on Sundays.</p>
+    </main>
+  </body>
+</html>

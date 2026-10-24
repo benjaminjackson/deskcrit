@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: no-dominant-element-5</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A newsletter with three stories. The off side has one lead story with a big picture block and a large
+         headline, and two small text-only stories. The on side gives all three stories the same picture
+         block, the same bold headline size, and the same tinted panel (OQ-17). */
+      body { background: #fbf8f2; }
+      main { margin: 40px 80px 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; }
+      .mast { grid-column: 1 / -1; font-size: 15px; letter-spacing: 3px; text-transform: uppercase; color: var(--color-muted); border-bottom: 1px solid var(--color-border); padding-bottom: 10px; }
+      .s { padding: 0; }
+      .s .pic { background: #d8ccb4; }
+      .s h2 { font-weight: 700; }
+      .s1 { grid-column: 1 / -1; display: flex; gap: 40px; }
+      .s1 .pic { width: 640px; height: 340px; flex: none; }
+      .s1 h2 { font-size: 54px; line-height: 1.05; margin-bottom: 14px; }
+      .s1 p { font-size: 20px; color: var(--color-muted); }
+      .s2 .pic, .s3 .pic { display: none; }
+      .s2 h2, .s3 h2 { font-size: 20px; font-weight: 400; margin-bottom: 4px; }
+      .s2 p, .s3 p { font-size: 16px; color: var(--color-muted); }
+      [data-defect="on"] main { margin: 40px 56px 0; }
+      [data-defect="on"] .s1 { grid-column: auto; display: block; }
+      [data-defect="on"] .s { background: #efe6d2; padding: 20px; border-radius: 10px; height: 640px; }
+      [data-defect="on"] .s .pic, [data-defect="on"] .s2 .pic, [data-defect="on"] .s3 .pic { display: block; width: auto; height: 300px; margin-bottom: 20px; background: #c9a977; }
+      [data-defect="on"] .s h2, [data-defect="on"] .s1 h2 { font-size: 42px; font-weight: 700; line-height: 1.05; margin-bottom: 14px; }
+      [data-defect="on"] .s p, [data-defect="on"] .s1 p { font-size: 20px; color: var(--color-text); }
+
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mast">The Hillside Post</div>
+      <article class="s s1"><div class="pic"></div><div><h2>Lanterns return to the old bridge</h2><p>Volunteers have spent the autumn painting two hundred paper lanterns for the evening walk.</p></div></article>
+      <article class="s s2"><div class="pic"></div><div><h2>New bus times</h2><p>The seven o'clock now leaves from the square.</p></div></article>
+      <article class="s s3"><div class="pic"></div><div><h2>Allotment waiting list</h2><p>Eight plots opened up this month.</p></div></article>
+    </main>
+  </body>
+</html>

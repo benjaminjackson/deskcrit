@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: off-grid-block (2)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* Four stat tiles on column lines 24 px apart, then four list blocks under them. The defect moves the
+         block under the third tile 70 px right of the shared left line and cuts its width, so it ends off the right line too (OQ-17). */
+      body { background: #f1f4f8; }
+      main { margin: 48px 64px 0; }
+      h1 { font-size: 30px; font-weight: 700; margin-bottom: 28px; }
+      .tiles { display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 24px; margin-bottom: 24px; }
+      .tile { background: #fff; border-radius: 10px; padding: 22px; height: 130px; border: 1px solid var(--color-border); }
+      .tile span { display: block; color: var(--color-muted); font-size: 14px; }
+      .tile strong { display: block; font-size: 36px; margin-top: 8px; }
+      .lists { display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 24px; }
+      .panel { background: #fff; border-radius: 10px; border: 1px solid var(--color-border); padding: 20px; height: 300px; }
+      .panel h2 { font-size: 20px; margin-bottom: 12px; }
+      .row { display: flex; justify-content: space-between; padding: 12px 0; font-size: 15px; border-top: 1px solid var(--color-border); color: var(--color-muted); }
+      [data-defect="on"] .shifted { margin-left: 70px; width: 190px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Bakery sales this week</h1>
+      <div class="tiles">
+        <div class="tile"><span>Loaves sold</span><strong>1,284</strong></div>
+        <div class="tile"><span>Pastries</span><strong>932</strong></div>
+        <div class="tile"><span>Coffee orders</span><strong>2,106</strong></div>
+        <div class="tile"><span>Preorders</span><strong>87</strong></div>
+      </div>
+      <div class="lists">
+        <div class="panel"><h2>Breads</h2>
+          <div class="row"><span>Rye</span><span>312</span></div>
+          <div class="row"><span>Baguette</span><span>201</span></div>
+          <div class="row"><span>Spelt</span><span>118</span></div>
+          <div class="row"><span>Focaccia</span><span>96</span></div>
+        </div>
+        <div class="panel"><h2>Pastries</h2>
+          <div class="row"><span>Cardamom bun</span><span>254</span></div>
+          <div class="row"><span>Croissant</span><span>176</span></div>
+          <div class="row"><span>Danish</span><span>140</span></div>
+          <div class="row"><span>Scone</span><span>88</span></div>
+        </div>
+        <div class="panel shifted"><h2>Biscuits</h2>
+          <div class="row"><span>Oat cookie</span><span>149</span></div>
+          <div class="row"><span>Shortbread</span><span>122</span></div>
+          <div class="row"><span>Ginger snap</span><span>97</span></div>
+          <div class="row"><span>Flapjack</span><span>64</span></div>
+        </div>
+        <div class="panel"><h2>Drinks</h2>
+          <div class="row"><span>Filter coffee</span><span>802</span></div>
+          <div class="row"><span>Flat white</span><span>655</span></div>
+          <div class="row"><span>Hot chocolate</span><span>310</span></div>
+          <div class="row"><span>Tea</span><span>284</span></div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

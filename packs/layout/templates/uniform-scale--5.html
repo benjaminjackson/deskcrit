@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: uniform-scale--5</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A product page with one product and three accessories. The clean page sets one product picture and name very large
+         against three small items. The defect sets the heading and four product cards to one size (OQ-17). */
+      body { font-family: var(--font-sans); }
+      .img { position: relative; overflow: hidden; }
+      .img::after { content: ""; position: absolute; width: 40%; aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,0.35); left: 30%; top: 25%; }
+      .c1 .img { background: #c8553d; }
+      .c2 .img { background: #588157; }
+      .c3 .img { background: #3a7ca5; }
+      .c4 .img { background: #8a6f3d; }
+      .c5 .img { background: #d4a017; }
+      .c6 .img { background: #6a4c93; }
+      .page { margin: 36px 60px 0; width: 1160px; }
+      h1 { font-size: 30px; font-weight: 700; margin-bottom: 20px; }
+      .grid { display: grid; grid-template-columns: 700px 1fr; grid-template-rows: repeat(3, 160px); gap: 14px 24px; }
+      .item { display: flex; gap: 14px; }
+      .item .img { width: 150px; flex: none; }
+      .item h2 { font-size: 17px; font-weight: 700; }
+      .item p { font-size: 14px; color: var(--color-muted); }
+      .c1 { grid-row: 1 / 4; flex-direction: column; }
+      .c1 .img { width: auto; flex: 1; }
+      .c1 h2 { font-size: 44px; font-weight: 700; line-height: 1.1; }
+      .c1 p { font-size: 20px; }
+      [data-defect="on"] h1 { font-size: 24px; }
+      [data-defect="on"] .grid { grid-template-columns: repeat(4, 1fr); grid-template-rows: 560px; gap: 20px; }
+      [data-defect="on"] .item, [data-defect="on"] .c1 { flex-direction: column; grid-row: auto; }
+      [data-defect="on"] .item .img, [data-defect="on"] .c1 .img { width: auto; flex: 1; }
+      [data-defect="on"] .item h2, [data-defect="on"] .c1 h2 { font-size: 20px; line-height: 1.3; }
+      [data-defect="on"] .item p, [data-defect="on"] .c1 p { font-size: 15px; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <h1>Trail boots for the coast path</h1>
+      <div class="grid">
+        <article class="item c1"><div class="img"></div><h2>Ridge boot</h2><p>Waterproof leather, steel shank.</p></article>
+        <article class="item c2"><div class="img"></div><h2>Heath shoe</h2><p>Light mesh for dry days.</p></article>
+        <article class="item c3"><div class="img"></div><h2>Peak sock</h2><p>Wool blend, padded heel.</p></article>
+        <article class="item c4"><div class="img"></div><h2>Wax laces</h2><p>Round, hard wearing.</p></article>
+      </div>
+    </main>
+  </body>
+</html>

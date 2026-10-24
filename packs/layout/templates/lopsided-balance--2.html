@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: lopsided-balance--2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A feature page: a big dark photo block on the right, a heading and text on the left. The
+         defect shrinks the left text to a small caption at the top and leaves the left empty. */
+      main { display: flex; gap: 48px; margin: 56px 80px 0; align-items: flex-start; }
+      .text { width: 600px; padding-top: 120px; }
+      h1 { font-family: var(--font-serif); font-size: 58px; font-weight: 700; line-height: 1.1; margin-bottom: 20px; }
+      p { font-size: 20px; color: var(--color-muted); }
+      .photo { width: 440px; height: 520px; border-radius: 6px; background: linear-gradient(200deg, #14213d 0%, #2b3a55 100%); }
+      [data-defect="on"] .text { width: 200px; padding-top: 0; }
+      [data-defect="on"] h1 { font-family: var(--font-sans); font-size: 16px; margin-bottom: 8px; }
+      [data-defect="on"] p { font-size: 13px; }
+      [data-defect="on"] main { justify-content: flex-end; margin-left: 0; }
+      [data-defect="on"] .text { margin-right: 300px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="text">
+        <h1>Salt marsh walks at low tide</h1>
+        <p>Guided evening walks along the old sea wall, with a local naturalist and a flask of soup.</p>
+      </div>
+      <div class="photo"></div>
+    </main>
+  </body>
+</html>

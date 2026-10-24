@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: crowded-unrelated-elements--2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A library page with a large picture of the reading hall and an unrelated "Renew your loans" button below
+         it. Off: a clear gap of 40 px separates the button from the picture. On: the button sits against the
+         picture's bottom edge (OQ-17). */
+      main { margin: 40px 0 0 120px; width: 1000px; }
+      h1 { font-family: var(--font-serif); font-size: 36px; margin-bottom: 20px; }
+      .picture { display: block; width: 1000px; height: 360px; background: #2f5d62; border-radius: 8px; }
+      .button { display: inline-block; margin-top: 40px; background: #b4442c; color: #fff; font-weight: 700; font-size: 20px; padding: 14px 32px; border-radius: 6px; }
+      [data-defect="on"] .button { margin-top: 0; }
+      [data-defect="on"] .picture { border-radius: 8px 8px 0 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>The reading hall at Northgate Library</h1>
+      <svg class="picture" viewBox="0 0 1000 360" role="img" aria-label="Reading hall">
+        <rect width="1000" height="360" fill="#2f5d62" />
+        <rect x="80" y="60" width="120" height="200" fill="#e9d8a6" />
+        <rect x="260" y="60" width="120" height="200" fill="#e9d8a6" />
+        <rect x="440" y="60" width="120" height="200" fill="#e9d8a6" />
+        <rect x="620" y="60" width="120" height="200" fill="#e9d8a6" />
+        <rect x="800" y="60" width="120" height="200" fill="#e9d8a6" />
+        <rect x="0" y="290" width="1000" height="70" fill="#1d3b3f" />
+      </svg>
+      <span class="button">Renew your loans</span>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: picture off text lines, variant 5</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion picture-off-text-lines. A landscape picture sits right of an about-us column of text. The defect only moves the picture
+ * with its position offset, so its top and bottom no longer sit on the first
+ * and last lines of the text. Nothing else changes (OQ-17).
+ */
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 300;
+}
+
+.about {
+  display: flex;
+  align-items: stretch;
+  gap: 64px;
+  margin: 150px 0 0 120px;
+}
+
+.text {
+  width: 560px;
+  font-size: 20px;
+  line-height: 32px;
+  text-box: trim-both cap alphabetic;
+}
+
+.text h1 {
+  font-size: 54px;
+  line-height: 62px;
+  font-weight: 300;
+  margin-bottom: 20px;
+}
+
+.text p {
+  margin-bottom: 16px;
+}
+
+.text p:last-child {
+  margin-bottom: 0;
+}
+
+.pic {
+  position: relative;
+  width: 440px;
+  flex: none;
+}
+
+.pic svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+[data-defect="on"] .pic {
+  top: -65px;
+}
+    </style>
+  </head>
+  <body>
+    <main class="about">
+      <div class="text">
+        <h1>Who we are</h1>
+        <p>We are a small crew of volunteers who keep the Marsh Road reading room open six days a week. We lend books, run a Tuesday story hour, and mend anything with a torn spine.</p>
+        <p>Founded in a spare room above the bakery, the library now holds eleven thousand books and a shelf of local maps.</p>
+        <p>Drop in any afternoon. The kettle is always on.</p>
+      </div>
+      <div class="pic"><svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="300" fill="#f6e8c8"/><rect y="190" width="300" height="110" fill="#3b7ea1"/><path d="M0 215 Q40 200 80 215 T160 215 T240 215 T300 215" fill="none" stroke="#a9d3e6" stroke-width="6"/><path d="M60 165 H240 L215 220 H85Z" fill="#b5413a"/><rect x="100" y="120" width="90" height="45" fill="#f4efe6"/><rect x="118" y="85" width="40" height="35" fill="#f4efe6"/><rect x="128" y="60" width="20" height="25" fill="#2f4858"/><rect x="108" y="132" width="14" height="14" fill="#2f4858"/><rect x="136" y="132" width="14" height="14" fill="#2f4858"/><rect x="164" y="132" width="14" height="14" fill="#2f4858"/></svg></div>
+    </main>
+  </body>
+</html>

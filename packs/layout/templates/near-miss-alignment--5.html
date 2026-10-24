@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: near-miss-alignment--5</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A toolbar of five outlined buttons that share one top edge and one height. The defect pushes the fourth button 14 px down, so its top and bottom edges almost line up with the others but miss. Nothing else changes (OQ-17). */
+      body { background: #fff; }
+      main { margin: 160px 0 0 140px; width: 1000px; }
+      h1 { font-size: 34px; font-weight: 700; margin-bottom: 30px; }
+      .toolbar { display: flex; gap: 20px; align-items: flex-start; padding: 24px; background: #eef1f5; border-radius: 8px; }
+      .btn { height: 56px; padding: 0 30px; line-height: 50px; border: 3px solid #2f3b52; border-radius: 0; font-size: 20px; font-weight: 700; background: #fff; color: #2f3b52; }
+      [data-defect="on"] .low { margin-top: 14px; }
+      p { margin-top: 28px; font-size: 20px; color: var(--color-muted); width: 700px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Photo editor</h1>
+      <div class="toolbar">
+        <div class="btn">Crop</div><div class="btn">Rotate</div><div class="btn">Brighten</div><div class="btn low">Sharpen</div><div class="btn">Save a copy</div>
+      </div>
+      <p>Choose a tool, adjust the slider, and save the result as a new file next to the original.</p>
+    </main>
+  </body>
+</html>

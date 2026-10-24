@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: near-miss-alignment--4</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A dashboard with three boxes in a row and a wide summary bar under them. The bar lines up with the outer edges of the row. The defect moves the bar's left edge 14 px inward and keeps its right edge, so the left edges almost line up but miss. Nothing else changes (OQ-17). */
+      body { background: #11182b; }
+      main { margin: 64px 0 0 120px; width: 1040px; }
+      h1 { font-size: 34px; font-weight: 700; color: #e6ecf8; margin-bottom: 32px; }
+      .row { display: flex; gap: 40px; margin-bottom: 40px; align-items: flex-start; }
+      .box { width: 320px; height: 240px; background: #1d2a4a; border: 2px solid #5a78c4; border-radius: 6px; padding: 24px; color: #e6ecf8; }
+      .box .num { font-size: 56px; font-weight: 300; }
+      .box .cap { font-size: 18px; color: #9db0da; }
+      .bar { height: 150px; background: #1d2a4a; border: 2px solid #5a78c4; border-radius: 6px; padding: 24px; color: #e6ecf8; font-size: 20px; width: 1040px; }
+      [data-defect="on"] .bar { margin-left: 14px; width: 1026px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Harvest summary</h1>
+      <div class="row">
+        <div class="box"><div class="num">412</div><div class="cap">Kilograms of apples</div></div>
+        <div class="box"><div class="num">96</div><div class="cap">Kilograms of pears</div></div>
+        <div class="box"><div class="num">38</div><div class="cap">Jars of plum jam</div></div>
+      </div>
+      <div class="bar">The orchard crew picked more fruit this week than in any week last year.</div>
+    </main>
+  </body>
+</html>

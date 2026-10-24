@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: groups-not-separated (2)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* Ingredients in three groups. Items inside a group are 8 px apart and groups are 44 px apart. The defect
+         makes every gap 12 px, so the group headings and items run together (OQ-17). */
+      body { font-family: var(--font-serif); background: #fffaf2; }
+      main { margin: 48px 0 0 140px; width: 620px; }
+      h1 { font-size: 36px; margin-bottom: 28px; }
+      .group { margin-bottom: 44px; }
+      h2 { font-size: 15px; font-family: var(--font-sans); letter-spacing: 2px; text-transform: uppercase; color: #9a4b2c; margin-bottom: 8px; }
+      .item { font-size: 21px; margin-bottom: 8px; }
+      .group .item:last-child { margin-bottom: 0; }
+      [data-defect="on"] .group { margin-bottom: 12px; }
+      [data-defect="on"] h2 { margin-bottom: 12px; }
+      [data-defect="on"] .item { margin-bottom: 12px; }
+      [data-defect="on"] .group .item:last-child { margin-bottom: 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Plum cake</h1>
+      <div class="group"><h2>Batter</h2><div class="item">200 g flour</div><div class="item">150 g butter</div><div class="item">3 eggs</div></div>
+      <div class="group"><h2>Fruit</h2><div class="item">6 ripe plums</div><div class="item">A handful of raisins</div><div class="item">Zest of one lemon</div></div>
+      <div class="group"><h2>Topping</h2><div class="item">2 spoons of brown sugar</div><div class="item">A pinch of cinnamon</div><div class="item">Flaked almonds</div></div>
+    </main>
+  </body>
+</html>
