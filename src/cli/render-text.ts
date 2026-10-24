@@ -15,7 +15,7 @@ const VERDICT_GROUP_ORDER: readonly Verdict[] = [
   "pass",
 ];
 
-/** Decimal places for a confidence, such as 0.72 (FR-32). */
+/** Decimal places for a confidence or a probability, such as 0.72 (FR-32). */
 const CONFIDENCE_DECIMAL_PLACES = 2;
 
 /**
@@ -56,7 +56,8 @@ function verdictGroupHeading(verdict: Verdict): string {
 
 /**
  * Returns the lines for one finding: title, criterion id, verdict, confidence, source, link, and
- * fix (FR-32). A null confidence (a `noul` finding) and a null link print no line (FR-20, FR-26).
+ * fix (FR-32). A `noul` finding shows its defect probability where other findings show a confidence, and a
+ * null link prints no line (FR-20, FR-26).
  */
 function findingLines(finding: Finding): string[] {
   const lines: string[] = [];
@@ -67,12 +68,40 @@ function findingLines(finding: Finding): string[] {
     lines.push(
       `${FINDING_INDENT}Confidence: ${finding.confidence.toFixed(CONFIDENCE_DECIMAL_PLACES)}`,
     );
+  } else {
+    // A `noul` finding has no confidence, so its line shows the probability of `true`, which is the probability that the defect is present (FR-32).
+    const probabilityOfTrue = finding.distribution.true;
+    if (probabilityOfTrue !== undefined) {
+      lines.push(
+        `${FINDING_INDENT}Defect probability: ${probabilityOfTrue.toFixed(CONFIDENCE_DECIMAL_PLACES)}`,
+      );
+    }
   }
   lines.push(`${FINDING_INDENT}Source: ${finding.source}`);
   if (finding.link !== null) {
     lines.push(`${FINDING_INDENT}Link: ${finding.link}`);
   }
   lines.push(`${FINDING_INDENT}Fix: ${finding.fix}`);
+  return lines;
+}
+
+/**
+ * Returns the Skipped group: a heading with the count and one line per skipped criterion, in the
+ * order the report lists them (FR-32). Returns no lines when nothing was skipped.
+ */
+function skippedGroupLines(skipped: Report["skipped"]): string[] {
+  const lines: string[] = [];
+  if (skipped.length === 0) {
+    return lines;
+  }
+  lines.push(`Skipped (${skipped.length})`);
+  lines.push("");
+  for (const skippedCriterion of skipped) {
+    lines.push(
+      `${FINDING_INDENT}${skippedCriterion.criterion}: ${skippedCriterion.reason}`,
+    );
+  }
+  lines.push("");
   return lines;
 }
 
@@ -108,7 +137,8 @@ function usageLine(usage: ReportUsage, modelId: string): string {
 
 /**
  * Turns the report document into the readable report: findings grouped by verdict in the order
- * fail, warn, uncertain, pass, keeping compose's order inside each group, and then the usage line,
+ * fail, warn, uncertain, pass, keeping compose's order inside each group, then the Skipped group,
+ * and then the usage line,
  * which prints even when there are no findings (FR-28, FR-32, FR-33, US-2, NFR-5).
  */
 export function renderReportText(report: Report): string {
@@ -131,6 +161,7 @@ export function renderReportText(report: Report): string {
       lines.push("");
     }
   }
+  lines.push(...skippedGroupLines(report.skipped));
   lines.push(usageLine(report.usage, report.model));
   return `${lines.join("\n")}\n`;
 }
