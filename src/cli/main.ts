@@ -9,6 +9,7 @@ import {
 } from "../ask/typesafe/adapter.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
 import { parseCommand } from "./args.js";
+import { runPacksTest } from "./packs-test.js";
 import { runPacksValidate } from "./packs-validate-command.js";
 import {
   type ReportInputs,
@@ -20,7 +21,7 @@ import { type AnswerSource, runReport } from "./report-command.js";
 /** Exit code 0: the command ran (FR-43). */
 const EXIT_CODE_RAN = 0;
 
-/** Exit code 1: the command ran and found a fault, such as an invalid pack (FR-43, FR-49). */
+/** Exit code 1: the command ran and found a fault, such as an invalid pack or a fixture that disagreed (FR-43, FR-49, FR-50). */
 const EXIT_CODE_FAILED = 1;
 
 /** Exit code 2: the command could not run (FR-43). */
@@ -33,7 +34,9 @@ export type CreateAdapter = (
 
 /**
  * Run the command argv names. `crit packs validate <dir>` checks one pack, reads no key, and exits
- * 0 for a valid pack and 1 for an invalid one (FR-49, FR-60, US-6). `crit report`: parse argv, read the inputs, and run the stages. Without --answers it checks
+ * 0 for a valid pack and 1 for an invalid one (FR-49, FR-60, US-6). `crit packs test <dir>` checks
+ * every input first, then reads the key and asks Jev about each fixture, and exits 0 when every
+ * fixture agrees with its label and 1 when any disagrees (FR-50, FR-53, EV-4). `crit report`: parse argv, read the inputs, and run the stages. Without --answers it checks
  * the API key and makes the adapter; with --answers it does neither and makes no network call. With
  * --save-answers it writes the answers file before stdout. On success it writes the report to stdout
  * once and sets exit code 0, whatever the verdicts. On any error it writes only to stderr, writes no
@@ -56,6 +59,18 @@ export async function main(
       process.stdout.write(output.stdoutText);
       process.stderr.write(output.stderrText);
       process.exitCode = output.valid ? EXIT_CODE_RAN : EXIT_CODE_FAILED;
+      return;
+    }
+    if (command.command === "packs-test") {
+      const output = await runPacksTest(
+        command.directory,
+        workingDirectory,
+        (model) => makeAdapterFromKey(environment, createAdapter, model),
+      );
+      process.stdout.write(output.stdoutText);
+      process.exitCode = output.anyDisagreement
+        ? EXIT_CODE_FAILED
+        : EXIT_CODE_RAN;
       return;
     }
     const reportArguments = command.args;
@@ -93,12 +108,27 @@ function chooseAnswerSource(
       recorded: inputs.recordedAnswers,
     };
   }
+  return {
+    kind: "ask",
+    adapter: makeAdapterFromKey(environment, createAdapter, inputs.model),
+  };
+}
+
+/**
+ * Read the key from the environment and make the adapter for the pinned model, or for the
+ * adapter's default model when `model` is undefined (FR-22, NFR-14, CS-19).
+ */
+function makeAdapterFromKey(
+  environment: Readonly<Record<string, string | undefined>>,
+  createAdapter: CreateAdapter,
+  model: string | undefined,
+): TypeSafeAdapter {
   const apiKey = readApiKey(environment);
   const options: { apiKey: string; model?: string } = { apiKey };
-  if (inputs.model !== undefined) {
-    options.model = inputs.model;
+  if (model !== undefined) {
+    options.model = model;
   }
-  return { kind: "ask", adapter: createAdapterSafely(createAdapter, options) };
+  return createAdapterSafely(createAdapter, options);
 }
 
 /**

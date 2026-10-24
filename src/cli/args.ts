@@ -1,4 +1,4 @@
-// Argument parsing for `crit report` and `crit packs validate` (FR-49, FR-60). It turns argv into typed values with Node's own
+// Argument parsing for `crit report`, `crit packs validate`, and `crit packs test` (FR-49, FR-50, FR-60). It turns argv into typed values with Node's own
 // parser and turns every bad argument into CouldNotRunError, so the run exits with code 2 (FR-4,
 // CS-3, CS-16). It reads no file; read-inputs.ts does that.
 
@@ -13,8 +13,11 @@ export const REPORT_USAGE =
 /** The usage line for `crit packs validate` (FR-49, FR-60). */
 export const PACKS_VALIDATE_USAGE = "usage: crit packs validate <dir>";
 
+/** The usage line for `crit packs test` (FR-50, FR-60). */
+export const PACKS_TEST_USAGE = "usage: crit packs test <dir>";
+
 /** Every usage line, for an error that does not know which command was meant (FR-60). */
-export const USAGE = `${REPORT_USAGE}\n${PACKS_VALIDATE_USAGE}`;
+export const USAGE = `${REPORT_USAGE}\n${PACKS_VALIDATE_USAGE}\n${PACKS_TEST_USAGE}`;
 
 /** The context keys FR-2 allows. Any other key stops the run (OQ-25 c). */
 const CONTEXT_KEYS = ["purpose", "audience", "platform"] as const;
@@ -39,29 +42,48 @@ export type ReportArguments = {
 /** The command a command line asks for, with its arguments (FR-60). */
 export type Command =
   | { readonly command: "report"; readonly args: ReportArguments }
-  | { readonly command: "packs-validate"; readonly directory: string };
+  | { readonly command: "packs-validate"; readonly directory: string }
+  | { readonly command: "packs-test"; readonly directory: string };
 
 /**
- * Parse argv into one command. A line that starts with `packs` is a packs command, and every other
- * line goes to the `crit report` parser, which rejects an unknown command. Only `packs validate`
- * exists so far; `packs test` is an unknown command until crit-q25.2 adds it (FR-49, FR-60).
+ * Parse argv into one command. A line that starts with `packs` is `crit packs validate` or
+ * `crit packs test`, and every other line goes to the `crit report` parser, which rejects an
+ * unknown command (FR-49, FR-50, FR-60).
  */
 export function parseCommand(argv: readonly string[]): Command {
   if (argv[0] === "packs") {
-    return {
-      command: "packs-validate",
-      directory: parsePacksValidateArguments(argv),
-    };
+    const packsCommand = parsePacksArguments(argv);
+    if (packsCommand.subcommand === "validate") {
+      return {
+        command: "packs-validate",
+        directory: packsCommand.directory,
+      };
+    }
+    return { command: "packs-test", directory: packsCommand.directory };
   }
   return { command: "report", args: parseReportArguments(argv) };
 }
 
+/** The two packs subcommands and the one directory each takes (FR-49, FR-50). */
+type PacksArguments = {
+  readonly subcommand: "validate" | "test";
+  readonly directory: string;
+};
+
 /**
- * Parse argv for `crit packs validate <dir>` and return the directory. The command takes no flags,
- * so any flag, a missing or unknown subcommand, a missing directory, or an extra argument throws
- * CouldNotRunError (FR-4, FR-49, FR-60, CS-16).
+ * Parse argv for `crit packs validate <dir>` or `crit packs test <dir>` and return the subcommand
+ * and the directory. Neither command takes a flag, so any flag, a missing or unknown subcommand, a
+ * missing directory, or an extra argument throws CouldNotRunError (FR-4, FR-49, FR-50, FR-60, CS-16).
  */
-function parsePacksValidateArguments(argv: readonly string[]): string {
+function parsePacksArguments(argv: readonly string[]): PacksArguments {
+  // A flag error is reported with the usage line of the subcommand given, when it is known.
+  let subcommandUsage = USAGE;
+  if (argv[1] === "validate") {
+    subcommandUsage = PACKS_VALIDATE_USAGE;
+  }
+  if (argv[1] === "test") {
+    subcommandUsage = PACKS_TEST_USAGE;
+  }
   let positionals: string[];
   try {
     positionals = parseArgs({
@@ -72,7 +94,7 @@ function parsePacksValidateArguments(argv: readonly string[]): string {
     }).positionals;
   } catch (error) {
     if (isParseArgsError(error)) {
-      throw new CouldNotRunError(`${error.message}\n${PACKS_VALIDATE_USAGE}`);
+      throw new CouldNotRunError(`${error.message}\n${subcommandUsage}`);
     }
     throw error;
   }
@@ -80,22 +102,20 @@ function parsePacksValidateArguments(argv: readonly string[]): string {
   if (subcommand === undefined) {
     throw new CouldNotRunError(`no packs command given\n${USAGE}`);
   }
-  if (subcommand !== "validate") {
+  if (subcommand !== "validate" && subcommand !== "test") {
     throw new CouldNotRunError(`unknown command packs ${subcommand}\n${USAGE}`);
   }
   const directory = positionals[2];
   if (directory === undefined) {
-    throw new CouldNotRunError(
-      `no pack directory given\n${PACKS_VALIDATE_USAGE}`,
-    );
+    throw new CouldNotRunError(`no pack directory given\n${subcommandUsage}`);
   }
   if (positionals.length > 3) {
     const extra = positionals.slice(3).join(" ");
     throw new CouldNotRunError(
-      `unexpected argument ${extra}\n${PACKS_VALIDATE_USAGE}`,
+      `unexpected argument ${extra}\n${subcommandUsage}`,
     );
   }
-  return directory;
+  return { subcommand, directory };
 }
 
 /**

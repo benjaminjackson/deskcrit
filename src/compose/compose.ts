@@ -55,7 +55,7 @@ export type ComposeInput = {
 };
 
 /** One criterion with the pack it belongs to, found by its "<pack name>/<criterion id>" key (FR-26). */
-type CriterionEntry = {
+export type CriterionEntry = {
   readonly key: string;
   readonly criterion: Criterion;
 };
@@ -182,7 +182,7 @@ function buildReportImage(input: ComposeInput): ReportImage {
 }
 
 /** Maps each "<pack name>/<criterion id>" key to its criterion, the same key build gives each question (FR-14, FR-26). */
-function indexCriteriaByKey(
+export function indexCriteriaByKey(
   packs: readonly Pack[],
 ): Map<string, CriterionEntry> {
   const criteriaByKey = new Map<string, CriterionEntry>();
