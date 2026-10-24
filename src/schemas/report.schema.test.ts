@@ -190,6 +190,18 @@ describe("schemas/report.schema.json", () => {
     expect(validateReport(report)).toBe(true);
   });
 
+  it("accepts null input_tokens and cost_usd when the cost is unknown", () => {
+    const report = copyExampleReport();
+    const usage = { ...report.usage, input_tokens: null, cost_usd: null };
+    expect(validateReport({ ...report, usage })).toBe(true);
+  });
+
+  it("rejects a negative cost_usd", () => {
+    const report = copyExampleReport();
+    const usage = { ...report.usage, cost_usd: -1 };
+    expect(validateReport({ ...report, usage })).toBe(false);
+  });
+
   it("rejects a model field inside usage", () => {
     const report = copyExampleReport();
     const usage = { ...report.usage, model: "jev-1.14.0" };
