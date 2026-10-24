@@ -37,6 +37,7 @@ function listStageSourceFiles(): string[] {
 
 test("the compose stage has source files to check", () => {
   expect(listStageSourceFiles()).toEqual([
+    "compare.ts",
     "compose.ts",
     "map-region-to-original.ts",
     "report.ts",
