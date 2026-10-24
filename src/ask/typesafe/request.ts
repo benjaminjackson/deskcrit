@@ -239,6 +239,17 @@ function readFraction(value: unknown, where: string): number {
 }
 
 /**
+ * TypeSafe sends a noul answer as the probability of true only, with two decimal places (all 310
+ * noul values in spike/results have two). Work out the probability of false as 1 - true and round
+ * it to the same two places, so true + false is exactly 1 at that precision and the result does
+ * not carry float noise such as 0.07999999999999996 that the model never sent (FR-26).
+ */
+function deriveProbabilityFalse(probabilityTrue: number): number {
+  const placesFactor = 100;
+  return Math.round((1 - probabilityTrue) * placesFactor) / placesFactor;
+}
+
+/**
  * Read a map of label to probability that holds exactly the expected labels, and return it in the
  * expected order (FR-20). Anything missing or extra throws CouldNotRunError (CS-7, FR-24).
  */
@@ -330,7 +341,10 @@ function readAnswer(
         type: "noul",
         question_id: question.id,
         model,
-        distribution: { true: probabilityTrue, false: 1 - probabilityTrue },
+        distribution: {
+          true: probabilityTrue,
+          false: deriveProbabilityFalse(probabilityTrue),
+        },
         confidence: null,
       };
     }
