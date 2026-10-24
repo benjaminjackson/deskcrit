@@ -81,7 +81,7 @@ This project follows Chad Fowler's regenerative software series, "The Phoenix Ar
 
 ## Docs hygiene
 
-- Check every prose document you change with the slop judge before you commit. The command is `sloplint check --judge --markdown -o json --register "a coding agent building deskcrit" <file>`. The judge sends the file text to api.typesafe.ai. On 2026-10-23, Benjamin Jackson approved sending `BRIEF.md`, `docs/PRD.md`, this file, and pack READMEs to the judge, so these files need no further consent. Ask before you send any other file. Use the same reader string for every file.
+- Check every prose document you change with the slop judge before you commit. The command is `sloplint check --judge --markdown -o json --register "a coding agent building deskcrit" <file>`. The judge sends the file text to api.typesafe.ai. On 2026-10-23, Benjamin Jackson approved sending `BRIEF.md`, `docs/PRD.md`, this file, and pack READMEs to the judge, and on 2026-10-24 he added `GUIDELINES.md`, so these files need no further consent. Ask before you send any other file. Use the same reader string for every file.
 - The judge key is already configured on this machine. Do not look for it, do not print it, and do not read `.env`.
 - Keep this file true. When a rule here stops being true, delete it in the same pull request that makes it false. Do not add a rule that is not true today, because a wrong instruction steers a generator more confidently than a missing one [Fowler 26].
 - Do not keep a second hand-written copy of the specification. Documents other than `docs/PRD.md` point to it and do not restate it [Fowler 25].
