@@ -104,6 +104,8 @@ The rights basis is exactly one of these four strings, from FR-54:
 - `open license that permits redistribution and commercial use`
 - `written permission from the owner attached to the pull request`
 
-For the open-license basis, the attribution text is required. For the other three, write `none`.
+For the open-license basis, the attribution text is required. For the other three, write `none`. For written permission, the Source is the URL of the pull request that holds the permission, such as `https://github.com/<owner>/<repo>/pull/<n>`.
 
 A fixture captured from a live page must fill in Source URL, Capture date, Viewport, Device scale factor, and Browser version (FR-54). For a rendered template, Source URL and Capture date are `not applicable`, and `render` prints the entry with the rest filled in.
+
+The Packs workflow, `.github/workflows/packs.yml`, checks these fixture rules on every pull request with `evals/packs-fixture-rules.test.ts`: the 2 MB limit, one entry per image, the rights basis, and the capture details.
