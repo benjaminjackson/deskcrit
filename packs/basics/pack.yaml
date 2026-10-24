@@ -15,6 +15,12 @@ name: basics
 version: 0.1.0
 title: Basics, checks for common mistakes
 license: MIT
+# EV-4 on 2026-10-24 (jev-1.14.0, frozen 140-fixture set): all-caps-long-text,
+# centred-or-right-paragraphs, competing-primary-buttons, and text-reads-faint agreed on 20 of 20
+# fixtures in the first run (5488c3c). decorative-face-for-paragraphs agreed on 20 of 20 after one
+# rewording (1be6fd7) and ships with fail. content-touches-page-edge and wall-of-text still missed
+# positives after one rewording and were removed under R-4. GUIDELINES.md records the result for
+# each one.
 criteria:
   - id: decorative-face-for-paragraphs
     title: 'Paragraphs are set in a decorative face'
@@ -126,42 +132,6 @@ criteria:
         - fixtures/centred-or-right-paragraphs--9.negative.png
         - fixtures/centred-or-right-paragraphs--10.negative.png
 
-  - id: content-touches-page-edge
-    title: 'Content touches the page edge'
-    source: 'Müller-Brockmann, Grid Systems in Graphic Design (1981), sections "Margin proportions" and "Construction of the type area".'
-    question:
-      type: noul
-      instructions: 'In the image at screenshot: Does any text, button, or form field sit right against an edge of the page, with almost no space between it and the edge?'
-      criteria:
-        "true": 'Some text, a button, or a form field sits right against an edge of the page, with almost no space between it and the edge.'
-        "false": 'All text, buttons, and form fields have clear space between them and every edge of the page, also inside bars and panels that run to the edge.'
-    fail_when: { probability_at_least: 0.7 }
-    pass_when: { probability_at_most: 0.3 }
-    fix: 'Keep text and boxes inside the type area, with a margin between them and every edge of the page (Müller-Brockmann, Grid Systems in Graphic Design, "Margin proportions").'
-    fixtures:
-      positive:
-        - fixtures/content-touches-page-edge.positive.png
-        - fixtures/content-touches-page-edge--2.positive.png
-        - fixtures/content-touches-page-edge--3.positive.png
-        - fixtures/content-touches-page-edge--4.positive.png
-        - fixtures/content-touches-page-edge--5.positive.png
-        - fixtures/content-touches-page-edge--6.positive.png
-        - fixtures/content-touches-page-edge--7.positive.png
-        - fixtures/content-touches-page-edge--8.positive.png
-        - fixtures/content-touches-page-edge--9.positive.png
-        - fixtures/content-touches-page-edge--10.positive.png
-      negative:
-        - fixtures/content-touches-page-edge.negative.png
-        - fixtures/content-touches-page-edge--2.negative.png
-        - fixtures/content-touches-page-edge--3.negative.png
-        - fixtures/content-touches-page-edge--4.negative.png
-        - fixtures/content-touches-page-edge--5.negative.png
-        - fixtures/content-touches-page-edge--6.negative.png
-        - fixtures/content-touches-page-edge--7.negative.png
-        - fixtures/content-touches-page-edge--8.negative.png
-        - fixtures/content-touches-page-edge--9.negative.png
-        - fixtures/content-touches-page-edge--10.negative.png
-
   - id: all-caps-long-text
     title: 'Long text is set in all capitals'
     source: 'Butterick, Practical Typography, "All caps" ("Caps are suitable for headings shorter than one line"; "Don''t capitalize whole paragraphs").'
@@ -198,43 +168,6 @@ criteria:
         - fixtures/all-caps-long-text--8.negative.png
         - fixtures/all-caps-long-text--9.negative.png
         - fixtures/all-caps-long-text--10.negative.png
-
-  - id: wall-of-text
-    title: 'Text is not broken into chunks'
-    source: 'Nielsen, "How Users Read on the Web" (Nielsen Norman Group, 1997).'
-    link: https://www.nngroup.com/articles/how-users-read-on-the-web/
-    question:
-      type: noul
-      instructions: 'In the image at screenshot: Does text run on as one long, dense block that should be split into shorter paragraphs, a list, or sections under headings?'
-      criteria:
-        "true": 'Some text runs on as one long, dense block that should be split into shorter paragraphs, a list, or sections under headings.'
-        "false": 'The text is set in short paragraphs, lists, or sections under headings, with no long, dense block.'
-    fail_when: { probability_at_least: 0.7 }
-    pass_when: { probability_at_most: 0.3 }
-    fix: 'Break long text into chunks with headings, short paragraphs, and lists, so people can skim it (Nielsen, "How Users Read on the Web").'
-    fixtures:
-      positive:
-        - fixtures/wall-of-text.positive.png
-        - fixtures/wall-of-text--2.positive.png
-        - fixtures/wall-of-text--3.positive.png
-        - fixtures/wall-of-text--4.positive.png
-        - fixtures/wall-of-text--5.positive.png
-        - fixtures/wall-of-text--6.positive.png
-        - fixtures/wall-of-text--7.positive.png
-        - fixtures/wall-of-text--8.positive.png
-        - fixtures/wall-of-text--9.positive.png
-        - fixtures/wall-of-text--10.positive.png
-      negative:
-        - fixtures/wall-of-text.negative.png
-        - fixtures/wall-of-text--2.negative.png
-        - fixtures/wall-of-text--3.negative.png
-        - fixtures/wall-of-text--4.negative.png
-        - fixtures/wall-of-text--5.negative.png
-        - fixtures/wall-of-text--6.negative.png
-        - fixtures/wall-of-text--7.negative.png
-        - fixtures/wall-of-text--8.negative.png
-        - fixtures/wall-of-text--9.negative.png
-        - fixtures/wall-of-text--10.negative.png
 
   - id: competing-primary-buttons
     title: 'Secondary actions are styled as strongly as the primary one'

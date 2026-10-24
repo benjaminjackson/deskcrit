@@ -278,8 +278,8 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 ### Content keeps clear of the page edge
 - **Rule:** Text and boxes sit inside the type area, with a margin between them and the edge of the page.
 - **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981), sections "Margin proportions" and "Construction of the type area".
-- **Judged by:** askable. Question: "Does any text, button, or form field sit right against an edge of the page, with almost no space between it and the edge?" Reworded once under R-4 on 2026-10-24, after the old question ("Does any text or box touch the edge of the page or sit within a few pixels of it?") gave less than 0.7 when the text at the edge sat in a sidebar, a form panel, or a header bar that runs to the edge.
-- **Defect range:** `content-touches-page-edge`: edge distance from 0 to 8 px, clean above.
+- **Judged by:** not encoded. Question tried: "Does any text, button, or form field sit right against an edge of the page, with almost no space between it and the edge?" The first question was "Does any text or box touch the edge of the page or sit within a few pixels of it?"
+- **Not encoded (R-4):** `content-touches-page-edge` was removed under R-4: 4 of 10 positives quiet (--6, --7, --9, --10) after one rewording, 2026-10-24.
 
 ### Captions and labels are not too small to read
 - **Rule:** Captions, labels, and legal text stay large enough to read. Apple gives 11 pt as the smallest text size on iOS. The figure is not checked.
@@ -298,8 +298,8 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 - **Rule:** Text that people skim is broken up by headings, short paragraphs, and lists. A long unbroken block of text on a screen is a defect.
 - **Source:** Nielsen, "How Users Read on the Web" (Nielsen Norman Group, 1997).
 - **Link:** https://www.nngroup.com/articles/how-users-read-on-the-web/
-- **Judged by:** askable. Question: "Does text run on as one long, dense block that should be split into shorter paragraphs, a list, or sections under headings?" Reworded once under R-4 on 2026-10-24, after the old question ("Is there a block of text many lines long with no heading, list, or paragraph break inside it?") gave less than 0.5 on a block of moderate length under a heading.
-- **Defect range:** `wall-of-text`: not measured. One block of text many lines long, with no heading, list, or paragraph break inside it.
+- **Judged by:** not encoded. Question tried: "Does text run on as one long, dense block that should be split into shorter paragraphs, a list, or sections under headings?" The first question was "Is there a block of text many lines long with no heading, list, or paragraph break inside it?"
+- **Not encoded (R-4):** `wall-of-text` was removed under R-4: 1 of 10 positives quiet (--8) after one rewording, 2026-10-24.
 
 ### Boxes do not split or join groups
 - **Rule:** Items inside one shared boundary, such as a card, a panel, a tint, or a border, read as a group. Unrelated items do not share a box, and related items are not split across boxes.
