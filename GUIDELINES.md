@@ -220,6 +220,7 @@ Every source was checked against the web in a second pass. A source that could n
 - **Link:** https://www.nngroup.com/articles/f-shaped-pattern-reading-web-content-discovered/
 - **Link:** https://www.nngroup.com/articles/how-users-read-on-the-web/
 - **Judged by:** askable.
+- **Not encoded (NG-10), F-pattern half only:** the F-pattern half breaks NG-10 because it needs to know which content is key, and meaningful headings and key terms read the content. The check for large unbroken walls of text is visual, so it stays askable as `wall-of-text`.
 
 ### Grid and alignment of text blocks
 - **Rule:** Text blocks should align to a consistent grid or shared edges, with left edges and baselines lining up between columns, captions, and headings. Arbitrary offsets of a few pixels are a flag.
@@ -644,6 +645,7 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Source:** WCAG 2.2 SC 1.4.10 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/reflow.html
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Not encoded (NG-10):** breaks NG-10 because it needs a render at 320 px wide, which one image cannot show.
 
 ### Images of text
 - **Rule:** Text is real text, not a picture of text, unless the exact look is essential (logotype). Applies to web UI; a poster or slide image being raster is a different case.
@@ -669,6 +671,7 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Source:** WCAG 2.2 SC 2.5.8 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to hit. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show. The layout entry on touch and click targets has the same mark.
 
 ### Focus visible
 - **Rule:** Every keyboard-focusable element shows a visible focus indicator when focused. Removing the outline with `outline: none` and not replacing it fails.
@@ -749,12 +752,14 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Source:** Apple, *Human Interface Guidelines: Accessibility* (Buttons, Layout and 'Hit targets')
 - **Link:** https://developer.apple.com/design/human-interface-guidelines/accessibility
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show. The layout entry on touch and click targets has the same mark.
 
 ### Material touch target size
 - **Rule:** Touch targets are at least 48 by 48 dp, with at least 8 dp between targets. A visual icon can be smaller if the tap area is 48 dp.
 - **Source:** Google, *Android Accessibility Help: Touch target size* (48x48 dp, 8 dp spacing; the Material 3 structure page is JavaScript-rendered and could not be read)
 - **Link:** https://support.google.com/accessibility/android/answer/7101858?hl=en
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show. The layout entry on touch and click targets has the same mark.
 
 ### Dyslexia-friendly typography
 - **Rule:** Use a common sans-serif such as Arial, Verdana, or Calibri at 12 to 14 pt (about 16 to 19 px) or larger. Left-align text with no justification. Avoid italics, underline, and all caps for running text. Use wide letter and word spacing.
@@ -1046,6 +1051,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** Apple HIG, "Layout"; Material Design, "Accessibility: touch targets"; W3C, *WCAG 2.2* SC 2.5.8 (2023).
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show. The layout entry on touch and click targets has the same mark.
 
 ### Mobile thumb zones
 - **Rule:** On phone-sized layouts, the frequent actions sit in the lower, easy-reach area of the screen (bottom nav, bottom primary button) and not in the top corners. Destructive or rare actions go in hard-to-reach areas.
@@ -1306,6 +1312,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** John Thomas Smith, *Remarks on Rural Scenery* (1797); Michael Freeman, *The Photographer's Eye* (2007).
 - **Link:** https://archive.org/details/bim_eighteenth-century_remarks-on-rural-scenery_smith-john-thomas_1797
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because whether a subject's place in the frame is arbitrary or chosen is not a visible defect, and the layout entry on the rule of thirds says absence is not a defect.
 
 ### Golden ratio and proportional division (use sparingly)
 - **Rule:** Major divisions of the frame follow a consistent proportional logic (golden section, root rectangles, simple ratios) rather than arbitrary splits. This is a soft guide, not a requirement.
