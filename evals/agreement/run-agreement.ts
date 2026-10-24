@@ -14,7 +14,6 @@
 // 1 when any EV-4 fixture disagrees, and 2 when the harness could not run (FR-24).
 
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
@@ -29,6 +28,7 @@ import {
   compileReportValidator,
   readPinnedModel,
 } from "../support/pinned-model-and-schema.ts";
+import { hashFrozenFixtureSet } from "./frozen-set.ts";
 import {
   type FixtureLabel,
   type LabelPackCheck,
@@ -235,17 +235,16 @@ function runHarness(argv: readonly string[]): {
 }
 
 /**
- * Return the SHA-256 of the pack's fixtures/rendered.json, or null when the pack has none, such as
- * a pack made of captured pages only. The hash names the frozen fixture set (EV-4 rule 5).
+ * Return the hash of the pack's frozen fixture set, the sorted PNG hashes in its
+ * fixtures/rendered.json, or null when the pack has no rendered.json, such as a pack made of
+ * captured pages only (EV-4 rule 5).
  */
 function hashFixtureSet(pack: PackFixtures): string | null {
   const renderedJsonPath = join(pack.directory, "fixtures", "rendered.json");
   if (!existsSync(renderedJsonPath)) {
     return null;
   }
-  return createHash("sha256")
-    .update(readFileSync(renderedJsonPath))
-    .digest("hex");
+  return hashFrozenFixtureSet(readFileSync(renderedJsonPath, "utf8"));
 }
 
 /** The path of the file that keeps the hash of the fixture set a live run scored. */
