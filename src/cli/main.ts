@@ -42,13 +42,28 @@ export async function main(
     if (inputs.model !== undefined) {
       options.model = inputs.model;
     }
-    const adapter = createAdapter(options);
+    const adapter = createAdapterSafely(createAdapter, options);
     const output = await runReport(inputs, adapter);
     process.stdout.write(output);
     process.exitCode = EXIT_CODE_RAN;
   } catch (error) {
     process.stderr.write(describeError(error));
     process.exitCode = EXIT_CODE_COULD_NOT_RUN;
+  }
+}
+
+/**
+ * Call the adapter factory and turn any error it throws into a CouldNotRunError with fixed text,
+ * because an SDK constructor error may repeat the key or the request headers (CS-19, NFR-14).
+ */
+function createAdapterSafely(
+  createAdapter: CreateAdapter,
+  options: TypeSafeAdapterOptions,
+): TypeSafeAdapter {
+  try {
+    return createAdapter(options);
+  } catch {
+    throw new CouldNotRunError("could not set up the TypeSafe client");
   }
 }
 

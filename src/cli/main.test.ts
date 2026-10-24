@@ -465,6 +465,24 @@ describe("could not run: exit 2, a message that names the input, and empty stdou
     expect(result.stderr).toContain("at ");
   });
 
+  it("exits 2 with fixed text, not the raw error, when the adapter factory throws (CS-19)", async () => {
+    const throwingFactory = (): TypeSafeAdapter => {
+      throw new Error(
+        `bad client config, Authorization: Bearer ${FAKE_API_KEY}`,
+      );
+    };
+    await main(
+      ["report", "page.png", "--pack", "minimal"],
+      environmentWithKey,
+      throwingFactory,
+      workingDirectory,
+    );
+    expect(process.exitCode).toBe(2);
+    expect(stdoutText).toBe("");
+    expect(stderrText).toBe("crit: could not set up the TypeSafe client\n");
+    expect(stderrText).not.toContain(FAKE_API_KEY);
+  });
+
   it("never writes the key to stdout on success (NFR-14)", async () => {
     const result = await runCrit([
       "report",
