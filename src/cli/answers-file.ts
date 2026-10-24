@@ -3,6 +3,7 @@
 // decides verdicts from thresholds (FR-25). This file does no I/O: read-inputs.ts reads the file and
 // main.ts writes it (AC-7, CS-6).
 
+import { createHash } from "node:crypto";
 import type { AskResult } from "../ask/adapter.js";
 import type { Answer, Region } from "../shared/answer.js";
 import { findAnswersMismatch } from "../shared/answers-mismatch.js";
@@ -13,9 +14,14 @@ import type { Usage } from "../shared/usage.js";
 /** The one layout version this build reads and writes. Any other version stops the run (OQ-26). */
 const ANSWERS_FILE_VERSION = 1;
 
+/** An image fingerprint as the file holds it: 64 lowercase hexadecimal characters (OQ-26 e). */
+const IMAGE_SHA256_PATTERN = /^[0-9a-f]{64}$/;
+
 /** The answers file, with the wire field names (CS-10, FR-42, OQ-26). */
 export type AnswersFile = {
   readonly answers_file_version: typeof ANSWERS_FILE_VERSION;
+  /** The SHA-256 of the original image bytes the answers were saved from (OQ-26 e). */
+  readonly image_sha256: string;
   readonly answers: readonly Answer[];
   readonly usage: Usage;
 };
@@ -43,14 +49,26 @@ export function readAnswersFile(
     throw new CouldNotRunError(`answers file ${fileName}: ${path} ${problem}`);
   };
   const top = readFields(parsed, "the top level", fail);
+  // The version is read before the other keys, so a file with another layout is named by its
+  // version and not by the first key that layout lacks (OQ-26 a).
+  if (!top.has("answers_file_version")) {
+    fail("the top level", "has no answers_file_version");
+  }
+  if (top.get("answers_file_version") !== ANSWERS_FILE_VERSION) {
+    fail("answers_file_version", `must be ${ANSWERS_FILE_VERSION}`);
+  }
   requireExactKeys(
     top,
-    ["answers_file_version", "answers", "usage"],
+    ["answers_file_version", "image_sha256", "answers", "usage"],
     "the top level",
     fail,
   );
-  if (top.get("answers_file_version") !== ANSWERS_FILE_VERSION) {
-    fail("answers_file_version", `must be ${ANSWERS_FILE_VERSION}`);
+  const imageSha256 = top.get("image_sha256");
+  if (
+    typeof imageSha256 !== "string" ||
+    !IMAGE_SHA256_PATTERN.test(imageSha256)
+  ) {
+    return fail("image_sha256", "must be 64 lowercase hexadecimal characters");
   }
   const answersValue = top.get("answers");
   if (!Array.isArray(answersValue)) {
@@ -61,7 +79,38 @@ export function readAnswersFile(
     answers.push(readAnswer(answerValue, `answers[${index}]`, fail));
   }
   const usage = readUsage(top.get("usage"), fail);
-  return { answers_file_version: ANSWERS_FILE_VERSION, answers, usage };
+  return {
+    answers_file_version: ANSWERS_FILE_VERSION,
+    image_sha256: imageSha256,
+    answers,
+    usage,
+  };
+}
+
+/**
+ * Return the SHA-256 of the original image bytes as 64 lowercase hexadecimal characters. The
+ * answers file records it, and --answers compares it before prepare runs (FR-42, OQ-26 e).
+ */
+export function fingerprintImage(imageBytes: Uint8Array): string {
+  return createHash("sha256").update(imageBytes).digest("hex");
+}
+
+/**
+ * Stop the run when the recorded answers were saved from another image, so a replay never reports
+ * on an image its answers did not come from. The CLI calls it before prepare, so a wrong image is
+ * refused with no image work (FR-42, OQ-26 e, CS-16).
+ */
+export function checkRecordedImage(
+  recorded: AnswersFile,
+  imageSha256: string,
+  fileName: string,
+  imagePath: string,
+): void {
+  if (recorded.image_sha256 !== imageSha256) {
+    throw new CouldNotRunError(
+      `answers file ${fileName} belongs to another image, not ${imagePath}; record answers for this image with --save-answers`,
+    );
+  }
 }
 
 /** The function readAnswersFile uses to stop with a message that names the path (CS-16). */
@@ -306,17 +355,22 @@ export function checkRecordedAnswers(
 }
 
 /**
- * Return the answers file text for one ask result: the version, the answers in the order ask gave
- * them with a fixed field order for each type, and the usage object, as JSON with a two-space indent
- * and a final newline (FR-42, OQ-26). The fixed order makes the same answers give the same bytes.
+ * Return the answers file text for one ask result: the version, the image fingerprint, the answers
+ * in the order ask gave them with a fixed field order for each type, and the usage object, as JSON
+ * with a two-space indent and a final newline (FR-42, OQ-26). The fixed order makes the same answers
+ * give the same bytes.
  */
-export function writeAnswersFile(asked: AskResult): string {
+export function writeAnswersFile(
+  asked: AskResult,
+  imageSha256: string,
+): string {
   const answers: object[] = [];
   for (const answer of asked.answers) {
     answers.push(orderAnswerFields(answer));
   }
   const file = {
     answers_file_version: ANSWERS_FILE_VERSION,
+    image_sha256: imageSha256,
     answers,
     usage: {
       input_tokens: asked.usage.input_tokens,

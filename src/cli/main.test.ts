@@ -2,6 +2,7 @@
 // (CS-22). They cover the inputs, the context merge, the exit codes, and the output streams
 // (FR-1 to FR-4, FR-22, FR-24, FR-31, FR-33, FR-43, FR-51, FR-61, US-1, US-5, US-7, US-8, NFR-14).
 
+import { createHash } from "node:crypto";
 import {
   chmodSync,
   copyFileSync,
@@ -516,6 +517,12 @@ describe("--save-answers and --answers (FR-42, CS-21)", () => {
     process.exitCode = undefined;
   }
 
+  /** Return the SHA-256 of page.png in the working directory, as the answers file records it (OQ-26 e). */
+  function pageSha256(): string {
+    const bytes = readFileSync(join(workingDirectory, "page.png"));
+    return createHash("sha256").update(bytes).digest("hex");
+  }
+
   /** A factory that fails the test if main calls it, which proves --answers makes no adapter. */
   const forbiddenFactory = (): TypeSafeAdapter => {
     throw new Error("the adapter factory must not be called with --answers");
@@ -537,6 +544,7 @@ describe("--save-answers and --answers (FR-42, CS-21)", () => {
     const saved: unknown = JSON.parse(readWorkingFile("answers.json"));
     expect(saved).toEqual({
       answers_file_version: 1,
+      image_sha256: pageSha256(),
       answers: [
         {
           type: "noul",
@@ -587,6 +595,7 @@ describe("--save-answers and --answers (FR-42, CS-21)", () => {
       "answers.json",
       `${JSON.stringify({
         answers_file_version: 1,
+        image_sha256: pageSha256(),
         answers: [
           {
             type: "noul",
@@ -699,6 +708,7 @@ describe("--save-answers and --answers (FR-42, CS-21)", () => {
       "answers.json",
       `${JSON.stringify({
         answers_file_version: 1,
+        image_sha256: pageSha256(),
         answers: [],
         usage: { input_tokens: 0, cost_usd: 0, latency_ms: 0, model: "stub" },
       })}\n`,
@@ -714,6 +724,31 @@ describe("--save-answers and --answers (FR-42, CS-21)", () => {
     expect(stderrText).toContain("answers file answers.json does not fit");
     expect(stderrText).toContain(
       "no answer for question minimal/faint-body-text",
+    );
+  });
+
+  it("exits 2 before prepare and names the file when its answers belong to another image (OQ-26 e)", async () => {
+    await runCrit([
+      "report",
+      "page.png",
+      "--pack",
+      "minimal",
+      "--save-answers",
+      "answers.json",
+    ]);
+    clearStreams();
+    // other.png is not an image at all, so a message from prepare would show that prepare ran.
+    writeWorkingFile("other.png", "not an image");
+    await main(
+      ["report", "other.png", "--pack", "minimal", "--answers", "answers.json"],
+      {},
+      forbiddenFactory,
+      workingDirectory,
+    );
+    expect(process.exitCode).toBe(2);
+    expect(stdoutText).toBe("");
+    expect(stderrText).toBe(
+      "crit: answers file answers.json belongs to another image, not other.png; record answers for this image with --save-answers\n",
     );
   });
 

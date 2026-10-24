@@ -1,7 +1,7 @@
 // The `crit report` pipeline: prepare, build, ask, and compose, then one renderer (FR-31, FR-65).
 // It calls only the four stage entry functions and no stage internals, and takes the adapter as a
 // parameter so tests can pass the stub (FR-20, FR-64). With --answers it takes recorded answers in
-// place of ask (FR-42). It writes nothing; main.ts writes the returned texts (CS-17, FR-24).
+// place of ask, after it checks that they were saved from this image (FR-42, OQ-26 e). It writes nothing; main.ts writes the returned texts (CS-17, FR-24).
 
 // The JSON import is bundled by esbuild, so package.json is never read from disk at run time.
 import packageJson from "../../package.json" with { type: "json" };
@@ -16,7 +16,12 @@ import {
   prepare,
   type TypeSafeAdapter,
 } from "../index.js";
-import { checkRecordedAnswers, writeAnswersFile } from "./answers-file.js";
+import {
+  checkRecordedAnswers,
+  checkRecordedImage,
+  fingerprintImage,
+  writeAnswersFile,
+} from "./answers-file.js";
 import type { RecordedAnswers, ReportInputs } from "./read-inputs.js";
 import { renderReportJson } from "./render-json.js";
 import { renderReportText } from "./render-text.js";
@@ -48,6 +53,17 @@ export async function runReport(
   inputs: ReportInputs,
   answerSource: AnswerSource,
 ): Promise<ReportOutput> {
+  // The fingerprint is of the bytes as read from disk, and a replay checks it before prepare, so
+  // answers from another image are refused with no image work (FR-42, OQ-26 e).
+  const imageSha256 = fingerprintImage(inputs.imageBytes);
+  if (answerSource.kind === "recorded") {
+    checkRecordedImage(
+      answerSource.recorded.answersFile,
+      imageSha256,
+      answerSource.recorded.fileName,
+      inputs.imagePath,
+    );
+  }
   const prepared = await prepareNamingImage(
     inputs.imagePath,
     inputs.imageBytes,
@@ -85,7 +101,7 @@ export async function runReport(
   } else {
     stdoutText = renderReportText(report);
   }
-  return { stdoutText, answersFileText: writeAnswersFile(asked) };
+  return { stdoutText, answersFileText: writeAnswersFile(asked, imageSha256) };
 }
 
 /**
