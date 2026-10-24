@@ -1,0 +1,32 @@
+# A noul criterion with every optional field. The standard's version is in the source text (FR-57).
+name: accessibility
+version: 0.2.0-beta.1
+title: Accessibility
+license: MIT
+applies_to: [web, slides]
+criteria:
+  - id: faint-body-text
+    title: Body text has too little contrast
+    source: W3C, WCAG 2.2, Success Criterion 1.4.3
+    link: https://www.w3.org/TR/WCAG22/#contrast-minimum
+    applies_to: [web]
+    question:
+      type: noul
+      instructions: Is the body text in the image at image faint against its background?
+      criteria:
+        true: The body text is faint against its background.
+        false: The body text stands out clearly from its background.
+    fail_when:
+      probability_at_least: 0.8
+    warn_when:
+      probability_at_least: 0.5
+    pass_when:
+      probability_at_most: 0.2
+    min_confidence: 0.6
+    locate: true
+    locate_instructions: The block of body text that is faint against its background.
+    requires: [facts.viewport_width]
+    fix: Darken the text or lighten the background until the text stands out.
+    fixtures:
+      positive: [fixtures/faint-body-text/grey-on-grey.png]
+      negative: [fixtures/faint-body-text/dark-on-white.png]
