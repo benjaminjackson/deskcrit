@@ -164,7 +164,7 @@ function hashBytes(bytes: Uint8Array): string {
 
 /**
  * Read and check the image, the questions, and the purpose line. No request is built yet. The
- * image path is read from the current folder, and recorded relative to the repository root.
+ * image path is read relative to the repository root, and recorded that way.
  */
 async function readInputs(imagePath: string): Promise<SpikeInputs> {
   const absoluteImagePath = path.resolve(REPOSITORY_ROOT, imagePath);
