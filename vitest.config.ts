@@ -14,6 +14,7 @@ export default defineConfig({
       "evals/agreement/*.test.ts",
       "evals/wobble/*.test.ts",
       "evals/adversarial/*.test.ts",
+      "evals/packs-test/*.test.ts",
     ],
   },
 });

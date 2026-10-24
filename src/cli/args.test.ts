@@ -146,9 +146,17 @@ describe("parseCommand", () => {
     });
   });
 
-  it("lists both usage lines when no command is given", () => {
+  it("returns the directory for crit packs test", () => {
+    expect(parseCommand(["packs", "test", "packs/basics"])).toEqual({
+      command: "packs-test",
+      directory: "packs/basics",
+    });
+  });
+
+  it("lists every usage line when no command is given", () => {
     expect(() => parseCommand([])).toThrow("usage: crit report");
     expect(() => parseCommand([])).toThrow("usage: crit packs validate <dir>");
+    expect(() => parseCommand([])).toThrow("usage: crit packs test <dir>");
   });
 
   const badPacksCommandLines: {
@@ -162,9 +170,24 @@ describe("parseCommand", () => {
       message: "no packs command given",
     },
     {
-      name: "packs test, which crit-q25.2 adds",
-      argv: ["packs", "test", "packs/basics"],
-      message: "unknown command packs test",
+      name: "an unknown packs subcommand",
+      argv: ["packs", "add", "packs/basics"],
+      message: "unknown command packs add",
+    },
+    {
+      name: "packs test with no directory",
+      argv: ["packs", "test"],
+      message: "usage: crit packs test <dir>",
+    },
+    {
+      name: "packs test with two directories",
+      argv: ["packs", "test", "a", "b"],
+      message: "unexpected argument b",
+    },
+    {
+      name: "packs test with a flag, because it has no --answers or --json",
+      argv: ["packs", "test", "a", "--answers", "x.json"],
+      message: "usage: crit packs test <dir>",
     },
     {
       name: "no directory",
