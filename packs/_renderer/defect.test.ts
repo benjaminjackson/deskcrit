@@ -9,6 +9,7 @@ import {
   findPackDeclarationProblems,
   firstCleanValue,
   isPropertyDeclared,
+  isTextOrAttributeKey,
   type PageSnapshot,
   parseCssColour,
   parseDefectDeclaration,
@@ -30,6 +31,8 @@ function pageWithParagraph(
       hasOwnText: false,
       styles: { "background-color": "rgba(0, 0, 0, 0)" },
       pseudoStyles: {},
+      text: "",
+      attributes: { lang: "en" },
     },
     {
       path: "html/body[1]",
@@ -38,6 +41,8 @@ function pageWithParagraph(
       hasOwnText: false,
       styles: { "background-color": "rgb(255, 255, 255)" },
       pseudoStyles: {},
+      text: "\n  ",
+      attributes: {},
     },
     {
       path: "html/body[1]/p[0]",
@@ -51,6 +56,8 @@ function pageWithParagraph(
         ...paragraphStyles,
       },
       pseudoStyles: {},
+      text: "The quick brown fox",
+      attributes: { class: "lede" },
     },
   ];
   return { elements, textEdgeDistance };
@@ -134,6 +141,8 @@ test("fails a pair whose two sides have different elements", () => {
     hasOwnText: true,
     styles: {},
     pseudoStyles: {},
+    text: "A heading",
+    attributes: {},
   });
   const problems = problemsFor(FAINT_TEXT, positive, negative);
   expect(problems).toHaveLength(1);
@@ -759,4 +768,114 @@ test("covers a pseudo-element difference only with a name for the same pseudo-el
   expect(
     isPropertyDeclared({ property: "color" }, ["::first-line color"]),
   ).toBe(false);
+});
+
+test("fails a pair whose two sides differ only in one element's text", () => {
+  const positive = pageWithParagraph({});
+  const negative = pageWithParagraph({});
+  const positiveParagraph = positive.elements[2];
+  if (positiveParagraph === undefined) {
+    throw new Error("the test page has no paragraph");
+  }
+  positiveParagraph.text = "The quick brown fox jumps";
+  const problems = problemsFor(
+    { properties: ["color"], range: null },
+    positive,
+    negative,
+  );
+  expect(problems).toEqual([
+    'x.positive.png and x.negative.png differ in text content of html/body[1]/p[0]: "The quick brown fox jumps" on and "The quick brown fox" off; a defect may change only styles, so text and attributes must match (FR-54 rule 3)',
+  ]);
+});
+
+/** Builds a page of <html>, <body>, and one SVG shape with the given attributes. */
+function pageWithSvgShape(
+  shapeAttributes: Record<string, string>,
+): PageSnapshot {
+  const page = pageWithParagraph({});
+  page.elements.push({
+    path: "html/body[1]/svg[1]",
+    parentIndex: 1,
+    isSvg: true,
+    hasOwnText: false,
+    styles: {},
+    pseudoStyles: {},
+    text: "",
+    attributes: { viewBox: "0 0 100 100" },
+  });
+  page.elements.push({
+    path: "html/body[1]/svg[1]/path[0]",
+    parentIndex: 3,
+    isSvg: true,
+    hasOwnText: false,
+    styles: { fill: "rgb(37, 99, 235)" },
+    pseudoStyles: {},
+    text: "",
+    attributes: shapeAttributes,
+  });
+  return page;
+}
+
+test.each([
+  ["d", "M0 0 L10 10", "M0 0 L10 40"],
+  ["points", "0,0 10,10", "0,0 10,40"],
+  ["x1", "0", "12"],
+  ["cx", "50", "60"],
+  ["width", "40", "80"],
+])(
+  "fails a pair whose two sides differ only in the SVG attribute %s",
+  (attributeName, positiveValue, negativeValue) => {
+    const positive = pageWithSvgShape({ [attributeName]: positiveValue });
+    const negative = pageWithSvgShape({ [attributeName]: negativeValue });
+    const problems = problemsFor(
+      { properties: ["fill"], range: null },
+      positive,
+      negative,
+    );
+    expect(problems).toEqual([
+      `x.positive.png and x.negative.png differ in attribute ${attributeName} of html/body[1]/svg[1]/path[0]: "${positiveValue}" on and "${negativeValue}" off; a defect may change only styles, so text and attributes must match (FR-54 rule 3)`,
+    ]);
+  },
+);
+
+test("fails an attribute that only one side has", () => {
+  const positive = pageWithSvgShape({ d: "M0 0 L10 10", opacity: "0.4" });
+  const negative = pageWithSvgShape({ d: "M0 0 L10 10" });
+  const problems = problemsFor(
+    { properties: ["opacity"], range: null },
+    positive,
+    negative,
+  );
+  expect(problems).toHaveLength(1);
+  expect(problems[0]).toContain(
+    'differ in attribute opacity of html/body[1]/svg[1]/path[0]: "0.4" on and "(absent)" off',
+  );
+});
+
+test("passes a pair whose two sides differ only in a declared style, with equal text and attributes", () => {
+  const positive = pageWithSvgShape({ d: "M0 0 L10 10" });
+  const negative = pageWithSvgShape({ d: "M0 0 L10 10" });
+  const positiveShape = positive.elements[4];
+  if (positiveShape === undefined) {
+    throw new Error("the test page has no SVG shape");
+  }
+  positiveShape.styles.fill = "rgb(220, 38, 38)";
+  expect(
+    problemsFor({ properties: ["fill"], range: null }, positive, negative),
+  ).toEqual([]);
+});
+
+test("no declared name covers a text or attribute difference", () => {
+  expect(isTextOrAttributeKey("text content")).toBe(true);
+  expect(isTextOrAttributeKey("attribute d")).toBe(true);
+  expect(isTextOrAttributeKey("color")).toBe(false);
+  const positive = pageWithSvgShape({ d: "M0 0 L10 10" });
+  const negative = pageWithSvgShape({ d: "M0 0 L10 40" });
+  const problems = problemsFor(
+    { properties: ["attribute d", "text content"], range: null },
+    positive,
+    negative,
+  );
+  expect(problems).toHaveLength(1);
+  expect(problems[0]).toContain("differ in attribute d of");
 });

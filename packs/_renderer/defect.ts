@@ -80,6 +80,10 @@ export type ElementSnapshot = {
    * pseudo-element that draws nothing on this side is null.
    */
   pseudoStyles: Record<string, Record<string, string> | null>;
+  /** The element's own text nodes joined in order, not trimmed, so a change of words between the two sides shows. */
+  text: string;
+  /** The element's attributes by name, except data-defect on <html>, which is the one thing the defect switch sets. */
+  attributes: Record<string, string>;
 };
 
 /** A whole rendered page, as render.ts reads it from the browser. */
@@ -434,10 +438,80 @@ export function compareSnapshots(
         firstDifferenceByProperty,
       );
     }
+    recordTextAndAttributeDifferences(
+      positiveElement,
+      negativeElement,
+      firstDifferenceByProperty,
+    );
   }
   const differences = Array.from(firstDifferenceByProperty.values());
   differences.sort(compareByProperty);
   return { domShapesMatch: true, differences };
+}
+
+/** The key of a difference in an element's own text. */
+const TEXT_CONTENT_KEY = "text content";
+
+/** The start of the key of a difference in one attribute, such as "attribute d". */
+const ATTRIBUTE_KEY_PREFIX = "attribute ";
+
+/**
+ * Says whether a difference key names an element's text or one of its
+ * attributes, not a style. No declaration can cover such a difference,
+ * because every defect is a style change and the defect switch sets only
+ * data-defect on <html> (FR-54 rule 3).
+ */
+export function isTextOrAttributeKey(property: string): boolean {
+  if (property === TEXT_CONTENT_KEY) {
+    return true;
+  }
+  return property.startsWith(ATTRIBUTE_KEY_PREFIX);
+}
+
+/**
+ * Records where one element's own text or attributes differ between the two
+ * sides, keyed "text content" or "attribute <name>", once per key with the
+ * first element where it differs. A change of words, or of an SVG shape's d,
+ * points, or width attribute, is then not hidden behind equal styles. An
+ * attribute that one side does not have is recorded as "(absent)" there.
+ */
+function recordTextAndAttributeDifferences(
+  positiveElement: ElementSnapshot,
+  negativeElement: ElementSnapshot,
+  firstDifferenceByProperty: Map<string, PropertyDifference>,
+): void {
+  if (
+    positiveElement.text !== negativeElement.text &&
+    !firstDifferenceByProperty.has(TEXT_CONTENT_KEY)
+  ) {
+    firstDifferenceByProperty.set(TEXT_CONTENT_KEY, {
+      property: TEXT_CONTENT_KEY,
+      element: positiveElement.path,
+      positive: positiveElement.text,
+      negative: negativeElement.text,
+    });
+  }
+  const attributeNames = new Set([
+    ...Object.keys(positiveElement.attributes),
+    ...Object.keys(negativeElement.attributes),
+  ]);
+  for (const attributeName of attributeNames) {
+    const positiveValue = positiveElement.attributes[attributeName];
+    const negativeValue = negativeElement.attributes[attributeName];
+    if (positiveValue === negativeValue) {
+      continue;
+    }
+    const key = `${ATTRIBUTE_KEY_PREFIX}${attributeName}`;
+    if (firstDifferenceByProperty.has(key)) {
+      continue;
+    }
+    firstDifferenceByProperty.set(key, {
+      property: key,
+      element: positiveElement.path,
+      positive: positiveValue ?? "(absent)",
+      negative: negativeValue ?? "(absent)",
+    });
+  }
 }
 
 /**
@@ -988,6 +1062,12 @@ export function findDeclarationProblems(
     return problems;
   }
   for (const difference of positive.differing_properties) {
+    if (isTextOrAttributeKey(difference.property)) {
+      problems.push(
+        `${positiveFixture} and ${negativeFixture} differ in ${difference.property} of ${difference.element}: "${difference.positive}" on and "${difference.negative}" off; a defect may change only styles, so text and attributes must match (FR-54 rule 3)`,
+      );
+      continue;
+    }
     if (!isPropertyDeclared(difference, declaration.properties)) {
       problems.push(
         `${positiveFixture} and ${negativeFixture} differ in ${difference.property}, which the declaration does not list: ${difference.element} is "${difference.positive}" on and "${difference.negative}" off (FR-54 rule 3)`,
