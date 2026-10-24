@@ -1,5 +1,5 @@
-// Every file and environment read for `crit report` (CS-6): the image, `.crit.yaml`, each pack
-// directory, the facts file, the --answers file, and the API key. Each failure throws CouldNotRunError that names the
+// Every file and environment read for `crit report` (CS-6): the image, `.crit.yaml`, the bundled
+// packs, each pack directory, the facts file, the --answers file, and the API key. Each failure throws CouldNotRunError that names the
 // input, so the run exits with code 2 (FR-4, US-5, US-7, NFR-14). The stages get the values.
 
 import { readFile } from "node:fs/promises";
@@ -10,6 +10,7 @@ import type { Pack } from "../shared/pack.js";
 import type { Context } from "../shared/state.js";
 import { type AnswersFile, readAnswersFile } from "./answers-file.js";
 import type { ReportArguments } from "./args.js";
+import { loadBundledPacks } from "./bundled-packs.js";
 import {
   CRIT_YAML_FILE_NAME,
   type CritYaml,
@@ -21,10 +22,6 @@ const PACK_FILE_NAME = "pack.yaml";
 
 /** The environment variable that holds the TypeSafe API key (NFR-14, CS-19). */
 export const API_KEY_VARIABLE = "TYPESAFE_API_KEY";
-
-/** The message when no pack is named at all (OQ-25 d). */
-const NO_PACKS_MESSAGE =
-  "no packs: pass --pack <dir> or name packs in .crit.yaml";
 
 /** Everything `crit report` read, ready for the stages (FR-1 to FR-3, FR-11, FR-22). */
 export type ReportInputs = {
@@ -140,8 +137,9 @@ async function readCritYaml(workingDirectory: string): Promise<CritYaml> {
 }
 
 /**
- * Load each --pack directory, then each pack `.crit.yaml` names, and reject two packs with the
- * same name, naming both sources (FR-11, US-5). No pack at all stops the run (OQ-25 d).
+ * Load the bundled packs that `.crit.yaml` names, then each --pack directory, and reject two packs
+ * with the same name, naming both sources (FR-11, FR-51, US-5). With no names in `.crit.yaml` and
+ * no --pack, every bundled pack loads; with --pack and no names, only the local packs load (FR-11).
  */
 async function readPacks(
   packDirectories: readonly string[],
@@ -149,6 +147,16 @@ async function readPacks(
   workingDirectory: string,
 ): Promise<Pack[]> {
   const loaded: LoadedPack[] = [];
+  const bundledPacksWanted =
+    critYamlPackNames.length > 0 || packDirectories.length === 0;
+  if (bundledPacksWanted) {
+    for (const pack of loadBundledPacks(critYamlPackNames)) {
+      loaded.push({
+        pack,
+        source: `bundled pack ${pack.name}`,
+      });
+    }
+  }
   for (const directory of packDirectories) {
     const text = await readPackFile(directory, workingDirectory);
     if (text === undefined) {
@@ -160,22 +168,6 @@ async function readPacks(
       pack: loadPack(text, directory),
       source: `--pack ${directory}`,
     });
-  }
-  for (const name of critYamlPackNames) {
-    // Until crit-q25.3 bundles packs, a name in .crit.yaml must be a local pack directory (FR-11).
-    const text = await readPackFile(name, workingDirectory);
-    if (text === undefined) {
-      throw new CouldNotRunError(
-        `pack ${name} named in ${CRIT_YAML_FILE_NAME} was not found`,
-      );
-    }
-    loaded.push({
-      pack: loadPack(text, name),
-      source: `pack ${name} in ${CRIT_YAML_FILE_NAME}`,
-    });
-  }
-  if (loaded.length === 0) {
-    throw new CouldNotRunError(NO_PACKS_MESSAGE);
   }
   checkPackNamesUnique(loaded);
   const packs: Pack[] = [];

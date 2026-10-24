@@ -23,7 +23,7 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `biome.json` holds the lint and format settings.
 - `vitest.config.ts` tells Vitest which unit tests to run.
 - `tsconfig.lib.json` holds the TypeScript settings that write the library type declarations to `dist/types/`.
-- `scripts/build.mjs` bundles the CLI into `dist/crit.js` and the library into `dist/index.js`, and writes the declarations to `dist/types/`. All of `dist/` is built and not committed.
+- `scripts/build.mjs` bundles the CLI, with the text of each `packs/*/pack.yaml`, into `dist/crit.js` and the library into `dist/index.js`, and writes the declarations to `dist/types/`. All of `dist/` is built and not committed.
 - `scripts/smoke.mjs` runs the built bundle and the packed tarball under both command names. It also checks the built library: it runs the library stages and `crit report --json --answers` on the same inputs and compares the two reports (FR-65), and it type-checks `scripts/library-consumer.ts`, which imports from `deskcrit` by the package name (FR-63).
 - `src/index.ts` is the package entry point. It only re-exports the stage functions `prepare`, `build`, `ask`, and `compose`, the stub adapter, `loadPack`, `CouldNotRunError`, and the stage types (FR-63, FR-64). `src/index.test.ts` checks it.
 - `.github/workflows/ci.yml` runs `npm run ci` on each Node release in the CI matrix.
@@ -32,6 +32,7 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `src/cli/args.ts` parses the `crit report` command line with Node's `parseArgs`.
 - `src/cli/crit-yaml.ts` parses and checks the text of `.crit.yaml`.
 - `src/cli/read-inputs.ts` does every file and environment read for `crit report`: the image, `.crit.yaml`, the pack directories, the facts file, and `TYPESAFE_API_KEY`.
+- `src/cli/bundled-pack-texts.ts` holds `BUNDLED_PACK_TEXTS`, the name and `pack.yaml` text of each first-party pack. From source and under Vitest it reads `packs/` from disk; the CLI build in `scripts/build.mjs` replaces the whole file with the texts as strings, so `dist/crit.js` reads no pack file (FR-53). `src/cli/bundled-packs.ts` holds `listBundledPackSources` and `loadBundledPacks`, which parse the bundled packs that `.crit.yaml` names, or every bundled pack, with `loadPack` (FR-11, FR-51). `src/cli/bundled-packs.test.ts` checks it and checks what the built bundle holds.
 - `src/cli/report-command.ts` holds `runReport`, which calls prepare, build, ask, and compose from `src/index.ts` and then one renderer, and imports no stage file (FR-65).
 - `src/cli/render-json.ts` holds `renderReportJson` and `src/cli/render-text.ts` holds `renderReportText`, the pure functions that turn the report document into the `--json` output and the readable report (FR-31, FR-32, FR-33). `src/cli/prd-example-report.fixture.ts` is the PRD section 8.1 example that their tests share, and `src/cli/no-io.test.ts` checks that both renderers do no I/O.
 - `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
