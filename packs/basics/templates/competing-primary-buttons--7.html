@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Basics fixture: competing-primary-buttons--7</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A confirmation dialog over a dimmed project list. The off side has Delete project filled red and Cancel as a quiet
+         text button. The defect fills Cancel in the same red with white bold text, so both buttons look equally strong (OQ-17). */
+      .list { margin: 48px 120px 0; }
+      .list h1 { font-size: 28px; margin-bottom: 20px; }
+      .list .row { padding: 18px 0; border-bottom: 1px solid var(--color-border); font-size: 17px; }
+      .shade { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; background-color: rgba(15, 23, 42, 0.45); }
+      .dialog { position: absolute; left: 400px; top: 230px; width: 480px; padding: 32px; border-radius: 12px; background-color: #fff; }
+      .dialog h2 { font-size: 22px; margin-bottom: 12px; }
+      .dialog p { font-size: 16px; line-height: 1.6; color: #424a53; margin-bottom: 28px; }
+      .actions { display: flex; justify-content: flex-end; gap: 12px; }
+      .button { font-size: 16px; padding: 10px 20px; border-radius: 6px; border: 2px solid transparent; color: #424a53; background-color: transparent; }
+      .button.primary { background-color: #c0392b; color: #fff; font-weight: 700; border-color: #c0392b; }
+      [data-defect="on"] .button { background-color: #c0392b; color: #fff; font-weight: 700; border-color: #c0392b; }
+    </style>
+  </head>
+  <body>
+    <div class="list">
+      <h1>Projects</h1>
+      <div class="row">Harbour walk signage</div>
+      <div class="row">Spring newsletter</div>
+      <div class="row">Library floor plan</div>
+      <div class="row">Allotment map, 2026</div>
+    </div>
+    <div class="shade"></div>
+    <div class="dialog">
+      <h2>Delete "Spring newsletter"?</h2>
+      <p>The project and its eleven files will be removed for everyone who has access to it. You cannot undo this.</p>
+      <div class="actions"><span class="button">Cancel</span><span class="button primary">Delete project</span></div>
+    </div>
+  </body>
+</html>

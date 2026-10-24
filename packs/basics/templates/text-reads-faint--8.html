@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Basics fixture: text reads faint, variant 8</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* An engineering blog post in one serif column. The heading and the date line stay the same on both sides. The defect
+         draws the body text in the grey #8a8a8a on white, a contrast of about 3.4:1 (OQ-17). */
+      .post { margin: 64px auto 0; width: 700px; }
+      .post .meta { font-size: 14px; color: var(--color-muted); margin-bottom: 12px; }
+      .post h1 { font-size: 40px; line-height: 1.2; margin-bottom: 24px; }
+      .post p { font-family: var(--font-serif); font-size: 19px; line-height: 1.6; margin-bottom: 18px; color: var(--color-text); }
+      [data-defect="on"] .post p { color: #8a8a8a; }
+    </style>
+  </head>
+  <body>
+    <main class="post">
+      <div class="meta">Engineering blog · 12 March · 6 minute read</div>
+      <h1>How we moved our nightly backups</h1>
+      <p>For three years our nightly backups ran on a single server in the office cupboard. It copied every database to a pair of external disks, and someone took one of the disks home each Friday. It worked, but a failed disk or a missed Friday left a gap that nobody noticed until we needed the files.</p>
+      <p>This spring we moved the backups to object storage in two regions. Each database is now copied every night, checked against the previous copy, and kept for ninety days. A short report lands in our team chat each morning and lists any backup that did not finish.</p>
+      <p>The move took about six weeks, most of it spent testing restores. Below we describe the scripts we wrote and what the new setup costs each month.</p>
+    </main>
+  </body>
+</html>

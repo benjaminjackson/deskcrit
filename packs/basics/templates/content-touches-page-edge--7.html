@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Basics fixture: content-touches-page-edge (7)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A shop page with a header bar. The bar has 96 px of side padding on the off side. The defect drops the side padding,
+         so the shop name touches the left edge of the page and the basket link touches the right edge (OQ-17). */
+      .bar { display: flex; align-items: center; justify-content: space-between; height: 72px; padding: 0 96px; border-bottom: 1px solid var(--color-border); }
+      .bar .name { font-size: 22px; font-weight: 700; }
+      .bar nav span { margin-left: 28px; font-size: 15px; }
+      [data-defect="on"] .bar { padding: 0; }
+      .page { margin: 48px 96px 0; }
+      .page h1 { font-size: 32px; margin-bottom: 24px; }
+      .grid { display: flex; gap: 24px; }
+      .tile { flex: 1; }
+      .tile .photo { height: 260px; border-radius: 6px; background-color: #ece6dc; margin-bottom: 12px; }
+      .tile .title { font-size: 17px; margin-bottom: 4px; }
+      .tile .price { font-size: 16px; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <div class="bar"><span class="name">Kiln and Co.</span><nav><span>Mugs</span><span>Bowls</span><span>Coffee</span><span>Gifts</span><span>Basket (2)</span></nav></div>
+    <div class="page">
+      <h1>Coffee</h1>
+      <div class="grid">
+        <div class="tile"><div class="photo"></div><div class="title">Stoneware pour-over set</div><div class="price">£48.00</div></div>
+        <div class="tile"><div class="photo"></div><div class="title">Speckled espresso cups, pair</div><div class="price">£26.00</div></div>
+        <div class="tile"><div class="photo"></div><div class="title">Oat glaze milk jug</div><div class="price">£19.00</div></div>
+        <div class="tile"><div class="photo"></div><div class="title">Paper filters, size 2</div><div class="price">£4.50</div></div>
+      </div>
+    </div>
+  </body>
+</html>
