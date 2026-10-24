@@ -167,7 +167,7 @@ function hashBytes(bytes: Uint8Array): string {
  * image path is read from the current folder, and recorded relative to the repository root.
  */
 async function readInputs(imagePath: string): Promise<SpikeInputs> {
-  const absoluteImagePath = path.resolve(imagePath);
+  const absoluteImagePath = path.resolve(REPOSITORY_ROOT, imagePath);
   const repositoryImagePath = path
     .relative(REPOSITORY_ROOT, absoluteImagePath)
     .split(path.sep)
