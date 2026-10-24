@@ -1,0 +1,223 @@
+# The EV-6 wobble pack: the 17 M-1 spike questions that Benjamin Jackson kept (spike/questions.yaml; the 3 he cut under NG-10 are left out), written as a pack so crit can ask them. Each criterion has one placeholder warn_when, because the loader needs a verdict rule, and no fixtures, because the wobble check reads only the raw probabilities and confidences. Every noul question is in the defect form (true means the defect is there; packs/README.md). The questions come from spike/questions.yaml, which is disposable; this copy is the durable one.
+name: wobble
+version: 1.0.0
+title: Wobble check
+license: MIT
+criteria:
+  - id: body-text-looks-small
+    title: Body text looks too small to read
+    source: Body text size
+    question:
+      type: noul
+      instructions: In the image at image, is the paragraph text of the main article too small to read comfortably as shown?
+      criteria:
+        "true": The main article's paragraph text is too small to read comfortably as shown.
+        "false": The main article's paragraph text can be read comfortably as shown.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      probability_at_least: 0.5
+  - id: measure-too-long
+    title: Lines of body text run too long
+    source: Line length (measure)
+    question:
+      type: score
+      instructions: In the image at image, how comfortable is the length of each line of paragraph text in the main article?
+      levels:
+        - Lines are a comfortable length; the eye returns easily to the start of the next line.
+        - Lines are somewhat long; reading takes some effort to find the next line.
+        - Lines are clearly too long; the eye could easily lose its place between lines.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      level_at_least: 1
+  - id: heading-floats-from-text
+    title: Headings float between sections
+    source: Proximity of headings to the text they introduce
+    question:
+      type: noul
+      instructions: In the image at image, do the section headings in the main article sit as close to the text above them as to the text they introduce, so that they float between sections?
+      criteria:
+        "true": Headings sit about as close to the preceding text as to their own text, or closer to the preceding text, so they float.
+        "false": Each heading sits clearly closer to the text it introduces than to the text above it.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      probability_at_least: 0.5
+  - id: edges-misaligned
+    title: Elements almost line up but not quite
+    source: Near misses are worse than clear differences
+    question:
+      type: noul
+      instructions: In the image at image, are there blocks of content whose edges almost line up with each other but not quite?
+      criteria:
+        "true": Some blocks of content are slightly out of line with the edges of nearby blocks, which looks like a mistake.
+        "false": Blocks of content line up on shared edges, or differ clearly and on purpose.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      probability_at_least: 0.5
+  - id: single-focal-point
+    title: No single focal point
+    source: A clear single focal point
+    question:
+      type: noul
+      instructions: In the image at image, does the page lack a single element that leads the eye first?
+      criteria:
+        "true": No single element leads the eye.
+        "false": One element clearly leads the eye.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      probability_at_least: 0.5
+  - id: density-mixed
+    title: Cramped and sparse regions side by side
+    source: "Consistent density: no mix of cramped and sparse regions"
+    question:
+      type: choice
+      instructions: In the image at image, which option best describes how evenly content is packed across the page?
+      criteria:
+        even: Content is packed evenly across the page.
+        some-sparse: Content is even in places and sparse in others, and nothing looks cramped.
+        some-cramped: The page is mostly even, but some regions look cramped.
+        cramped-beside-sparse: Cramped regions sit next to regions that are nearly empty.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      option_in:
+        - cramped-beside-sparse
+  - id: faint-body-text
+    title: Body text reads as faint
+    source: Body text contrast (WCAG AA)
+    question:
+      type: noul
+      instructions: In the image at image, does any paragraph text read as faint against its background?
+      criteria:
+        "true": Some paragraph text looks faint or washed out against its background.
+        "false": All paragraph text stands out clearly from its background.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      probability_at_least: 0.5
+  - id: color-alone-meaning
+    title: Color alone carries meaning
+    source: Do not use color alone to carry meaning
+    question:
+      type: noul
+      instructions: In the image at image, does any chart identify its data series by color alone, with no label on or next to the series itself?
+      criteria:
+        "true": A chart tells its series apart by color alone.
+        "false": Every chart labels its series directly, or adds a second cue such as a pattern or a label beside the series.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      probability_at_least: 0.5
+  - id: accent-overused
+    title: Accent color used too widely
+    source: Accent color restraint
+    question:
+      type: score
+      instructions: In the image at image, how sparingly is the main accent color used?
+      levels:
+        - The accent color is used sparingly and draws the eye to what matters.
+        - The accent color appears often enough to weaken its emphasis.
+        - The accent color is so widespread that nothing stands out through it.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      level_at_least: 1
+  - id: primary-action-clear
+    title: No clear primary action
+    source: Primary versus secondary action
+    question:
+      type: choice
+      instructions: In the image at image, which option best describes the actions the page offers the reader?
+      criteria:
+        one-primary: One action is clearly the main one, and the others look secondary.
+        equal-weight: Several actions have the same visual weight, and none looks like the main one.
+        none-visible: No action is visible apart from ordinary text links.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      option_in:
+        - none-visible
+  - id: links-look-clickable
+    title: Links do not stand out from paragraph text
+    source: Buttons and links must look clickable
+    question:
+      type: score
+      instructions: In the image at image, how clearly do the links in the main article stand out from the paragraph text around them?
+      levels:
+        - Links stand out clearly through color or underline.
+        - Links stand out only slightly.
+        - Links are hard to tell apart from paragraph text.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      level_at_least: 1
+  - id: minimalist-design
+    title: Page is cluttered
+    source: "Nielsen 8: Aesthetic and minimalist design"
+    question:
+      type: score
+      instructions: In the image at image, how free is the page of elements that compete with the main content for attention?
+      levels:
+        - Focused; everything shown supports the main content.
+        - Some visible clutter competes with the main content.
+        - Cluttered; the main content has to fight for attention.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      level_at_least: 1
+  - id: chart-missing-axis-units
+    title: Chart axis has no units
+    source: Label axes, units, and sources
+    question:
+      type: noul
+      instructions: In the image at image, does any chart show a value axis without saying what unit its values are in?
+      criteria:
+        "true": At least one chart has a value axis with no unit shown on the axis or in its title.
+        "false": Every chart says what unit its values are in.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      probability_at_least: 0.5
+  - id: chart-title-takeaway
+    title: Chart titles do not state the takeaway
+    source: Titles and annotations state the takeaway
+    question:
+      type: choice
+      instructions: In the image at image, which option best describes the title shown inside or directly on each chart, not the section heading above it?
+      criteria:
+        takeaway: The chart titles state what the reader should conclude from the data.
+        topic-only: The chart titles name the topic of the data but not what it shows.
+        no-title: The charts have no visible titles of their own.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      option_in:
+        - no-title
+  - id: chartjunk
+    title: Decoration competes with the data
+    source: No chartjunk
+    question:
+      type: score
+      instructions: In the image at image, how much does decoration in the charts, such as heavy gridlines or ornament, compete with the data?
+      levels:
+        - Clean; the data stands out and nothing decorative competes with it.
+        - Some decoration that slightly distracts from the data.
+        - Decoration competes with the data for attention.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      level_at_least: 1
+  - id: parts-belong-together
+    title: Parts do not look like one whole
+    source: "Unity: parts belong to one whole"
+    question:
+      type: score
+      instructions: In the image at image, how much do the parts of the page look like they belong to one designed whole?
+      levels:
+        - Cohesive; every part shares one visual language.
+        - Mostly cohesive; a part looks like it comes from elsewhere.
+        - Pieces look unrelated, as if taken from different designs.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      level_at_least: 1
+  - id: image-blurry
+    title: An image looks blurry
+    source: "Image quality: sharp, undistorted, at native proportions"
+    question:
+      type: noul
+      instructions: In the image at image, does any picture, chart image, or infographic look blurry rather than sharp?
+      criteria:
+        "true": At least one picture, chart image, or infographic looks blurry or pixelated.
+        "false": Every picture, chart image, and infographic looks sharp.
+    fix: Not used. This pack only measures how far answers move between runs (EV-6).
+    warn_when:
+      probability_at_least: 0.5
