@@ -12,7 +12,6 @@ import type { Usage } from "../shared/usage.js";
 import {
   mapRegionToOriginal,
   type OriginalSize,
-  type PreparedFrame,
 } from "./map-region-to-original.js";
 import {
   type Finding,
@@ -73,9 +72,7 @@ type TextAnswer = Exclude<Answer, BoxAnswer>;
 export function compose(input: ComposeInput): Report {
   const criteriaByKey = indexCriteriaByKey(input.packs);
   const answersByQuestionId = indexAnswersByQuestionId(input.asked.answers);
-  const frame: PreparedFrame = {
-    scaleFactor: input.prepared.scaleFactor,
-  };
+  const scaleFactor = input.prepared.scaleFactor;
   const original: OriginalSize = {
     width: input.prepared.originalWidth,
     height: input.prepared.originalHeight,
@@ -95,7 +92,9 @@ export function compose(input: ComposeInput): Report {
     }
     const textAnswer = findTextAnswer(answersByQuestionId, question.id);
     const boxAnswer = findBoxAnswerIfNeeded(entry, answersByQuestionId);
-    findings.push(buildFinding(entry, textAnswer, boxAnswer, frame, original));
+    findings.push(
+      buildFinding(entry, textAnswer, boxAnswer, scaleFactor, original),
+    );
   }
 
   const packs: ReportPack[] = [];
@@ -141,7 +140,7 @@ function buildFinding(
   entry: CriterionEntry,
   textAnswer: TextAnswer,
   boxAnswer: BoxAnswer | undefined,
-  frame: PreparedFrame,
+  scaleFactor: number,
   original: OriginalSize,
 ): Finding {
   const criterion = entry.criterion;
@@ -149,7 +148,7 @@ function buildFinding(
 
   let region: Region | null = null;
   if (boxAnswer !== undefined && verdict !== "pass") {
-    region = mapRegionToOriginal(boxAnswer.region, frame, original);
+    region = mapRegionToOriginal(boxAnswer.region, scaleFactor, original);
   }
 
   let link: string | null = null;

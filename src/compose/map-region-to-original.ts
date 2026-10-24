@@ -3,14 +3,6 @@
 
 import type { Region } from "../shared/answer.js";
 
-/**
- * How the prepared image sits on the original: prepare multiplied the original by `scaleFactor`
- * and placed it at the top-left, so no offset is needed (FR-8).
- */
-export type PreparedFrame = {
-  readonly scaleFactor: number;
-};
-
 /** The size of the original image in pixels. */
 export type OriginalSize = {
   readonly width: number;
@@ -19,15 +11,15 @@ export type OriginalSize = {
 
 /**
  * Returns the region in whole pixels of the original image, or null when nothing of it is left
- * inside the original (FR-8, US-11). It divides by the scale factor, then clamps each edge to the original's bounds, so a region that reaches into prepare's padding is cut
+ * inside the original (FR-8, US-11). `scaleFactor` is what prepare multiplied the original by, and
+ * prepare placed the image at the top-left, so no offset is needed. It divides by the scale factor, then clamps each edge to the original's bounds, so a region that reaches into prepare's padding is cut
  * at the image edge. Then it rounds each edge, so the rounded rectangle stays inside the bounds.
  */
 export function mapRegionToOriginal(
   region: Region,
-  frame: PreparedFrame,
+  scaleFactor: number,
   original: OriginalSize,
 ): Region | null {
-  const scaleFactor = frame.scaleFactor;
   const left = region.x / scaleFactor;
   const top = region.y / scaleFactor;
   const right = (region.x + region.width) / scaleFactor;

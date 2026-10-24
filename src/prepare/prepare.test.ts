@@ -326,9 +326,10 @@ describe("determinism (FR-10, NFR-5)", () => {
 describe("refusing an image that would shrink below half size (FR-73)", () => {
   test("refuses a 1440 by 8000 page and asks for the page in parts", async () => {
     const input = await makeFlatPng(1440, 8000);
-    const attempt = prepareImage(input);
-    await expect(attempt).rejects.toBeInstanceOf(CouldNotRunError);
-    await expect(prepareImage(input)).rejects.toThrow(
+    // Catch the one rejection, so both checks read the same error.
+    const error = await prepareImage(input).catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(CouldNotRunError);
+    expect((error as Error).message).toMatch(
       /would shrink below half size.*send the page in parts/,
     );
   });

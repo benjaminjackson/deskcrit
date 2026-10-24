@@ -68,14 +68,6 @@ type FittedSize = {
   scaleFactor: number;
 };
 
-/** One encoded image and its final size, padding included. */
-type RenderedImage = {
-  bytes: Uint8Array;
-  width: number;
-  height: number;
-  padded: boolean;
-};
-
 const INVALID_IMAGE_MESSAGE = "the image is not a valid PNG or JPEG";
 
 const TOO_LARGE_MESSAGE =
@@ -105,44 +97,22 @@ export async function prepareImage(
   if (fitted.scaleFactor < MIN_SCALE_FACTOR) {
     throw new CouldNotRunError(TOO_LARGE_MESSAGE);
   }
-  const page = await renderImage(upright, fitted, format);
-
-  return {
-    bytes: page.bytes,
-    format,
-    width: page.width,
-    height: page.height,
-    originalWidth: upright.width,
-    originalHeight: upright.height,
-    scaleFactor: fitted.scaleFactor,
-    padded: page.padded,
-  };
-}
-
-/**
- * Scales the pixels to the fitted size, pads a side under MIN_SIDE_PIXELS
- * with the page's top-left colour at the bottom and right, and encodes the
- * result (FR-7, FR-8, FR-10).
- */
-async function renderImage(
-  source: UprightPixels,
-  fitted: FittedSize,
-  format: ImageFormat,
-): Promise<RenderedImage> {
+  // Pad a side under MIN_SIDE_PIXELS with the page's top-left colour at the
+  // bottom and right (FR-8).
   const finalWidth = Math.max(fitted.width, MIN_SIDE_PIXELS);
   const finalHeight = Math.max(fitted.height, MIN_SIDE_PIXELS);
   const padded = finalWidth > fitted.width || finalHeight > fitted.height;
 
-  let pipeline = sharp(source.pixels, {
+  let pipeline = sharp(upright.pixels, {
     raw: {
-      width: source.width,
-      height: source.height,
-      channels: source.channels,
+      width: upright.width,
+      height: upright.height,
+      channels: upright.channels,
     },
   });
-  if (fitted.width !== source.width || fitted.height !== source.height) {
-    // fit "fill" makes sharp use the exact sizes computed by the caller, so
-    // the rounding rule lives in this file and not inside sharp.
+  if (fitted.width !== upright.width || fitted.height !== upright.height) {
+    // fit "fill" makes sharp use the exact sizes computed by fitWithinLimits,
+    // so the rounding rule lives in this file and not inside sharp.
     pipeline = pipeline.resize({
       width: fitted.width,
       height: fitted.height,
@@ -156,14 +126,19 @@ async function renderImage(
       left: 0,
       right: finalWidth - fitted.width,
       bottom: finalHeight - fitted.height,
-      background: readTopLeftColour(source),
+      background: readTopLeftColour(upright),
     });
   }
   const encoded = await encodeImage(pipeline, format);
+
   return {
     bytes: new Uint8Array(encoded),
+    format,
     width: finalWidth,
     height: finalHeight,
+    originalWidth: upright.width,
+    originalHeight: upright.height,
+    scaleFactor: fitted.scaleFactor,
     padded,
   };
 }
