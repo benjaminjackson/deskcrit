@@ -15,8 +15,11 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { Ajv2020 } from "ajv/dist/2020.js";
 import { parseDocument } from "yaml";
+import {
+  compileReportValidator,
+  readPinnedModel,
+} from "../support/pinned-model-and-schema.ts";
 import {
   type FixtureLabel,
   type LabelPackCheck,
@@ -49,9 +52,6 @@ const REPORT_SCHEMA_PATH = join(
 const LABELS_DIRECTORY = join(HARNESS_DIRECTORY, "labels");
 const RUNS_DIRECTORY = join(HARNESS_DIRECTORY, "runs");
 const FIRST_PARTY_PACKS_DIRECTORY = join(REPOSITORY_DIRECTORY, "packs");
-
-/** The model id FR-22 forbids a pin to, because it changes under the user (NFR-6). */
-const FLOATING_MODEL_ID = "jev-latest";
 
 const EXIT_CODE_AGREED = 0;
 const EXIT_CODE_DISAGREED = 1;
@@ -149,9 +149,10 @@ function runHarness(argv: readonly string[]): {
       `${CRIT_BUNDLE_PATH} does not exist; run npm run build first`,
     );
   }
-  const pinnedModel = readPinnedModel();
+  const pinnedModel = readPinnedModel(HARNESS_DIRECTORY);
   const packDirectories = listPackDirectories(parsed.values.pack ?? []);
-  const validateReport = compileReportValidator();
+  const validateReport =
+    compileReportValidator<ReportDocument>(REPORT_SCHEMA_PATH);
 
   const usageTotals: UsageTotals = {
     requests: 0,
@@ -222,36 +223,6 @@ function isApiKeyPresent(): boolean {
 }
 
 /**
- * Read the model id pinned in evals/agreement/.crit.yaml, which crit also reads from its working
- * directory, and refuse a missing id or jev-latest (FR-22, NFR-6).
- */
-function readPinnedModel(): string {
-  const critYamlPath = join(HARNESS_DIRECTORY, ".crit.yaml");
-  const document = parseDocument(readFileSync(critYamlPath, "utf8"), {
-    schema: "core",
-    uniqueKeys: true,
-  });
-  if (document.errors.length > 0) {
-    throw new Error(`${critYamlPath}: not valid YAML`);
-  }
-  const parsed: unknown = document.toJS();
-  if (typeof parsed !== "object" || parsed === null || !("model" in parsed)) {
-    throw new Error(`${critYamlPath} must pin a model id`);
-  }
-  const model = parsed.model;
-  if (
-    typeof model !== "string" ||
-    model === "" ||
-    model === FLOATING_MODEL_ID
-  ) {
-    throw new Error(
-      `${critYamlPath} must pin an exact model id, never ${FLOATING_MODEL_ID}`,
-    );
-  }
-  return model;
-}
-
-/**
  * Return the pack directories to measure as absolute paths: the --pack directories, or else every
  * first-party pack under packs/ whose folder name does not start with `_` (FR-53).
  */
@@ -286,19 +257,6 @@ function listPackDirectories(packFlags: readonly string[]): string[] {
     );
   }
   return directories;
-}
-
-/**
- * Compile the report schema with Ajv's draft 2020-12 validator. The returned function is a type
- * guard: when it returns true, TypeScript treats the value as a ReportDocument (EV-2, CS-7).
- */
-function compileReportValidator() {
-  const schema: unknown = JSON.parse(readFileSync(REPORT_SCHEMA_PATH, "utf8"));
-  if (typeof schema !== "object" || schema === null) {
-    throw new Error(`${REPORT_SCHEMA_PATH} is not a JSON object`);
-  }
-  const ajv = new Ajv2020({ allErrors: true });
-  return ajv.compile<ReportDocument>(schema);
 }
 
 /**
@@ -413,7 +371,7 @@ function runCritOnFixture(
   fixture: string,
   pinnedModel: string,
   live: boolean,
-  validateReport: ReturnType<typeof compileReportValidator>,
+  validateReport: ReturnType<typeof compileReportValidator<ReportDocument>>,
 ): ReportDocument {
   const imagePath = join(pack.directory, fixture);
   const answersPath = join(

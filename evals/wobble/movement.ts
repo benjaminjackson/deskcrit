@@ -15,7 +15,7 @@ export type Observation = {
 /** How far one question's numbers moved across the runs (EV-6). */
 export type QuestionMovement = {
   readonly question: string;
-  /** The largest movement of any option probability. For noul this is the movement of the yes probability. */
+  /** The largest movement of any option probability. For noul it is the larger spread of the true and false probabilities. */
   readonly probabilityMovement: number;
   /** The movement of reported confidence, or null when no run reported one (noul). */
   readonly confidenceMovement: number | null;

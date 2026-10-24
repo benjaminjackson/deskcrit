@@ -9,10 +9,12 @@
 // It asks TypeSafe 5 times, so it needs the key and is never part of npm run ci.
 
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { Ajv2020 } from "ajv/dist/2020.js";
-import { parseDocument } from "yaml";
+import {
+  compileReportValidator,
+  readPinnedModel,
+} from "../support/pinned-model-and-schema.ts";
 import {
   measureQuestionMovement,
   type Observation,
@@ -32,9 +34,6 @@ const IMAGE_PATH = join(WOBBLE_DIRECTORY, "slice.png");
 
 /** How many times crit is run on the image (EV-6). */
 const RUN_COUNT = 5;
-
-/** The model id FR-22 forbids a pin to, because it changes under the user (NFR-6). */
-const FLOATING_MODEL_ID = "jev-latest";
 
 const EXIT_CODE_HOLDS = 0;
 const EXIT_CODE_DOES_NOT_HOLD = 1;
@@ -83,8 +82,9 @@ function runCheck(): { text: string; exitCode: number } {
       `${CRIT_BUNDLE_PATH} does not exist; run npm run build first`,
     );
   }
-  const pinnedModel = readPinnedModel();
-  const validateReport = compileReportValidator();
+  const pinnedModel = readPinnedModel(WOBBLE_DIRECTORY);
+  const validateReport =
+    compileReportValidator<ReportDocument>(REPORT_SCHEMA_PATH);
 
   // Observations by criterion id, one entry per run, in the order the runs happened.
   const observationsByQuestion = new Map<string, Observation[]>();
@@ -166,43 +166,6 @@ function runCheck(): { text: string; exitCode: number } {
   return { text: `${lines.join("\n")}\n`, exitCode };
 }
 
-/** Read the model id pinned in evals/wobble/.crit.yaml and refuse a missing id or jev-latest (FR-22, NFR-6). */
-function readPinnedModel(): string {
-  const critYamlPath = join(WOBBLE_DIRECTORY, ".crit.yaml");
-  const document = parseDocument(readFileSync(critYamlPath, "utf8"), {
-    schema: "core",
-    uniqueKeys: true,
-  });
-  if (document.errors.length > 0) {
-    throw new Error(`${critYamlPath}: not valid YAML`);
-  }
-  const parsed: unknown = document.toJS();
-  if (typeof parsed !== "object" || parsed === null || !("model" in parsed)) {
-    throw new Error(`${critYamlPath} must pin a model id`);
-  }
-  const model = parsed.model;
-  if (
-    typeof model !== "string" ||
-    model === "" ||
-    model === FLOATING_MODEL_ID
-  ) {
-    throw new Error(
-      `${critYamlPath} must pin an exact model id, never ${FLOATING_MODEL_ID}`,
-    );
-  }
-  return model;
-}
-
-/** Compile the report schema with Ajv's draft 2020-12 validator, as a type guard for ReportDocument (EV-2, CS-7). */
-function compileReportValidator() {
-  const schema: unknown = JSON.parse(readFileSync(REPORT_SCHEMA_PATH, "utf8"));
-  if (typeof schema !== "object" || schema === null) {
-    throw new Error(`${REPORT_SCHEMA_PATH} is not a JSON object`);
-  }
-  const ajv = new Ajv2020({ allErrors: true });
-  return ajv.compile<ReportDocument>(schema);
-}
-
 /**
  * Run the built crit bundle once as a child process with evals/wobble/ as its working directory,
  * so crit reads evals/wobble/.crit.yaml, and return the report after checking it against the
@@ -211,7 +174,7 @@ function compileReportValidator() {
  */
 function runCritOnce(
   runNumber: number,
-  validateReport: ReturnType<typeof compileReportValidator>,
+  validateReport: ReturnType<typeof compileReportValidator<ReportDocument>>,
 ): ReportDocument {
   const result = spawnSync(
     process.execPath,
