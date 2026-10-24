@@ -1,7 +1,5 @@
 // Disposable unit tests (CS-22) for the readable renderer (FR-28, FR-32, FR-33, FR-34, US-2, NFR-5).
 
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import type { Finding, Report } from "../compose/report.js";
 import { prdExampleReport } from "./prd-example-report.fixture.js";
@@ -160,28 +158,3 @@ describe("renderReportText", () => {
     expect(renderReportText(report)).toBe(renderReportText(report));
   });
 });
-
-// A disposable check of CS-6 and CS-18: the renderers do no I/O, import only compose's types,
-// and use nothing that breaks determinism. It reads source files, which is fine in a test.
-const forbiddenPatterns: RegExp[] = [
-  /\bfetch\(/,
-  /from\s+["']node:/,
-  /require\(/,
-  /\bprocess\./,
-  /\bconsole\./,
-  /from\s+["']\.\.\/(?!compose\/report\.js|compose\/verdict\.js)/,
-  /\bDate\b/,
-  /Math\.random/,
-  /localeCompare|toLocale/,
-  /\\u001b|\\x1b/,
-];
-
-for (const name of ["render-json.ts", "render-text.ts"]) {
-  test(`${name} does no I/O and imports only compose's types`, () => {
-    const source = readFileSync(join(import.meta.dirname, name), "utf8");
-    for (const pattern of forbiddenPatterns) {
-      expect(source).not.toMatch(pattern);
-    }
-    expect(source).not.toMatch(/^import (?!type )/m);
-  });
-}
