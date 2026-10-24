@@ -7,7 +7,9 @@
 // --save-answers into runs/<pack>/<model>/. Replay mode (`npm run eval:agreement`) scores those
 // saved answers with --answers, needs no key, and makes no network call (FR-42).
 //
-// Usage: node evals/agreement/run-agreement.ts [--live] [--pack <dir>]...
+// Usage: node evals/agreement/run-agreement.ts [--live] [--rerun-same-set] [--pack <dir>]...
+// A live run refuses a fixture set it already scored with the same model (EV-4 rule 5), unless a
+// person passes --rerun-same-set.
 // Without --pack it measures every first-party pack under packs/. Exit 0 when every fixture agrees,
 // 1 when any EV-4 fixture disagrees, and 2 when the harness could not run (FR-24).
 
@@ -140,6 +142,7 @@ function runHarness(argv: readonly string[]): {
     args: [...argv],
     options: {
       live: { type: "boolean", default: false },
+      "rerun-same-set": { type: "boolean", default: false },
       pack: { type: "string", multiple: true },
     },
     strict: true,
@@ -160,6 +163,11 @@ function runHarness(argv: readonly string[]): {
   const packDirectories = listPackDirectories(parsed.values.pack ?? []);
   const validateReport =
     compileReportValidator<ReportDocument>(REPORT_SCHEMA_PATH);
+  if (live && !(parsed.values["rerun-same-set"] ?? false)) {
+    for (const packDirectory of packDirectories) {
+      refuseSecondRunOnSameSet(readPackFixtures(packDirectory), pinnedModel);
+    }
+  }
 
   const usageTotals: UsageTotals = {
     requests: 0,
@@ -227,24 +235,58 @@ function runHarness(argv: readonly string[]): {
 }
 
 /**
+ * Return the SHA-256 of the pack's fixtures/rendered.json, or null when the pack has none, such as
+ * a pack made of captured pages only. The hash names the frozen fixture set (EV-4 rule 5).
+ */
+function hashFixtureSet(pack: PackFixtures): string | null {
+  const renderedJsonPath = join(pack.directory, "fixtures", "rendered.json");
+  if (!existsSync(renderedJsonPath)) {
+    return null;
+  }
+  return createHash("sha256")
+    .update(readFileSync(renderedJsonPath))
+    .digest("hex");
+}
+
+/** The path of the file that keeps the hash of the fixture set a live run scored. */
+function frozenSetHashPath(pack: PackFixtures, pinnedModel: string): string {
+  return join(RUNS_DIRECTORY, pack.name, pinnedModel, "rendered.json.sha256");
+}
+
+/**
+ * Throw before any request is sent when a live run already scored this exact fixture set with
+ * this model, because EV-4 rule 5 says the first scored run decides and no criterion is run
+ * again on the same set. A person who must run it again, for example after a run that stopped
+ * part way, passes --rerun-same-set.
+ */
+function refuseSecondRunOnSameSet(
+  pack: PackFixtures,
+  pinnedModel: string,
+): void {
+  const currentHash = hashFixtureSet(pack);
+  const hashPath = frozenSetHashPath(pack, pinnedModel);
+  if (currentHash === null || !existsSync(hashPath)) {
+    return;
+  }
+  const storedHash = readFileSync(hashPath, "utf8").trim();
+  if (storedHash === currentHash) {
+    throw new Error(
+      `${pack.name}: a live run with ${pinnedModel} already scored this fixture set (${hashPath}), and EV-4 rule 5 allows no second run on the same set; no request was sent. A person may pass --rerun-same-set to run it again.`,
+    );
+  }
+}
+
+/**
  * Write the SHA-256 of the pack's fixtures/rendered.json next to the answers of a live run, so a
  * later reader can check which frozen fixture set the run scored (EV-4 rule 5). A pack with no
  * rendered.json, such as one made of captured pages only, gets no file.
  */
 function recordFrozenSet(pack: PackFixtures, pinnedModel: string): void {
-  const renderedJsonPath = join(pack.directory, "fixtures", "rendered.json");
-  if (!existsSync(renderedJsonPath)) {
+  const hash = hashFixtureSet(pack);
+  if (hash === null) {
     return;
   }
-  const hash = createHash("sha256")
-    .update(readFileSync(renderedJsonPath))
-    .digest("hex");
-  const hashPath = join(
-    RUNS_DIRECTORY,
-    pack.name,
-    pinnedModel,
-    "rendered.json.sha256",
-  );
+  const hashPath = frozenSetHashPath(pack, pinnedModel);
   mkdirSync(dirname(hashPath), { recursive: true });
   writeFileSync(hashPath, `${hash}\n`);
 }
