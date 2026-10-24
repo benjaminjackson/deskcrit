@@ -2,32 +2,28 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Layout fixture: groups-not-separated (4)</title>
+    <title>Layout fixture: groups-not-separated--4</title>
     <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* A directory of three offices, each with a name line and two contact lines. Inside an office the lines are
-         6 px apart and offices are 52 px apart. The defect sets every gap to 18 px and makes the office name look like the other lines (OQ-17). */
-      body { background: #f4f6f2; }
-      main { margin: 56px 0 0 96px; width: 700px; }
-      h1 { font-size: 30px; margin-bottom: 30px; }
-      .office { margin-bottom: 52px; }
-      .name { font-size: 20px; font-weight: 700; color: #35523a; margin-bottom: 6px; }
-      .line { font-size: 17px; color: var(--color-text); margin-bottom: 6px; }
-      .office .line:last-child { margin-bottom: 0; }
-      [data-defect="on"] .office { margin-bottom: 18px; }
-      [data-defect="on"] .name { font-size: 17px; color: var(--color-text); margin-bottom: 18px; }
-      [data-defect="on"] .line { margin-bottom: 18px; }
-      [data-defect="on"] .office .line:last-child { margin-bottom: 0; }
+      /* A dark schedule: three days of three outlined session cards. Off: cards 6 px apart, days 52 px apart.
+         On: every gap is 12 px (OQ-17). */
+      body { background: #111827; color: #f3f4f6; }
+      main { margin: 28px 0 0 120px; width: 640px; }
+      .s { height: 46px; line-height: 42px; border: 2px solid #6b7280; padding: 0 16px; margin-bottom: 6px; font-size: 17px; }
+      .s.day { border-color: #fbbf24; color: #fbbf24; font-weight: 700; }
+      .s.end { margin-bottom: 52px; }
+      .s.last { margin-bottom: 0; }
+      [data-defect="on"] .s, [data-defect="on"] .s.end { margin-bottom: 12px; }
+      [data-defect="on"] .s.last { margin-bottom: 0; }
     </style>
   </head>
   <body>
     <main>
-      <h1>Where to find us</h1>
-      <div class="office"><div class="name">Riverside office</div><div class="line">12 Alder Row, open weekdays nine to five</div><div class="line">Phone 555 0142</div></div>
-      <div class="office"><div class="name">Hilltop depot</div><div class="line">3 Quarry Lane, open Monday to Saturday</div><div class="line">Phone 555 0177</div></div>
-      <div class="office"><div class="name">Market stall</div><div class="line">Square 7, open on Saturday mornings</div><div class="line">Phone 555 0109</div></div>
+      <div class="s day">Thursday</div><div class="s">09:00 Keynote</div><div class="s">10:30 Lightning talks</div><div class="s end">13:00 Workshops</div>
+      <div class="s day">Friday</div><div class="s">09:00 Panel</div><div class="s">11:00 Demos</div><div class="s end">14:00 Roundtable</div>
+      <div class="s day">Saturday</div><div class="s">10:00 Hack hour</div><div class="s">12:00 Lunch</div><div class="s last">15:00 Closing</div>
     </main>
   </body>
 </html>

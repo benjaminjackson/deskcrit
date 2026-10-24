@@ -2,33 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Layout fixture: groups-not-separated (5)</title>
+    <title>Layout fixture: groups-not-separated--5</title>
     <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* Three days of sessions drawn as rows. Rows inside a day are 8 px apart and days are 40 px apart. The defect
-         makes every gap 10 px, so the day headings are no longer set apart (OQ-17). */
-      body { background: #f5f2fa; }
-      main { margin: 36px 0 0 120px; width: 780px; }
-      h1 { font-size: 28px; margin-bottom: 20px; }
-      .day { margin-bottom: 40px; }
-      h2 { font-size: 16px; color: #5b3f8c; margin-bottom: 8px; }
-      .slot { background: #fff; border: 1px solid #ddd3ee; border-radius: 6px; padding: 8px 14px; margin-bottom: 8px; font-size: 16px; display: flex; justify-content: space-between; }
-      .slot span { color: var(--color-muted); }
-      .day .slot:last-child { margin-bottom: 0; }
-      [data-defect="on"] .day { margin-bottom: 10px; }
-      [data-defect="on"] h2 { margin-bottom: 10px; }
-      [data-defect="on"] .slot { margin-bottom: 10px; }
-      [data-defect="on"] .day .slot:last-child { margin-bottom: 0; }
+      /* Three colour sets of three wide strips. Off: strips 5 px apart inside a set, sets 48 px apart.
+         On: every gap is 10 px, so the sets run together (OQ-17). */
+      main { margin: 36px 0 0 100px; width: 960px; }
+      .st { height: 44px; margin-bottom: 5px; color: #fff; font-size: 17px; line-height: 44px; padding: 0 16px; }
+      .st.end { margin-bottom: 48px; }
+      .st.last { margin-bottom: 0; }
+      .o { background: #c2410c; } .t { background: #0f766e; } .v { background: #6d28d9; }
+      [data-defect="on"] .st, [data-defect="on"] .st.end { margin-bottom: 10px; }
+      [data-defect="on"] .st.last { margin-bottom: 0; }
     </style>
   </head>
   <body>
     <main>
-      <h1>Conference agenda</h1>
-      <div class="day"><h2>Thursday</h2><div class="slot">Opening talk<span>09:00</span></div><div class="slot">Maps and memory<span>10:30</span></div><div class="slot">Lunch on the terrace<span>12:00</span></div></div>
-      <div class="day"><h2>Friday</h2><div class="slot">Workshop block<span>09:30</span></div><div class="slot">Panel on small tools<span>11:00</span></div><div class="slot">Open questions<span>14:00</span></div></div>
-      <div class="day"><h2>Saturday</h2><div class="slot">Field visit<span>10:00</span></div><div class="slot">Closing notes<span>13:00</span></div><div class="slot">Farewell tea<span>15:00</span></div></div>
+      <div class="st o">Rent</div><div class="st o">Power</div><div class="st o end">Water</div>
+      <div class="st t">Bread</div><div class="st t">Milk</div><div class="st t end">Fruit</div>
+      <div class="st v">Bus</div><div class="st v">Train</div><div class="st v last">Bike repair</div>
     </main>
   </body>
 </html>

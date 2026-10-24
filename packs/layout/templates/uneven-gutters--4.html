@@ -2,32 +2,31 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Layout fixture: uneven-gutters (4)</title>
+    <title>Layout fixture: uneven-gutters--4</title>
     <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* Four equal text columns on tinted panels, split by 32 px gutters. The defect shrinks the first two gutters to 16 px and widens the third to 64 px, so one gutter is four times as wide as its neighbours (OQ-17). */
-      body { font-family: var(--font-serif); background: #fafaf7; }
-      main { margin: 52px 72px 0; }
-      h1 { font-size: 44px; border-bottom: 3px solid var(--color-text); padding-bottom: 12px; margin-bottom: 28px; }
-      .cols { display: flex; }
-      .col { width: 252px; font-size: 17px; line-height: 1.55; background: #e4dfd0; padding: 18px; height: 420px; }
-      .col h2 { font-size: 21px; margin-bottom: 8px; }
-      .col + .col { margin-left: 32px; }
-      [data-defect="on"] .c2 { margin-left: 16px; }
-      [data-defect="on"] .c3 { margin-left: 16px; }
-      [data-defect="on"] .c4 { margin-left: 64px; }
+      /* A pricing page: four solid teal plan cards on a white page, 24 px apart, so each gap is a white stripe. The defect makes the third gap 120 px wide. (OQ-17) */
+      main { margin: 64px 80px 0; }
+      h1 { font-size: 30px; font-weight: 700; margin-bottom: 48px; }
+      .row { display: flex; }
+      .plan { width: 240px; height: 440px; background: #0f766e; color: #fff; border-radius: 6px; padding: 24px; margin-right: 24px; }
+      .plan:last-child { margin-right: 0; }
+      .plan h2 { font-size: 22px; margin-bottom: 8px; }
+      .plan .cost { font-size: 40px; font-weight: 700; margin-bottom: 14px; }
+      .plan p { font-size: 16px; opacity: .85; }
+      [data-defect="on"] .third { margin-right: 120px; }
     </style>
   </head>
   <body>
     <main>
-      <h1>The Harbour Gazette</h1>
-      <div class="cols">
-        <div class="col"><h2>New quay opens</h2>The long wall at the east end is finished and boats can tie up from Monday. The council thanked the crew for working through the storms.</div>
-        <div class="col c2"><h2>Ferry timetable</h2>From next month the ferry adds a late crossing on Fridays. Tickets can be bought on board or at the kiosk by the clock.</div>
-        <div class="col c3"><h2>Market notes</h2>Stalls on the square sell smoked fish, apples, wool socks and candles. The market runs until four, rain or shine.</div>
-        <div class="col c4"><h2>Lifeboat day</h2>The crew open the shed on Saturday with tours, a cake stall and a raffle for a hamper of local cheese.</div>
+      <h1>Choose a plan</h1>
+      <div class="row">
+        <div class="plan"><h2>Solo</h2><div class="cost">5</div><p>One user, one project.</p></div>
+        <div class="plan"><h2>Duo</h2><div class="cost">9</div><p>Two users, five projects.</p></div>
+        <div class="plan third"><h2>Team</h2><div class="cost">24</div><p>Ten users, shared folders.</p></div>
+        <div class="plan"><h2>Studio</h2><div class="cost">60</div><p>Unlimited users and projects.</p></div>
       </div>
     </main>
   </body>

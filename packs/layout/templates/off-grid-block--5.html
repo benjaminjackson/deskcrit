@@ -2,29 +2,29 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Layout fixture: off-grid-block (5)</title>
+    <title>Layout fixture: off-grid-block--5</title>
     <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* A gallery of eight tiles on four column lines. The defect slides the last tile of the second row 52 px
-         to the right, so it starts and ends between two column lines (OQ-17). */
-      body { background: #14202b; color: #e8eef4; }
-      main { margin: 48px 72px 0; }
-      h1 { font-size: 28px; font-weight: 300; letter-spacing: 1px; margin-bottom: 28px; }
-      .grid { display: grid; grid-template-columns: repeat(4, 262px); column-gap: 24px; row-gap: 24px; }
-      .tile { height: 250px; border-radius: 6px; padding: 16px; display: flex; align-items: flex-end; font-size: 15px; }
-      .a { background: #3d6b8c; } .b { background: #8c5a3d; } .c { background: #4f7d5e; } .d { background: #7a5c8c; }
-      [data-defect="on"] .shifted { transform: translateX(52px); }
+      /* A photo wall: a full-width header bar (x=80 to 1200) over four columns of tiles at x=80, 365, 650 and 935 (265 px wide, 20 px apart). The second row holds one tile spanning columns 1 and 2 (x=80 to 630) and tiles in columns 3 and 4, all one colour. The defect moves the wide tile to x=190 to 540, which no other block uses. (OQ-17) */
+      body { background: #f3f0f7; }
+      .head { position: absolute; left: 80px; top: 36px; width: 1120px; height: 64px; background: #e3dcee; padding: 0 24px; display: flex; align-items: center; font-size: 28px; font-weight: 700; }
+      .t { position: absolute; width: 265px; height: 190px; padding: 22px 26px; color: #fff; background: #7b2d8e; }
+      .t h2 { font-size: 22px; margin-bottom: 6px; }
+      .k1 { left: 80px; } .k2 { left: 365px; } .k3 { left: 650px; } .k4 { left: 935px; }
+      .wide { left: 80px; width: 550px; }
+      [data-defect="on"] .wide { left: 190px; width: 350px; }
     </style>
   </head>
   <body>
-    <main>
-      <h1>Field trip photos</h1>
-      <div class="grid">
-        <div class="tile a">Lighthouse</div><div class="tile b">Rope shed</div><div class="tile c">Salt marsh</div><div class="tile d">Ferry deck</div>
-        <div class="tile c">Pebble beach</div><div class="tile d">Net loft</div><div class="tile a">Boat yard</div><div class="tile b shifted">Fish market</div>
-      </div>
-    </main>
+    <div class="head">Photo wall</div>
+    <div class="t k1" style="top:130px"><h2>Harbour</h2><p>Dawn light.</p></div>
+    <div class="t k2" style="top:130px"><h2>Hills</h2><p>First snow.</p></div>
+    <div class="t k3" style="top:130px"><h2>Market</h2><p>Saturday crowd.</p></div>
+    <div class="t k4" style="top:130px"><h2>Station</h2><p>Night train.</p></div>
+    <div class="t wide" style="top:340px"><h2>Festival</h2><p>The whole square lit up for the evening parade.</p></div>
+    <div class="t k3" style="top:340px"><h2>Bridge</h2><p>Low tide.</p></div>
+    <div class="t k4" style="top:340px"><h2>Garden</h2><p>Late summer.</p></div>
   </body>
 </html>

@@ -2,38 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Layout fixture: off-grid-block (3)</title>
+    <title>Layout fixture: off-grid-block--3</title>
     <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* Article column and a sidebar share a left line each. The defect pulls the sign-up box out of the sidebar,
-         50 px left into the gutter and 40 px past the right line (OQ-17). */
-      body { font-family: var(--font-serif); }
-      main { margin: 56px 80px 0; display: grid; grid-template-columns: 680px 320px; column-gap: 88px; }
-      h1 { font-size: 40px; line-height: 1.15; margin-bottom: 20px; }
-      article p { font-size: 19px; margin-bottom: 18px; }
-      aside > div { border: 2px solid var(--color-border); padding: 22px; margin-bottom: 24px; background: #fbf7ef; }
-      aside h2 { font-size: 20px; margin-bottom: 8px; }
-      aside p { font-size: 16px; color: var(--color-muted); }
-      aside .signup { background: #e8f0e6; }
-      [data-defect="on"] aside .signup { margin-left: -64px; margin-right: -44px; }
+      /* A narrow left column of three solid blocks (x=80 to 480) and a wide right column of three solid blocks (x=520 to 1200). The defect moves the middle block of the right column to start at x=600 and end at x=1120. (OQ-17) */
+      h1 { position: absolute; left: 80px; top: 40px; font-size: 32px; font-weight: 700; }
+      .blk { position: absolute; padding: 22px 28px; height: 150px; color: #fff; }
+      .blk h2 { font-size: 22px; margin-bottom: 6px; }
+      .l { left: 80px; width: 400px; background: #334155; }
+      .r { left: 520px; width: 680px; background: #0f766e; }
+      [data-defect="on"] .odd { left: 600px; width: 520px; }
     </style>
   </head>
   <body>
-    <main>
-      <article>
-        <h1>A short guide to the tide tables</h1>
-        <p>Tide tables list the time and height of each high and low water for one harbour. Read the harbour name first, because the same coast can differ by an hour from one bay to the next.</p>
-        <p>Times are printed in local time unless the header says otherwise. Heights are measured from the chart datum, the level below which the water rarely falls.</p>
-        <p>On a spring tide the range is largest, and the current in narrow channels runs fastest about two hours after the turn.</p>
-        <p>Plan a landing for the hour before high water and leave a margin for wind, which can hold the sea back or push it up the shore.</p>
-      </article>
-      <aside>
-        <div><h2>Chart datum</h2><p>The reference level for every height in the table.</p></div>
-        <div class="signup"><h2>Weekly tide mail</h2><p>One short note with the next seven days for your harbour.</p></div>
-        <div><h2>Harbours</h2><p>North quay, Mill bay, Rook point, Salt cove.</p></div>
-      </aside>
-    </main>
+    <h1>Trip board</h1>
+    <div class="blk l" style="top:120px"><h2>Flights</h2><p>Out on Friday, back on Monday.</p></div>
+    <div class="blk l" style="top:300px"><h2>Hotel</h2><p>Two nights near the station.</p></div>
+    <div class="blk l" style="top:480px"><h2>Budget</h2><p>Keep it under four hundred.</p></div>
+    <div class="blk r" style="top:120px"><h2>Saturday</h2><p>Old town walk, lunch by the river.</p></div>
+    <div class="blk r odd" style="top:300px"><h2>Sunday</h2><p>Market in the morning, museum after.</p></div>
+    <div class="blk r" style="top:480px"><h2>Packing</h2><p>Light jacket, walking shoes, charger.</p></div>
   </body>
 </html>

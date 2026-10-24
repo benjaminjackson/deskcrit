@@ -1,8 +1,10 @@
 # The first-party layout pack (crit-cy8.18, FR-55). It encodes the askable entries in the
 # "Layout, spacing, grids, alignment, visual hierarchy" section of GUIDELINES.md. Optical
 # alignment is not encoded (NG-10), and content that touches the page edge belongs to the basics
-# pack. Every question is noul, and true is the defect (JC-5). Every fix hint is a draft until
-# Benjamin Jackson approves it (G-4).
+# pack. Three askable entries (an image off the text lines, a near-miss alignment, and a label
+# as close to the field above as to its own) are left out because Jev did not reach the EV-4
+# floor on them. Every question is noul, and true is the defect (JC-5). Every fix hint is a draft
+# until Benjamin Jackson approves it (G-4).
 name: layout
 version: 0.2.0
 title: Layout, spacing, grids, alignment, and visual hierarchy
@@ -64,62 +66,6 @@ criteria:
         - fixtures/uneven-gutters--4.negative.png
         - fixtures/uneven-gutters--5.negative.png
 
-  - id: picture-off-text-lines
-    title: 'An image does not line up with the text beside it'
-    source: 'Josef Müller-Brockmann, *Grid Systems in Graphic Design* (1981), "Construction of the grid" and "The photograph in the grid system".'
-    question:
-      type: noul
-      instructions: 'In the image at screenshot, does an image beside a column of text start or end at a different height from that column''s first or last line?'
-      criteria:
-        "true": 'An image beside a column of text starts or ends at a different height from the first or last line of that column.'
-        "false": 'Every image beside a column of text starts at that column''s first line and ends at its last line, or there is no image beside text.'
-    pass_when: { probability_at_most: 0.3 }
-    fail_when: { probability_at_least: 0.7 }
-    locate: true
-    locate_instructions: 'Mark the image whose top or bottom does not line up with the text beside it.'
-    fix: 'Take the image''s width from the columns and set its top and bottom on the first and last lines of the text beside it, so that picture and text share the same edges (Müller-Brockmann, *Grid Systems in Graphic Design*). Draft until Benjamin Jackson approves (G-4).'
-    fixtures:
-      positive:
-        - fixtures/picture-off-text-lines.positive.png
-        - fixtures/picture-off-text-lines--2.positive.png
-        - fixtures/picture-off-text-lines--3.positive.png
-        - fixtures/picture-off-text-lines--4.positive.png
-        - fixtures/picture-off-text-lines--5.positive.png
-      negative:
-        - fixtures/picture-off-text-lines.negative.png
-        - fixtures/picture-off-text-lines--2.negative.png
-        - fixtures/picture-off-text-lines--3.negative.png
-        - fixtures/picture-off-text-lines--4.negative.png
-        - fixtures/picture-off-text-lines--5.negative.png
-
-  - id: near-miss-alignment
-    title: 'An element is almost in line, as if it missed'
-    source: 'Rudolf Arnheim, *Art and Visual Perception* (1954, rev. 1974), chapter I "Balance"; Timothy Samara, *Making and Breaking the Grid* (3rd ed. 2023), "Breaking the Grid".'
-    question:
-      type: noul
-      instructions: 'In the image at screenshot, is there an element that sits slightly out of line with the elements above or below it, as if it were meant to line up but missed?'
-      criteria:
-        "true": 'An element sits slightly out of line with the elements above or below it, as if it were meant to line up but missed.'
-        "false": 'Every element either lines up exactly with the elements above and below it or leaves the line by a clear, deliberate amount.'
-    pass_when: { probability_at_most: 0.3 }
-    fail_when: { probability_at_least: 0.7 }
-    locate: true
-    locate_instructions: 'Mark the element that sits slightly out of line with the elements above or below it.'
-    fix: 'Put the element exactly on the line the others share, or move it off the grid by a clear amount so that the break reads as a choice (Arnheim, *Art and Visual Perception*). Draft until Benjamin Jackson approves (G-4).'
-    fixtures:
-      positive:
-        - fixtures/near-miss-alignment.positive.png
-        - fixtures/near-miss-alignment--2.positive.png
-        - fixtures/near-miss-alignment--3.positive.png
-        - fixtures/near-miss-alignment--4.positive.png
-        - fixtures/near-miss-alignment--5.positive.png
-      negative:
-        - fixtures/near-miss-alignment.negative.png
-        - fixtures/near-miss-alignment--2.negative.png
-        - fixtures/near-miss-alignment--3.negative.png
-        - fixtures/near-miss-alignment--4.negative.png
-        - fixtures/near-miss-alignment--5.negative.png
-
   - id: groups-not-separated
     title: 'Gaps between groups equal the gaps inside them'
     source: 'Rudolf Arnheim, *Art and Visual Perception* (1954, rev. 1974), chapter II "Shape", on grouping by similarity of location; Max Wertheimer, "Untersuchungen zur Lehre von der Gestalt II" (1923).'
@@ -146,35 +92,6 @@ criteria:
         - fixtures/groups-not-separated--3.negative.png
         - fixtures/groups-not-separated--4.negative.png
         - fixtures/groups-not-separated--5.negative.png
-
-  - id: label-far-from-field
-    title: 'A form label sits as close to the field above as to its own'
-    source: 'Rudolf Arnheim, *Art and Visual Perception* (1954, rev. 1974), chapter II "Shape", on grouping by similarity of location; Max Wertheimer, "Untersuchungen zur Lehre von der Gestalt II" (1923).'
-    link: https://www.gestalttheory.net/download/Wertheimer1923_Lehre_von_der_Gestalt.pdf
-    question:
-      type: noul
-      instructions: 'In the image at screenshot, does a form label sit as close to the field above it as to its own field, or closer?'
-      criteria:
-        "true": 'A form label sits as close to the field above it as to its own field, or closer.'
-        "false": 'Every form label sits clearly closer to its own field than to the field above it.'
-    pass_when: { probability_at_most: 0.3 }
-    fail_when: { probability_at_least: 0.7 }
-    locate: true
-    locate_instructions: 'Mark the form label that sits as close to the field above it as to its own field.'
-    fix: 'Move each label nearer its own field than the field before it: cut the space below the label and add space above it (Wertheimer, "Untersuchungen zur Lehre von der Gestalt II"). Draft until Benjamin Jackson approves (G-4).'
-    fixtures:
-      positive:
-        - fixtures/label-far-from-field.positive.png
-        - fixtures/label-far-from-field--2.positive.png
-        - fixtures/label-far-from-field--3.positive.png
-        - fixtures/label-far-from-field--4.positive.png
-        - fixtures/label-far-from-field--5.positive.png
-      negative:
-        - fixtures/label-far-from-field.negative.png
-        - fixtures/label-far-from-field--2.negative.png
-        - fixtures/label-far-from-field--3.negative.png
-        - fixtures/label-far-from-field--4.negative.png
-        - fixtures/label-far-from-field--5.negative.png
 
   - id: crowded-unrelated-elements
     title: 'Text or a control nearly touches something it does not belong to'

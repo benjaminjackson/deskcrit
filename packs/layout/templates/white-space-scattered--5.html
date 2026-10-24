@@ -2,43 +2,28 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Layout fixture: white-space-scattered-5</title>
+    <title>Layout fixture: white-space-scattered--5</title>
     <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* A magazine spread about hiking, set in a classic serif. The off side puts a huge title high on the
-         left, one dense two-column block of text lower on the right, and wide open areas between. The on
-         side breaks the spread into boxes that fill the page, each 10px from the next (OQ-17). */
-      body { font-family: var(--font-serif); }
-      .page { position: relative; }
-      h1 { position: absolute; left: 70px; top: 50px; font-size: 104px; line-height: 0.95; font-weight: 400; width: 560px; }
-      .deck { position: absolute; left: 70px; top: 400px; width: 380px; font-size: 24px; font-style: normal; color: var(--color-muted); }
-      .cols { position: absolute; left: 640px; top: 330px; width: 560px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 17px; line-height: 1.4; }
-      .cols p { background: #f3eee4; padding: 8px 10px; }
-      .pic { position: absolute; left: 640px; top: 70px; width: 300px; height: 200px; background: #cdd8c8; }
-      [data-defect="on"] .page { padding: 28px; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1.2fr 1fr 1fr; gap: 10px; height: 800px; }
-      [data-defect="on"] h1, [data-defect="on"] .deck, [data-defect="on"] .cols, [data-defect="on"] .pic { position: static; width: auto; height: auto; }
-      [data-defect="on"] h1 { grid-column: 1 / span 2; font-size: 64px; background: #f3eee4; padding: 18px; }
-      [data-defect="on"] .pic { grid-column: 3 / span 2; }
-      [data-defect="on"] .deck { grid-column: span 3; order: 5; background: #f3eee4; padding: 18px; font-size: 22px; }
-      [data-defect="on"] .cols { display: contents; }
-      [data-defect="on"] .cols p { padding: 18px; }
-
+      /* A budget map: four bands of coloured segments, 6 px apart. Off: the bands are a small block at the
+         bottom left, with a large empty page above and to the right. On: the bands fill the page, so no open
+         area is left (OQ-17). */
+      .map { position: absolute; left: 48px; bottom: 48px; width: 440px; height: 280px; display: flex; flex-direction: column; gap: 6px; }
+      .band { flex: 1; display: flex; gap: 6px; }
+      .seg { color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+      .a { background: #b45309; } .b { background: #0f766e; } .c { background: #6d28d9; } .d { background: #be123c; } .e { background: #1d4ed8; }
+      [data-defect="on"] .map { inset: 6px; width: auto; height: auto; }
+      [data-defect="on"] .seg { font-size: 22px; font-weight: 700; }
     </style>
   </head>
   <body>
-    <div class="page">
-      <h1>The ridge path in autumn</h1>
-      <p class="deck">Seven miles of heather, stone walls, and one very good tea stop.</p>
-      <div class="pic"></div>
-      <div class="cols">
-        <p>Start at the old mill car park and follow the stream uphill until the trees thin out.</p>
-        <p>The ridge opens on the right, with the whole valley laid out below like a patchwork.</p>
-        <p>Keep to the wall for a mile. The ground is soft after rain, so wear boots.</p>
-        <p>At the stone barn the path drops to the village, and the tea room opens at two.</p>
-        <p>Buses back to the mill run on the hour, and the last one leaves at six.</p>
-      </div>
+    <div class="map">
+      <div class="band"><div class="seg a" style="flex:5">Rent</div><div class="seg b" style="flex:2">Food</div><div class="seg c" style="flex:2">Bus</div><div class="seg d" style="flex:1">Gym</div></div>
+      <div class="band"><div class="seg e" style="flex:3">Power</div><div class="seg a" style="flex:2">Water</div><div class="seg b" style="flex:4">Phone</div><div class="seg c" style="flex:1">Tax</div></div>
+      <div class="band"><div class="seg d" style="flex:2">Books</div><div class="seg e" style="flex:2">Music</div><div class="seg a" style="flex:3">Games</div><div class="seg b" style="flex:2">Pets</div><div class="seg c" style="flex:1">Gifts</div></div>
+      <div class="band"><div class="seg c" style="flex:4">Savings</div><div class="seg d" style="flex:3">Repairs</div><div class="seg e" style="flex:2">Travel</div><div class="seg a" style="flex:2">Fun</div></div>
     </div>
   </body>
 </html>

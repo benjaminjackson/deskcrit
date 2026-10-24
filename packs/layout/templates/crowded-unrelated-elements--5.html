@@ -2,42 +2,35 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Layout fixture: crowded-unrelated-elements--5</title>
+    <title>Layout fixture: crowded-unrelated-elements</title>
     <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* A table of results, then a footer sentence about something else (a news item). Off: a clear
-         gap separates them. On: the news sentence sits pressed under the last table row. */
-      main { margin: 48px 100px 0; }
-      h1 { font-size: 30px; margin-bottom: 18px; }
-      table { width: 100%; border-collapse: collapse; }
-      th { text-align: left; font-size: 15px; color: #fff; background: #3d2a6b; padding: 12px 16px; }
-      td { font-size: 18px; padding: 12px 16px; border-bottom: 1px solid var(--color-border); }
-      tr:last-child td { border-bottom: 0; background: #ece8f5; }
-      .news { margin-top: 64px; font-family: var(--font-serif); }
-      .news h2 { font-size: 24px; margin-bottom: 6px; }
-      .news p { font-size: 19px; color: var(--color-muted); }
-      [data-defect="on"] .news { margin-top: 0; }
-      [data-defect="on"] .news h2 { margin-top: -2px; }
+/*
+ * Criterion crowded-unrelated-elements. A sparse page: a heading, a bordered picture or chart, and a block that belongs to another section.
+ * Off: the block sits 64 px from the picture or chart. The defect leaves it 1 px from the edge, touching it, with the rest of the page left roomy. (OQ-17)
+ */
+body { background: #fbfef9; color: #1d2b1d; }
+h1 { font-size: 32px; line-height: 40px; font-weight: 700; margin: 52px 0 0 120px; }
+.wrap { display: flex; flex-direction: row-reverse; align-items: flex-start; margin: 44px 0 0 120px; width: fit-content; --gap: 64px; }
+.box { display: block; flex: none; border: 3px solid #59636e; background: #e5f0e0; }
+.art svg { display: block; }
+.next { width: 340px; flex: none; text-align: right; }
+.next .btn { margin-top: 18px; }
+.next h2 { font-size: 22px; line-height: 28px; font-weight: 700; margin-bottom: 8px; }
+.next p { font-size: 18px; line-height: 27px; }
+.btn { display: inline-block; flex: none; background: #5f8a56; color: #ffffff; font-size: 19px; font-weight: 700; padding: 14px 30px; border-radius: 6px; }
+.next, .btn { margin: 0; }
+.wrap { gap: var(--gap); }
+[data-defect="on"] .wrap { --gap: 1px; }
     </style>
   </head>
   <body>
-    <main>
-      <h1>Pond dipping league, spring term</h1>
-      <table>
-        <tr><th>Team</th><th>Played</th><th>Species found</th><th>Points</th></tr>
-        <tr><td>Newt Squad</td><td>6</td><td>41</td><td>28</td></tr>
-        <tr><td>Reed Rangers</td><td>6</td><td>37</td><td>25</td></tr>
-        <tr><td>Mud Larks</td><td>6</td><td>33</td><td>22</td></tr>
-        <tr><td>Dragonfly Club</td><td>6</td><td>30</td><td>19</td></tr>
-        <tr><td>Tadpole Troop</td><td>6</td><td>24</td><td>14</td></tr>
-        <tr><td>Water Boatmen</td><td>6</td><td>21</td><td>11</td></tr>
-      </table>
-      <div class="news">
-        <h2>The village hall roof is being repaired</h2>
-        <p>Work starts in May. Meetings move to the school until the end of June.</p>
-      </div>
+    <h1>Orchard yield by variety</h1>
+    <main class="wrap">
+      <svg class="box" width="520" height="360" viewBox="0 0 520 360" role="img" aria-label="Orchard yield by variety"><rect width="520" height="360" fill="#e5f0e0"/><rect x="60" y="150" width="90" height="170" fill="#5f8a56"/><rect x="190" y="70" width="90" height="250" fill="#5f8a56"/><rect x="320" y="200" width="90" height="120" fill="#5f8a56"/><line x1="30" y1="320" x2="490" y2="320" stroke="#59636e" stroke-width="2"/></svg>
+      <div class="next"><h2>Volunteer afternoons</h2><p>Pickers meet at the gate at two on Saturdays. Gloves and baskets are provided, and anyone who stays until the light fades takes a bag of apples home.</p><a class="btn">Join the pickers</a></div>
     </main>
   </body>
 </html>

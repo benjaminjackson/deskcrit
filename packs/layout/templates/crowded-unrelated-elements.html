@@ -7,38 +7,29 @@
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* A section with a bar diagram in a box, then a paragraph from the next section below it with a clear
-         gap. The defect pulls the paragraph up to a few pixels under the diagram (OQ-17). */
-      main { margin: 48px 0 0 120px; width: 900px; }
-      h1 { font-size: 30px; font-weight: 700; margin-bottom: 20px; }
-      .diagram { display: block; border: 2px solid #8c959f; background: #eef3fa; }
-      .bar { fill: #0b5cad; }
-      .axis { stroke: #59636e; stroke-width: 2; }
-      .label { font-family: var(--font-sans); font-size: 15px; fill: #1f2328; }
-      .next { margin-top: 40px; }
-      .next h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-      .next p { font-size: 18px; }
-      [data-defect="on"] .next { margin-top: -4px; }
+/*
+ * Criterion crowded-unrelated-elements. A sparse page: a heading, a bordered picture or chart, and a block that belongs to another section.
+ * Off: the block sits 64 px from the picture or chart. The defect leaves it 1 px from the edge, touching it, with the rest of the page left roomy. (OQ-17)
+ */
+body { background: #ffffff; color: #1f2328; }
+h1 { font-size: 32px; line-height: 40px; font-weight: 700; margin: 52px 0 0 120px; }
+.wrap { display: flex; flex-direction: row; align-items: flex-start; margin: 44px 0 0 120px; width: fit-content; --gap: 64px; }
+.box { display: block; flex: none; border: 3px solid #59636e; background: #eef3fa; }
+.art svg { display: block; }
+.next { width: 380px; flex: none; }
+.next h2 { font-size: 22px; line-height: 28px; font-weight: 700; margin-bottom: 8px; }
+.next p { font-size: 18px; line-height: 27px; }
+.btn { display: inline-block; flex: none; background: #0b5cad; color: #ffffff; font-size: 19px; font-weight: 700; padding: 14px 30px; border-radius: 6px; }
+.next, .btn { margin: 0; }
+.wrap { gap: var(--gap); }
+[data-defect="on"] .wrap { --gap: 1px; }
     </style>
   </head>
   <body>
-    <main>
-      <h1>Visitors to the botanical garden</h1>
-      <svg class="diagram" width="900" height="330" viewBox="0 0 900 340" role="img" aria-label="Visitors by season">
-        <line class="axis" x1="40" y1="300" x2="860" y2="300" />
-        <rect class="bar" x="90" y="120" width="140" height="180" />
-        <rect class="bar" x="290" y="40" width="140" height="260" />
-        <rect class="bar" x="490" y="90" width="140" height="210" />
-        <rect class="bar" x="690" y="200" width="140" height="100" />
-        <text class="label" x="160" y="325" text-anchor="middle">Spring</text>
-        <text class="label" x="360" y="325" text-anchor="middle">Summer</text>
-        <text class="label" x="560" y="325" text-anchor="middle">Autumn</text>
-        <text class="label" x="760" y="325" text-anchor="middle">Winter</text>
-      </svg>
-      <div class="next">
-        <h2>Getting there</h2>
-        <p>The number twelve bus stops at the east gate every twenty minutes. Parking is free after four in the afternoon, and the cycle racks are beside the glasshouse.</p>
-      </div>
+    <h1>Rainfall at the reservoir</h1>
+    <main class="wrap">
+      <svg class="box" width="520" height="360" viewBox="0 0 520 360" role="img" aria-label="Rainfall at the reservoir"><rect width="520" height="360" fill="#eef3fa"/><rect x="60" y="150" width="90" height="170" fill="#0b5cad"/><rect x="190" y="70" width="90" height="250" fill="#0b5cad"/><rect x="320" y="200" width="90" height="120" fill="#0b5cad"/><line x1="30" y1="320" x2="490" y2="320" stroke="#59636e" stroke-width="2"/></svg>
+      <div class="next"><h2>Getting there</h2><p>The number twelve bus stops at the east gate every twenty minutes. Parking is free after four in the afternoon, and the cycle racks are beside the glasshouse.</p></div>
     </main>
   </body>
 </html>

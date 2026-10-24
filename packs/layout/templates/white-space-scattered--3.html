@@ -2,47 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Layout fixture: white-space-scattered-3</title>
+    <title>Layout fixture: white-space-scattered--3</title>
     <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* A shop page for a bakery. The off side puts one large product block on the left, a small dense
-         group of six tiles low on the right, and leaves wide open areas between them. The on side fills
-         the page with a sidebar and the same tiles, every cell 10px from the next (OQ-17). */
-      .page { position: relative; height: 800px; }
-      .nav { position: absolute; left: 80px; top: 56px; font-size: 18px; font-weight: 700; }
-      .hero { position: absolute; left: 80px; top: 150px; width: 460px; }
-      .hero h1 { font-size: 64px; line-height: 1.05; margin-bottom: 18px; }
-      .hero p { font-size: 20px; color: var(--color-muted); }
-      .tiles { position: absolute; left: 700px; top: 440px; width: 480px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-      .t { background: #f6ead6; padding: 12px 14px; height: 104px; font-size: 14px; color: var(--color-muted); }
-      .t b { display: block; font-size: 17px; color: var(--color-text); margin-bottom: 4px; }
-      [data-defect="on"] .page { padding: 28px; display: grid; grid-template-columns: 260px repeat(3, 1fr); grid-template-rows: 70px repeat(3, 1fr); gap: 10px; height: 800px; }
-      [data-defect="on"] .nav, [data-defect="on"] .hero, [data-defect="on"] .tiles { position: static; width: auto; }
-      [data-defect="on"] .nav { grid-column: 1 / span 4; background: #dfe6ef; padding: 20px 18px; }
-      [data-defect="on"] .hero { grid-column: 1; grid-row: 2 / span 3; background: #dfe6ef; padding: 18px; }
-      [data-defect="on"] .hero h1 { font-size: 40px; }
-      [data-defect="on"] .tiles { display: contents; }
-      [data-defect="on"] .t { height: auto; }
-
+      /* A grid of 96 numbered cells with a 6 px gap. Off: small cells in a block at the top left with a large
+         empty page. On: the cells fill the whole page, so no open area is left (OQ-17). */
+      .grid { display: grid; grid-template-columns: repeat(12, 34px); grid-auto-rows: 30px; gap: 6px; margin: 48px 0 0 48px; }
+      .cell { background: #fde68a; color: #78350f; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+      [data-defect="on"] .grid { margin: 6px; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(8, 1fr); height: 788px; width: 1268px; }
+      [data-defect="on"] .cell { font-size: 26px; font-weight: 700; }
     </style>
   </head>
   <body>
-    <div class="page">
-      <div class="nav">Corner Loaf Bakery</div>
-      <div class="hero"><h1>Bread baked before dawn</h1><p>Collect warm loaves from seven each morning.</p></div>
-      <div class="tiles">
-        <div class="t"><b>Rye loaf</b>Dense and dark</div>
-        <div class="t"><b>Sourdough</b>Slow risen</div>
-        <div class="t"><b>Seeded batch</b>Sunflower and flax</div>
-        <div class="t"><b>Milk rolls</b>Soft, by the six</div>
-        <div class="t"><b>Cinnamon bun</b>Baked at seven</div>
-        <div class="t"><b>Plum tart</b>Whole or slice</div>
-        <div class="t"><b>Oat biscuits</b>A bag of ten</div>
-        <div class="t"><b>Fruit scone</b>With jam and cream</div>
-        <div class="t"><b>Apple cake</b>Cut to order</div>
-      </div>
-    </div>
+    <div class="grid" id="grid"></div>
+    <script>
+      var html = "";
+      for (var index = 1; index <= 96; index++) {
+        html += '<div class="cell">' + index + "</div>";
+      }
+      document.getElementById("grid").innerHTML = html;
+    </script>
   </body>
 </html>

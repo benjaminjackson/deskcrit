@@ -2,41 +2,29 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Layout fixture: white-space-scattered-4</title>
+    <title>Layout fixture: white-space-scattered--4</title>
     <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* A ferry timetable. The off side gathers the timetable into one dense table at the lower left under
-         a large title, with an open area on the right. The on side splits the title, the notes, and every
-         timetable cell into boxes that fill the page, each 10px from the next (OQ-17). */
-      .page { position: relative; }
-      h1 { position: absolute; left: 80px; top: 60px; font-size: 60px; line-height: 1.05; width: 700px; }
-      .notes { position: absolute; left: 880px; top: 70px; width: 300px; color: var(--color-muted); font-size: 18px; }
-      .grid { position: absolute; left: 80px; top: 360px; width: 620px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-      .grid div { background: #e8eef6; padding: 8px 12px; font-size: 16px; }
-      .grid .hd { font-weight: 700; background: #cfdcec; }
-      [data-defect="on"] .page { padding: 28px; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 130px repeat(5, 1fr); gap: 10px; height: 800px; }
-      [data-defect="on"] h1, [data-defect="on"] .notes, [data-defect="on"] .grid { position: static; width: auto; }
-      [data-defect="on"] h1 { grid-column: 1 / span 3; font-size: 40px; background: #dfe6ef; padding: 18px; }
-      [data-defect="on"] .notes { background: #dfe6ef; padding: 18px; font-size: 16px; }
-      [data-defect="on"] .grid { display: contents; }
-      [data-defect="on"] .grid div { padding: 18px; font-size: 20px; }
-
+      /* Five dark columns of boxes with short labels, 6 px apart. Off: the columns are narrow and short, at the
+         bottom right, with a large empty page. On: the columns fill the page, so no open area is left (OQ-17). */
+      body { background: #111827; }
+      .cols { display: flex; gap: 6px; position: absolute; right: 48px; bottom: 48px; width: 400px; height: 260px; }
+      .col { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+      .box { flex: 1; background: #374151; color: #e5e7eb; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+      .box.w2 { flex: 2; background: #4b5563; } .box.w3 { flex: 3; background: #1f2937; border: 1px solid #4b5563; }
+      [data-defect="on"] .cols { inset: 6px; width: auto; height: auto; }
+      [data-defect="on"] .box { font-size: 22px; }
     </style>
   </head>
   <body>
-    <div class="page">
-      <h1>Quayside ferry timetable</h1>
-      <p class="notes">Crossings take twelve minutes. Cycles travel free.</p>
-      <div class="grid">
-        <div class="hd">Leaves north</div><div class="hd">Arrives quay</div><div class="hd">Leaves quay</div><div class="hd">Arrives north</div>
-        <div>07:00</div><div>07:12</div><div>07:20</div><div>07:32</div>
-        <div>07:40</div><div>07:52</div><div>08:00</div><div>08:12</div>
-        <div>08:20</div><div>08:32</div><div>08:40</div><div>08:52</div>
-        <div>09:00</div><div>09:12</div><div>09:20</div><div>09:32</div>
-        <div>09:40</div><div>09:52</div><div>10:00</div><div>10:12</div>
-      </div>
+    <div class="cols">
+      <div class="col"><div class="box">Ash</div><div class="box w2">Birch</div><div class="box">Cedar</div><div class="box w3">Elm</div></div>
+      <div class="col"><div class="box w3">Fir</div><div class="box">Gum</div><div class="box w2">Holly</div><div class="box">Iroko</div></div>
+      <div class="col"><div class="box w2">Juniper</div><div class="box">Karri</div><div class="box w3">Larch</div><div class="box">Maple</div></div>
+      <div class="col"><div class="box">Nutmeg</div><div class="box w3">Oak</div><div class="box">Pine</div><div class="box w2">Quince</div></div>
+      <div class="col"><div class="box w2">Rowan</div><div class="box">Spruce</div><div class="box w2">Teak</div><div class="box w2">Yew</div></div>
     </div>
   </body>
 </html>
