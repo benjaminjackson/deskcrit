@@ -18,7 +18,7 @@ function writeExpectedFiles(chosenNames) {
     if (chosenNames.length > 0 && !chosenNames.includes(goldenCase.name)) {
       continue;
     }
-    const result = runCrit(goldenCase.arguments);
+    const result = runCrit(goldenCase.arguments, goldenCase.workingDirectory);
     writeFileSync(join(goldenCase.directory, "expected.stdout"), result.stdout);
     writeFileSync(join(goldenCase.directory, "expected.stderr"), result.stderr);
     writeFileSync(

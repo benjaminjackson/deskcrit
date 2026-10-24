@@ -9,6 +9,7 @@ import {
 } from "../ask/typesafe/adapter.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
 import { parseCommand } from "./args.js";
+import { runGate } from "./gate-command.js";
 import { runPacksTest } from "./packs-test.js";
 import { runPacksValidate } from "./packs-validate-command.js";
 import {
@@ -21,7 +22,7 @@ import { type AnswerSource, runReport } from "./report-command.js";
 /** Exit code 0: the command ran (FR-43). */
 const EXIT_CODE_RAN = 0;
 
-/** Exit code 1: the command ran and found a fault, such as an invalid pack or a fixture that disagreed (FR-43, FR-49, FR-50). */
+/** Exit code 1: the command ran and found a fault, such as a failed gate, an invalid pack, or a fixture that disagreed (FR-40, FR-43, FR-49, FR-50). */
 const EXIT_CODE_FAILED = 1;
 
 /** Exit code 2: the command could not run (FR-43). */
@@ -36,7 +37,9 @@ export type CreateAdapter = (
  * Run the command argv names. `crit packs validate <dir>` checks one pack, reads no key, and exits
  * 0 for a valid pack and 1 for an invalid one (FR-49, FR-60, US-6). `crit packs test <dir>` checks
  * every input first, then reads the key and asks Jev about each fixture, and exits 0 when every
- * fixture agrees with its label and 1 when any disagrees (FR-50, FR-53, EV-4). `crit report`: parse argv, read the inputs, and run the stages. Without --answers it checks
+ * fixture agrees with its label and 1 when any disagrees (FR-50, FR-53, EV-4). `crit gate` reads the
+ * same inputs as report, writes the gate document to stdout once, and exits 0 when the gate passed
+ * and 1 when it failed (FR-40, FR-41, section 8.3). `crit report`: parse argv, read the inputs, and run the stages. Without --answers it checks
  * the API key and makes the adapter; with --answers it does neither and makes no network call. With
  * --save-answers it writes the answers file before stdout. On success it writes the report to stdout
  * once and sets exit code 0, whatever the verdicts. On any error it writes only to stderr, writes no
@@ -76,6 +79,12 @@ export async function main(
     const reportArguments = command.args;
     const inputs = await readReportInputs(reportArguments, workingDirectory);
     const answerSource = chooseAnswerSource(inputs, environment, createAdapter);
+    if (command.command === "gate") {
+      const gateOutput = await runGate(inputs, answerSource);
+      process.stdout.write(gateOutput.stdoutText);
+      process.exitCode = gateOutput.passed ? EXIT_CODE_RAN : EXIT_CODE_FAILED;
+      return;
+    }
     const output = await runReport(inputs, answerSource);
     if (reportArguments.saveAnswersPath !== undefined) {
       await writeAnswersFileText(

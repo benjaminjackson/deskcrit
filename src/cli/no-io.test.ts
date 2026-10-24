@@ -15,7 +15,7 @@ const forbiddenPatterns: readonly RegExp[] = [
   /\bprocess\b/,
   /\bglobalThis\b/,
   /\bconsole\./,
-  /from\s+["']\.\.\/(?!compose\/report\.js|compose\/verdict\.js)/,
+  /from\s+["']\.\.\/(?!compose\/report\.js|compose\/verdict\.js|compose\/gate\.js)/,
   /\bDate\b/,
   /Math\.random/,
   /localeCompare|toLocale/,
@@ -96,6 +96,41 @@ test("report-command.ts imports only the stage entry files and does no I/O (FR-6
   expect(importedModules.length).toBeGreaterThan(0);
   for (const moduleName of importedModules) {
     expect(reportCommandAllowedImports).toContain(moduleName);
+  }
+  expect(source).not.toMatch(/\bprocess\b/);
+  expect(source).not.toMatch(/\bconsole\./);
+  expect(source).not.toMatch(/\bimport\s*\(/);
+  expect(source).not.toMatch(/require\(/);
+});
+
+/**
+ * The only modules gate-command.ts may import: the package entry point for gate(), the report
+ * pipeline in report-command.ts, the renderers, and read-inputs.ts for its input type, so the gate
+ * command runs exactly the gate a library caller runs (FR-63, FR-65, CS-6).
+ */
+const gateCommandAllowedImports: readonly string[] = [
+  "../index.js",
+  "./read-inputs.js",
+  "./render-json.js",
+  "./render-text.js",
+  "./report-command.js",
+];
+
+test("gate-command.ts imports only the entry point, the report pipeline, and the renderers, and does no I/O (FR-65, CS-6)", () => {
+  const source = readFileSync(
+    join(import.meta.dirname, "gate-command.ts"),
+    "utf8",
+  );
+  const importedModules: string[] = [];
+  for (const match of source.matchAll(/\sfrom\s+"([^"]+)"/g)) {
+    const moduleName = match[1];
+    if (moduleName !== undefined) {
+      importedModules.push(moduleName);
+    }
+  }
+  expect(importedModules.length).toBeGreaterThan(0);
+  for (const moduleName of importedModules) {
+    expect(gateCommandAllowedImports).toContain(moduleName);
   }
   expect(source).not.toMatch(/\bprocess\b/);
   expect(source).not.toMatch(/\bconsole\./);

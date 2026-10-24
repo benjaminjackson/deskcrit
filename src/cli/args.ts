@@ -1,4 +1,4 @@
-// Argument parsing for `crit report`, `crit packs validate`, and `crit packs test` (FR-49, FR-50, FR-60). It turns argv into typed values with Node's own
+// Argument parsing for `crit report`, `crit gate`, `crit packs validate`, and `crit packs test` (FR-40, FR-49, FR-50, FR-60). It turns argv into typed values with Node's own
 // parser and turns every bad argument into CouldNotRunError, so the run exits with code 2 (FR-4,
 // CS-3, CS-16). It reads no file; read-inputs.ts does that.
 
@@ -10,6 +10,10 @@ import type { Context } from "../shared/state.js";
 export const REPORT_USAGE =
   "usage: crit report <image> [--pack <dir>...] [--context <key=value>...] [--facts <file>] [--json] [--save-answers <file>] [--answers <file>]";
 
+/** The usage line for `crit gate`: the options of report except --save-answers (FR-40, FR-60). */
+export const GATE_USAGE =
+  "usage: crit gate <image> [--pack <dir>...] [--context <key=value>...] [--facts <file>] [--json] [--answers <file>]";
+
 /** The usage line for `crit packs validate` (FR-49, FR-60). */
 export const PACKS_VALIDATE_USAGE = "usage: crit packs validate <dir>";
 
@@ -17,7 +21,7 @@ export const PACKS_VALIDATE_USAGE = "usage: crit packs validate <dir>";
 export const PACKS_TEST_USAGE = "usage: crit packs test <dir>";
 
 /** Every usage line, for an error that does not know which command was meant (FR-60). */
-export const USAGE = `${REPORT_USAGE}\n${PACKS_VALIDATE_USAGE}\n${PACKS_TEST_USAGE}`;
+export const USAGE = `${REPORT_USAGE}\n${GATE_USAGE}\n${PACKS_VALIDATE_USAGE}\n${PACKS_TEST_USAGE}`;
 
 /** The context keys FR-2 allows. Any other key stops the run (OQ-25 c). */
 const CONTEXT_KEYS = ["purpose", "audience", "platform"] as const;
@@ -25,7 +29,10 @@ const CONTEXT_KEYS = ["purpose", "audience", "platform"] as const;
 /** One allowed context key. */
 type ContextKey = (typeof CONTEXT_KEYS)[number];
 
-/** What the `crit report` command line asks for (FR-60). */
+/** The two commands that run the report pipeline on one image (FR-40, FR-60). */
+export type ReportCommandName = "report" | "gate";
+
+/** What the `crit report` or `crit gate` command line asks for (FR-60). */
 export type ReportArguments = {
   readonly imagePath: string;
   readonly packDirectories: readonly string[];
@@ -33,7 +40,7 @@ export type ReportArguments = {
   readonly contextFlags: Context;
   readonly factsPath: string | undefined;
   readonly json: boolean;
-  /** Where --save-answers writes the answers file, or undefined when the flag is absent (FR-42). */
+  /** Where --save-answers writes the answers file, or undefined when the flag is absent. Always undefined for gate (FR-42, FR-60). */
   readonly saveAnswersPath: string | undefined;
   /** The answers file --answers names, so the run skips ask, or undefined (FR-42). */
   readonly answersPath: string | undefined;
@@ -42,13 +49,14 @@ export type ReportArguments = {
 /** The command a command line asks for, with its arguments (FR-60). */
 export type Command =
   | { readonly command: "report"; readonly args: ReportArguments }
+  | { readonly command: "gate"; readonly args: ReportArguments }
   | { readonly command: "packs-validate"; readonly directory: string }
   | { readonly command: "packs-test"; readonly directory: string };
 
 /**
  * Parse argv into one command. A line that starts with `packs` is `crit packs validate` or
- * `crit packs test`, and every other line goes to the `crit report` parser, which rejects an
- * unknown command (FR-49, FR-50, FR-60).
+ * `crit packs test`, a line that starts with `gate` is `crit gate`, and every other line goes to
+ * the `crit report` parser, which rejects an unknown command (FR-40, FR-49, FR-50, FR-60).
  */
 export function parseCommand(argv: readonly string[]): Command {
   if (argv[0] === "packs") {
@@ -60,6 +68,9 @@ export function parseCommand(argv: readonly string[]): Command {
       };
     }
     return { command: "packs-test", directory: packsCommand.directory };
+  }
+  if (argv[0] === "gate") {
+    return { command: "gate", args: parseReportArguments(argv, "gate") };
   }
   return { command: "report", args: parseReportArguments(argv) };
 }
@@ -94,7 +105,8 @@ function parsePacksArguments(argv: readonly string[]): PacksArguments {
     }).positionals;
   } catch (error) {
     if (isParseArgsError(error)) {
-      throw new CouldNotRunError(`${error.message}\n${subcommandUsage}`);
+      const text = describeParseArgsError(error, argv, []);
+      throw new CouldNotRunError(`${text}\n${subcommandUsage}`);
     }
     throw error;
   }
@@ -120,37 +132,51 @@ function parsePacksArguments(argv: readonly string[]): PacksArguments {
 
 /**
  * Parse argv for `crit report <image>` with --pack and --context repeated, --facts, --json,
- * --save-answers, and --answers (FR-42, FR-60, OQ-25 e). An unknown flag, a missing value, a wrong command, a missing image, an extra
- * argument, or a bad key=value pair throws CouldNotRunError (FR-4, CS-16).
+ * --save-answers, and --answers, or for `crit gate <image>` with the same options except
+ * --save-answers (FR-42, FR-60, OQ-25 e). An unknown flag, which for gate includes --save-answers,
+ * a missing value, a wrong command, a missing image, an extra argument, or a bad key=value pair
+ * throws CouldNotRunError (FR-4, CS-16).
  */
-export function parseReportArguments(argv: readonly string[]): ReportArguments {
-  let parsed: ReturnType<typeof parseWithNode>;
+export function parseReportArguments(
+  argv: readonly string[],
+  commandName: ReportCommandName = "report",
+): ReportArguments {
+  let usage = REPORT_USAGE;
+  if (commandName === "gate") {
+    usage = GATE_USAGE;
+  }
+  let parsed: ParsedReportLine;
   try {
-    parsed = parseWithNode(argv);
+    parsed = parseWithNode(argv, commandName);
   } catch (error) {
     if (isParseArgsError(error)) {
-      throw new CouldNotRunError(`${error.message}\n${REPORT_USAGE}`);
+      let knownOptionNames = Object.keys(REPORT_OPTIONS);
+      if (commandName === "gate") {
+        knownOptionNames = Object.keys(SHARED_REPORT_OPTIONS);
+      }
+      const text = describeParseArgsError(error, argv, knownOptionNames);
+      throw new CouldNotRunError(`${text}\n${usage}`);
     }
     throw error;
   }
 
-  rejectRepeatedFlags(parsed.tokens, ["save-answers", "answers"]);
+  rejectRepeatedFlags(parsed.tokens, ["save-answers", "answers"], usage);
   const positionals = parsed.positionals;
   const command = positionals[0];
   if (command === undefined) {
     throw new CouldNotRunError(`no command given\n${USAGE}`);
   }
-  if (command !== "report") {
+  if (command !== commandName) {
     throw new CouldNotRunError(`unknown command ${command}\n${USAGE}`);
   }
   const imagePath = positionals[1];
   if (imagePath === undefined) {
-    throw new CouldNotRunError(`no image given\n${REPORT_USAGE}`);
+    throw new CouldNotRunError(`no image given\n${usage}`);
   }
   if (positionals.length > 2) {
     const extra = positionals.slice(2).join(" ");
     throw new CouldNotRunError(
-      `unexpected argument ${extra}; give each --context pair its own flag\n${REPORT_USAGE}`,
+      `unexpected argument ${extra}; give each --context pair its own flag\n${usage}`,
     );
   }
 
@@ -163,31 +189,95 @@ export function parseReportArguments(argv: readonly string[]): ReportArguments {
     contextFlags: parseContextPairs(contextPairs),
     factsPath: parsed.values.facts,
     json: parsed.values.json ?? false,
-    saveAnswersPath: parsed.values["save-answers"],
+    saveAnswersPath: parsed.values.saveAnswers,
     answersPath: parsed.values.answers,
   };
 }
 
+/** The options that both `crit report` and `crit gate` take (FR-60). */
+const SHARED_REPORT_OPTIONS = {
+  pack: { type: "string", multiple: true },
+  context: { type: "string", multiple: true },
+  facts: { type: "string" },
+  json: { type: "boolean" },
+  answers: { type: "string" },
+} as const;
+
+/** The options of `crit report`: the shared ones plus --save-answers (FR-42, FR-60). */
+const REPORT_OPTIONS = {
+  ...SHARED_REPORT_OPTIONS,
+  "save-answers": { type: "string" },
+} as const;
+
 /**
- * Run Node's parseArgs with the report options. strict makes an unknown flag an error, multiple
- * lets --pack and --context repeat, and tokens lists each flag as given, so a repeat can be seen
- * (FR-60, CS-3).
+ * One flag or positional as parseArgs saw it, so a repeated flag can be counted. NonNullable drops
+ * the undefined that the general parseArgs type allows, and [number] is the type of one list item.
  */
-function parseWithNode(argv: readonly string[]) {
-  return parseArgs({
+type ParsedToken = NonNullable<ReturnType<typeof parseArgs>["tokens"]>[number];
+
+/** The parsed command line of report or gate, in one shape for both commands. */
+type ParsedReportLine = {
+  readonly values: {
+    readonly pack: string[] | undefined;
+    readonly context: string[] | undefined;
+    readonly facts: string | undefined;
+    readonly json: boolean | undefined;
+    readonly answers: string | undefined;
+    readonly saveAnswers: string | undefined;
+  };
+  readonly positionals: readonly string[];
+  readonly tokens: readonly ParsedToken[];
+};
+
+/**
+ * Run Node's parseArgs with the options of the command. strict makes an unknown flag an error, so
+ * gate, which has no --save-answers option, rejects that flag. multiple lets --pack and --context
+ * repeat, and tokens lists each flag as given, so a repeat can be seen (FR-60, CS-3).
+ */
+function parseWithNode(
+  argv: readonly string[],
+  commandName: ReportCommandName,
+): ParsedReportLine {
+  if (commandName === "gate") {
+    const parsed = parseArgs({
+      args: [...argv],
+      strict: true,
+      allowPositionals: true,
+      options: SHARED_REPORT_OPTIONS,
+      tokens: true,
+    });
+    return {
+      values: {
+        pack: parsed.values.pack,
+        context: parsed.values.context,
+        facts: parsed.values.facts,
+        json: parsed.values.json,
+        answers: parsed.values.answers,
+        saveAnswers: undefined,
+      },
+      positionals: parsed.positionals,
+      tokens: parsed.tokens,
+    };
+  }
+  const parsed = parseArgs({
     args: [...argv],
     strict: true,
     allowPositionals: true,
-    options: {
-      pack: { type: "string", multiple: true },
-      context: { type: "string", multiple: true },
-      facts: { type: "string" },
-      json: { type: "boolean" },
-      "save-answers": { type: "string" },
-      answers: { type: "string" },
-    },
+    options: REPORT_OPTIONS,
     tokens: true,
   });
+  return {
+    values: {
+      pack: parsed.values.pack,
+      context: parsed.values.context,
+      facts: parsed.values.facts,
+      json: parsed.values.json,
+      answers: parsed.values.answers,
+      saveAnswers: parsed.values["save-answers"],
+    },
+    positionals: parsed.positionals,
+    tokens: parsed.tokens,
+  };
 }
 
 /**
@@ -195,8 +285,9 @@ function parseWithNode(argv: readonly string[]) {
  * last value of a flag, so a repeated --answers would silently drop a file (FR-42, OQ-26).
  */
 function rejectRepeatedFlags(
-  tokens: ReturnType<typeof parseWithNode>["tokens"],
+  tokens: readonly ParsedToken[],
   flagNames: readonly string[],
+  usage: string,
 ): void {
   for (const flagName of flagNames) {
     let count = 0;
@@ -207,7 +298,7 @@ function rejectRepeatedFlags(
     }
     if (count > 1) {
       throw new CouldNotRunError(
-        `--${flagName} is given more than once\n${REPORT_USAGE}`,
+        `--${flagName} is given more than once\n${usage}`,
       );
     }
   }
@@ -224,6 +315,40 @@ function isParseArgsError(error: unknown): error is Error {
   }
   const code: unknown = Reflect.get(error, "code");
   return typeof code === "string" && code.startsWith("ERR_PARSE_ARGS");
+}
+
+/**
+ * Return crit's own text for a parseArgs error. For an unknown option it names the first flag in
+ * argv that is not one of the command's options, as in "unknown option --colour", so stderr does
+ * not carry Node's wording, which can change between Node releases (FR-4, FR-60, NFR-1). Any other
+ * parseArgs error, or an unknown option that cannot be found in argv, keeps Node's message.
+ */
+function describeParseArgsError(
+  error: Error,
+  argv: readonly string[],
+  knownOptionNames: readonly string[],
+): string {
+  if (Reflect.get(error, "code") !== "ERR_PARSE_ARGS_UNKNOWN_OPTION") {
+    return error.message;
+  }
+  for (const argument of argv) {
+    if (argument === "--") {
+      break;
+    }
+    if (argument.startsWith("--")) {
+      // A long flag may carry its value after "=", as in --pack=dir.
+      const flag = argument.split("=")[0] ?? argument;
+      if (!knownOptionNames.includes(flag.slice(2))) {
+        return `unknown option ${flag}`;
+      }
+      continue;
+    }
+    if (argument.startsWith("-") && argument.length > 1) {
+      // No command has a one-letter flag, so any short flag is unknown.
+      return `unknown option -${argument[1]}`;
+    }
+  }
+  return error.message;
 }
 
 /**
