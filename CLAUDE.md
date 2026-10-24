@@ -30,6 +30,8 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
 - `src/prepare/prepare.ts` holds `prepareImage`, which checks, turns upright, strips, resizes, and pads one image and records its scale factor.
 - `src/shared/state.ts`, `src/shared/question.ts`, `src/shared/answer.ts`, and `src/shared/usage.ts` hold the State, Question, Answer, and Usage types that pass between the stages, and nothing else defines them.
+- `src/shared/pack.ts` holds the Pack, Criterion, PackQuestion, Predicate, and PackProblem types that the pack loader returns and build and compose read.
+- `src/packs/load-pack.ts` holds `checkPack` and `loadPack`, which parse one pack's YAML text and check it against `schemas/pack.schema.json` and the rules the schema cannot express. It reads no files.
 - `src/ask/adapter.ts` holds the `TypeSafeAdapter` type from FR-20, `src/ask/ask.ts` holds `ask`, and `src/ask/stub.ts` holds the stub adapter. `src/ask/no-io.test.ts` checks that no file in `src/ask/` outside `src/ask/typesafe/` imports the SDK or does I/O.
 - `src/ask/typesafe/request.ts` builds the one TypeSafe request for an image and checks the response that comes back. `src/ask/typesafe/adapter.ts` holds `createTypeSafeAdapter`, the one real adapter, which sends that request with the SDK and turns SDK errors into `CouldNotRunError`. `src/ask/typesafe/no-io.test.ts` checks that only this folder imports the SDK.
 - `schemas/pack.schema.json` is the pack JSON Schema (JSON Schema 2020-12), the checked form of the pack schema table in PRD section 7.8.
@@ -80,7 +82,7 @@ This project follows Chad Fowler's regenerative software series, "The Phoenix Ar
 
 ## Docs hygiene
 
-- Check every prose document you change with the slop judge before you commit. The command is `sloplint check --judge --markdown -o json --register "a coding agent building deskcrit" <file>`. The judge sends the file text to api.typesafe.ai. On 2026-10-23, Benjamin Jackson approved sending `BRIEF.md`, `docs/PRD.md`, this file, and pack READMEs to the judge, so these files need no further consent. Ask before you send any other file. Use the same reader string for every file.
+- Check every prose document you change with the slop judge before you commit. The command is `sloplint check --judge --markdown -o json --register "a coding agent building deskcrit" <file>`. The judge sends the file text to api.typesafe.ai. On 2026-10-23, Benjamin Jackson approved sending `BRIEF.md`, `docs/PRD.md`, this file, and pack READMEs to the judge, and on 2026-10-24 he added `GUIDELINES.md`, so these files need no further consent. Ask before you send any other file. Use the same reader string for every file.
 - The judge key is already configured on this machine. Do not look for it, do not print it, and do not read `.env`.
 - Keep this file true. When a rule here stops being true, delete it in the same pull request that makes it false. Do not add a rule that is not true today, because a wrong instruction steers a generator more confidently than a missing one [Fowler 26].
 - Do not keep a second hand-written copy of the specification. Documents other than `docs/PRD.md` point to it and do not restate it [Fowler 25].
