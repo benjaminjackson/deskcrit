@@ -1,8 +1,8 @@
-// Disposable unit tests for parseReportArguments (FR-60, FR-2, FR-4, OQ-25 c and e, CS-22).
+// Disposable unit tests for parseReportArguments and parseCommand (FR-49, FR-60, FR-2, FR-4, OQ-25 c and e, CS-22).
 
 import { describe, expect, it } from "vitest";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
-import { parseReportArguments } from "./args.js";
+import { parseCommand, parseReportArguments } from "./args.js";
 
 describe("parseReportArguments", () => {
   it("reads the image, repeated --pack and --context, --facts, and --json", () => {
@@ -127,6 +127,65 @@ describe("parseReportArguments", () => {
         CouldNotRunError,
       );
       expect(() => parseReportArguments(badCommandLine.argv)).toThrow(
+        badCommandLine.message,
+      );
+    });
+  }
+});
+
+describe("parseCommand", () => {
+  it("returns the report arguments for crit report", () => {
+    const command = parseCommand(["report", "home.png"]);
+    expect(command.command).toBe("report");
+  });
+
+  it("returns the directory for crit packs validate", () => {
+    expect(parseCommand(["packs", "validate", "packs/basics"])).toEqual({
+      command: "packs-validate",
+      directory: "packs/basics",
+    });
+  });
+
+  it("lists both usage lines when no command is given", () => {
+    expect(() => parseCommand([])).toThrow("usage: crit report");
+    expect(() => parseCommand([])).toThrow("usage: crit packs validate <dir>");
+  });
+
+  const badPacksCommandLines: {
+    name: string;
+    argv: string[];
+    message: string;
+  }[] = [
+    {
+      name: "no packs subcommand",
+      argv: ["packs"],
+      message: "no packs command given",
+    },
+    {
+      name: "packs test, which crit-q25.2 adds",
+      argv: ["packs", "test", "packs/basics"],
+      message: "unknown command packs test",
+    },
+    {
+      name: "no directory",
+      argv: ["packs", "validate"],
+      message: "no pack directory given",
+    },
+    {
+      name: "two directories",
+      argv: ["packs", "validate", "a", "b"],
+      message: "unexpected argument b",
+    },
+    {
+      name: "a flag",
+      argv: ["packs", "validate", "a", "--json"],
+      message: "--json",
+    },
+  ];
+  for (const badCommandLine of badPacksCommandLines) {
+    it(`throws CouldNotRunError for ${badCommandLine.name}`, () => {
+      expect(() => parseCommand(badCommandLine.argv)).toThrow(CouldNotRunError);
+      expect(() => parseCommand(badCommandLine.argv)).toThrow(
         badCommandLine.message,
       );
     });

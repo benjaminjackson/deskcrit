@@ -1,4 +1,4 @@
-// Argument parsing for `crit report` (FR-60). It turns argv into typed values with Node's own
+// Argument parsing for `crit report` and `crit packs validate` (FR-49, FR-60). It turns argv into typed values with Node's own
 // parser and turns every bad argument into CouldNotRunError, so the run exits with code 2 (FR-4,
 // CS-3, CS-16). It reads no file; read-inputs.ts does that.
 
@@ -9,6 +9,12 @@ import type { Context } from "../shared/state.js";
 /** The usage line that a could-not-run message ends with when the command line is wrong (FR-60). */
 export const REPORT_USAGE =
   "usage: crit report <image> [--pack <dir>...] [--context <key=value>...] [--facts <file>] [--json] [--save-answers <file>] [--answers <file>]";
+
+/** The usage line for `crit packs validate` (FR-49, FR-60). */
+export const PACKS_VALIDATE_USAGE = "usage: crit packs validate <dir>";
+
+/** Every usage line, for an error that does not know which command was meant (FR-60). */
+export const USAGE = `${REPORT_USAGE}\n${PACKS_VALIDATE_USAGE}`;
 
 /** The context keys FR-2 allows. Any other key stops the run (OQ-25 c). */
 const CONTEXT_KEYS = ["purpose", "audience", "platform"] as const;
@@ -30,6 +36,68 @@ export type ReportArguments = {
   readonly answersPath: string | undefined;
 };
 
+/** The command a command line asks for, with its arguments (FR-60). */
+export type Command =
+  | { readonly command: "report"; readonly args: ReportArguments }
+  | { readonly command: "packs-validate"; readonly directory: string };
+
+/**
+ * Parse argv into one command. A line that starts with `packs` is a packs command, and every other
+ * line goes to the `crit report` parser, which rejects an unknown command. Only `packs validate`
+ * exists so far; `packs test` is an unknown command until crit-q25.2 adds it (FR-49, FR-60).
+ */
+export function parseCommand(argv: readonly string[]): Command {
+  if (argv[0] === "packs") {
+    return {
+      command: "packs-validate",
+      directory: parsePacksValidateArguments(argv),
+    };
+  }
+  return { command: "report", args: parseReportArguments(argv) };
+}
+
+/**
+ * Parse argv for `crit packs validate <dir>` and return the directory. The command takes no flags,
+ * so any flag, a missing or unknown subcommand, a missing directory, or an extra argument throws
+ * CouldNotRunError (FR-4, FR-49, FR-60, CS-16).
+ */
+function parsePacksValidateArguments(argv: readonly string[]): string {
+  let positionals: string[];
+  try {
+    positionals = parseArgs({
+      args: [...argv],
+      strict: true,
+      allowPositionals: true,
+      options: {},
+    }).positionals;
+  } catch (error) {
+    if (isParseArgsError(error)) {
+      throw new CouldNotRunError(`${error.message}\n${PACKS_VALIDATE_USAGE}`);
+    }
+    throw error;
+  }
+  const subcommand = positionals[1];
+  if (subcommand === undefined) {
+    throw new CouldNotRunError(`no packs command given\n${USAGE}`);
+  }
+  if (subcommand !== "validate") {
+    throw new CouldNotRunError(`unknown command packs ${subcommand}\n${USAGE}`);
+  }
+  const directory = positionals[2];
+  if (directory === undefined) {
+    throw new CouldNotRunError(
+      `no pack directory given\n${PACKS_VALIDATE_USAGE}`,
+    );
+  }
+  if (positionals.length > 3) {
+    const extra = positionals.slice(3).join(" ");
+    throw new CouldNotRunError(
+      `unexpected argument ${extra}\n${PACKS_VALIDATE_USAGE}`,
+    );
+  }
+  return directory;
+}
+
 /**
  * Parse argv for `crit report <image>` with --pack and --context repeated, --facts, --json,
  * --save-answers, and --answers (FR-42, FR-60, OQ-25 e). An unknown flag, a missing value, a wrong command, a missing image, an extra
@@ -50,10 +118,10 @@ export function parseReportArguments(argv: readonly string[]): ReportArguments {
   const positionals = parsed.positionals;
   const command = positionals[0];
   if (command === undefined) {
-    throw new CouldNotRunError(`no command given\n${REPORT_USAGE}`);
+    throw new CouldNotRunError(`no command given\n${USAGE}`);
   }
   if (command !== "report") {
-    throw new CouldNotRunError(`unknown command ${command}\n${REPORT_USAGE}`);
+    throw new CouldNotRunError(`unknown command ${command}\n${USAGE}`);
   }
   const imagePath = positionals[1];
   if (imagePath === undefined) {
