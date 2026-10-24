@@ -4,7 +4,7 @@ The guidelines the seven first-party packs encode, one domain per section.
 
 Each guideline has four parts. **Rule** is the testable form a reviewer would apply. **Source** is the original book, standard, or paper, not a blog that repeats it. **Link** appears when the source is online or is not a well-known book. **Judged by** says how the rule becomes a Jev question. `askable` means the rule is asked as written. `askable as a visual judgment` means the rule carries a figure (a ratio, a pixel size, a count) that `deskcrit` does not check. Jev is asked only whether the defect is visible. An exact result needs a measuring tool such as axe-core.
 
-Scope: the design, not the writing. There is no content design section: reading level, sentence length, tone, and terminology belong to a content linter, so that research was dropped. Nielsen's heuristics are kept whole, including the ones that touch wording, because those are usability judgments about the screen rather than prose rules. `deskcrit` does no measurement of its own: it prepares the image, asks the questions, and reads the answers. Rules that are pure formulas, need the DOM, or need a running app are not in this catalog.
+Scope: the design, not the writing. There is no content design section: reading level, sentence length, tone, and terminology belong to a content linter, so that research was dropped. Nielsen's heuristics are kept whole, including the ones that touch wording, because those are usability judgments about the screen rather than prose rules. `deskcrit` does no measurement of its own: it prepares the image, asks the questions, and reads the answers. Rules that are pure formulas, need the DOM, or need a running app are not in this catalog. An entry marked **Not encoded (NG-10)** stays in the catalog as research, but no pack encodes it, because it reads what the content says, needs detail too fine to see, or cannot be judged from one image (PRD NG-10). The mark says which.
 
 Every source was checked against the web in a second pass. A source that could not be confirmed is marked `UNVERIFIED:` in place. Rules that the research flagged as folk wisdom (rule of thirds, golden ratio, Z-pattern) are labelled in their own entries and should carry low weight.
 
@@ -50,6 +50,7 @@ Every source was checked against the web in a second pass. A source that could n
 - **Rule:** When two families are paired, they should differ clearly (for example serif with sans, or text with display) rather than being near-identical. Two similar serifs or two similar sans are a mismatch, and pairs work best sharing proportions or x-height.
 - **Source:** Lupton, *Thinking with Type*, "Letter" chapter, "Mixing typefaces"; Bringhurst, *The Elements of Typographic Style*, section 6.5.5 (pair serifed and unserifed faces on the basis of their inner structure); Butterick, "Mixing fonts" notes that two different serifs can also work.
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because telling two faces apart by their inner structure and x-height needs letterform detail too fine to see.
 
 ### Typeface suits the task and tone
 - **Rule:** Body text uses a face designed for reading (open apertures, distinct letterforms, sturdy proportions). Decorative, script, blackletter, or extra-condensed faces are for headlines or brief accents only, never for paragraphs.
@@ -62,6 +63,7 @@ Every source was checked against the web in a second pass. A source that could n
 - **Source:** Butterick, *Practical Typography*, "System fonts" (avoid if you can; system fonts are overexposed and many are poor).
 - **Link:** https://practicaltypography.com/system-fonts.html
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because it needs Jev to name the typeface, and that needs letterform detail too fine to see.
 
 ### Type scale and hierarchy
 - **Rule:** Sizes should come from a consistent scale (a modular ratio between about 1.125 and 1.618, or a fixed ramp such as Material's), giving three to six distinct levels. Adjacent levels must differ by at least about 1.2× or by another clear cue such as weight.
@@ -102,6 +104,7 @@ Every source was checked against the web in a second pass. A source that could n
 - **Source:** Material Design (m2), *Dark theme* guidance (87% opacity white for high-emphasis text and a #121212 surface; confirmed through a search-engine answer quoting the page, which is rendered by script and could not be read with curl); W3C, *WCAG 2.2*, SC 1.4.3.
 - **Link:** https://m2.material.io/design/color/dark-theme.html
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because the rule depends on colour values (pure white, pure black, opacity), and Jev is unreliable with colour values (JC-2).
 
 ### Weight and stroke thickness at small sizes
 - **Rule:** Hairline and ultra-light weights (below about 300) should not be used for text under about 24 px. Small text needs enough stroke thickness to hold up against its background.
@@ -113,24 +116,28 @@ Every source was checked against the web in a second pass. A source that could n
 - **Rule:** At small sizes, prefer faces with a generous x-height, open counters, and clear letter spacing. A face with a small x-height needs to be set larger (perhaps 1–2 px) than a large-x-height face to reach equivalent apparent size.
 - **Source:** UNVERIFIED: no specific Bringhurst section or Hochuli passage on x-height at small sizes could be confirmed (the earlier "Bringhurst 6.2" cite did not match); Bringhurst, *The Elements of Typographic Style*, chapter 6; Hochuli, *Detail in Typography*.
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Not encoded (NG-10):** breaks NG-10 because x-height is a letterform measurement too fine to see at screen size.
 
 ### Letterspacing (tracking) of body text
 - **Rule:** Leave tracking at the default for body text. If adjusted, stay within about plus or minus 2% (±0.02em). Tight negative tracking on body text, or loose tracking on lower-case text, is a defect.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.6 and 2.1.7 (letterspace capitals; do not letterspace lower case without a reason); Butterick, *Practical Typography*, "Letterspacing". The ±2% band is crit's own threshold.
 - **Link:** https://practicaltypography.com/letterspacing.html
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Not encoded (NG-10):** breaks NG-10 because differences in tracking are too fine to see.
 
 ### Letterspace capitals and small caps
 - **Rule:** All-caps and small-cap text should be letterspaced (about 5–12%, 0.05–0.12em), while lower-case text should not. Unspaced all-caps in small sizes looks crowded.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.6; Butterick, *Practical Typography*, "Letterspacing" (5–12%, 0.05–0.12em in CSS) and "All caps".
 - **Link:** https://practicaltypography.com/letterspacing.html
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Not encoded (NG-10):** breaks NG-10 because differences in tracking are too fine to see.
 
 ### Kerning and display-size spacing
 - **Rule:** At display sizes, the spacing between letter pairs must look even (no obvious gaps in pairs such as "AV", "To", "Wa", and no collisions). Automatic kerning should be on.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.8 "Kern consistently and modestly or not at all"; Lupton, *Thinking with Type*, "Text" chapter, "Kerning"; Butterick, "Kerning".
 - **Link:** https://practicaltypography.com/kerning.html
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because the space between two letters is too fine to see.
 
 ### Use of all caps
 - **Rule:** Keep all-caps to short strings (a label, a heading of a few words, or an eyebrow). Paragraphs or sentences of more than about 3–5 words in all caps are a flag since they slow reading.
@@ -143,12 +150,14 @@ Every source was checked against the web in a second pass. A source that could n
 - **Source:** Butterick, *Practical Typography*, "Bold or italic" (use one or the other, as little as possible) and "Underlining"; Bringhurst, *The Elements of Typographic Style*, section 3.5.1 (change one parameter at a time).
 - **Link:** https://practicaltypography.com/bold-or-italic.html
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because it needs to know which text is a link and what the writer meant to stress, which is the content.
 
 ### Real italics, bold, and small caps (no faux styles)
 - **Rule:** Use true italic and bold cuts of a family. Synthesized (slanted or smeared) styles, and fake small caps made by shrinking capitals, are defects.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.4.3 (use artificially sloped romans sparingly or not at all) and 3.2.2 (faked small caps); Butterick, *Practical Typography*, "Small caps" (use real small caps; avoid fakes).
 - **Link:** https://practicaltypography.com/small-caps.html
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because telling a true italic or bold from a slanted or thickened regular face needs letterform detail too fine to see.
 
 ### Alignment: prefer flush-left (ragged-right) body text
 - **Rule:** Left-align body text in left-to-right scripts. Centred text should be limited to short blocks (about three lines or fewer), and right-aligned or fully centred paragraphs are a flag.
@@ -161,6 +170,7 @@ Every source was checked against the web in a second pass. A source that could n
 - **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.2 (40-character minimum for justified text), 2.1.3, and 2.1.10; Butterick, *Practical Typography*, "Justified text" (hyphenation required) and "Hyphenation".
 - **Link:** https://practicaltypography.com/justified-text.html
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Not encoded (NG-10):** breaks NG-10 because it needs a character count per line, and Jev is unreliable at counting (JC-2).
 
 ### Rag quality in ragged-right text
 - **Rule:** The right edge of ragged text should look gently uneven, with no long-short-long staircase patterns, no very short last lines, and no stray one-word lines. Lines should break at natural phrase boundaries where possible.
@@ -195,12 +205,14 @@ Every source was checked against the web in a second pass. A source that could n
 - **Source:** Butterick, *Practical Typography*, "Straight and curly quotes", "Hyphens and dashes", and "One space between sentences"; Bringhurst, *The Elements of Typographic Style*, sections 2.1.4 (single word space between sentences), 5.2.1 (dashes), 5.2.7 (ellipses), and 5.4.1 (quotation marks).
 - **Link:** https://practicaltypography.com/straight-and-curly-quotes.html
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because it reads single characters (quote marks, dash lengths, spaces), which is content and detail too fine to see.
 
 ### Numbers, lists, and tables
 - **Rule:** Columns of numbers should use tabular (fixed-width) figures aligned on the decimal or right edge, while running prose should use proportional or old-style figures. Table text should keep consistent alignment per column.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, sections 3.2.1 (text figures in running text) and 4.4.3 (align columns of figures flush right or on the decimal); Butterick, *Practical Typography*, "Grids of numbers" and "Alternate figures" (there is no "Numbers" page).
 - **Link:** https://practicaltypography.com/grids-of-numbers.html
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because telling tabular figures from proportional figures needs detail too fine to see.
 
 ### Scannability: F-pattern and chunking
 - **Rule:** Content meant to be skimmed has meaningful headings, short paragraphs, bulleted lists, and key terms near the start of lines. Users scan in an F-shaped pattern and skip the rest. Large unbroken text walls are a flag.
@@ -218,6 +230,7 @@ Every source was checked against the web in a second pass. A source that could n
 - **Rule:** Headings, buttons, and captions should break at natural phrase boundaries and avoid breaking a word, a number and its unit, or a name across lines. Avoid hyphenating headings.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.4 "Etiquette of Hyphenation & Pagination", especially 2.4.6 (link short numerical expressions with hard spaces); Hochuli, *Detail in Typography*, "The line" chapter.
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because it reads the words to judge where a line breaks, which is the content.
 
 
 ---
@@ -246,11 +259,13 @@ Every source was checked against the web in a second pass. A source that could n
 - **Source:** Apple *Human Interface Guidelines: Layout* (safe areas).
 - **Link:** https://developer.apple.com/design/human-interface-guidelines/layout
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because the image does not show the device notch, corners, or home indicator, so it cannot be judged from one image.
 
 ### Spacing comes from a small scale (4pt/8pt)
 - **Rule:** Padding, margins, and gaps are multiples of 4 (preferably 8) px: for example 4, 8, 12, 16, 24, 32, 48, 64. Values such as 13px or 22px are flagged. Use a fixed scale rather than arbitrary values.
 - **Source:** Material Design 3, *Layout: Spacing* (8dp baseline grid, 4dp for small elements); Adam Wathan and Steve Schoger, *Refactoring UI* (2018), "Define your spacing and sizing system up front".
 - **Judged by:** askable as a visual judgment only. Jev is asked about spacing that looks inconsistent from one gap to the next. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Not encoded (NG-10):** breaks NG-10 because it needs pixel values, which are detail too fine to see; the visible symptom is covered by the consistent-spacing entries.
 
 ### Spacing inside a group is smaller than spacing between groups
 - **Rule:** The gap between related items is clearly smaller than the gap between unrelated groups. A working check is at least about 1.5x to 2x. If gaps are equal everywhere, grouping is lost.
@@ -266,6 +281,7 @@ Every source was checked against the web in a second pass. A source that could n
 - **Rule:** Elements with the same function share the same size, color, shape, and type style. Elements that differ in function differ visibly. Visually identical elements with different roles, or inconsistent styling of like elements, are flagged.
 - **Source:** Wertheimer (1923), law of similarity; Williams, *The Non-Designer's Design Book* (repetition).
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because whether two elements work alike is behaviour, which one image cannot show.
 
 ### Common region and enclosure for grouping
 - **Rule:** Items inside one shared boundary (card, panel, background tint, border) read as a group. Unrelated items should not share a region, and related items should not be split across regions.
@@ -297,6 +313,7 @@ Every source was checked against the web in a second pass. A source that could n
 - **Rule:** Round, triangular, and icon shapes may overshoot or be nudged so they look aligned. A circle sits slightly larger than a square of the same nominal size, punctuation hangs into the margin, and icons center by visual mass rather than by bounding box. Judge by appearance when the two disagree.
 - **Source:** Vignelli Associates, *The Vignelli Canon* (2010); Bringhurst, *The Elements of Typographic Style* (hanging punctuation, overshoot).
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because optical offsets are a pixel or two, too fine to see.
 
 ### Repetition: reuse the same few styles and spacing patterns
 - **Rule:** Visual elements (heading style, button style, card padding, rules, icons) recur consistently through the design. The design uses a small fixed set of type sizes, colors, and spacing values, not a new variant for each element.
@@ -324,6 +341,7 @@ Every source was checked against the web in a second pass. A source that could n
 - **Source:** Nielsen Norman Group, "Visual Hierarchy in UX: Definition"; Wathan and Schoger, *Refactoring UI* (2018), "Hierarchy is everything."
 - **Link:** https://www.nngroup.com/articles/visual-hierarchy-ux-definition/
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Not encoded (NG-10):** breaks NG-10 because the heading level order needs the DOM, and importance needs the content.
 
 ### Do not rely on size alone: de-emphasize secondary items
 - **Rule:** Hierarchy comes as much from toning down secondary content (lighter color, smaller size, lower weight) as from enlarging primary content. Only one or two primary actions per view; the rest are secondary or tertiary in style.
@@ -351,12 +369,14 @@ Every source was checked against the web in a second pass. A source that could n
 - **Source:** John Thomas Smith, *Remarks on Rural Scenery* (1797), the first named use. Not a tested law; later treatments are heuristics.
 - **Link:** https://en.wikipedia.org/wiki/Rule_of_thirds
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because the entry says absence is not a defect, so there is no visible defect to ask about.
 
 ### F-pattern: put key content where scanning starts
 - **Rule:** On text-heavy pages, readers scan across the top, then down the left edge in an F shape. Important information belongs at the top and left in left-to-right languages: headings, first words, and bullet leads. Crucial content buried at the far right or low on the page is flagged.
 - **Source:** Jakob Nielsen, "F-Shaped Pattern For Reading Web Content," Nielsen Norman Group (2006, eyetracking study); followed up by Kara Pernice, "F-Shaped Pattern of Reading on the Web: Misunderstood, But Still Relevant (Even on Mobile)," Nielsen Norman Group (2017).
 - **Link:** https://www.nngroup.com/articles/f-shaped-pattern-reading-web-content-discovered/ (2006 original); 2017 follow-up: https://www.nngroup.com/articles/f-shaped-pattern-reading-web-content/
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because it needs to know which content is key, which is the content.
 
 ### Z-pattern for sparse layouts
 - **Rule:** On low-density pages (landing pages, posters, ads), the eye moves from top left across to top right, diagonally to bottom left, then across to bottom right. Place logo or headline at the start, and the call to action at the end of that path. Treat as a lower-confidence heuristic than the F-pattern; gaze depends on content.
@@ -369,24 +389,28 @@ Every source was checked against the web in a second pass. A source that could n
 - **Source:** Nielsen Norman Group, "Scrolling and Attention" (Therese Fessenden, 2018): users spend about 57% of viewing time above the fold and 74% in the first two screenfuls.
 - **Link:** https://www.nngroup.com/articles/scrolling-and-attention/
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Not encoded (NG-10):** breaks NG-10 because it needs to know which message is the core one, which is the content, and where the fold falls, which one image does not show.
 
 ### Touch and click targets of adequate size and spacing
 - **Rule:** Tappable targets are at least 44x44pt (Apple) or 48x48dp (Material), with at least 8dp between adjacent targets. WCAG 2.2 AA (SC 2.5.8) sets a hard floor of 24x24 CSS px; 2.5.5 (AAA) asks for 44x44.
 - **Source:** Apple *Human Interface Guidelines: Layout / Buttons*; Material Design 3, *Accessibility: Touch targets*; W3C *WCAG 2.2*, SC 2.5.8 Target Size (Minimum).
 - **Link:** https://www.w3.org/TR/WCAG22/#target-size-minimum (WCAG); Material: https://m3.material.io/components/icon-buttons/accessibility
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement in points or dp that a screenshot does not show.
 
 ### Reflow: no horizontal scrolling down to 320px wide
 - **Rule:** Content reflows to a single column at a 320 CSS px viewport without horizontal scrolling or loss of content (except for data tables, maps, and the like). Text blocks, images, and cards must not overflow their container.
 - **Source:** W3C *WCAG 2.2*, SC 1.4.10 Reflow.
 - **Link:** https://www.w3.org/TR/WCAG22/#reflow
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Not encoded (NG-10):** breaks NG-10 because it needs a render at 320 px wide, which one image cannot show.
 
 ### Responsive layouts adapt their structure, not only their scale
 - **Rule:** At smaller widths columns collapse (multi-column to one column), navigation condenses, and spacing scales down by steps; text size stays readable (body not below about 16px). Elements do not shrink into unreadable or untappable sizes.
 - **Source:** Material Design 3, *Layout: Canonical layouts* and *Window size classes* (2023); Apple *Human Interface Guidelines: Layout* (adaptivity).
 - **Link:** https://m3.material.io/foundations/layout/canonical-layouts
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Not encoded (NG-10):** breaks NG-10 because it needs renders at several widths, which one image cannot show.
 
 ### Consistent density: no mix of cramped and sparse regions
 - **Rule:** Information density is steady across the layout. One part of the page is not packed tight while another is nearly empty without a reason (such as a hero section). Spacing between repeated items (list rows, cards) is uniform.
@@ -403,6 +427,11 @@ Every source was checked against the web in a second pass. A source that could n
 - **Rule:** A heading sits closer to the paragraph beneath it than to the one above. The space above a heading is larger than the space below it (a typical ratio is about 2:1 or more).
 - **Source:** Williams, *The Non-Designer's Design Book* (proximity); Bringhurst, *The Elements of Typographic Style* (1992), on headings and spacing.
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+
+### Unrelated elements do not crowd each other
+- **Rule:** Elements that do not belong together keep clear space between them. Text, images, diagrams, and controls from different groups do not sit so close that they look cramped, seem to touch, or read as one group. For example, a caption or paragraph below a diagram has a visible gap above it, not a few pixels.
+- **Source:** Wathan and Schoger, *Refactoring UI* (2018), "Start with too much white space"; Williams, *The Non-Designer's Design Book* (proximity principle).
+- **Judged by:** askable. Jev is asked whether any two elements that do not belong together sit uncomfortably close. Evidence: in M-1, Benjamin Jackson saw the text below a diagram sit too close to it (spike/human_answers.csv, on `edges-misaligned`), and no other entry covered it (PRD OQ-18).
 
 
 ---
@@ -621,6 +650,7 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Source:** WCAG 2.2 SC 1.4.5 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/images-of-text.html
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because telling a picture of text from live text needs detail too fine to see. Cut in M-1 as `text-baked-into-image`: Jev answered true at 0.96 where Benjamin Jackson could not tell.
 
 ### Use of color
 - **Rule:** Color is not the only way to show information: links inside body text, errors, required fields, chart series, and states need a second cue (underline, icon, label, pattern). Or the link has 3:1 contrast against surrounding text plus a non-color cue on hover and focus.
@@ -669,6 +699,7 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Source:** WCAG 2.2 SC 2.4.6 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/headings-and-labels.html
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Not encoded (NG-10):** breaks NG-10 because it reads the heading text, which is the content. Cut in M-1 as `headings-describe-content`.
 
 ### Labels or instructions
 - **Rule:** Every input has a visible label or instruction that stays visible while typing. A placeholder alone is not enough.
@@ -681,6 +712,7 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Source:** WCAG 2.2 SC 2.4.4 (A)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context.html
 - **Judged by:** askable.
+- **Not encoded (NG-10):** breaks NG-10 because it reads the link text, which is the content. Cut in M-1 as `vague-link-text`.
 
 ### Consistent navigation
 - **Rule:** Navigation links repeated on multiple pages appear in the same relative order each time.
