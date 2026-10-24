@@ -36,6 +36,7 @@ describe("scoreFixtureTests", () => {
   const criteria = [
     {
       criterion: "typography/faint-body-text",
+      id: "faint-body-text",
       positive: ["fixtures/faint.positive.png"],
       negative: ["fixtures/faint.negative.png"],
     },

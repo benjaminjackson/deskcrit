@@ -31,9 +31,13 @@ export type Verdict = "pass" | "warn" | "fail" | "uncertain";
 /** Whether a fixture is listed as one the criterion must flag or one it must pass (FR-50). */
 export type FixtureKind = "positive" | "negative";
 
-/** One criterion of a pack, with its full id `pack/criterion` and its fixture paths (FR-50). */
+/**
+ * One criterion of a pack: its full id `pack/criterion` as reports write it, its bare id as pack
+ * files and label files write it, and its fixture paths (FR-50, EV-5).
+ */
 export type PackCriterionFixtures = {
   readonly criterion: string;
+  readonly id: string;
   readonly positive: readonly string[];
   readonly negative: readonly string[];
 };

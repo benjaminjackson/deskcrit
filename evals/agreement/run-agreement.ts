@@ -84,6 +84,8 @@ type PackFixtures = {
 type PackResult = {
   readonly pack: PackFixtures;
   readonly fixtureRows: readonly FixtureTestRow[];
+  /** The pack's checked label file, read once, or null when it has none (EV-5). */
+  readonly labels: readonly FixtureLabel[] | null;
   readonly agreement: readonly CriterionAgreement[] | null;
 };
 
@@ -183,9 +185,7 @@ function runHarness(argv: readonly string[]): {
     const labels = readPackLabels(pack);
     let agreement: CriterionAgreement[] | null = null;
     if (labels !== null) {
-      const criterionIds = pack.criteria.map((criterion) =>
-        readBareCriterionId(criterion),
-      );
+      const criterionIds = pack.criteria.map((criterion) => criterion.id);
       agreement = scoreAgreement(
         pack.name,
         criterionIds,
@@ -193,7 +193,7 @@ function runHarness(argv: readonly string[]): {
         verdictsByFixture,
       );
     }
-    packResults.push({ pack, fixtureRows, agreement });
+    packResults.push({ pack, fixtureRows, labels, agreement });
   }
   const model = findSingleModel(pinnedModel, modelIds);
   const coverage = measureCoverage(readAllLabels(packResults));
@@ -360,6 +360,7 @@ function readCriterionFixtures(
   const negative = "negative" in fixtures ? fixtures.negative : undefined;
   return {
     criterion: `${packName}/${criterion.id}`,
+    id: criterion.id,
     positive: readFixturePaths(`${where} fixtures.positive`, positive),
     negative: readFixturePaths(`${where} fixtures.negative`, negative),
   };
@@ -507,12 +508,6 @@ function addUsage(totals: UsageTotals, usage: ReportDocument["usage"]): void {
   }
 }
 
-/** Return the criterion id without its `pack/` prefix, as label files write it (EV-5). */
-function readBareCriterionId(criterion: PackCriterionFixtures): string {
-  const slashIndex = criterion.criterion.indexOf("/");
-  return criterion.criterion.slice(slashIndex + 1);
-}
-
 /**
  * Read labels/<pack>.csv for a pack and check it against the pack's criteria and fixtures, or
  * return null when the file does not exist. The harness never writes a label file (EV-5, CS-7).
@@ -525,7 +520,7 @@ function readPackLabels(pack: PackFixtures): FixtureLabel[] | null {
   const criterionIds = new Set<string>();
   const fixtures = new Set<string>();
   for (const criterion of pack.criteria) {
-    criterionIds.add(readBareCriterionId(criterion));
+    criterionIds.add(criterion.id);
     for (const fixture of criterion.positive) {
       fixtures.add(fixture);
     }
@@ -539,8 +534,8 @@ function readPackLabels(pack: PackFixtures): FixtureLabel[] | null {
 
 /**
  * Read every label file in labels/ for the coverage count. A file must be named after one of the
- * seven first-party domains. A pack measured in this run has its file checked against the pack
- * (EV-5, FR-55).
+ * seven first-party domains. A pack measured in this run reuses the labels it already read and
+ * checked against the pack (EV-5, FR-55).
  */
 function readAllLabels(
   packResults: readonly PackResult[],
@@ -565,7 +560,7 @@ function readAllLabels(
       (result) => result.pack.name === domain,
     );
     if (measuredPack !== undefined) {
-      labelsByDomain.set(domain, readPackLabels(measuredPack.pack) ?? []);
+      labelsByDomain.set(domain, measuredPack.labels ?? []);
     } else {
       const labelPath = join(LABELS_DIRECTORY, fileName);
       labelsByDomain.set(
@@ -728,7 +723,7 @@ function formatCoverage(coverage: Coverage): string {
   return lines.join("\n");
 }
 
-/** Order two strings by code unit, so the order never depends on the locale (CS-18). */
+/** Order two strings by code unit, so the pack, fixture, and label file order in the EV-4 and EV-5 output never depends on the locale (CS-18). */
 function compareText(left: string, right: string): number {
   if (left < right) {
     return -1;
@@ -739,7 +734,7 @@ function compareText(left: string, right: string): number {
   return 0;
 }
 
-/** Format rows as a plain text table with columns padded to the widest cell. */
+/** Format rows as a plain text table with columns padded to the widest cell, for the EV-4 and EV-5 tables. */
 function formatTable(
   headers: readonly string[],
   rows: readonly (readonly string[])[],
@@ -764,7 +759,7 @@ function formatTable(
   return lines.join("\n");
 }
 
-/** Pad each cell of one table row to its column width and join the cells with two spaces. */
+/** Pad each cell of one row of an EV-4 or EV-5 table to its column width and join the cells with two spaces. */
 function formatTableRow(
   cells: readonly string[],
   widths: readonly number[],
