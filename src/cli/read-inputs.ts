@@ -1,5 +1,5 @@
 // Every file and environment read for `crit report` (CS-6): the image, `.crit.yaml`, each pack
-// directory, the facts file, and the API key. Each failure throws CouldNotRunError that names the
+// directory, the facts file, the --answers file, and the API key. Each failure throws CouldNotRunError that names the
 // input, so the run exits with code 2 (FR-4, US-5, US-7, NFR-14). The stages get the values.
 
 import { readFile } from "node:fs/promises";
@@ -8,6 +8,7 @@ import { loadPack } from "../packs/load-pack.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
 import type { Pack } from "../shared/pack.js";
 import type { Context } from "../shared/state.js";
+import { type AnswersFile, readAnswersFile } from "./answers-file.js";
 import type { ReportArguments } from "./args.js";
 import {
   CRIT_YAML_FILE_NAME,
@@ -35,6 +36,14 @@ export type ReportInputs = {
   /** The model id pinned in `.crit.yaml`, or undefined for the adapter's default (FR-22). */
   readonly model: string | undefined;
   readonly json: boolean;
+  /** The checked --answers file and the name it was given as, or undefined without --answers (FR-42). */
+  readonly recordedAnswers: RecordedAnswers | undefined;
+};
+
+/** A checked answers file and the path the person gave, so later messages can name it (FR-4, FR-42). */
+export type RecordedAnswers = {
+  readonly answersFile: AnswersFile;
+  readonly fileName: string;
 };
 
 /** One loaded pack and where it came from, so a duplicate name can name both sources. */
@@ -46,7 +55,8 @@ type LoadedPack = {
 /**
  * Read every input the arguments name, relative to the working directory: the image bytes,
  * `.crit.yaml` from that directory only, the packs, and the facts file. Then lay the --context
- * flags over the file's context (FR-1 to FR-4, FR-11, FR-22, FR-51, OQ-25 b).
+ * flags over the file's context. With --answers it reads and checks that file too, before
+ * prepare runs (FR-1 to FR-4, FR-11, FR-22, FR-42, FR-51, OQ-25 b).
  */
 export async function readReportInputs(
   reportArguments: ReportArguments,
@@ -66,6 +76,13 @@ export async function readReportInputs(
   if (reportArguments.factsPath !== undefined) {
     facts = await readFacts(reportArguments.factsPath, workingDirectory);
   }
+  let recordedAnswers: RecordedAnswers | undefined;
+  if (reportArguments.answersPath !== undefined) {
+    recordedAnswers = await readRecordedAnswers(
+      reportArguments.answersPath,
+      workingDirectory,
+    );
+  }
   return {
     imagePath: reportArguments.imagePath,
     imageBytes,
@@ -74,6 +91,7 @@ export async function readReportInputs(
     facts,
     model: critYaml.model,
     json: reportArguments.json,
+    recordedAnswers,
   };
 }
 
@@ -225,6 +243,26 @@ async function readFacts(
       `${factsPath}: the facts file is not valid JSON`,
     );
   }
+}
+
+/**
+ * Read the --answers file and check its shape. An unreadable file stops the run and names the
+ * path; readAnswersFile names it for bad JSON or a wrong shape (FR-4, FR-42, CS-7).
+ */
+async function readRecordedAnswers(
+  answersPath: string,
+  workingDirectory: string,
+): Promise<RecordedAnswers> {
+  let text: string;
+  try {
+    text = await readFile(resolve(workingDirectory, answersPath), "utf8");
+  } catch {
+    throw new CouldNotRunError(`answers file ${answersPath} cannot be read`);
+  }
+  return {
+    answersFile: readAnswersFile(text, answersPath),
+    fileName: answersPath,
+  };
 }
 
 /**

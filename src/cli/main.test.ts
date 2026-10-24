@@ -4,6 +4,7 @@
 
 import {
   copyFileSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -492,5 +493,260 @@ describe("could not run: exit 2, a message that names the input, and empty stdou
       "--json",
     ]);
     expect(result.stdout).not.toContain(FAKE_API_KEY);
+  });
+});
+
+describe("--save-answers and --answers (FR-42, CS-21)", () => {
+  /** Read a file from the working directory as text. */
+  function readWorkingFile(name: string): string {
+    return readFileSync(join(workingDirectory, name), "utf8");
+  }
+
+  /** Return true when the working directory holds a file of this name. */
+  function workingFileExists(name: string): boolean {
+    return existsSync(join(workingDirectory, name));
+  }
+
+  /** Forget what earlier runs wrote, so the next run's streams can be checked alone. */
+  function clearStreams(): void {
+    stdoutText = "";
+    stderrText = "";
+    process.exitCode = undefined;
+  }
+
+  /** A factory that fails the test if main calls it, which proves --answers makes no adapter. */
+  const forbiddenFactory = (): TypeSafeAdapter => {
+    throw new Error("the adapter factory must not be called with --answers");
+  };
+
+  it("writes the raw answers and the adapter's usage to the file, and the report to stdout", async () => {
+    const result = await runCrit([
+      "report",
+      "page.png",
+      "--pack",
+      "minimal",
+      "--json",
+      "--save-answers",
+      "answers.json",
+    ]);
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(parseReport(result.stdout).model).toBe("stub");
+    const saved: unknown = JSON.parse(readWorkingFile("answers.json"));
+    expect(saved).toEqual({
+      answers_file_version: 1,
+      answers: [
+        {
+          type: "noul",
+          question_id: "minimal/faint-body-text",
+          model: "stub",
+          distribution: { true: 0, false: 1 },
+          confidence: null,
+        },
+      ],
+      usage: { input_tokens: 0, cost_usd: 0, latency_ms: 0, model: "stub" },
+    });
+    expect(readWorkingFile("answers.json")).not.toContain(FAKE_API_KEY);
+  });
+
+  it("gives the same stdout from the file with no key and no adapter, twice in a row (EV-1, NFR-5)", async () => {
+    const saved = await runCrit([
+      "report",
+      "page.png",
+      "--pack",
+      "minimal",
+      "--json",
+      "--save-answers",
+      "answers.json",
+    ]);
+    const argv = [
+      "report",
+      "page.png",
+      "--pack",
+      "minimal",
+      "--json",
+      "--answers",
+      "answers.json",
+    ];
+    const outputs: string[] = [];
+    for (let run = 0; run < 2; run += 1) {
+      clearStreams();
+      await main(argv, {}, forbiddenFactory, workingDirectory);
+      expect(process.exitCode).toBe(0);
+      expect(stderrText).toBe("");
+      outputs.push(stdoutText);
+    }
+    expect(outputs[0]).toBe(saved.stdout);
+    expect(outputs[1]).toBe(saved.stdout);
+  });
+
+  it("gives new verdicts from the same file when the pack's thresholds change (FR-42)", async () => {
+    writeWorkingFile(
+      "answers.json",
+      `${JSON.stringify({
+        answers_file_version: 1,
+        answers: [
+          {
+            type: "noul",
+            question_id: "minimal/faint-body-text",
+            model: "jev-1",
+            distribution: { true: 0.8, false: 0.2 },
+            confidence: null,
+          },
+        ],
+        usage: {
+          input_tokens: 10,
+          cost_usd: 0.1,
+          latency_ms: 5,
+          model: "jev-1",
+        },
+      })}\n`,
+    );
+    const argv = [
+      "report",
+      "page.png",
+      "--pack",
+      "minimal",
+      "--json",
+      "--answers",
+      "answers.json",
+    ];
+    await main(argv, {}, forbiddenFactory, workingDirectory);
+    expect(process.exitCode).toBe(0);
+    const firstReport = parseReport(stdoutText);
+    expect(firstReport.model).toBe("jev-1");
+    expect(firstReport.usage).toEqual({
+      requests: 1,
+      input_tokens: 10,
+      cost_usd: 0.1,
+      latency_ms: 5,
+    });
+    expect(stdoutText).toContain('"verdict": "fail"');
+    const packText = readWorkingFile("minimal/pack.yaml");
+    writeWorkingFile(
+      "minimal/pack.yaml",
+      packText.replace(
+        "probability_at_least: 0.7",
+        "probability_at_least: 0.9",
+      ),
+    );
+    clearStreams();
+    await main(argv, {}, forbiddenFactory, workingDirectory);
+    expect(process.exitCode).toBe(0);
+    expect(stdoutText).not.toContain('"verdict": "fail"');
+  });
+
+  it("writes the replayed answers again when both flags are given (OQ-26)", async () => {
+    await runCrit([
+      "report",
+      "page.png",
+      "--pack",
+      "minimal",
+      "--save-answers",
+      "first.json",
+    ]);
+    clearStreams();
+    await main(
+      [
+        "report",
+        "page.png",
+        "--pack",
+        "minimal",
+        "--answers",
+        "first.json",
+        "--save-answers",
+        "second.json",
+      ],
+      {},
+      forbiddenFactory,
+      workingDirectory,
+    );
+    expect(process.exitCode).toBe(0);
+    expect(readWorkingFile("second.json")).toBe(readWorkingFile("first.json"));
+  });
+
+  it("exits 2, names the file, and writes nothing when the answers file is not JSON (FR-4, FR-43)", async () => {
+    writeWorkingFile("answers.json", "{ broken");
+    await main(
+      ["report", "page.png", "--pack", "minimal", "--answers", "answers.json"],
+      {},
+      forbiddenFactory,
+      workingDirectory,
+    );
+    expect(process.exitCode).toBe(2);
+    expect(stdoutText).toBe("");
+    expect(stderrText).toBe(
+      "crit: answers file answers.json is not valid JSON\n",
+    );
+  });
+
+  it("exits 2 and names the file when it is missing (FR-4)", async () => {
+    await main(
+      ["report", "page.png", "--pack", "minimal", "--answers", "absent.json"],
+      {},
+      forbiddenFactory,
+      workingDirectory,
+    );
+    expect(process.exitCode).toBe(2);
+    expect(stdoutText).toBe("");
+    expect(stderrText).toBe("crit: answers file absent.json cannot be read\n");
+  });
+
+  it("exits 2 and names the file when its answers do not fit this run's questions (OQ-26)", async () => {
+    writeWorkingFile(
+      "answers.json",
+      `${JSON.stringify({
+        answers_file_version: 1,
+        answers: [],
+        usage: { input_tokens: 0, cost_usd: 0, latency_ms: 0, model: "stub" },
+      })}\n`,
+    );
+    await main(
+      ["report", "page.png", "--pack", "minimal", "--answers", "answers.json"],
+      {},
+      forbiddenFactory,
+      workingDirectory,
+    );
+    expect(process.exitCode).toBe(2);
+    expect(stdoutText).toBe("");
+    expect(stderrText).toContain("answers file answers.json does not fit");
+    expect(stderrText).toContain(
+      "no answer for question minimal/faint-body-text",
+    );
+  });
+
+  it("writes no answers file and no stdout when the adapter fails (FR-24)", async () => {
+    const result = await runCrit(
+      [
+        "report",
+        "page.png",
+        "--pack",
+        "minimal",
+        "--json",
+        "--save-answers",
+        "answers.json",
+      ],
+      environmentWithKey,
+      { failWith: new CouldNotRunError("TypeSafe returned HTTP 503") },
+    );
+    expect(result.exitCode).toBe(2);
+    expect(result.stdout).toBe("");
+    expect(workingFileExists("answers.json")).toBe(false);
+  });
+
+  it("exits 2, names the path, and writes no stdout when the answers file cannot be written (FR-4)", async () => {
+    const result = await runCrit([
+      "report",
+      "page.png",
+      "--pack",
+      "minimal",
+      "--save-answers",
+      "no-such-directory/answers.json",
+    ]);
+    expect(result.exitCode).toBe(2);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toBe(
+      "crit: answers file no-such-directory/answers.json cannot be written\n",
+    );
   });
 });

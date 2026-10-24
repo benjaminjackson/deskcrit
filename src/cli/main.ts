@@ -1,5 +1,7 @@
 // The one place that writes stdout and stderr and sets the exit code (CS-17, FR-43, FR-61).
 
+import { writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import type { TypeSafeAdapter } from "../ask/adapter.js";
 import {
   createTypeSafeAdapter,
@@ -7,8 +9,12 @@ import {
 } from "../ask/typesafe/adapter.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
 import { parseReportArguments } from "./args.js";
-import { readApiKey, readReportInputs } from "./read-inputs.js";
-import { runReport } from "./report-command.js";
+import {
+  type ReportInputs,
+  readApiKey,
+  readReportInputs,
+} from "./read-inputs.js";
+import { type AnswerSource, runReport } from "./report-command.js";
 
 /** Exit code 0: the command ran (FR-43). */
 const EXIT_CODE_RAN = 0;
@@ -22,10 +28,12 @@ export type CreateAdapter = (
 ) => TypeSafeAdapter;
 
 /**
- * Run `crit report`: parse argv, read the inputs, check the API key, make the adapter, and run the
- * stages. On success it writes the report to stdout once and sets exit code 0, whatever the
- * verdicts. On any error it writes only to stderr and sets exit code 2 (FR-24, FR-43, FR-61,
- * NFR-14, CS-17). It never calls process.exit, which can cut off piped stdout.
+ * Run `crit report`: parse argv, read the inputs, and run the stages. Without --answers it checks
+ * the API key and makes the adapter; with --answers it does neither and makes no network call. With
+ * --save-answers it writes the answers file before stdout. On success it writes the report to stdout
+ * once and sets exit code 0, whatever the verdicts. On any error it writes only to stderr, writes no
+ * answers file, and sets exit code 2 (FR-24, FR-42, FR-43, FR-61, NFR-14, CS-17). It never calls
+ * process.exit, which can cut off piped stdout.
  */
 export async function main(
   argv: readonly string[],
@@ -36,19 +44,66 @@ export async function main(
   try {
     const reportArguments = parseReportArguments(argv);
     const inputs = await readReportInputs(reportArguments, workingDirectory);
-    // The key is checked after the packs load, so a run with a bad pack says so even with no key.
-    const apiKey = readApiKey(environment);
-    const options: { apiKey: string; model?: string } = { apiKey };
-    if (inputs.model !== undefined) {
-      options.model = inputs.model;
+    const answerSource = chooseAnswerSource(inputs, environment, createAdapter);
+    const output = await runReport(inputs, answerSource);
+    if (reportArguments.saveAnswersPath !== undefined) {
+      await writeAnswersFileText(
+        reportArguments.saveAnswersPath,
+        output.answersFileText,
+        workingDirectory,
+      );
     }
-    const adapter = createAdapterSafely(createAdapter, options);
-    const output = await runReport(inputs, adapter);
-    process.stdout.write(output);
+    process.stdout.write(output.stdoutText);
     process.exitCode = EXIT_CODE_RAN;
   } catch (error) {
     process.stderr.write(describeError(error));
     process.exitCode = EXIT_CODE_COULD_NOT_RUN;
+  }
+}
+
+/**
+ * Return the recorded answers when --answers was given, and read no key. Otherwise read the key
+ * and make the adapter. The key is checked after the packs load, so a run with a bad pack says so
+ * even with no key (FR-22, FR-42, CS-21).
+ */
+function chooseAnswerSource(
+  inputs: ReportInputs,
+  environment: Readonly<Record<string, string | undefined>>,
+  createAdapter: CreateAdapter,
+): AnswerSource {
+  if (inputs.recordedAnswers !== undefined) {
+    return {
+      kind: "recorded",
+      recorded: inputs.recordedAnswers.answersFile,
+      fileName: inputs.recordedAnswers.fileName,
+    };
+  }
+  const apiKey = readApiKey(environment);
+  const options: { apiKey: string; model?: string } = { apiKey };
+  if (inputs.model !== undefined) {
+    options.model = inputs.model;
+  }
+  return { kind: "ask", adapter: createAdapterSafely(createAdapter, options) };
+}
+
+/**
+ * Write the answers file text to the --save-answers path. A write error stops the run, names the
+ * path, and leaves stdout empty (FR-4, FR-42, AC-7).
+ */
+async function writeAnswersFileText(
+  saveAnswersPath: string,
+  answersFileText: string,
+  workingDirectory: string,
+): Promise<void> {
+  try {
+    await writeFile(
+      resolve(workingDirectory, saveAnswersPath),
+      answersFileText,
+    );
+  } catch {
+    throw new CouldNotRunError(
+      `answers file ${saveAnswersPath} cannot be written`,
+    );
   }
 }
 

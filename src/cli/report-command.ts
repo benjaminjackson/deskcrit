@@ -1,16 +1,21 @@
 // The `crit report` pipeline: prepare, build, ask, and compose, then one renderer (FR-31, FR-65).
 // It calls only the four stage entry functions and no stage internals, and takes the adapter as a
-// parameter so tests can pass the stub (FR-20, FR-64). It writes nothing; main.ts writes the
-// returned text once (CS-17, FR-24).
+// parameter so tests can pass the stub (FR-20, FR-64). With --answers it takes recorded answers in
+// place of ask (FR-42). It writes nothing; main.ts writes the returned texts (CS-17, FR-24).
 
 // The JSON import is bundled by esbuild, so package.json is never read from disk at run time.
 import packageJson from "../../package.json" with { type: "json" };
-import type { TypeSafeAdapter } from "../ask/adapter.js";
+import type { AskResult, TypeSafeAdapter } from "../ask/adapter.js";
 import { ask } from "../ask/ask.js";
 import { buildQuestions } from "../build/build.js";
 import { compose } from "../compose/compose.js";
 import { prepareImage } from "../prepare/prepare.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
+import {
+  type AnswersFile,
+  checkRecordedAnswers,
+  writeAnswersFile,
+} from "./answers-file.js";
 import type { ReportInputs } from "./read-inputs.js";
 import { renderReportJson } from "./render-json.js";
 import { renderReportText } from "./render-text.js";
@@ -19,14 +24,33 @@ import { renderReportText } from "./render-text.js";
 const TOOL_NAME = "deskcrit";
 
 /**
- * Run the four stages on the inputs and return the report text: one JSON document with --json,
- * the readable report without it (FR-31, FR-33, FR-65, US-1). Any stage error propagates, so no
- * partial report is returned (FR-24). A fail verdict is not an error: report exits 0 (FR-43).
+ * Where the answers come from: the ask stage through an adapter, or a recorded answers file that
+ * --answers named, which makes no network call (FR-42, OQ-26).
+ */
+export type AnswerSource =
+  | { readonly kind: "ask"; readonly adapter: TypeSafeAdapter }
+  | {
+      readonly kind: "recorded";
+      readonly recorded: AnswersFile;
+      readonly fileName: string;
+    };
+
+/** What a report run gives main.ts to write: the report, and the answers file text for --save-answers (FR-42). */
+export type ReportOutput = {
+  readonly stdoutText: string;
+  readonly answersFileText: string;
+};
+
+/**
+ * Run the four stages on the inputs and return the report text, one JSON document with --json and
+ * the readable report without it, and the answers file text (FR-31, FR-33, FR-42, FR-65, US-1).
+ * Any stage error propagates, so no partial report is returned (FR-24). A fail verdict is not an
+ * error: report exits 0 (FR-43).
  */
 export async function runReport(
   inputs: ReportInputs,
-  adapter: TypeSafeAdapter,
-): Promise<string> {
+  answerSource: AnswerSource,
+): Promise<ReportOutput> {
   const prepared = await prepareNamingImage(
     inputs.imagePath,
     inputs.imageBytes,
@@ -37,7 +61,16 @@ export async function runReport(
     context: inputs.context,
     facts: inputs.facts,
   });
-  const asked = await ask(built.state, built.questions, adapter);
+  let asked: AskResult;
+  if (answerSource.kind === "ask") {
+    asked = await ask(built.state, built.questions, answerSource.adapter);
+  } else {
+    asked = checkRecordedAnswers(
+      answerSource.recorded,
+      built.questions,
+      answerSource.fileName,
+    );
+  }
   const report = compose({
     packs: inputs.packs,
     built,
@@ -49,10 +82,13 @@ export async function runReport(
       context: inputs.context,
     },
   });
+  let stdoutText: string;
   if (inputs.json) {
-    return renderReportJson(report);
+    stdoutText = renderReportJson(report);
+  } else {
+    stdoutText = renderReportText(report);
   }
-  return renderReportText(report);
+  return { stdoutText, answersFileText: writeAnswersFile(asked) };
 }
 
 /**

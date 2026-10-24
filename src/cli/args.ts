@@ -8,7 +8,7 @@ import type { Context } from "../shared/state.js";
 
 /** The usage line that a could-not-run message ends with when the command line is wrong (FR-60). */
 export const REPORT_USAGE =
-  "usage: crit report <image> [--pack <dir>...] [--context <key=value>...] [--facts <file>] [--json]";
+  "usage: crit report <image> [--pack <dir>...] [--context <key=value>...] [--facts <file>] [--json] [--save-answers <file>] [--answers <file>]";
 
 /** The context keys FR-2 allows. Any other key stops the run (OQ-25 c). */
 const CONTEXT_KEYS = ["purpose", "audience", "platform"] as const;
@@ -24,11 +24,15 @@ export type ReportArguments = {
   readonly contextFlags: Context;
   readonly factsPath: string | undefined;
   readonly json: boolean;
+  /** Where --save-answers writes the answers file, or undefined when the flag is absent (FR-42). */
+  readonly saveAnswersPath: string | undefined;
+  /** The answers file --answers names, so the run skips ask, or undefined (FR-42). */
+  readonly answersPath: string | undefined;
 };
 
 /**
- * Parse argv for `crit report <image>` with --pack and --context repeated, --facts, and --json
- * (FR-60, OQ-25 e). An unknown flag, a missing value, a wrong command, a missing image, an extra
+ * Parse argv for `crit report <image>` with --pack and --context repeated, --facts, --json,
+ * --save-answers, and --answers (FR-42, FR-60, OQ-25 e). An unknown flag, a missing value, a wrong command, a missing image, an extra
  * argument, or a bad key=value pair throws CouldNotRunError (FR-4, CS-16).
  */
 export function parseReportArguments(argv: readonly string[]): ReportArguments {
@@ -42,6 +46,7 @@ export function parseReportArguments(argv: readonly string[]): ReportArguments {
     throw error;
   }
 
+  rejectRepeatedFlags(parsed.tokens, ["save-answers", "answers"]);
   const positionals = parsed.positionals;
   const command = positionals[0];
   if (command === undefined) {
@@ -70,12 +75,15 @@ export function parseReportArguments(argv: readonly string[]): ReportArguments {
     contextFlags: parseContextPairs(contextPairs),
     factsPath: parsed.values.facts,
     json: parsed.values.json ?? false,
+    saveAnswersPath: parsed.values["save-answers"],
+    answersPath: parsed.values.answers,
   };
 }
 
 /**
- * Run Node's parseArgs with the report options. strict makes an unknown flag an error, and
- * multiple lets --pack and --context repeat (FR-60, CS-3).
+ * Run Node's parseArgs with the report options. strict makes an unknown flag an error, multiple
+ * lets --pack and --context repeat, and tokens lists each flag as given, so a repeat can be seen
+ * (FR-60, CS-3).
  */
 function parseWithNode(argv: readonly string[]) {
   return parseArgs({
@@ -87,8 +95,34 @@ function parseWithNode(argv: readonly string[]) {
       context: { type: "string", multiple: true },
       facts: { type: "string" },
       json: { type: "boolean" },
+      "save-answers": { type: "string" },
+      answers: { type: "string" },
     },
+    tokens: true,
   });
+}
+
+/**
+ * Throw CouldNotRunError when one of these flags is given more than once. parseArgs keeps only the
+ * last value of a flag, so a repeated --answers would silently drop a file (FR-42, OQ-26).
+ */
+function rejectRepeatedFlags(
+  tokens: ReturnType<typeof parseWithNode>["tokens"],
+  flagNames: readonly string[],
+): void {
+  for (const flagName of flagNames) {
+    let count = 0;
+    for (const token of tokens) {
+      if (token.kind === "option" && token.name === flagName) {
+        count += 1;
+      }
+    }
+    if (count > 1) {
+      throw new CouldNotRunError(
+        `--${flagName} is given more than once\n${REPORT_USAGE}`,
+      );
+    }
+  }
 }
 
 /**
