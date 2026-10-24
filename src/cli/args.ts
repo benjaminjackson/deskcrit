@@ -1,4 +1,4 @@
-// Argument parsing for `crit report`, `crit gate`, `crit packs validate`, and `crit packs test` (FR-40, FR-49, FR-50, FR-60). It turns argv into typed values with Node's own
+// Argument parsing for `crit report`, `crit compare`, `crit gate`, `crit packs validate`, and `crit packs test` (FR-40, FR-42, FR-49, FR-50, FR-60). It turns argv into typed values with Node's own
 // parser and turns every bad argument into CouldNotRunError, so the run exits with code 2 (FR-4,
 // CS-3, CS-16). It reads no file; read-inputs.ts does that.
 
@@ -9,6 +9,10 @@ import type { Context } from "../shared/state.js";
 /** The usage line that a could-not-run message ends with when the command line is wrong (FR-60). */
 export const REPORT_USAGE =
   "usage: crit report <image> [--pack <dir>...] [--context <key=value>...] [--facts <file>] [--json] [--save-answers <file>] [--answers <file>]";
+
+/** The usage line for `crit compare`: the options of report, with a before and an after image (FR-42, FR-60). */
+export const COMPARE_USAGE =
+  "usage: crit compare <before> <after> [--pack <dir>...] [--context <key=value>...] [--facts <file>] [--json] [--save-answers <file>] [--answers <file>]";
 
 /** The usage line for `crit gate`: the options of report except --save-answers (FR-40, FR-60). */
 export const GATE_USAGE =
@@ -21,7 +25,7 @@ export const PACKS_VALIDATE_USAGE = "usage: crit packs validate <dir>";
 export const PACKS_TEST_USAGE = "usage: crit packs test <dir>";
 
 /** Every usage line, for an error that does not know which command was meant (FR-60). */
-export const USAGE = `${REPORT_USAGE}\n${GATE_USAGE}\n${PACKS_VALIDATE_USAGE}\n${PACKS_TEST_USAGE}`;
+export const USAGE = `${REPORT_USAGE}\n${COMPARE_USAGE}\n${GATE_USAGE}\n${PACKS_VALIDATE_USAGE}\n${PACKS_TEST_USAGE}`;
 
 /** The context keys FR-2 allows. Any other key stops the run (OQ-25 c). */
 const CONTEXT_KEYS = ["purpose", "audience", "platform"] as const;
@@ -31,6 +35,9 @@ type ContextKey = (typeof CONTEXT_KEYS)[number];
 
 /** The two commands that run the report pipeline on one image (FR-40, FR-60). */
 export type ReportCommandName = "report" | "gate";
+
+/** The three commands that run the report pipeline: on one image, or on two for compare (FR-35, FR-40, FR-60). */
+type ImageCommandName = ReportCommandName | "compare";
 
 /** What the `crit report` or `crit gate` command line asks for (FR-60). */
 export type ReportArguments = {
@@ -46,17 +53,28 @@ export type ReportArguments = {
   readonly answersPath: string | undefined;
 };
 
+/**
+ * What the `crit compare` command line asks for: the options of report, with a before and an after
+ * image in place of the one image (FR-35, FR-42, FR-60). `Omit` is the report type without imagePath.
+ */
+export type CompareArguments = Omit<ReportArguments, "imagePath"> & {
+  readonly beforePath: string;
+  readonly afterPath: string;
+};
+
 /** The command a command line asks for, with its arguments (FR-60). */
 export type Command =
   | { readonly command: "report"; readonly args: ReportArguments }
+  | { readonly command: "compare"; readonly args: CompareArguments }
   | { readonly command: "gate"; readonly args: ReportArguments }
   | { readonly command: "packs-validate"; readonly directory: string }
   | { readonly command: "packs-test"; readonly directory: string };
 
 /**
  * Parse argv into one command. A line that starts with `packs` is `crit packs validate` or
- * `crit packs test`, a line that starts with `gate` is `crit gate`, and every other line goes to
- * the `crit report` parser, which rejects an unknown command (FR-40, FR-49, FR-50, FR-60).
+ * `crit packs test`, a line that starts with `gate` is `crit gate`, a line that starts with
+ * `compare` is `crit compare`, and every other line goes to the `crit report` parser, which
+ * rejects an unknown command (FR-40, FR-49, FR-50, FR-60).
  */
 export function parseCommand(argv: readonly string[]): Command {
   if (argv[0] === "packs") {
@@ -71,6 +89,9 @@ export function parseCommand(argv: readonly string[]): Command {
   }
   if (argv[0] === "gate") {
     return { command: "gate", args: parseReportArguments(argv, "gate") };
+  }
+  if (argv[0] === "compare") {
+    return { command: "compare", args: parseCompareArguments(argv) };
   }
   return { command: "report", args: parseReportArguments(argv) };
 }
@@ -145,6 +166,56 @@ export function parseReportArguments(
   if (commandName === "gate") {
     usage = GATE_USAGE;
   }
+  const parsed = parseImageCommandLine(argv, commandName, usage);
+  const imagePath = parsed.imagePaths[0];
+  if (imagePath === undefined) {
+    throw new CouldNotRunError(`no image given\n${usage}`);
+  }
+  rejectExtraImages(parsed.imagePaths, 1, usage);
+  return { imagePath, ...readImageCommandOptions(parsed.values) };
+}
+
+/**
+ * Parse argv for `crit compare <before> <after>` with the options of report (FR-42, FR-60). A
+ * missing before or after image, a third image, or any error parseReportArguments reports throws
+ * CouldNotRunError (FR-4, CS-16).
+ */
+export function parseCompareArguments(
+  argv: readonly string[],
+): CompareArguments {
+  const parsed = parseImageCommandLine(argv, "compare", COMPARE_USAGE);
+  const beforePath = parsed.imagePaths[0];
+  if (beforePath === undefined) {
+    throw new CouldNotRunError(`no before image given\n${COMPARE_USAGE}`);
+  }
+  const afterPath = parsed.imagePaths[1];
+  if (afterPath === undefined) {
+    throw new CouldNotRunError(`no after image given\n${COMPARE_USAGE}`);
+  }
+  rejectExtraImages(parsed.imagePaths, 2, COMPARE_USAGE);
+  return { beforePath, afterPath, ...readImageCommandOptions(parsed.values) };
+}
+
+/** The options of a report, compare, or gate command line, without its image paths (FR-60). */
+type ImageCommandOptions = Omit<ReportArguments, "imagePath">;
+
+/** The image paths a command line gave, in order, and its flag values as parseArgs read them (FR-60). */
+type ParsedImageCommandLine = {
+  readonly imagePaths: readonly string[];
+  readonly values: ParsedReportLine["values"];
+};
+
+/**
+ * Parse the flags and positionals shared by report, compare, and gate, check the command name, and
+ * return the image paths and the flag values. The caller checks how many image paths there are,
+ * because compare takes two and the others take one, before it reads the --context pairs, so a
+ * missing image is reported first (FR-4, FR-60, CS-16).
+ */
+function parseImageCommandLine(
+  argv: readonly string[],
+  commandName: ImageCommandName,
+  usage: string,
+): ParsedImageCommandLine {
   let parsed: ParsedReportLine;
   try {
     parsed = parseWithNode(argv, commandName);
@@ -169,29 +240,44 @@ export function parseReportArguments(
   if (command !== commandName) {
     throw new CouldNotRunError(`unknown command ${command}\n${USAGE}`);
   }
-  const imagePath = positionals[1];
-  if (imagePath === undefined) {
-    throw new CouldNotRunError(`no image given\n${usage}`);
-  }
-  if (positionals.length > 2) {
-    const extra = positionals.slice(2).join(" ");
+  return { imagePaths: positionals.slice(1), values: parsed.values };
+}
+
+/**
+ * Turn the flag values into the options of the command, with the defaults for flags not given,
+ * and check each --context pair (FR-2, FR-60, OQ-25 c).
+ */
+function readImageCommandOptions(
+  values: ParsedReportLine["values"],
+): ImageCommandOptions {
+  // `??` gives the right-hand value when the left is undefined, here when a flag was not given.
+  const packDirectories = values.pack ?? [];
+  const contextPairs = values.context ?? [];
+  return {
+    packDirectories,
+    contextFlags: parseContextPairs(contextPairs),
+    factsPath: values.facts,
+    json: values.json ?? false,
+    saveAnswersPath: values.saveAnswers,
+    answersPath: values.answers,
+  };
+}
+
+/**
+ * Throw CouldNotRunError when the command line gave more image paths than the command takes. The
+ * usual cause is a --context value with a space split into two words, so the message says so (FR-4).
+ */
+function rejectExtraImages(
+  imagePaths: readonly string[],
+  imageCount: number,
+  usage: string,
+): void {
+  if (imagePaths.length > imageCount) {
+    const extra = imagePaths.slice(imageCount).join(" ");
     throw new CouldNotRunError(
       `unexpected argument ${extra}; give each --context pair its own flag\n${usage}`,
     );
   }
-
-  // `??` gives the right-hand value when the left is undefined, here when a flag was not given.
-  const packDirectories = parsed.values.pack ?? [];
-  const contextPairs = parsed.values.context ?? [];
-  return {
-    imagePath,
-    packDirectories,
-    contextFlags: parseContextPairs(contextPairs),
-    factsPath: parsed.values.facts,
-    json: parsed.values.json ?? false,
-    saveAnswersPath: parsed.values.saveAnswers,
-    answersPath: parsed.values.answers,
-  };
 }
 
 /** The options that both `crit report` and `crit gate` take (FR-60). */
@@ -203,7 +289,7 @@ const SHARED_REPORT_OPTIONS = {
   answers: { type: "string" },
 } as const;
 
-/** The options of `crit report`: the shared ones plus --save-answers (FR-42, FR-60). */
+/** The options of `crit report` and `crit compare`: the shared ones plus --save-answers (FR-42, FR-60). */
 const REPORT_OPTIONS = {
   ...SHARED_REPORT_OPTIONS,
   "save-answers": { type: "string" },
@@ -215,7 +301,7 @@ const REPORT_OPTIONS = {
  */
 type ParsedToken = NonNullable<ReturnType<typeof parseArgs>["tokens"]>[number];
 
-/** The parsed command line of report or gate, in one shape for both commands. */
+/** The parsed command line of report, compare, or gate, in one shape for every command. */
 type ParsedReportLine = {
   readonly values: {
     readonly pack: string[] | undefined;
@@ -236,7 +322,7 @@ type ParsedReportLine = {
  */
 function parseWithNode(
   argv: readonly string[],
-  commandName: ReportCommandName,
+  commandName: ImageCommandName,
 ): ParsedReportLine {
   if (commandName === "gate") {
     const parsed = parseArgs({

@@ -2,7 +2,12 @@
 
 import { describe, expect, it } from "vitest";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
-import { parseCommand, parseReportArguments } from "./args.js";
+import {
+  COMPARE_USAGE,
+  parseCommand,
+  parseCompareArguments,
+  parseReportArguments,
+} from "./args.js";
 
 describe("parseReportArguments", () => {
   it("reads the image, repeated --pack and --context, --facts, and --json", () => {
@@ -244,4 +249,92 @@ describe("parseCommand", () => {
       );
     });
   }
+});
+
+describe("parseCompareArguments (FR-42, FR-60)", () => {
+  /** Return the message of the CouldNotRunError that parsing this command line throws. */
+  function compareError(argv: string[]): string {
+    try {
+      parseCompareArguments(argv);
+    } catch (error) {
+      expect(error).toBeInstanceOf(CouldNotRunError);
+      return error instanceof Error ? error.message : "";
+    }
+    throw new Error("expected CouldNotRunError");
+  }
+
+  it("reads the before and the after image and every report option", () => {
+    expect(
+      parseCompareArguments([
+        "compare",
+        "before.png",
+        "after.png",
+        "--pack",
+        "./a",
+        "--context",
+        "platform=web",
+        "--facts",
+        "facts.json",
+        "--json",
+        "--save-answers",
+        "out.json",
+        "--answers",
+        "in.json",
+      ]),
+    ).toEqual({
+      beforePath: "before.png",
+      afterPath: "after.png",
+      packDirectories: ["./a"],
+      contextFlags: { platform: "web" },
+      factsPath: "facts.json",
+      json: true,
+      saveAnswersPath: "out.json",
+      answersPath: "in.json",
+    });
+  });
+
+  it("is what parseCommand gives for a line that starts with compare", () => {
+    expect(parseCommand(["compare", "a.png", "b.png"])).toEqual({
+      command: "compare",
+      args: {
+        beforePath: "a.png",
+        afterPath: "b.png",
+        packDirectories: [],
+        contextFlags: {},
+        factsPath: undefined,
+        json: false,
+        saveAnswersPath: undefined,
+        answersPath: undefined,
+      },
+    });
+  });
+
+  it("says which image is missing, with the compare usage line", () => {
+    expect(compareError(["compare"])).toBe(
+      `no before image given\n${COMPARE_USAGE}`,
+    );
+    expect(compareError(["compare", "a.png"])).toBe(
+      `no after image given\n${COMPARE_USAGE}`,
+    );
+  });
+
+  it("rejects a third image, an unknown option, and a repeated --answers", () => {
+    expect(compareError(["compare", "a.png", "b.png", "c.png"])).toBe(
+      `unexpected argument c.png; give each --context pair its own flag\n${COMPARE_USAGE}`,
+    );
+    expect(compareError(["compare", "a.png", "b.png", "--colour"])).toBe(
+      `unknown option --colour\n${COMPARE_USAGE}`,
+    );
+    expect(
+      compareError([
+        "compare",
+        "a.png",
+        "b.png",
+        "--answers",
+        "x",
+        "--answers",
+        "y",
+      ]),
+    ).toBe(`--answers is given more than once\n${COMPARE_USAGE}`);
+  });
 });

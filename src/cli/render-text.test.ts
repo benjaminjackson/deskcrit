@@ -1,9 +1,10 @@
 // Disposable unit tests (CS-22) for the readable renderer (FR-28, FR-32, FR-33, FR-34, US-2, NFR-5).
 
 import { describe, expect, test } from "vitest";
+import type { CompareReport } from "../compose/compare.js";
 import type { Finding, Report } from "../compose/report.js";
 import { prdExampleReport } from "./prd-example-report.fixture.js";
-import { renderReportText } from "./render-text.js";
+import { renderCompareText, renderReportText } from "./render-text.js";
 
 /** The PRD example's two findings, by verdict, for building reports with other verdicts. */
 const failFinding: Finding =
@@ -193,5 +194,122 @@ describe("renderReportText", () => {
   test("gives the same text for the same report", () => {
     const report = reportWithFindings(findingsOfEveryVerdict);
     expect(renderReportText(report)).toBe(renderReportText(report));
+  });
+});
+
+describe("renderCompareText (FR-32, FR-33, FR-39, US-3)", () => {
+  /** The PRD example report without its usage, as a compare document holds each run. */
+  const { usage: exampleUsage, ...exampleWithoutUsage } = prdExampleReport;
+
+  /** A compare document of the PRD example against itself, with the given changes and skipped list. */
+  function compareDocument(
+    changes: CompareReport["changes"],
+    skipped: CompareReport["skipped"],
+  ): CompareReport {
+    return {
+      schema_version: "1.0.0",
+      mode: "compare",
+      tool: prdExampleReport.tool,
+      before: exampleWithoutUsage,
+      after: exampleWithoutUsage,
+      model: prdExampleReport.model,
+      changes,
+      skipped,
+      summary: { improved: 1, regressed: 1, same: 0, uncertain: 0 },
+      usage: {
+        requests: 2,
+        input_tokens: exampleUsage.input_tokens,
+        cost_usd: null,
+        latency_ms: 3680,
+      },
+    };
+  }
+
+  const betterFocalPoint: CompareReport["changes"][number] = {
+    criterion: "typography/single-focal-point",
+    change: "better",
+    before: { verdict: "warn", value: 1 },
+    after: { verdict: "pass", value: 0 },
+    model: "jev-1.14.0",
+  };
+  const worseFaintText: CompareReport["changes"][number] = {
+    criterion: "typography/faint-body-text",
+    change: "worse",
+    before: { verdict: "fail", value: 0.84 },
+    after: { verdict: "fail", value: 0.99 },
+    model: "jev-1.14.0",
+  };
+
+  test("puts Worse before Better, shows each value in words, and ends with the summary and usage lines", () => {
+    const text = renderCompareText(
+      compareDocument([worseFaintText, betterFocalPoint], []),
+    );
+    expect(text).toBe(
+      [
+        "Worse (1)",
+        "",
+        "  Body text reads as faint",
+        "  Criterion: typography/faint-body-text",
+        "  Before: fail, defect probability 0.84",
+        "  After: fail, defect probability 0.99",
+        "",
+        "Better (1)",
+        "",
+        "  One focal point",
+        "  Criterion: typography/single-focal-point",
+        "  Before: warn, level 1",
+        "  After: pass, level 0",
+        "",
+        "Skipped (1)",
+        "",
+        "  layout/reflow-at-320: skipped by both runs: requires facts.viewport_width, which the facts file does not have",
+        "",
+        "Improved: 1, regressed: 1, same: 0, uncertain: 0",
+        "Requests: 2, input tokens: 41250, cost: unknown, latency: 3680 ms, model: jev-1.14.0",
+        "",
+      ].join("\n"),
+    );
+  });
+
+  test("names the run that skipped a criterion only one run asked, and lists it once", () => {
+    const text = renderCompareText(
+      compareDocument(
+        [],
+        [
+          {
+            criterion: "layout/reflow-at-320",
+            run: "after",
+            reason:
+              "requires facts.viewport_width, which the facts file does not have",
+          },
+        ],
+      ),
+    );
+    expect(text).toContain(
+      "Skipped (1)\n\n  layout/reflow-at-320: skipped by the after run: requires facts.viewport_width",
+    );
+    expect(text).not.toContain("skipped by both runs");
+    expect(
+      text.startsWith("No changes: no criterion was asked by both runs."),
+    ).toBe(true);
+  });
+
+  test("shows a choice value as the option name", () => {
+    const text = renderCompareText(
+      compareDocument(
+        [
+          {
+            criterion: "typography/single-focal-point",
+            change: "same",
+            before: { verdict: "pass", value: "comfortable" },
+            after: { verdict: "pass", value: "comfortable" },
+            model: "jev-1.14.0",
+          },
+        ],
+        [],
+      ),
+    );
+    expect(text).toContain("Same (1)");
+    expect(text).toContain("  Before: pass, option comfortable");
   });
 });

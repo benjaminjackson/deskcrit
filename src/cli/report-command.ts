@@ -21,6 +21,7 @@ import {
   checkRecordedAnswers,
   checkRecordedImage,
   fingerprintImage,
+  type RunToWrite,
   writeAnswersFile,
 } from "./answers-file.js";
 import type { RecordedAnswers, ReportInputs } from "./read-inputs.js";
@@ -44,10 +45,15 @@ export type ReportOutput = {
   readonly answersFileText: string;
 };
 
-/** What the four stages give: the report document, and the answers file text for --save-answers (FR-42). */
+/**
+ * What the four stages give: the report document, the answers file text for --save-answers, and
+ * the run that text records, so compare can write both runs into one file without parsing the text
+ * again (FR-42).
+ */
 export type ComposedReport = {
   readonly report: Report;
   readonly answersFileText: string;
+  readonly recording: RunToWrite;
 };
 
 /**
@@ -72,8 +78,8 @@ export async function runReport(
 
 /**
  * Run prepare, build, ask or the recorded answers, and compose on the inputs, and return the report
- * document and the answers file text. `crit report` and `crit gate` both call it, so gate runs the
- * same pipeline as report (FR-40, FR-42, FR-65). Any stage error propagates (FR-24).
+ * document and the answers file text. `crit report`, `crit compare`, and `crit gate` all call it,
+ * so every command runs the same pipeline as report (FR-35, FR-40, FR-42, FR-65). Any stage error propagates (FR-24).
  */
 export async function composeReport(
   inputs: ReportInputs,
@@ -84,7 +90,7 @@ export async function composeReport(
   const imageSha256 = fingerprintImage(inputs.imageBytes);
   if (answerSource.kind === "recorded") {
     checkRecordedImage(
-      answerSource.recorded.answersFile,
+      answerSource.recorded.recordedRun,
       imageSha256,
       answerSource.recorded.fileName,
       inputs.imagePath,
@@ -105,7 +111,7 @@ export async function composeReport(
     asked = await ask(built.state, built.questions, answerSource.adapter);
   } else {
     asked = checkRecordedAnswers(
-      answerSource.recorded.answersFile,
+      answerSource.recorded.recordedRun,
       built.questions,
       answerSource.recorded.fileName,
     );
@@ -121,7 +127,11 @@ export async function composeReport(
       context: inputs.context,
     },
   });
-  return { report, answersFileText: writeAnswersFile(asked, imageSha256) };
+  return {
+    report,
+    answersFileText: writeAnswersFile(asked, imageSha256),
+    recording: { asked, imageSha256 },
+  };
 }
 
 /**
