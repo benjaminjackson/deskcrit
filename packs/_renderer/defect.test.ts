@@ -848,8 +848,57 @@ test("fails an attribute that only one side has", () => {
   );
   expect(problems).toHaveLength(1);
   expect(problems[0]).toContain(
-    'differ in attribute opacity of html/body[1]/svg[1]/path[0]: "0.4" on and "(absent)" off',
+    'differ in attribute opacity of html/body[1]/svg[1]/path[0]: "0.4" on and absent off',
   );
+});
+
+test("tells a missing attribute from one whose value is the word absent", () => {
+  const positive = pageWithSvgShape({ d: "M0 0 L10 10", title: "(absent)" });
+  const negative = pageWithSvgShape({ d: "M0 0 L10 10" });
+  const problems = problemsFor(
+    { properties: ["fill"], range: null },
+    positive,
+    negative,
+  );
+  expect(problems).toHaveLength(1);
+  expect(problems[0]).toContain(': "(absent)" on and absent off;');
+});
+
+test("quotes text with JSON so a line break and a quote mark stay visible", () => {
+  const positive = pageWithParagraph({});
+  const negative = pageWithParagraph({});
+  const positiveParagraph = positive.elements[2];
+  if (positiveParagraph === undefined) {
+    throw new Error("the test page has no paragraph");
+  }
+  positiveParagraph.text = 'The "quick"\n  fox';
+  const problems = problemsFor(
+    { properties: ["color"], range: null },
+    positive,
+    negative,
+  );
+  expect(problems).toHaveLength(1);
+  expect(problems[0]).toContain(
+    ': "The \\"quick\\"\\n  fox" on and "The quick brown fox" off;',
+  );
+});
+
+test("reports only the text problem when the sides differ in a declared style and in text", () => {
+  const positive = pageWithParagraph({ "text-align": "center" });
+  const negative = pageWithParagraph({});
+  const positiveParagraph = positive.elements[2];
+  if (positiveParagraph === undefined) {
+    throw new Error("the test page has no paragraph");
+  }
+  positiveParagraph.text = "A different sentence";
+  const problems = problemsFor(
+    { properties: ["text-align"], range: null },
+    positive,
+    negative,
+  );
+  expect(problems).toEqual([
+    'x.positive.png and x.negative.png differ in text content of html/body[1]/p[0]: "A different sentence" on and "The quick brown fox" off; a defect may change only styles, so text and attributes must match (FR-54 rule 3)',
+  ]);
 });
 
 test("passes a pair whose two sides differ only in a declared style, with equal text and attributes", () => {
