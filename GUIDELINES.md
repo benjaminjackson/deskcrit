@@ -118,7 +118,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 ### Letterspace capitals and small caps
 - **Rule:** Strings of capitals and small capitals are letterspaced, and lower case is not.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.6 "Letterspace all strings of capitals and small caps"; Lupton, *Thinking with Type*, "Text" chapter, "Tracking".
-- **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large heading or label set in capitals, do neighbouring capitals touch or nearly touch?"
+- **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large heading or label set in capitals, do neighbouring capitals touch, with no visible space between them?"
 - **Not encoded (NG-10), body text:** the defect grows with type size. In capitals at text size, differences in tracking are too fine to see.
 
 ### Kerning
