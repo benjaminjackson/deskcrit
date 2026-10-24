@@ -1,0 +1,42 @@
+# Three criteria, each with exactly one of pass_when, warn_when, fail_when (FR-45).
+name: single-predicate
+version: 1.0.0
+title: Single predicate examples
+license: MIT
+criteria:
+  - id: only-pass-when
+    title: Only pass_when
+    source: Example source
+    question:
+      type: noul
+      instructions: Is the heading in the image at image larger than the body text?
+      criteria:
+        true: The heading is larger than the body text.
+        false: The heading is not larger than the body text.
+    pass_when:
+      probability_at_least: 0.7
+    fix: Make the heading larger than the body text.
+  - id: only-warn-when
+    title: Rule of thirds (a folk rule)
+    source: Folk rule, the rule of thirds
+    question:
+      type: noul
+      instructions: Is the main subject in the image at image placed on a third line?
+      criteria:
+        true: The main subject sits on a third line.
+        false: The main subject does not sit on a third line.
+    warn_when:
+      probability_at_most: 0.3
+    fix: Move the main subject toward a third line.
+  - id: only-fail-when
+    title: Only fail_when
+    source: Example source
+    question:
+      type: noul
+      instructions: Does text in the image at image overlap other text?
+      criteria:
+        true: Some text overlaps other text.
+        false: No text overlaps other text.
+    fail_when:
+      probability_at_least: 0.6
+    fix: Move the overlapping text apart.

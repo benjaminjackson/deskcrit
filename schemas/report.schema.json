@@ -3,7 +3,18 @@
   "description": "The JSON document that crit report --json writes (docs/PRD.md section 8.1, FR-26, FR-31, FR-33). Written for JSON Schema draft 2020-12; the $schema keyword is left out by project rule, so a validator must be set to draft 2020-12. Every object rejects unknown fields, because the schema and the CLI ship together: a new optional field is added here in the same change that adds it to the output.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "mode", "tool", "image", "context", "packs", "model", "findings", "skipped", "usage"],
+  "required": [
+    "schema_version",
+    "mode",
+    "tool",
+    "image",
+    "context",
+    "packs",
+    "model",
+    "findings",
+    "skipped",
+    "usage"
+  ],
   "properties": {
     "schema_version": {
       "description": "The version of this output shape, as a semantic version (section 8).",
@@ -87,7 +98,18 @@
       "description": "One judged criterion (FR-26). All ten fields are present on every finding, whatever its verdict.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["criterion", "title", "verdict", "distribution", "confidence", "region", "source", "link", "fix", "model"],
+      "required": [
+        "criterion",
+        "title",
+        "verdict",
+        "distribution",
+        "confidence",
+        "region",
+        "source",
+        "link",
+        "fix",
+        "model"
+      ],
       "properties": {
         "criterion": {
           "description": "Pack name and criterion id joined by /. The pack schema sets the allowed characters.",
@@ -102,7 +124,11 @@
         "distribution": {
           "description": "Jev's probability for each option or level, keyed by option name or level index, unchanged and unrounded.",
           "type": "object",
-          "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 }
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
         },
         "confidence": {
           "description": "Jev's confidence in the distribution, from 0 to 1, as TypeSafe reports it. Null for a noul finding (FR-20, FR-26).",

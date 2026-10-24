@@ -1,0 +1,305 @@
+{
+  "title": "deskcrit pack",
+  "description": "The pack.yaml format, from the pack schema table in docs/PRD.md section 7.8. Written for JSON Schema 2020-12 and checked with Ajv2020; the $schema keyword is left out on purpose. A pack is data only: every object rejects fields the table does not define (FR-44, NFR-13). YAML tags and duplicate keys are rejected when the YAML is parsed (CS-4), not here. The loader or pack review checks what JSON Schema cannot: unique names and ids, folk-rule criteria that define warn_when only (FR-56), pass_when and fail_when pointing in opposite directions (FR-36), option names in option_is and option_in that match question.criteria, and level indexes that fit question.levels. No field has a default: the min_confidence default is a named constant in code (OQ-10, CS-15). The version of a standard goes in the source text, so there is no field for it (FR-57).",
+  "type": "object",
+  "required": ["name", "version", "title", "license", "criteria"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "description": "Lowercase pack name, unique among the packs a run loads.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "version": {
+      "description": "Semantic version of the pack.",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    },
+    "title": {
+      "description": "Human-readable title.",
+      "type": "string",
+      "minLength": 1
+    },
+    "applies_to": { "$ref": "#/$defs/applies_to" },
+    "license": {
+      "description": "License identifier.",
+      "type": "string",
+      "minLength": 1
+    },
+    "criteria": {
+      "description": "List of criteria.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/criterion" }
+    }
+  },
+  "$defs": {
+    "applies_to": {
+      "description": "List of platforms, for example web, print, slides. Absent means all.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "criterion": {
+      "description": "One criterion. It needs at least one of fail_when, warn_when, pass_when (FR-45), and each predicate must fit the question type (verdict rule under FR-25).",
+      "type": "object",
+      "required": ["id", "title", "source", "question", "fix"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "Lowercase id, unique within the pack.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "title": {
+          "description": "Short name of the defect or quality.",
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "description": "Book, standard, or paper cited. For a standard, include its version, for example W3C, WCAG 2.2, Success Criterion 1.4.3 (FR-57).",
+          "type": "string",
+          "minLength": 1
+        },
+        "link": {
+          "description": "URL of the source.",
+          "type": "string",
+          "minLength": 1
+        },
+        "applies_to": { "$ref": "#/$defs/applies_to" },
+        "question": { "$ref": "#/$defs/question" },
+        "fail_when": { "type": "object" },
+        "warn_when": { "type": "object" },
+        "pass_when": { "type": "object" },
+        "min_confidence": {
+          "description": "Below this, the verdict is uncertain. Applies to choice and score answers; OQ-21 holds what it means for noul. No default here (OQ-10).",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "locate": {
+          "description": "When true, ask a Box question for the region.",
+          "type": "boolean"
+        },
+        "locate_instructions": {
+          "description": "The Box question that names the thing to mark. Required when locate is true, with no fallback to question.instructions (FR-16).",
+          "type": "string",
+          "minLength": 1
+        },
+        "requires": {
+          "description": "List of facts paths the criterion needs, for example facts.viewport_width.",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "fix": {
+          "description": "Fix hint written by a person.",
+          "type": "string",
+          "minLength": 1
+        },
+        "fixtures": { "$ref": "#/$defs/fixtures" }
+      },
+      "anyOf": [
+        { "required": ["fail_when"] },
+        { "required": ["warn_when"] },
+        { "required": ["pass_when"] }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "required": ["locate"],
+            "properties": { "locate": { "const": true } }
+          },
+          "then": { "required": ["locate_instructions"] }
+        },
+        {
+          "if": {
+            "type": "object",
+            "required": ["question"],
+            "properties": {
+              "question": {
+                "type": "object",
+                "required": ["type"],
+                "properties": { "type": { "const": "noul" } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "question": { "$ref": "#/$defs/noul_question" },
+              "fail_when": { "$ref": "#/$defs/noul_predicate" },
+              "warn_when": { "$ref": "#/$defs/noul_predicate" },
+              "pass_when": { "$ref": "#/$defs/noul_predicate" }
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "required": ["question"],
+            "properties": {
+              "question": {
+                "type": "object",
+                "required": ["type"],
+                "properties": { "type": { "const": "choice" } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "question": { "$ref": "#/$defs/choice_question" },
+              "fail_when": { "$ref": "#/$defs/choice_predicate" },
+              "warn_when": { "$ref": "#/$defs/choice_predicate" },
+              "pass_when": { "$ref": "#/$defs/choice_predicate" }
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "required": ["question"],
+            "properties": {
+              "question": {
+                "type": "object",
+                "required": ["type"],
+                "properties": { "type": { "const": "score" } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "question": { "$ref": "#/$defs/score_question" },
+              "fail_when": { "$ref": "#/$defs/score_predicate" },
+              "warn_when": { "$ref": "#/$defs/score_predicate" },
+              "pass_when": { "$ref": "#/$defs/score_predicate" }
+            }
+          }
+        }
+      ]
+    },
+    "question": {
+      "description": "The one question the criterion becomes (FR-14). The type-specific rules are in noul_question, choice_question, and score_question.",
+      "type": "object",
+      "required": ["type", "instructions"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "description": "noul, choice, or score (FR-21).",
+          "enum": ["noul", "choice", "score"]
+        },
+        "instructions": {
+          "description": "One literal, atomic question. Refers to the image by its state path.",
+          "type": "string",
+          "minLength": 1
+        },
+        "criteria": {
+          "description": "What each option means. For noul, keys true and false.",
+          "type": "object"
+        },
+        "levels": {
+          "description": "Ordered list of level descriptions, index 0 first.",
+          "type": "array"
+        }
+      }
+    },
+    "noul_question": {
+      "description": "A noul question needs criteria with exactly the keys true and false (JC-5), and has no levels.",
+      "type": "object",
+      "required": ["criteria"],
+      "not": { "required": ["levels"] },
+      "properties": {
+        "criteria": {
+          "type": "object",
+          "required": ["true", "false"],
+          "additionalProperties": false,
+          "properties": {
+            "true": { "type": "string", "minLength": 1 },
+            "false": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "choice_question": {
+      "description": "A choice question needs criteria, an object of option name to description, and has no levels.",
+      "type": "object",
+      "required": ["criteria"],
+      "not": { "required": ["levels"] },
+      "properties": {
+        "criteria": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "score_question": {
+      "description": "A score question needs levels, an ordered list of level descriptions, and has no criteria.",
+      "type": "object",
+      "required": ["levels"],
+      "not": { "required": ["criteria"] },
+      "properties": {
+        "levels": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "noul_predicate": {
+      "description": "Exactly one predicate that fits a noul question.",
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "probability_at_least": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "probability_at_most": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "choice_predicate": {
+      "description": "Exactly one predicate that fits a choice question.",
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "option_is": { "type": "string", "minLength": 1 },
+        "option_in": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "score_predicate": {
+      "description": "Exactly one predicate that fits a score question.",
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "level_at_least": { "type": "integer", "minimum": 0 },
+        "level_at_most": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "fixtures": {
+      "description": "Image paths relative to the pack directory. Both lists are optional here; crit packs validate requires them (FR-49).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "positive": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "negative": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
