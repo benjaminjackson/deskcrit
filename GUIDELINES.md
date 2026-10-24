@@ -129,8 +129,8 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 
 ### Ligatures
 - **Rule:** In a face whose f reaches into the next letter, the f joins the following i or l as a ligature. A large headline that sets "fi" or "fl" as two separate letters shows the hook of the f striking the dot of the i or the top of the l.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.3 "Ligatures". UNVERIFIED: the section number and its point were not checked in the text of the book.
-- **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large headline, does the top of a letter f touch or run into the dot of a following i or the top of a following l?"
+- **Source:** Butterick, *Practical Typography*, "Ligatures": "The only time ligatures are mandatory is when you have an actual overlap between the letters f and i." Checked on the page on 2026-10-24. This is the one typography entry with a source outside the reading list: Benjamin Jackson asked for a checkable citation on 2026-10-24, and no text of a book on the list could be checked. Reconsider when a book on the list can be checked for the same point.
+- **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large headline, does the top of a letter f touch or run into the dot of a following i?" The source makes a ligature mandatory only for an f that overlaps an i, so the question names only that pair.
 - **Not encoded (NG-10), body text:** the defect grows with type size. At text size, the collision is a pixel or two and too fine to see.
 
 ### Real italics, bold, and small caps (no faux styles)
