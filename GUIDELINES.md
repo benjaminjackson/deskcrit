@@ -6,433 +6,279 @@ Each guideline has four parts. **Rule** is the testable form a reviewer would ap
 
 Scope: the design, not the writing. There is no content design section: reading level, sentence length, tone, and terminology belong to a content linter, so that research was dropped. Nielsen's heuristics are kept whole, including the ones that touch wording, because those are usability judgments about the screen rather than prose rules. `deskcrit` does no measurement of its own: it prepares the image, asks the questions, and reads the answers. Rules that are pure formulas, need the DOM, or need a running app are not in this catalog. An entry marked **Not encoded (NG-10)** stays in the catalog as research, but no pack encodes it, because it reads what the content says, needs detail too fine to see, or cannot be judged from one image (PRD NG-10). The mark says which.
 
-Every source was checked against the web in a second pass. A source that could not be confirmed is marked `UNVERIFIED:` in place. Rules that the research flagged as folk wisdom (rule of thirds, golden ratio, Z-pattern) are labelled in their own entries and should carry low weight.
+A source that could not be confirmed against its book, standard, or paper is marked `UNVERIFIED:` in place. The rule of thirds and the golden ratio are folk wisdom, not tested findings, so their entries say so and they carry low weight.
 
 ---
 
 ## Typography, legibility, and readability: guidelines for deskcrit
 
-### Body text size
-- **Rule:** Body text on screen is at least 16 CSS px, and never below 14 px for sustained reading. Printed body text sits around 10–12 pt. Body text on projected slides is no smaller than 18–24 pt.
-- **Source:** Butterick, *Practical Typography*, "Point size" (print body 10–12 pt; web body 15–25 px; the 16 px floor here is crit's own); Apple, *Human Interface Guidelines*, Typography (iOS default body 17 pt, minimum 11 pt); Material Design 3, *Typography* (body large 16 sp).
-- **Link:** https://practicaltypography.com/point-size.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+The typography and layout sections draw only on the reading list that Benjamin Jackson chose on 2026-10-24 (bd memory `design-reading-list`). The bar is the difference between considered, detail-oriented work and average work, so rules that any beginner already knows are left out unless one of the books makes a finer point about them. A source was checked in 2026-10 against the book's table of contents or text where a copy could be found online; a point that could not be found in the book is marked `UNVERIFIED:`.
 
-### Minimum size for secondary and UI text
-- **Rule:** Captions, labels, and legal text must not fall below about 11–12 px (11 pt on iOS, 12 sp on Material). Anything smaller is a defect unless it is purely decorative.
-- **Source:** Apple, *Human Interface Guidelines*, Typography (minimum 11 pt); Material Design 3, *Typography* type scale (label small 11 sp, body small 12 sp).
-- **Link:** https://developer.apple.com/design/human-interface-guidelines/typography
-- **Judged by:** askable as a visual judgment only. Jev is asked about captions and labels that look too small to read. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+The question in each **Judged by** line follows two rules. Yes always means the defect is there. The question names a concrete feature that can be seen in the image, because the EV-4 run and the wording test of 2026-10-24 found that questions about a degree ("too small", "too long", "almost lined up") do not fire, while questions about a visible feature do. A rule that depends on a difference of a few pixels says so, because Jev will likely miss it.
 
 ### Line length (measure)
-- **Rule:** Single-column body text should run 45–75 characters per line (66 is ideal); multi-column text works at roughly 40–50. Lines over about 80 characters, or under about 30 for prose, should be flagged.
-- **Source:** Bringhurst, *The Elements of Typographic Style* (1992), section 2.1.2 "Choose a comfortable measure" (45–75 acceptable, 66 ideal, 40–50 for multiple columns, justified text rarely below 40, ragged below 30 looks anorexic); Butterick, *Practical Typography*, "Line length" (45–90 characters); WCAG 2.2 SC 1.4.8 (no more than 80 characters per line, AAA).
-- **Link:** https://practicaltypography.com/line-length.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Rule:** A single column of paragraph text must not run so wide that the eye loses its place on the way back to the start of the next line. Bringhurst gives 45 to 75 characters as the comfortable range, 66 as the ideal, and 40 to 50 for text set in several columns.
+- **Source:** Bringhurst, *The Elements of Typographic Style* (1992), section 2.1.2 "Choose a comfortable measure".
+- **Judged by:** askable. Question: "Do the lines of paragraph text run across nearly the full width of the page?" The character counts are not checked, because Jev cannot count characters (JC-2).
 
-### Line height (leading) for body text
-- **Rule:** Body text line height should be 120–145% of the font size (about 1.2–1.45 in CSS, up to 1.5 for long measures or large x-height faces). Solid or tighter setting for paragraphs is a defect.
-- **Source:** Butterick, *Practical Typography*, "Line spacing" (120–145% of point size); WCAG 2.2 SC 1.4.8 (line spacing at least 1.5 within paragraphs, AAA); Bringhurst, *The Elements of Typographic Style*, section 2.2.1.
-- **Judged by:** askable as a visual judgment only. Jev is asked about body text that looks cramped or loose. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+### Leading suits the measure
+- **Rule:** Line spacing is chosen for the typeface, the text, and the measure together, and the longer the line, the more space it needs between lines. A wide paragraph set with tight line spacing is the common fault.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.2.1 "Choose a basic leading that suits the typeface, text and measure"; Hochuli, *Detail in Typography* (2008), chapter "Linespacing, the column".
+- **Judged by:** askable. Question: "Do the lines of a paragraph touch or overlap, so that the descenders of one line run into the next line?" The question must describe what the image shows: on the EV-4 fixture, whose lines overlap, a question about descenders that "nearly touch" scored 0.09. A paragraph that is only a little tight differs by a few pixels, and Jev will likely miss it.
 
-### Heading line height and tight display setting
-- **Rule:** Multi-line headings should be set tighter than body text (about 1.0–1.3), and must not collide ascenders and descenders between lines.
-- **Source:** Lupton, *Thinking with Type* (2004, 2nd ed. 2010), "Text" chapter, "Line spacing"; Hochuli, *Detail in Typography*, "Linespacing" chapter.
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+### Heading lines hold together
+- **Rule:** A heading of two or more lines needs tighter line spacing than text, so that it reads as one unit. With text spacing it falls apart into separate lines; set too tight, its lines collide.
+- **Source:** Lupton, *Thinking with Type* (2nd ed. 2010), "Text" chapter, "Line spacing"; Hochuli, *Detail in Typography*, chapter "Linespacing, the column".
+- **Judged by:** askable, as two criteria. First question: "Do the lines of a multi-line heading touch or overlap each other?" Second question: "Is the gap between the lines of a heading as large as the gap between the heading and the text below it?"
 
-### Limit the number of typefaces
-- **Rule:** Use at most two typeface families (often one is enough), varying weight, size, and style for contrast. Three or more families in one design is a flag.
-- **Source:** Butterick, *Practical Typography*, "Mixing fonts" (most documents tolerate a second font, few a third); Lupton, *Thinking with Type*, "Letter" chapter, "Mixing typefaces".
-- **Link:** https://practicaltypography.com/mixing-fonts.html
-- **Judged by:** askable.
+### Typefaces in concord or in clear contrast, never in conflict
+- **Rule:** Type elements relate either by concord, which keeps to one family and varies it little, or by contrast, which makes them plainly different. Faces that are alike enough to look like a mistake but different enough to clash are in conflict, and a page that mixes several unrelated faces has no relationship at all.
+- **Source:** Dair, *Design with Type* (1967), chapter 7 "Relationships" and chapter 8 "Relationships of concord and contrast"; Lupton, *Thinking with Type*, "Letter" chapter, "Mixing typefaces".
+- **Judged by:** askable. Question: "Does the page use three or more typefaces of clearly different styles, such as a script, a serif, and a sans serif?"
+- **Not encoded (NG-10), conflict half only:** telling two near-identical faces apart needs letterform detail too fine to see.
 
-### Typeface pairing: contrast without clash
-- **Rule:** When two families are paired, they should differ clearly (for example serif with sans, or text with display) rather than being near-identical. Two similar serifs or two similar sans are a mismatch, and pairs work best sharing proportions or x-height.
-- **Source:** Lupton, *Thinking with Type*, "Letter" chapter, "Mixing typefaces"; Bringhurst, *The Elements of Typographic Style*, section 6.5.5 (pair serifed and unserifed faces on the basis of their inner structure); Butterick, "Mixing fonts" notes that two different serifs can also work.
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because telling two faces apart by their inner structure and x-height needs letterform detail too fine to see.
+### Weak contrast is worse than none
+- **Rule:** When two elements are meant to differ, the difference must be obvious at a glance in at least one of Dair's seven kinds of contrast: size, weight, structure, form, colour, direction, and texture. A heading one step bolder or one size larger than its text looks like an accident, not a choice.
+- **Source:** Dair, *Design with Type*, chapter 8 "Relationships of concord and contrast" and chapters 8a to 8g, one for each kind of contrast. Dair's point that a contrast must be obvious is confirmed in his booklet *A Typographic Quest No. 5: Typographic Contrast* (Westvaco, 1967), through John D. Berry's account of it. Arnheim, *Art and Visual Perception* (1954, rev. 1974), chapter I "Balance", makes the same point about perception: small differences leave the eye unsure whether two things are equal or unequal.
+- **Link:** https://creativepro.com/dot-font-seven-principles-of-typographic-contrast/
+- **Judged by:** askable. Question: "Is there a heading or label that looks the same as the text around it, so that it cannot be picked out as a heading?" A difference of one or two pixels in size will likely be missed.
 
-### Typeface suits the task and tone
-- **Rule:** Body text uses a face designed for reading (open apertures, distinct letterforms, sturdy proportions). Decorative, script, blackletter, or extra-condensed faces are for headlines or brief accents only, never for paragraphs.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, chapter 6 "Choosing & Combining Type", section 6.2.1 (choose faces that suit the task); Butterick, *Practical Typography*, "Bad fonts" and "Goofy fonts".
-- **Link:** https://practicaltypography.com/bad-fonts.html
-- **Judged by:** askable.
+### Contrast from more than size
+- **Rule:** Average work builds every level of the hierarchy from size alone, so headings grow very large while their weight, form, and colour stay the same as the text. Considered work pairs a smaller step in size with a change of weight, of form (capitals, italic), of structure (serif against sans serif), or of colour.
+- **Source:** Dair, *Design with Type*, chapters 8a to 8g and chapter 9 "Multiplying the contrasts".
+- **Judged by:** askable, as a warning only, because a hierarchy built on size alone is weak rather than wrong. Question: "Are the headings set in the same weight, style, and colour as the body text, so that they differ from it only in size?"
 
-### Default or system-font fallback
-- **Rule:** Text set in an unconsidered default (Times New Roman, Arial, Calibri) without evidence of choice is a weak signal. Flag it when a face looks like an unintentional fallback, such as a serif in a UI that is otherwise sans.
-- **Source:** Butterick, *Practical Typography*, "System fonts" (avoid if you can; system fonts are overexposed and many are poor).
-- **Link:** https://practicaltypography.com/system-fonts.html
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because it needs Jev to name the typeface, and that needs letterform detail too fine to see.
+### Sizes come from a scale
+- **Rule:** Text sizes come from a small, deliberate scale, so that each size reads as its own level. Many sizes that are almost the same show that sizes were picked one at a time.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.1.1 "Don't compose without a scale".
+- **Judged by:** askable. Question: "Are there two or more text sizes on the page that are almost the same, such as two body sizes side by side?" Sizes that differ by a pixel or two will likely be missed.
 
-### Type scale and hierarchy
-- **Rule:** Sizes should come from a consistent scale (a modular ratio between about 1.125 and 1.618, or a fixed ramp such as Material's), giving three to six distinct levels. Adjacent levels must differ by at least about 1.2× or by another clear cue such as weight.
-- **Source:** Brown, "More Meaningful Typography" (A List Apart, issue 327, 2011) and Brown, *Flexible Typesetting* (A Book Apart, 2018; the author's earlier "Flexible Typography" title was wrong); Bringhurst, *The Elements of Typographic Style*, section 3.1.1 "Don't compose without a scale".
-- **Link:** https://alistapart.com/article/more-meaningful-typography/
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+### One change at a time for emphasis
+- **Rule:** Emphasis inside text changes one thing: italic, or bold, or small capitals. A phrase that is bold, italic, underlined, and coloured at once shouts, and considered work never stacks them.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.5.1 "Change one parameter at a time"; Hochuli, *Detail in Typography*, chapter "Emphasis".
+- **Judged by:** askable. Question: "Is a word or phrase emphasized in several ways at once, for example bold and italic and underlined, or bold capitals in a colour?"
 
-### Clear visual hierarchy
-- **Rule:** A reader should be able to identify the first, second, and third thing to read from size, weight, and position alone. If two competing elements share the same weight and size, the hierarchy fails.
-- **Source:** Lupton, *Thinking with Type*, "Text" chapter on hierarchy; Müller-Brockmann, *Grid Systems in Graphic Design* (1981).
-- **Judged by:** askable.
-
-### Too many sizes and weights
-- **Rule:** More than about six font sizes, or more than three or four weights, in a single view is a flag. Near-duplicate sizes (13 px next to 14 px) signal an inconsistent scale.
-- **Source:** Brown, *Flexible Typesetting* (A Book Apart, 2018); Material Design 3, *Typography* (15 baseline styles, plus 15 emphasized variants).
-- **Link:** https://m3.material.io/styles/typography/type-scale-tokens
-- **Judged by:** askable as a visual judgment only. Jev is asked about a view that visibly mixes many type sizes and weights. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-
-### Contrast of weight and size
-- **Rule:** Emphasis needs real contrast. Regular next to medium weight, or 16 px next to 17 px, reads as a mistake. Pairs differ by a clear step: 400 against 700 in weight, or about 1.25× in size.
-- **Source:** Lupton, *Thinking with Type*, "Letter" chapter, "Scale" and "Type families"; Bringhurst, *The Elements of Typographic Style*, section 3.5.1 (change one parameter at a time); Hochuli, *Detail in Typography*.
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-
-### Text contrast against background
-- **Rule:** Text needs a contrast ratio of at least 4.5:1 against its background, or 3:1 for large text (18 pt, or 14 pt bold). Text over images or gradients must hold that ratio at its worst point.
-- **Source:** W3C, *WCAG 2.2*, SC 1.4.3 Contrast (Minimum); enhanced 7:1 under SC 1.4.6.
-- **Link:** https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
-- **Judged by:** askable as a visual judgment only. Jev is asked about text that reads as faint against its background. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-
-### Text over images and busy backgrounds
-- **Rule:** Text placed on photos or textures needs a scrim, shadow, solid panel, or similarly calm region so every letter stays distinguishable. Text crossing high-detail areas is a defect.
-- **Source:** W3C, *WCAG 2.2*, SC 1.4.3 and Understanding SC 1.4.3 (text on images).
-- **Link:** https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
-- **Judged by:** askable.
-
-### Light text on dark backgrounds
-- **Rule:** On dark backgrounds, avoid pure white on pure black for long text; use slightly softened foreground and consider a modest weight or size and line spacing increase. Thin weights on dark backgrounds need extra size.
-- **Source:** Material Design (m2), *Dark theme* guidance (87% opacity white for high-emphasis text and a #121212 surface; confirmed through a search-engine answer quoting the page, which is rendered by script and could not be read with curl); W3C, *WCAG 2.2*, SC 1.4.3.
-- **Link:** https://m2.material.io/design/color/dark-theme.html
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because the rule depends on colour values (pure white, pure black, opacity), and Jev is unreliable with colour values (JC-2).
-
-### Weight and stroke thickness at small sizes
-- **Rule:** Hairline and ultra-light weights (below about 300) should not be used for text under about 24 px. Small text needs enough stroke thickness to hold up against its background.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 6.2.3 (very light weights of Helvetica "reduce coarseness but do little to increase readability"); Apple, *Human Interface Guidelines*, Typography (avoid Ultralight, Thin, and Light weights, especially at small sizes). The 300 and 24 px figures are crit's own.
-- **Link:** https://developer.apple.com/design/human-interface-guidelines/typography
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-
-### x-height and small-size legibility
-- **Rule:** At small sizes, prefer faces with a generous x-height, open counters, and clear letter spacing. A face with a small x-height needs to be set larger (perhaps 1–2 px) than a large-x-height face to reach equivalent apparent size.
-- **Source:** UNVERIFIED: no specific Bringhurst section or Hochuli passage on x-height at small sizes could be confirmed (the earlier "Bringhurst 6.2" cite did not match); Bringhurst, *The Elements of Typographic Style*, chapter 6; Hochuli, *Detail in Typography*.
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-- **Not encoded (NG-10):** breaks NG-10 because x-height is a letterform measurement too fine to see at screen size.
-
-### Letterspacing (tracking) of body text
-- **Rule:** Leave tracking at the default for body text. If adjusted, stay within about plus or minus 2% (±0.02em). Tight negative tracking on body text, or loose tracking on lower-case text, is a defect.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.6 and 2.1.7 (letterspace capitals; do not letterspace lower case without a reason); Butterick, *Practical Typography*, "Letterspacing". The ±2% band is crit's own threshold.
-- **Link:** https://practicaltypography.com/letterspacing.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-- **Not encoded (NG-10):** breaks NG-10 because differences in tracking are too fine to see.
-
-### Letterspace capitals and small caps
-- **Rule:** All-caps and small-cap text should be letterspaced (about 5–12%, 0.05–0.12em), while lower-case text should not. Unspaced all-caps in small sizes looks crowded.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.6; Butterick, *Practical Typography*, "Letterspacing" (5–12%, 0.05–0.12em in CSS) and "All caps".
-- **Link:** https://practicaltypography.com/letterspacing.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-- **Not encoded (NG-10):** breaks NG-10 because differences in tracking are too fine to see.
-
-### Kerning and display-size spacing
-- **Rule:** At display sizes, the spacing between letter pairs must look even (no obvious gaps in pairs such as "AV", "To", "Wa", and no collisions). Automatic kerning should be on.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.8 "Kern consistently and modestly or not at all"; Lupton, *Thinking with Type*, "Text" chapter, "Kerning"; Butterick, "Kerning".
-- **Link:** https://practicaltypography.com/kerning.html
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because the space between two letters is too fine to see.
-
-### Use of all caps
-- **Rule:** Keep all-caps to short strings (a label, a heading of a few words, or an eyebrow). Paragraphs or sentences of more than about 3–5 words in all caps are a flag since they slow reading.
-- **Source:** Butterick, *Practical Typography*, "All caps" (fine for less than one line; never whole paragraphs); Bringhurst, *The Elements of Typographic Style*, section 3.2 (numerals, capitals & small caps). The 3–5 word limit is crit's own.
-- **Link:** https://practicaltypography.com/all-caps.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-
-### Italics and bold for emphasis
-- **Rule:** Use one emphasis method at a time (italic or bold, not both stacked with underline or caps). Do not set long passages in italic, bold, or underline, and do not underline text that is not a link.
-- **Source:** Butterick, *Practical Typography*, "Bold or italic" (use one or the other, as little as possible) and "Underlining"; Bringhurst, *The Elements of Typographic Style*, section 3.5.1 (change one parameter at a time).
-- **Link:** https://practicaltypography.com/bold-or-italic.html
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because it needs to know which text is a link and what the writer meant to stress, which is the content.
-
-### Real italics, bold, and small caps (no faux styles)
-- **Rule:** Use true italic and bold cuts of a family. Synthesized (slanted or smeared) styles, and fake small caps made by shrinking capitals, are defects.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.4.3 (use artificially sloped romans sparingly or not at all) and 3.2.2 (faked small caps); Butterick, *Practical Typography*, "Small caps" (use real small caps; avoid fakes).
-- **Link:** https://practicaltypography.com/small-caps.html
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because telling a true italic or bold from a slanted or thickened regular face needs letterform detail too fine to see.
-
-### Alignment: prefer flush-left (ragged-right) body text
-- **Rule:** Left-align body text in left-to-right scripts. Centred text should be limited to short blocks (about three lines or fewer), and right-aligned or fully centred paragraphs are a flag.
-- **Source:** Butterick, *Practical Typography*, "Centered text" and "Justified text" (there is no "Text alignment" page); WCAG 2.2 SC 1.4.8 (text not justified); Bringhurst, *The Elements of Typographic Style*, section 2.1.3.
-- **Link:** https://practicaltypography.com/centered-text.html
-- **Judged by:** askable.
-
-### Justified text needs hyphenation and adequate measure
-- **Rule:** Justified text without hyphenation, or in a narrow column (under about 40 characters), creates rivers and uneven word gaps. Use justification only with hyphenation and a wide enough measure.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.2 (40-character minimum for justified text), 2.1.3, and 2.1.10; Butterick, *Practical Typography*, "Justified text" (hyphenation required) and "Hyphenation".
-- **Link:** https://practicaltypography.com/justified-text.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-- **Not encoded (NG-10):** breaks NG-10 because it needs a character count per line, and Jev is unreliable at counting (JC-2).
-
-### Rag quality in ragged-right text
-- **Rule:** The right edge of ragged text should look gently uneven, with no long-short-long staircase patterns, no very short last lines, and no stray one-word lines. Lines should break at natural phrase boundaries where possible.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.3 "Set ragged if ragged setting suits the text and the page"; Hochuli, *Detail in Typography*, "The line" and "The column" chapters (there is no chapter titled "Line breaks and rag").
-- **Judged by:** askable.
-
-### Widows, orphans, and runts
-- **Rule:** Avoid paragraphs that end with a single short word on the last line (a runt), and avoid a final line stranded alone at the top of a column or page. Headings should not be stranded at the bottom of a column or page.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.4.2 (no short last-line word) and 2.4.8 (never begin a page with the last line of a paragraph); Butterick, *Practical Typography*, "Widow and orphan control" and "Keep with next paragraph" (for headings).
-- **Link:** https://practicaltypography.com/widow-and-orphan-control.html
-- **Judged by:** askable.
+### Even word spacing in justified text
+- **Rule:** Justified lines keep their word spaces even. Lines with holes between the words break the even grey of the column, so justify only where the measure is wide enough and hyphenation is on.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.3 and 2.1.10 "Don't stretch the space until it is broken"; Hochuli, *Detail in Typography*, chapter "The line", on the space between words.
+- **Judged by:** askable. Question: "In justified text, do some lines have gaps between words that are much wider than the gaps in the lines around them?"
 
 ### Rivers of white space
-- **Rule:** Looking at a block of justified or tight text from a distance, no vertical or diagonal channels of white space should run across several lines.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.3 and 2.1.10 (uneven word spacing in justified text; the book does not use the word "rivers" as a rule); Hochuli, *Detail in Typography*.
-- **Judged by:** askable.
+- **Rule:** Seen from a distance, a block of text shows no channels of white that run down or across several lines.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.3 and 2.1.10 (uneven word spacing in justified text; the book does not use the word "rivers" as a rule); Hochuli, *Detail in Typography*, chapter "The line".
+- **Judged by:** askable. Question: "Do channels of white space run down through several lines of a text block?"
 
-### Paragraph spacing and indents
-- **Rule:** Separate paragraphs with either a first-line indent (about 1–4 em) or a space between them (about half to one line), but not both. The first paragraph after a heading is not indented.
-- **Source:** Butterick, *Practical Typography*, "Space between paragraphs" (4–10 pt) and "First-line indents" (one to four times the point size); Bringhurst, *The Elements of Typographic Style*, sections 2.3.1 and 2.3.2.
-- **Link:** https://practicaltypography.com/first-line-indents.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+### Rag quality in ragged-right text
+- **Rule:** The right edge of ragged text is gently uneven. It does not form a staircase, a wedge, or a regular long-short pattern.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.3 "Set ragged if ragged setting suits the text and the page"; Hochuli, *Detail in Typography*, chapters "The line" and "Linespacing, the column".
+- **Judged by:** askable. Question: "Does the ragged right edge of a paragraph form a staircase or a wedge, with lines getting steadily shorter or longer, or alternating long and short?"
 
-### Proximity of headings to the text they introduce
-- **Rule:** A heading should sit closer to the text it introduces than to the text before it (space above is roughly 1.5 to 2 times space below). Equal spacing makes headings float.
-- **Source:** Lupton, *Thinking with Type*, "Text" chapter, "Hierarchy"; Müller-Brockmann, *Grid Systems in Graphic Design* (1981); Butterick, *Practical Typography*, "Headings".
-- **Link:** https://practicaltypography.com/headings.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+### Widows, orphans, and runts
+- **Rule:** A paragraph does not end with one short word alone on its last line, and a column does not begin with the last line of a paragraph. A heading does not sit at the foot of a column with its text in the next one.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.4.2 (no short last-line word) and 2.4.8 (never begin a page with the last line of a paragraph).
+- **Judged by:** askable, as two criteria. First question: "Does a paragraph end with a single short word alone on its last line?" Second question: "Is a heading the last thing at the bottom of a column, with its text starting in the next column?"
+
+### Paragraph marks: indent or space, not both
+- **Rule:** Paragraphs are marked either by a first-line indent or by space between them, never both. The first paragraph after a heading starts flush left, and an indent is at least one en wide.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.3.1 "Set opening paragraphs flush left" and 2.3.2 (mark the paragraphs after the first with an indent of at least one en).
+- **Judged by:** askable, as two criteria. First question: "Are paragraphs marked both with a first-line indent and with a blank space between them?" Second question: "Is the first paragraph after a heading indented?"
+
+### Headings sit with the text they introduce
+- **Rule:** A heading sits closer to the text it introduces than to the text before it. Equal space above and below makes the heading float between sections.
+- **Source:** UNVERIFIED: the point was not found in the text of either book. Bringhurst, *The Elements of Typographic Style*, section 2.2.2 (add and delete vertical space in measured intervals); Lupton, *Thinking with Type*, "Text" chapter, "Hierarchy".
+- **Judged by:** askable. Question: "Does a heading sit as close to the text above it as to the text below it, or closer?"
+
+### Lines of text align across columns
+- **Rule:** In a considered grid the lines of text in neighbouring columns sit on the same baselines, and the top and bottom of each picture line up with lines of text. In a refined grid, captions, titles, and subtitles keep to the same line intervals.
+- **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981), section "Construction of the grid" (each grid field holds a set number of lines; the first line stands at the top of the field and the last on its bottom; picture edges align with the ascenders and descenders of the text).
+- **Judged by:** askable. Question: "Do two side-by-side columns of text have lines at different heights, so that the lines of one column fall between the lines of the other?" An offset of a few pixels will likely be missed; an offset of about half a line is visible.
+
+### Hanging bullets and punctuation
+- **Rule:** The left edge of a text block stays crisp. In a bulleted or numbered list, the wrapped lines of an item align with its first word, not with the bullet, and quotation marks at the start of a line hang into the margin.
+- **Source:** Lupton, *Thinking with Type*, "Text" chapter, "Alignment" (hanging punctuation keeps quotation marks from biting into the left edge) and "Marking paragraphs" (outdents and hanging indentation).
+- **Judged by:** askable. Question: "In a bulleted or numbered list, do the wrapped lines of an item start under the bullet or number instead of under the first word of the item?"
+- **Not encoded (NG-10), punctuation half only:** a quotation mark that does not hang moves the edge by a few pixels, which is too fine to see.
+
+### Display type is spaced tighter than text
+- **Rule:** As type gets larger, the space between its letters and words looks wider, so headlines need tighter letter and word spacing than text. A large heading set with the spacing of text looks loose.
+- **Source:** Lupton, *Thinking with Type*, "Text" chapter, "Kerning" (with large type, normal word spacing often looks too wide) and "Tracking" (designers reduce the spacing of large text).
+- **Judged by:** askable. Question: "Does a large heading have gaps between its letters or words that are wide enough to see as gaps?" A difference of a pixel or two between letters will likely be missed.
+
+### Weight and stroke thickness at small sizes
+- **Rule:** Hairline and very light weights are for large sizes. Small text needs enough stroke thickness to hold up against its background.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 6.2.3 (very light weights of Helvetica "reduce coarseness but do little to increase readability").
+- **Judged by:** askable. Question: "Is small text, such as captions or labels, set in a hairline or very thin weight?"
+
+### Letterspacing (tracking) of text
+- **Rule:** Lower-case text keeps the spacing its typeface was designed with. Tracked-out or squeezed lower case in text is a defect.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.7 "Don't letterspace the lower case without a reason"; Hochuli, *Detail in Typography*, chapter "The word", on letterspacing.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** differences in tracking at text size are too fine to see.
+
+### Letterspace capitals and small caps
+- **Rule:** Strings of capitals and small capitals are letterspaced, and lower case is not.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.6 "Letterspace all strings of capitals and small caps"; Lupton, *Thinking with Type*, "Text" chapter, "Tracking".
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** differences in tracking are too fine to see.
+
+### Kerning
+- **Rule:** At display sizes, the space between letter pairs looks even: no gaps in pairs such as "AV", "To", and "Wa", and no collisions.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.8 "Kern consistently and modestly or not at all"; Lupton, *Thinking with Type*, "Text" chapter, "Kerning".
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** the space between two letters is too fine to see.
+
+### Real italics, bold, and small caps (no faux styles)
+- **Rule:** True italic and bold cuts of a family are used. Slanted romans, smeared bolds, and small caps made by shrinking capitals are defects.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 3.4.3 (use artificially sloped romans sparingly or not at all) and 3.2.2 (faked small caps).
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** telling a true italic or bold from a slanted or thickened regular face needs letterform detail too fine to see.
 
 ### Typographic details: quotes, dashes, and spaces
-- **Rule:** Use curly (typographic) quotation marks and apostrophes, true en and em dashes, ellipsis characters, and a single space after sentences. Straight quotes, double hyphens as dashes, and double spaces are flags.
-- **Source:** Butterick, *Practical Typography*, "Straight and curly quotes", "Hyphens and dashes", and "One space between sentences"; Bringhurst, *The Elements of Typographic Style*, sections 2.1.4 (single word space between sentences), 5.2.1 (dashes), 5.2.7 (ellipses), and 5.4.1 (quotation marks).
-- **Link:** https://practicaltypography.com/straight-and-curly-quotes.html
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because it reads single characters (quote marks, dash lengths, spaces), which is content and detail too fine to see.
+- **Rule:** Curly quotation marks and apostrophes, true en and em dashes, ellipsis characters, and one space after a sentence.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.4 (single word space between sentences), 5.2.1 (dashes), 5.2.7 (ellipses), and 5.4.1 (quotation marks).
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** it reads single characters, which is content and detail too fine to see.
 
-### Numbers, lists, and tables
-- **Rule:** Columns of numbers should use tabular (fixed-width) figures aligned on the decimal or right edge, while running prose should use proportional or old-style figures. Table text should keep consistent alignment per column.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 3.2.1 (text figures in running text) and 4.4.3 (align columns of figures flush right or on the decimal); Butterick, *Practical Typography*, "Grids of numbers" and "Alternate figures" (there is no "Numbers" page).
-- **Link:** https://practicaltypography.com/grids-of-numbers.html
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because telling tabular figures from proportional figures needs detail too fine to see.
+### Figures in tables and text
+- **Rule:** Columns of numbers use tabular figures aligned on the decimal point or the right edge, and running text uses text figures.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, sections 3.2.1 (text figures in running text) and 4.4.3 (align columns of figures flush right or on the decimal).
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** telling tabular figures from proportional figures needs detail too fine to see.
 
-### Scannability: F-pattern and chunking
-- **Rule:** Content meant to be skimmed has meaningful headings, short paragraphs, bulleted lists, and key terms near the start of lines. Users scan in an F-shaped pattern and skip the rest. Large unbroken text walls are a flag.
-- **Source:** Nielsen, "F-Shaped Pattern For Reading Web Content" (Nielsen Norman Group, 17 Apr 2006); Nielsen, "How Users Read on the Web" (NN/g, 30 Sep 1997).
-- **Link:** https://www.nngroup.com/articles/f-shaped-pattern-reading-web-content-discovered/
-- **Link:** https://www.nngroup.com/articles/how-users-read-on-the-web/
-- **Judged by:** askable.
-- **Not encoded (NG-10), F-pattern half only:** the F-pattern half breaks NG-10 because it needs to know which content is key, and meaningful headings and key terms read the content. The check for large unbroken walls of text is visual, so it stays askable as `wall-of-text`.
-
-### Grid and alignment of text blocks
-- **Rule:** Text blocks should align to a consistent grid or shared edges, with left edges and baselines lining up between columns, captions, and headings. Arbitrary offsets of a few pixels are a flag.
-- **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981); Lupton, *Thinking with Type*, "Grid" chapter.
-- **Judged by:** askable.
-
-### Hyphenation and line breaks in headings and short text
-- **Rule:** Headings, buttons, and captions should break at natural phrase boundaries and avoid breaking a word, a number and its unit, or a name across lines. Avoid hyphenating headings.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.4 "Etiquette of Hyphenation & Pagination", especially 2.4.6 (link short numerical expressions with hard spaces); Hochuli, *Detail in Typography*, "The line" chapter.
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because it reads the words to judge where a line breaks, which is the content.
+### Line breaks in headings and short text
+- **Rule:** Headings, buttons, and captions break at natural phrase boundaries and do not split a word, a number and its unit, or a name across lines.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.4 "Etiquette of hyphenation and pagination", especially 2.4.6 (link short numerical expressions with hard spaces); Hochuli, *Detail in Typography*, chapter "The line".
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** it reads the words to judge where a line breaks, which is the content.
 
 
 ---
 
 ## Layout, spacing, grids, alignment, visual hierarchy
 
-### Use a consistent grid
-- **Rule:** Content snaps to one underlying grid (columns plus margins plus gutters). Left and right edges of blocks recur at the same column lines across the page; a block that sits off every column line with no reason is a defect.
-- **Source:** Josef Müller-Brockmann, *Grid Systems in Graphic Design* (1981); Kimberly Elam, *Grid Systems: Principles of Organizing Type* (2004).
-- **Judged by:** askable.
+### One grid governs the page
+- **Rule:** Every block takes its edges from one underlying grid of columns, margins, and intervals, so the same column lines recur from the top of the page to the bottom. A block whose edges match no other block shows that it was placed by eye.
+- **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981), sections "Grid and design philosophy" and "Construction of the grid"; Samara, *Making and Breaking the Grid* (3rd ed. 2023), part "Making the Grid".
+- **Judged by:** askable. Question: "Is there a block whose left or right edge lines up with no other block on the page?" An offset of a few pixels will likely be missed.
 
-### Consistent gutters
-- **Rule:** The space between columns is one constant value across the page (commonly 16 or 24dp/px; Material uses 16dp on compact, 24dp on larger sizes). Gutters are never visibly uneven between adjacent cards or columns.
-- **Source:** Material Design 3, *Layout: Spacing* (2023); Müller-Brockmann, *Grid Systems in Graphic Design* (1981).
-- **Link:** https://m3.material.io/foundations/layout/grids-spacing/spacing
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+### Equal intervals between columns
+- **Rule:** The space between columns, cards, or grid fields is one fixed interval across the page.
+- **Source:** Müller-Brockmann, *Grid Systems in Graphic Design*, section "Construction of the grid" (the fields are separated by a fixed space, such as one empty line).
+- **Judged by:** askable. Question: "Is one gap between columns or cards visibly wider or narrower than the other gaps in the same row?"
 
-### Page margins are present and equal
-- **Rule:** Content has an outer margin on every side. Left and right margins match each other, and text or controls do not touch the canvas edge. On mobile web, the side margin is at least 16px; Material uses 16dp on compact and 24dp on medium.
-- **Source:** Material Design 3, *Layout: Spacing* (2023); Apple *Human Interface Guidelines: Layout* (margins and safe areas).
-- **Link:** https://developer.apple.com/design/human-interface-guidelines/layout
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+### Pictures fit the grid
+- **Rule:** An image takes its width from the columns and its top and bottom from the lines of text, so pictures and text share the same edges.
+- **Source:** Müller-Brockmann, *Grid Systems in Graphic Design*, sections "Construction of the grid" and "The photograph in the grid system".
+- **Judged by:** askable. Question: "Does an image beside a column of text start or end at a different height from that column's first or last line?" An offset of a few pixels will likely be missed.
 
-### Respect safe areas
-- **Rule:** Interactive content and key text stay inside the platform safe area (clear of notches, rounded corners, home indicator, status bar). Backgrounds may extend to the edge; content may not.
-- **Source:** Apple *Human Interface Guidelines: Layout* (safe areas).
-- **Link:** https://developer.apple.com/design/human-interface-guidelines/layout
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because the image does not show the device notch, corners, or home indicator, so it cannot be judged from one image.
+### Break the grid decisively or not at all
+- **Rule:** An element that leaves the grid does so by a clear amount, so that the break reads as a choice. An element that is almost aligned reads as an error: Arnheim shows that a placement which is neither clearly here nor clearly there makes the eye waver and the whole look unfinished.
+- **Source:** Arnheim, *Art and Visual Perception*, chapter I "Balance" (ambiguous placements and small differences); Samara, *Making and Breaking the Grid*, part "Breaking the Grid". UNVERIFIED: the point that a break must read as deliberate was not found in Samara's text.
+- **Judged by:** askable. Question: "Is there an element that sits slightly out of line with the elements above or below it, as if it were meant to line up but missed?" In the wording test an 8 px offset between card tops scored only 0.45 whatever the wording, so offsets of a few pixels are likely below what Jev sees.
 
-### Spacing comes from a small scale (4pt/8pt)
-- **Rule:** Padding, margins, and gaps are multiples of 4 (preferably 8) px: for example 4, 8, 12, 16, 24, 32, 48, 64. Values such as 13px or 22px are flagged. Use a fixed scale rather than arbitrary values.
-- **Source:** Material Design 3, *Layout: Spacing* (8dp baseline grid, 4dp for small elements); Adam Wathan and Steve Schoger, *Refactoring UI* (2018), "Define your spacing and sizing system up front".
-- **Judged by:** askable as a visual judgment only. Jev is asked about spacing that looks inconsistent from one gap to the next. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-- **Not encoded (NG-10):** breaks NG-10 because it needs pixel values, which are detail too fine to see; the visible symptom is covered by the consistent-spacing entries.
-
-### Spacing inside a group is smaller than spacing between groups
-- **Rule:** The gap between related items is clearly smaller than the gap between unrelated groups. A working check is at least about 1.5x to 2x. If gaps are equal everywhere, grouping is lost.
-- **Source:** Max Wertheimer, "Untersuchungen zur Lehre von der Gestalt II" (1923), law of proximity; Robin Williams, *The Non-Designer's Design Book* (proximity principle); Wathan and Schoger, *Refactoring UI* (2018), "Start with too much white space" and grouping section.
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-
-### A label sits closer to its own field than to the previous one
-- **Rule:** In forms and captions, a label or caption is nearer to the element it names than to neighboring elements. The gap above a label is larger than the gap between the label and its field.
-- **Source:** Wertheimer (1923), law of proximity; Williams, *The Non-Designer's Design Book* (proximity).
-- **Judged by:** askable.
-
-### Similarity: look alike means work alike
-- **Rule:** Elements with the same function share the same size, color, shape, and type style. Elements that differ in function differ visibly. Visually identical elements with different roles, or inconsistent styling of like elements, are flagged.
-- **Source:** Wertheimer (1923), law of similarity; Williams, *The Non-Designer's Design Book* (repetition).
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because whether two elements work alike is behaviour, which one image cannot show.
-
-### Common region and enclosure for grouping
-- **Rule:** Items inside one shared boundary (card, panel, background tint, border) read as a group. Unrelated items should not share a region, and related items should not be split across regions.
-- **Source:** Stephen E. Palmer, "Common Region: A New Principle of Perceptual Grouping," *Cognitive Psychology* 24(3), 436-447 (1992); Nielsen Norman Group, "The Principle of Common Region: Containers Create Groupings."
-- **Link:** https://www.nngroup.com/articles/common-region/
-- **Judged by:** askable.
-
-### Continuity: elements on a line read as related
-- **Rule:** Items aligned along a line or curve are read as a sequence. Arrangements should lead the eye in the intended direction, and a stray element breaking an implied line is flagged.
-- **Source:** Wertheimer (1923), law of good continuation; Kurt Koffka, *Principles of Gestalt Psychology* (1935).
-- **Judged by:** askable.
-
-### Figure/ground is unambiguous
-- **Rule:** The primary content (figure) separates clearly from its background through contrast, edge definition, or size. Text and key shapes never merge with busy backgrounds or compete with them.
-- **Source:** Edgar Rubin, *Synsoplevede Figurer* (1915); Koffka, *Principles of Gestalt Psychology* (1935); Donis A. Dondis, *A Primer of Visual Literacy* (1973).
-- **Judged by:** askable.
-
-### Align to shared edges
-- **Rule:** Every element lines up with at least one other element on a shared edge or axis. Do not mix left, center, and right alignment in the same block without a reason; pick one dominant alignment per block (left alignment for body text in left-to-right languages).
-- **Source:** Williams, *The Non-Designer's Design Book* (alignment: "Nothing should be placed on the page arbitrarily"); Müller-Brockmann (1981).
-- **Judged by:** askable.
-
-### Near misses are worse than clear differences
-- **Rule:** Offsets of just a few pixels between elements meant to align (for example 2px or 3px) are defects; either align them exactly or differ clearly.
-- **Source:** Williams, *The Non-Designer's Design Book* (alignment); Robert Bringhurst, *The Elements of Typographic Style* (alignment of edges).
-- **Judged by:** askable as a visual judgment only. Jev is asked about elements that look almost aligned but not quite. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-
-### Optical alignment over mathematical alignment
-- **Rule:** Round, triangular, and icon shapes may overshoot or be nudged so they look aligned. A circle sits slightly larger than a square of the same nominal size, punctuation hangs into the margin, and icons center by visual mass rather than by bounding box. Judge by appearance when the two disagree.
-- **Source:** Vignelli Associates, *The Vignelli Canon* (2010); Bringhurst, *The Elements of Typographic Style* (hanging punctuation, overshoot).
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because optical offsets are a pixel or two, too fine to see.
-
-### Repetition: reuse the same few styles and spacing patterns
-- **Rule:** Visual elements (heading style, button style, card padding, rules, icons) recur consistently through the design. The design uses a small fixed set of type sizes, colors, and spacing values, not a new variant for each element.
-- **Source:** Williams, *The Non-Designer's Design Book* (repetition); Vignelli, *The Vignelli Canon* (2010), "Consistency."
-- **Judged by:** askable.
-
-### Contrast: make differences obvious, not timid
-- **Rule:** When two elements differ (size, weight, color, type family), they differ by a clear amount. Near-identical sizes or weights (for example 16px against 17px, or two similar grays) are flagged as timid contrast.
-- **Source:** Williams, *The Non-Designer's Design Book* (contrast); Dondis, *A Primer of Visual Literacy* (1973), visual techniques of contrast.
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-
-### White space is deliberate and generous
-- **Rule:** Content is not crammed. There is clear empty space around the main element and between sections, and padding inside containers is not tighter than the gaps between them. White space is part of the layout, not leftover.
-- **Source:** Vignelli, *The Vignelli Canon* (2010), on space and discipline; Wathan and Schoger, *Refactoring UI* (2018), "Start with too much white space."
-- **Judged by:** askable.
-
-### A clear single focal point
-- **Rule:** The design has one dominant element that wins first attention (largest, highest contrast, or most isolated), then a clear secondary level. If three or more elements compete at the same visual weight, flag it.
-- **Source:** Dondis, *A Primer of Visual Literacy* (1973), emphasis and subordination; Nielsen Norman Group, "Visual Hierarchy in UX: Definition."
-- **Link:** https://www.nngroup.com/articles/visual-hierarchy-ux-definition/
-- **Judged by:** askable.
-
-### Hierarchy shows through size, weight, color, and position
-- **Rule:** Importance order is readable from the page alone: more important items are larger, bolder, higher contrast, or positioned earlier. Headings are clearly larger than body text (a ratio of about 1.25x or more per step on a type scale), and the heading level order matches its visual size order.
-- **Source:** Nielsen Norman Group, "Visual Hierarchy in UX: Definition"; Wathan and Schoger, *Refactoring UI* (2018), "Hierarchy is everything."
-- **Link:** https://www.nngroup.com/articles/visual-hierarchy-ux-definition/
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-- **Not encoded (NG-10):** breaks NG-10 because the heading level order needs the DOM, and importance needs the content.
-
-### Do not rely on size alone: de-emphasize secondary items
-- **Rule:** Hierarchy comes as much from toning down secondary content (lighter color, smaller size, lower weight) as from enlarging primary content. Only one or two primary actions per view; the rest are secondary or tertiary in style.
-- **Source:** Wathan and Schoger, *Refactoring UI* (2018), "Don't use grey text on colored backgrounds" and "Emphasize by de-emphasizing"; Material Design 3, *Buttons* (emphasis levels).
-- **Judged by:** askable.
-
-### Balance: visual weight is distributed, not lopsided
-- **Rule:** Visual weight (size, darkness, color saturation, density) is balanced around the center of the canvas, either symmetrically or asymmetrically. A large heavy block on one side needs a counterweight; an unbalanced layout needs an intentional reason (for example, a diagonal flow).
-- **Source:** Dondis, *A Primer of Visual Literacy* (1973), balance and instability; Rudolf Arnheim, *Art and Visual Perception* (1954), balance.
-- **Judged by:** askable.
-
-### Text line length of 45 to 75 characters
-- **Rule:** Body text lines hold about 45 to 75 characters (66 is the ideal in single-column setting). Lines over about 90 characters or under about 30 in body copy are flagged.
-- **Source:** Bringhurst, *The Elements of Typographic Style* (1992), "Choosing the page and the text block."
-- **Judged by:** askable as a visual judgment only. Jev is asked about lines that look too long or too short to read comfortably. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-
-### Line spacing and paragraph spacing for readable blocks
-- **Rule:** Body text line height is about 1.4 to 1.6 times the font size; WCAG's text spacing test accepts line height of 1.5 and paragraph spacing of 2x the font size without loss of content. Headings are tighter (about 1.1 to 1.3).
-- **Source:** W3C, *Web Content Accessibility Guidelines (WCAG) 2.2*, Success Criterion 1.4.12 Text Spacing; Bringhurst (1992) on leading.
-- **Link:** https://www.w3.org/TR/WCAG22/#text-spacing
-- **Judged by:** askable as a visual judgment only. Jev is asked about blocks whose lines or paragraphs look too tight. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-
-### Rule of thirds (weak: folk wisdom)
-- **Rule:** In photographic or illustrative compositions, placing the focal point near one of the four thirds intersections often looks more dynamic than dead center. Treat as a soft heuristic only, not a defect when absent, since centered compositions are valid.
-- **Source:** John Thomas Smith, *Remarks on Rural Scenery* (1797), the first named use. Not a tested law; later treatments are heuristics.
-- **Link:** https://en.wikipedia.org/wiki/Rule_of_thirds
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because the entry says absence is not a defect, so there is no visible defect to ask about.
-
-### F-pattern: put key content where scanning starts
-- **Rule:** On text-heavy pages, readers scan across the top, then down the left edge in an F shape. Important information belongs at the top and left in left-to-right languages: headings, first words, and bullet leads. Crucial content buried at the far right or low on the page is flagged.
-- **Source:** Jakob Nielsen, "F-Shaped Pattern For Reading Web Content," Nielsen Norman Group (2006, eyetracking study); followed up by Kara Pernice, "F-Shaped Pattern of Reading on the Web: Misunderstood, But Still Relevant (Even on Mobile)," Nielsen Norman Group (2017).
-- **Link:** https://www.nngroup.com/articles/f-shaped-pattern-reading-web-content-discovered/ (2006 original); 2017 follow-up: https://www.nngroup.com/articles/f-shaped-pattern-reading-web-content/
-- **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because it needs to know which content is key, which is the content.
-
-### Z-pattern for sparse layouts
-- **Rule:** On low-density pages (landing pages, posters, ads), the eye moves from top left across to top right, diagonally to bottom left, then across to bottom right. Place logo or headline at the start, and the call to action at the end of that path. Treat as a lower-confidence heuristic than the F-pattern; gaze depends on content.
-- **Source:** Edmund Arnold, newspaper design "Gutenberg diagram" (1950s; attribution confirmed via search and Wikipedia, but the Nielsen Norman Group visual hierarchy article does not mention it). No controlled primary study of the Z shape on the web; moderate confidence.
-- **Link:** https://en.wikipedia.org/wiki/Edmund_Arnold
-- **Judged by:** askable.
-
-### Above the fold: the core message and primary action are visible without scrolling
-- **Rule:** On first load, the value proposition (headline plus the primary action) is visible in the initial viewport (about 600px high on common laptops and 667px on small phones). Content below the fold must still invite scrolling, for example by a partially cut-off element.
-- **Source:** Nielsen Norman Group, "Scrolling and Attention" (Therese Fessenden, 2018): users spend about 57% of viewing time above the fold and 74% in the first two screenfuls.
-- **Link:** https://www.nngroup.com/articles/scrolling-and-attention/
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-- **Not encoded (NG-10):** breaks NG-10 because it needs to know which message is the core one, which is the content, and where the fold falls, which one image does not show.
-
-### Touch and click targets of adequate size and spacing
-- **Rule:** Tappable targets are at least 44x44pt (Apple) or 48x48dp (Material), with at least 8dp between adjacent targets. WCAG 2.2 AA (SC 2.5.8) sets a hard floor of 24x24 CSS px; 2.5.5 (AAA) asks for 44x44.
-- **Source:** Apple *Human Interface Guidelines: Layout / Buttons*; Material Design 3, *Accessibility: Touch targets*; W3C *WCAG 2.2*, SC 2.5.8 Target Size (Minimum).
-- **Link:** https://www.w3.org/TR/WCAG22/#target-size-minimum (WCAG); Material: https://m3.material.io/components/icon-buttons/accessibility
-- **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement in points or dp that a screenshot does not show.
-
-### Reflow: no horizontal scrolling down to 320px wide
-- **Rule:** Content reflows to a single column at a 320 CSS px viewport without horizontal scrolling or loss of content (except for data tables, maps, and the like). Text blocks, images, and cards must not overflow their container.
-- **Source:** W3C *WCAG 2.2*, SC 1.4.10 Reflow.
-- **Link:** https://www.w3.org/TR/WCAG22/#reflow
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-- **Not encoded (NG-10):** breaks NG-10 because it needs a render at 320 px wide, which one image cannot show.
-
-### Responsive layouts adapt their structure, not only their scale
-- **Rule:** At smaller widths columns collapse (multi-column to one column), navigation condenses, and spacing scales down by steps; text size stays readable (body not below about 16px). Elements do not shrink into unreadable or untappable sizes.
-- **Source:** Material Design 3, *Layout: Canonical layouts* and *Window size classes* (2023); Apple *Human Interface Guidelines: Layout* (adaptivity).
-- **Link:** https://m3.material.io/foundations/layout/canonical-layouts
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
-- **Not encoded (NG-10):** breaks NG-10 because it needs renders at several widths, which one image cannot show.
-
-### Consistent density: no mix of cramped and sparse regions
-- **Rule:** Information density is steady across the layout. One part of the page is not packed tight while another is nearly empty without a reason (such as a hero section). Spacing between repeated items (list rows, cards) is uniform.
-- **Source:** Vignelli, *The Vignelli Canon* (2010), discipline and consistency; Material Design 3, *Applying density* (2023).
-- **Link:** https://m3.material.io/foundations/layout/grids-spacing/density
-- **Judged by:** askable.
-
-### Establish a modular type scale and tie spacing to it
-- **Rule:** Font sizes come from a limited modular scale (for example ratios 1.2 to 1.333, or a hand-picked set of 6 to 8 sizes), and vertical spacing relates to the line height (a baseline rhythm). More than about 6 to 8 distinct sizes on one page is flagged.
-- **Source:** Bringhurst, *The Elements of Typographic Style* (1992), "Harmonic proportion" and "Rhythm"; Wathan and Schoger, *Refactoring UI* (2018), "Establish a type scale."
-- **Judged by:** askable as a visual judgment only. Jev is asked about type sizes that look arbitrary rather than stepped. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-
-### Group by hierarchy of proximity: heading closer to its content than to the content above
-- **Rule:** A heading sits closer to the paragraph beneath it than to the one above. The space above a heading is larger than the space below it (a typical ratio is about 2:1 or more).
-- **Source:** Williams, *The Non-Designer's Design Book* (proximity); Bringhurst, *The Elements of Typographic Style* (1992), on headings and spacing.
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+### Space shows the groups
+- **Rule:** The gap between items in one group is clearly smaller than the gap between groups, and a label sits nearer its own field than the one before it. Equal gaps everywhere erase the groups.
+- **Source:** Arnheim, *Art and Visual Perception*, chapter II "Shape", on grouping by similarity, where similarity of location is Wertheimer's rule of proximity; Wertheimer, "Untersuchungen zur Lehre von der Gestalt II" (1923).
+- **Link:** https://www.gestalttheory.net/download/Wertheimer1923_Lehre_von_der_Gestalt.pdf
+- **Judged by:** askable, as two criteria. First question: "Are the gaps between separate groups the same size as the gaps between items inside a group?" Second question: "Does a form label sit as close to the field above it as to its own field, or closer?"
 
 ### Unrelated elements do not crowd each other
-- **Rule:** Elements that do not belong together keep clear space between them. Text, images, diagrams, and controls from different groups do not sit so close that they look cramped, seem to touch, or read as one group. For example, a caption or paragraph below a diagram has a visible gap above it, not a few pixels.
-- **Source:** Wathan and Schoger, *Refactoring UI* (2018), "Start with too much white space"; Williams, *The Non-Designer's Design Book* (proximity principle).
-- **Judged by:** askable. Jev is asked whether any two elements that do not belong together sit uncomfortably close. Evidence: in M-1, Benjamin Jackson saw the text below a diagram sit too close to it (spike/human_answers.csv, on `edges-misaligned`), and no other entry covered it (PRD OQ-18).
+- **Rule:** Elements that do not belong together keep clear space between them. A caption or paragraph below a diagram has a visible gap above it, not a few pixels.
+- **Source:** Arnheim, *Art and Visual Perception*, chapter II "Shape", on grouping by similarity of location (elements that sit close are seen as one group).
+- **Judged by:** askable. Question: "Does a caption, paragraph, or control nearly touch an image, diagram, or box that it does not belong to?" Evidence: in M-1, Benjamin Jackson saw the text below a diagram sit too close to it (spike/human_answers.csv, on `edges-misaligned`), and no other entry covered it (PRD OQ-18).
+
+### White space is gathered, not scattered
+- **Rule:** Ruder holds that the printed and the unprinted areas must stand in tension, and that the tension comes from contrast. Considered work gathers empty space into a few large, shaped areas set against dense ones. Average work spreads the same small gap between everything, so no space does any work, and it runs content up to the edges of the page.
+- **Source:** Ruder, *Typography: A Manual of Design* (1967), chapters "Contrasts" and "Form and counter-form"; Kunz, *Typography: Macro- and Microaesthetics* (1998), part two, on space and on form and counterform.
+- **Judged by:** askable. Question: "Is the empty space spread as equal small gaps between every element, with no larger open area anywhere on the page?" Content that runs up to the edge of the page is a basics check, under "Content keeps clear of the page edge".
+
+### Figure and ground are unambiguous
+- **Rule:** Text and key shapes separate clearly from what lies behind them. Text on a photo or texture needs a calm area, a panel, or a scrim behind it.
+- **Source:** Arnheim, *Art and Visual Perception*, chapter V "Space", section "Figure and ground"; Ruder, *Typography: A Manual of Design*, chapter "Form and counter-form".
+- **Judged by:** askable. Question: "Does text or a key shape sit on a busy photo or pattern with no panel, shadow, or calm area behind it?"
+
+### Balance
+- **Rule:** Visual weight comes from size, darkness, colour, and isolation, and where an element sits changes its weight. A layout may be symmetrical or not, but a heavy side needs a counterweight.
+- **Source:** Arnheim, *Art and Visual Perception*, chapter I "Balance", sections "Weight" and "Psychological and physical balance".
+- **Judged by:** askable. Question: "Is one side of the page heavy with large or dark elements while the other side is empty, with nothing to counter them?"
+
+### One element dominates
+- **Rule:** The order of importance is plain: one element is seen first and the rest follow. Tschichold asks that logical order be shown by differences of size, and Hofmann builds compositions from contrasts such as much against little.
+- **Source:** Tschichold, *The New Typography* (1928), chapter "The principles of the new typography"; Hofmann, *Graphic Design Manual* (1965), the text chapters "The line" and "Confrontation".
+- **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
+- **Judged by:** askable. Question: "Are there three or more elements of the same size and weight competing to be seen first, with none clearly stronger than the others?"
+
+### Contrast of scale gives the page tension
+- **Rule:** Considered layouts set strong contrasts against each other: one very large element against small ones, a vertical against horizontals, dense against open. Hofmann finds the strongest tension where one element comes close to overpowering another. Average layouts make every image, card, and heading about the same size.
+- **Source:** Hofmann, *Graphic Design Manual*, the text chapters "The line" and "Confrontation" (contrasts such as much and little, horizontal and vertical, light and dark); Ruder, *Typography: A Manual of Design*, chapter "Contrasts".
+- **Judged by:** askable, as a warning only, because an even layout is dull rather than wrong. Question: "Are all the main elements on the page, such as images, cards, and headings, about the same size, with no element much larger than the rest?"
+
+### No central axis by default
+- **Rule:** Tschichold rejects the habit of centring everything on one axis, because it fixes the form before the content is read and makes the layout rigid. An asymmetric arrangement that follows the order of the content is the considered default; centring is a choice for a few short lines.
+- **Source:** Tschichold, *The New Typography*, chapter "The principles of the new typography" (central-axis setting and asymmetry).
+- **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
+- **Judged by:** askable, as a warning only, because a centred layout is a style and not an error. Question: "Is every block on the page, including headings, paragraphs of several lines, and buttons, centred on one vertical axis?"
+
+### Repeated elements follow one programme
+- **Rule:** Gerstner treats design as a programme: a set of rules from which each solution is chosen. Elements of one kind (cards, buttons, section headings) therefore share one style and one spacing, and a variant appears only where the rules call for it.
+- **Source:** Gerstner, *Designing Programmes* (1964), the introduction ("instead of solutions for problems, programmes for solutions"); Müller-Brockmann, *Grid Systems in Graphic Design*, section "Grid and design philosophy" (the grid as the will to systematize).
+- **Judged by:** askable. Question: "Are elements of the same kind, such as cards, buttons, or section headings, styled differently from one another?"
+
+### No rules, boxes, or ornament where space would do
+- **Rule:** Lines, borders, and decoration that carry no information compete with the content. Tufte calls it non-data ink and chartjunk; Lupton shows that tables are often over-ruled and are clearer with the rules removed or replaced by a pale tone; Tschichold rejects ornament.
+- **Source:** Tufte, *The Visual Display of Quantitative Information* (1983, 2nd ed. 2001), chapter 4 "Data-ink and graphical redesign" and chapter 5 "Chartjunk: vibrations, grids, and ducks"; Lupton, *Thinking with Type*, "Grid" chapter, "Data tables"; Tschichold, *The New Typography*, chapter "The principles of the new typography".
+- **Judged by:** askable. Question: "Is every cell, card, or section enclosed in a dark border or separated by heavy rules, so that the lines are as strong as the content?"
+
+### Optical alignment over mathematical alignment
+- **Rule:** Round and pointed shapes overshoot, and icons centre by visual mass rather than by bounding box, so that they look aligned.
+- **Source:** UNVERIFIED: no section on optical correction was found. Kunz, *Typography: Macro- and Microaesthetics*, part one, on the microaesthetic qualities of letters and signs.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** optical offsets are a pixel or two, too fine to see.
+
+
+---
+
+## Basics: checks for common mistakes
+
+These checks catch plain mistakes that coding agents often make. They are kept in a separate "basics" pack, so that a caller who wants only the high bar of the typography and layout packs can switch them off. In EV-4, Jev judged these checks most reliably (0.87 to 0.99), because each one asks about a plain visible feature. The questions follow the same two rules as the typography and layout sections: yes means the defect is there, and the question names a feature that can be seen.
+
+### Body text is not too small to read
+- **Rule:** Paragraph text is set at a reading size. Lupton gives 9 to 11 pt as the common range for printed text. No WCAG success criterion sets a minimum text size, and the reading list gives no figure for screens, so the figure is not checked.
+- **Source:** Lupton, *Thinking with Type* (2nd ed. 2010), "Letter" chapter, "Size".
+- **Judged by:** askable. Question: "Is the paragraph text so small that its letters cannot be told apart at the size of the image?"
+
+### Paragraphs are not set in a decorative face
+- **Rule:** Paragraphs are set in a face made for reading. Script, blackletter, and other decorative faces are for a few words of display.
+- **Source:** Bringhurst, *The Elements of Typographic Style* (1992), chapter 6 "Choosing and combining type", section 6.2.1 (choose faces that suit the task).
+- **Judged by:** askable. Question: "Are paragraphs of text set in a script, blackletter, or other decorative typeface?"
+
+### Text does not read as faint
+- **Rule:** Text has a contrast ratio of at least 4.5:1 against its background, or 3:1 for large text. The ratio is not checked; Jev is asked only whether text looks pale against its background.
+- **Source:** W3C, *WCAG 2.2*, SC 1.4.3 Contrast (Minimum).
+- **Link:** https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
+- **Judged by:** askable as a visual judgment. Question: "Is there text that is pale against its background, such as light grey text on white?"
+
+### Paragraphs are not centred or right-aligned
+- **Rule:** Paragraphs of several lines are set flush left. Centring is for a few short lines. Tschichold rejects central-axis setting as rigid, and Bringhurst treats flush-left, ragged-right setting as the default for text.
+- **Source:** Tschichold, *The New Typography* (1928), chapter "The principles of the new typography"; Bringhurst, *The Elements of Typographic Style*, section 2.1.3 "Set ragged if ragged setting suits the text and the page".
+- **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
+- **Judged by:** askable. Question: "Is a paragraph of four or more lines centred or right-aligned?"
+
+### Content keeps clear of the page edge
+- **Rule:** Text and boxes sit inside the type area, with a margin between them and the edge of the page.
+- **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981), sections "Margin proportions" and "Construction of the type area".
+- **Judged by:** askable. Question: "Does any text or box touch the edge of the page or sit within a few pixels of it?" In the wording test of 2026-10-24 this question moved a clear positive from 0.15 to 0.74.
+
+### Basics checks dropped for lack of a source
+These checks were in the earlier catalog, but no book on the reading list and no WCAG criterion holds them, so no pack encodes them:
+- Captions and labels too small: no source on the list or in WCAG gives a minimum size for secondary text.
+- Long text in all capitals: the earlier sources were Butterick and a general Bringhurst section, and no book on the list was found to say it.
+- Wall of text: the only source was Nielsen, and Lupton shows unbroken text blocks as good practice.
+- Boxed regions that split or join groups: the only sources were Palmer and Nielsen Norman Group.
+- One block that mixes alignments: the only source was a book that this catalog no longer cites.
+- Secondary items styled as strongly as the primary one: the only sources were *Refactoring UI* and Material Design.
+- Cramped and sparse regions side by side: the only sources were Vignelli and Material Design, and Ruder asks for exactly that contrast of dense and open.
+- Z-pattern: folk wisdom, with Edmund Arnold as the only source.
 
 
 ---
@@ -671,7 +517,7 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Source:** WCAG 2.2 SC 2.5.8 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to hit. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show. The layout entry on touch and click targets has the same mark.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show.
 
 ### Focus visible
 - **Rule:** Every keyboard-focusable element shows a visible focus indicator when focused. Removing the outline with `outline: none` and not replacing it fails.
@@ -752,14 +598,14 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Source:** Apple, *Human Interface Guidelines: Accessibility* (Buttons, Layout and 'Hit targets')
 - **Link:** https://developer.apple.com/design/human-interface-guidelines/accessibility
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show. The layout entry on touch and click targets has the same mark.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show.
 
 ### Material touch target size
 - **Rule:** Touch targets are at least 48 by 48 dp, with at least 8 dp between targets. A visual icon can be smaller if the tap area is 48 dp.
 - **Source:** Google, *Android Accessibility Help: Touch target size* (48x48 dp, 8 dp spacing; the Material 3 structure page is JavaScript-rendered and could not be read)
 - **Link:** https://support.google.com/accessibility/android/answer/7101858?hl=en
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show. The layout entry on touch and click targets has the same mark.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show.
 
 ### Dyslexia-friendly typography
 - **Rule:** Use a common sans-serif such as Arial, Verdana, or Calibri at 12 to 14 pt (about 16 to 19 px) or larger. Left-align text with no justification. Avoid italics, underline, and all caps for running text. Use wide letter and word spacing.
@@ -1051,7 +897,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** Apple HIG, "Layout"; Material Design, "Accessibility: touch targets"; W3C, *WCAG 2.2* SC 2.5.8 (2023).
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
 - **Judged by:** askable as a visual judgment only. Jev is asked about controls that look too small or too crowded to tap. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
-- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show. The layout entry on touch and click targets has the same mark.
+- **Not encoded (NG-10):** breaks NG-10 because target size is a physical measurement that a screenshot does not show.
 
 ### Mobile thumb zones
 - **Rule:** On phone-sized layouts, the frequent actions sit in the lower, easy-reach area of the screen (bottom nav, bottom primary button) and not in the top corners. Destructive or rare actions go in hard-to-reach areas.
@@ -1282,13 +1128,13 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 
 ### Proximity groups related items
 - **Rule:** Items that belong together sit closer to each other than to unrelated items, and the gaps between groups are clearly larger than gaps within groups.
-- **Source:** Max Wertheimer, "Untersuchungen zur Lehre von der Gestalt II" (1923); Robin Williams, *The Non-Designer's Design Book* (1994).
+- **Source:** Max Wertheimer, "Untersuchungen zur Lehre von der Gestalt II" (1923); Rudolf Arnheim, *Art and Visual Perception* (1954), chapter II "Shape".
 - **Link:** https://www.gestalttheory.net/download/Wertheimer1923_Lehre_von_der_Gestalt.pdf
 - **Judged by:** askable.
 
 ### Alignment: every element has a visible relationship
 - **Rule:** Each element aligns to an edge, axis, or grid line shared with another element. Near-misses (off by a few pixels) read as errors.
-- **Source:** Josef Müller-Brockmann, *Grid Systems in Graphic Design* (1981); Robin Williams, *The Non-Designer's Design Book* (1994).
+- **Source:** Josef Müller-Brockmann, *Grid Systems in Graphic Design* (1981), section "Construction of the grid".
 - **Judged by:** askable.
 
 ### Use a grid
@@ -1312,7 +1158,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** John Thomas Smith, *Remarks on Rural Scenery* (1797); Michael Freeman, *The Photographer's Eye* (2007).
 - **Link:** https://archive.org/details/bim_eighteenth-century_remarks-on-rural-scenery_smith-john-thomas_1797
 - **Judged by:** askable.
-- **Not encoded (NG-10):** breaks NG-10 because whether a subject's place in the frame is arbitrary or chosen is not a visible defect, and the layout entry on the rule of thirds says absence is not a defect.
+- **Not encoded (NG-10):** breaks NG-10 because whether a subject's place in the frame is arbitrary or chosen is not a visible defect, and a centred subject is not a defect either.
 
 ### Golden ratio and proportional division (use sparingly)
 - **Rule:** Major divisions of the frame follow a consistent proportional logic (golden section, root rectangles, simple ratios) rather than arbitrary splits. This is a soft guide, not a requirement.
@@ -1435,3 +1281,17 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** Wucius Wong, *Principles of Two-Dimensional Design* (1972); Johannes Itten, *Design and Form: The Basic Course at the Bauhaus* (1963); Wassily Kandinsky, *Point and Line to Plane* (1926).
 - **Link:** https://books.google.com/books/about/Principles_of_Two_dimensional_Design.html?id=AWhQAAAAMAAJ
 - **Judged by:** askable.
+
+---
+
+## Candidates for other domains from the reading list
+
+These rules come from the same reading list but fall outside typography and layout. They are listed for a later ticket and are not yet checked against the books.
+
+- Colour: Albers, *Interaction of Color* (1963). The same colour looks different on different grounds, and two colours meant to match can look different next to each other. A visible question asks whether one colour, used for one role, looks like two different colours in two places.
+- Colour: Albers, *Interaction of Color*. Two strong colours of equal lightness side by side make their edge seem to vibrate.
+- Charts: Tufte, *The Visual Display of Quantitative Information*, chapter 5. Moiré hatching, heavy grid lines, and three-dimensional effects in a chart are chartjunk.
+- Charts: Tufte, *The Visual Display of Quantitative Information*, chapter 4. Ink that can be erased without loss of data, such as a background fill or a frame, is removed.
+- Composition: Arnheim, *Art and Visual Perception*, chapter IX "Dynamics". Oblique lines and shapes create directed tension, and a layout that is all horizontals and verticals reads as static.
+- Composition: Hofmann, *Graphic Design Manual*, chapter "The dot". A single element placed exactly at the centre of a field reads as still, and one placed off centre gives the field movement.
+- Systems: Gerstner, *Designing Programmes*. Pieces of one series (slides, posters, screens) follow one programme of grid, type, and colour.
