@@ -9,7 +9,7 @@
 //
 // Usage: node evals/agreement/run-agreement.ts [--live] [--rerun-same-set] [--pack <dir>]...
 // A live run refuses a fixture set it already scored with the same model (EV-4 rule 5), unless a
-// person passes --rerun-same-set.
+// person passes --rerun-same-set. Only a person passes it, never an agent (EV-4 rule 5).
 // Without --pack it measures every first-party pack under packs/. Exit 0 when every fixture agrees,
 // 1 when any EV-4 fixture disagrees, and 2 when the harness could not run (FR-24).
 
