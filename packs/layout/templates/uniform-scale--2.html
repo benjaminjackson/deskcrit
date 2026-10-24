@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: uniform-scale--2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A bakery menu: a title and five cards. The clean page sets a very large title across the full width over five small cards.
+         The defect shrinks the title to a card-sized cell in the same grid, and the six cells are equal (OQ-17). */
+      body { font-family: var(--font-serif); }
+      .img { position: relative; overflow: hidden; }
+      .img::after { content: ""; position: absolute; width: 40%; aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,0.35); left: 30%; top: 25%; }
+      .c1 .img { background: #c8553d; }
+      .c2 .img { background: #588157; }
+      .c3 .img { background: #3a7ca5; }
+      .c4 .img { background: #8a6f3d; }
+      .c5 .img { background: #d4a017; }
+      .c6 .img { background: #6a4c93; }
+      .page { margin: 40px 56px 0; width: 1168px; }
+      .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+      h1 { grid-column: 1 / -1; font-size: 150px; font-weight: 700; line-height: 1; letter-spacing: -2px; margin-bottom: 20px; }
+      .card .img { height: 190px; }
+      .card h2 { font-size: 17px; font-weight: 700; margin-top: 10px; }
+      .card p { font-size: 14px; color: var(--color-muted); line-height: 1.35; }
+      [data-defect="on"] .grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      [data-defect="on"] h1 { grid-column: auto; font-size: 22px; letter-spacing: 0; line-height: 1.3; height: 330px; margin: 0; display: flex; flex-direction: column; }
+      [data-defect="on"] h1::before { content: ""; display: block; height: 220px; margin-bottom: 10px; background: #9c6b3c; }
+      [data-defect="on"] .card .img { height: 220px; }
+      [data-defect="on"] .card h2 { font-size: 22px; }
+      [data-defect="on"] .card p { font-size: 16px; }
+      [data-defect="on"] .card { height: 330px; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <div class="grid">
+        <h1>Morning bakes</h1>
+        <article class="card c1"><div class="img"></div><h2>Sourdough loaf</h2><p>Baked at six every morning.</p></article>
+        <article class="card c2"><div class="img"></div><h2>Seeded rolls</h2><p>Poppy, sesame and sunflower.</p></article>
+        <article class="card c3"><div class="img"></div><h2>Cinnamon buns</h2><p>Glazed while still warm.</p></article>
+        <article class="card c4"><div class="img"></div><h2>Rye bread</h2><p>Dense, dark and sweet.</p></article>
+        <article class="card c5"><div class="img"></div><h2>Plum tart</h2><p>Made with orchard plums.</p></article>
+      </div>
+    </main>
+  </body>
+</html>
