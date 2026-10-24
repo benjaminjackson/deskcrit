@@ -305,6 +305,50 @@ function readProbability(value: unknown, where: string): number {
   return value;
 }
 
+/** How far a distribution's probabilities may sum away from 1 before the parser rejects it. */
+const DISTRIBUTION_SUM_TOLERANCE = 0.01;
+
+/**
+ * Read a map of label to probability that must hold exactly the expected labels, in their order,
+ * and sum to 1 within DISTRIBUTION_SUM_TOLERANCE, or throw (FR-20).
+ */
+function readDistribution(
+  probabilities: unknown,
+  expectedLabels: string[],
+  where: string,
+): Record<string, number> {
+  if (!isRecord(probabilities)) {
+    throw new Error(`${where} is missing`);
+  }
+  const expected = new Set(expectedLabels);
+  for (const label of Object.keys(probabilities)) {
+    if (!expected.has(label)) {
+      throw new Error(`${where} has a label that is not an option: ${label}`);
+    }
+  }
+  const distribution: Record<string, number> = {};
+  let sum = 0;
+  for (const label of expectedLabels) {
+    // Object.hasOwn checks the object's own keys only, so a label such as "toString" cannot
+    // match a property inherited from Object.prototype.
+    if (!Object.hasOwn(probabilities, label)) {
+      throw new Error(`${where}.${label} is missing`);
+    }
+    const probability = readProbability(
+      probabilities[label],
+      `${where}.${label}`,
+    );
+    distribution[label] = probability;
+    sum += probability;
+  }
+  if (Math.abs(sum - 1) > DISTRIBUTION_SUM_TOLERANCE) {
+    throw new Error(
+      `${where} sums to ${sum}, not 1 within ${DISTRIBUTION_SUM_TOLERANCE}`,
+    );
+  }
+  return distribution;
+}
+
 /** Read a token count that may be null, or throw. */
 function readTokenCount(value: unknown, where: string): number | null {
   if (value === null) {
@@ -351,19 +395,13 @@ function parseAnswer(
       };
     }
     case "choice": {
-      const probabilities = answer.probabilities;
-      if (!isRecord(probabilities)) {
-        throw new Error(`${where}.probabilities is missing`);
-      }
-      const distribution: Record<string, number> = {};
-      for (const label of Object.keys(question.options)) {
-        distribution[label] = readProbability(
-          probabilities[label],
-          `${where}.probabilities.${label}`,
-        );
-      }
+      const distribution = readDistribution(
+        answer.probabilities,
+        Object.keys(question.options),
+        `${where}.probabilities`,
+      );
       const choice = answer.choice;
-      if (typeof choice !== "string" || !(choice in distribution)) {
+      if (typeof choice !== "string" || !Object.hasOwn(distribution, choice)) {
         throw new Error(`${where}.choice is not one of the options`);
       }
       return {
@@ -379,25 +417,29 @@ function parseAnswer(
       };
     }
     case "score": {
-      const probabilities = answer.probabilities;
-      if (!isRecord(probabilities)) {
-        throw new Error(`${where}.probabilities is missing`);
-      }
-      const distribution: Record<string, number> = {};
+      const levelKeys: string[] = [];
       for (
         let levelIndex = 0;
         levelIndex < question.levels.length;
         levelIndex++
       ) {
-        const key = String(levelIndex);
-        distribution[key] = readProbability(
-          probabilities[key],
-          `${where}.probabilities.${key}`,
-        );
+        levelKeys.push(String(levelIndex));
       }
+      const distribution = readDistribution(
+        answer.probabilities,
+        levelKeys,
+        `${where}.probabilities`,
+      );
       const score = answer.score;
-      if (typeof score !== "number" || !Number.isFinite(score)) {
-        throw new Error(`${where}.score must be a number`);
+      if (
+        typeof score !== "number" ||
+        !Number.isFinite(score) ||
+        score < 0 ||
+        score > question.levels.length - 1
+      ) {
+        throw new Error(
+          `${where}.score must be a number from 0 to ${question.levels.length - 1}`,
+        );
       }
       return {
         id: question.id,
@@ -440,6 +482,17 @@ export function parseResponse(
   const answers = raw.answers;
   if (!isRecord(answers)) {
     throw new Error("response.answers is missing");
+  }
+  const knownIds = new Set<string>();
+  for (const question of questions) {
+    knownIds.add(question.id);
+  }
+  for (const id of Object.keys(answers)) {
+    if (!knownIds.has(id)) {
+      throw new Error(
+        `response has an answer for an unknown question id: ${id}`,
+      );
+    }
   }
   const records: QuestionRecord[] = [];
   for (const question of questions) {
@@ -484,6 +537,10 @@ export function readPngSize(bytes: Uint8Array): {
   width: number;
   height: number;
 } {
+  // The signature is 8 bytes, the IHDR length and type 8 more, then width and height 4 bytes each.
+  if (bytes.byteLength < 24) {
+    throw new Error("screenshot is too short to be a PNG file");
+  }
   const signature = [137, 80, 78, 71, 13, 10, 26, 10];
   for (let index = 0; index < signature.length; index++) {
     if (bytes[index] !== signature[index]) {

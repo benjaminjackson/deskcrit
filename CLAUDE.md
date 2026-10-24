@@ -60,7 +60,7 @@ This project follows Chad Fowler's regenerative software series, "The Phoenix Ar
 - Use the official TypeSafe JavaScript SDK for the API and `sharp` for resizing and padding images. There is no browser dependency, and `crit` does not capture screenshots.
 - The npm package is `deskcrit`. It declares two commands, `deskcrit` and `crit`. All documentation and examples use `crit`.
 - Exit codes are fixed: 0 for pass, 1 for fail, 2 for could not run. Treat them as part of the slow layer described above.
-- The TypeSafe call sits behind one interface that takes a state and a list of questions and returns a list of typed answers and a `usage` object (PRD FR-20). Nothing outside `src/ask/typesafe` imports the SDK.
+- The TypeSafe call sits behind one interface that takes a state and a list of questions and returns a list of typed answers and a `usage` object (PRD FR-20). Nothing outside `src/ask/typesafe` imports the SDK, except the disposable M-1 runner in `spike/`.
 - Vitest runs the tests, esbuild builds the bundled file, and Biome lints and formats. Reason: Vitest runs TypeScript with no extra build step, esbuild makes one file with `sharp` left external, and Biome is one tool with no plugins to manage. Reconsider when one of them cannot do a job the PRD requires. `docs/CONSTITUTION.md` CS-2 holds the details.
 - Do not restate coding style here. `docs/CONSTITUTION.md` holds it, and the naming, comment, and commit-message rules in the user's global `CLAUDE.md` also apply.
 

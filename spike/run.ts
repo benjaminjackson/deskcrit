@@ -10,7 +10,13 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { performance } from "node:perf_hooks";
-import { APIError, image, TypeSafeClient, VERSION } from "@typesafe-ai/sdk";
+import {
+  APIError,
+  image,
+  TypeSafeClient,
+  TypeSafeError,
+  VERSION,
+} from "@typesafe-ai/sdk";
 import { parse } from "yaml";
 import {
   type BuiltRequest,
@@ -41,6 +47,14 @@ const DEFAULT_RUNS = 5;
 
 /** Timeout for one attempt. The SDK default of 10 s is too short for an image request. */
 const REQUEST_TIMEOUT_MS = 120_000;
+
+/** How the live loop orders each pair of requests; written into every results file summary. */
+const ORDER_NOTE =
+  "each run sends one with_purpose and one without_purpose request; odd runs send with_purpose first and even runs send without_purpose first, so warm-up and drift fall evenly on both conditions";
+
+/** What the score field means, so crit-oj5.3 compares the right value with the human level. */
+const SCORE_NOTE =
+  "the SDK score is an expected value that can fall between levels; compare a human level with the most probable level in the distribution, not with the score field";
 
 /** One kept request, as it goes into a results file (CS-10). */
 type RunRecord = {
@@ -276,6 +290,10 @@ function buildResultsFile(
       imageTokenEstimates.push(run.input_tokens - baseline.input_tokens);
     }
   }
+  const imageCostEstimates: number[] = [];
+  for (const estimate of imageTokenEstimates) {
+    imageCostEstimates.push(estimate * PRICE_USD_PER_INPUT_TOKEN);
+  }
   let imageTokenNote =
     "request input_tokens minus the text-only baseline input_tokens, per run; the baseline has the string (no image) where the image is, so the difference is the image's tokens less the few tokens of that string";
   if (condition === "with_purpose") {
@@ -310,6 +328,7 @@ function buildResultsFile(
     cost_source: `computed from usage.input_tokens at $${PRICE_USD_PER_INPUT_TOKEN * 1_000_000} per million input tokens (JC-10); the SDK reports no cost`,
     latency_source:
       "wall clock around client.systemOne, including image upload and compression, with retries off",
+    score_note: SCORE_NOTE,
     confidence_note:
       "noul answers report no confidence: confidence is null, confidence_reported is false, and derived_confidence is max(p, 1 - p), computed by this script and not reported by Jev (decided 2026-10-23; the product rule waits on crit-dmm)",
     runs,
@@ -320,7 +339,10 @@ function buildResultsFile(
       request_input_tokens: summarizeNumbers(keepNumbers(inputTokens)),
       image_input_tokens_estimate: summarizeNumbers(imageTokenEstimates),
       image_input_tokens_estimate_note: imageTokenNote,
-      cost_usd_per_image: summarizeNumbers(keepNumbers(costs)),
+      cost_usd_per_request: summarizeNumbers(keepNumbers(costs)),
+      image_cost_usd_estimate: summarizeNumbers(imageCostEstimates),
+      image_cost_usd_estimate_note: `image_input_tokens_estimate times $${PRICE_USD_PER_INPUT_TOKEN * 1_000_000} per million input tokens (JC-10), per run`,
+      order_note: ORDER_NOTE,
       baseline_text_only: baselineSummary,
     },
   };
@@ -359,17 +381,20 @@ async function writeResults(
   return written;
 }
 
-/** Turn any thrown value into a short line with no key, no headers, and no raw body (CS-19, NFR-14). */
+/**
+ * Turn any thrown value into a short line with no key, no headers, and no raw body (CS-19,
+ * NFR-14). SDK errors print only their status and class, because their messages can repeat the
+ * response body. Other errors come from this script's own inputs and checks, which hold no key.
+ */
 function describeFailure(error: unknown): string {
   if (error instanceof APIError) {
     return `TypeSafe request failed: HTTP ${error.status} (${error.constructor.name})`;
   }
-  if (error instanceof Error && error.constructor === Error) {
-    // Plain Errors come from this script's own checks, whose messages hold no secrets.
-    return `spike failed: ${error.message}`;
+  if (error instanceof TypeSafeError) {
+    return `TypeSafe request failed: ${error.constructor.name}`;
   }
   if (error instanceof Error) {
-    return `TypeSafe request failed: ${error.constructor.name}`;
+    return `spike failed: ${error.constructor.name}: ${error.message}`;
   }
   return "spike failed: unknown error";
 }
@@ -432,7 +457,7 @@ async function runDry(inputs: SpikeInputs): Promise<void> {
 }
 
 /**
- * Live run: interleave the two conditions (run i with purpose, then run i without), so server
+ * Live run: interleave the two conditions, alternating which goes first by run number, so server
  * warm-up and drift fall evenly on both, then send the one text-only baseline. Results are
  * rewritten after every request.
  */
@@ -462,6 +487,9 @@ async function runLive(
       ["with_purpose", withPurpose],
       ["without_purpose", withoutPurpose],
     ];
+    if (runNumber % 2 === 0) {
+      conditionRequests.reverse();
+    }
     for (const [condition, request] of conditionRequests) {
       const record = await sendRequest(
         client,

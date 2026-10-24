@@ -20,6 +20,7 @@
   "purpose": null,
   "cost_source": "computed from usage.input_tokens at $0.042 per million input tokens (JC-10); the SDK reports no cost",
   "latency_source": "wall clock around client.systemOne, including image upload and compression, with retries off",
+  "score_note": "the SDK score is an expected value that can fall between levels; compare a human level with the most probable level in the distribution, not with the score field",
   "confidence_note": "noul answers report no confidence: confidence is null, confidence_reported is false, and derived_confidence is max(p, 1 - p), computed by this script and not reported by Jev (decided 2026-10-23; the product rule waits on crit-dmm)",
   "runs": [
     {
@@ -1567,11 +1568,18 @@
       "max": 2154
     },
     "image_input_tokens_estimate_note": "request input_tokens minus the text-only baseline input_tokens, per run; the baseline has the string (no image) where the image is, so the difference is the image's tokens less the few tokens of that string",
-    "cost_usd_per_image": {
+    "cost_usd_per_request": {
       "min": 0.00017480400000000003,
       "median": 0.00017480400000000003,
       "max": 0.00017480400000000003
     },
+    "image_cost_usd_estimate": {
+      "min": 0.00009046800000000002,
+      "median": 0.00009046800000000002,
+      "max": 0.00009046800000000002
+    },
+    "image_cost_usd_estimate_note": "image_input_tokens_estimate times $0.042 per million input tokens (JC-10), per run",
+    "order_note": "with_purpose was sent first in every pair of this run (the live loop then always sent with_purpose first), so the cold start is in with_purpose and the latency comparison between the conditions may be biased by that order; later code alternates the order by run number",
     "baseline_text_only": {
       "note": "one request with the same twenty questions, the string (no image) in place of the image, no purpose, and no danger-zone header; compare its input_tokens with a without_purpose run to estimate the tokens the image costs",
       "model": "jev-1.14.0",
