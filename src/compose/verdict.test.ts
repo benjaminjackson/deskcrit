@@ -409,6 +409,21 @@ describe("determinism and inputs", () => {
     );
   });
 
+  test("an answer whose type differs from the question type throws even inside the noul band", () => {
+    expect(() => decideVerdict(scoreCriterion({}), noulAnswer(0.5))).toThrow(
+      /score question/,
+    );
+  });
+
+  test("a mismatched answer below min_confidence throws instead of giving uncertain", () => {
+    const criterion = choiceCriterion(["left", "centre"], {
+      pass_when: { option_is: "left" },
+    });
+    expect(() =>
+      decideVerdict(criterion, scoreAnswer({ "0": 1, "1": 0, "2": 0 }, 0.1)),
+    ).toThrow(/choice question/);
+  });
+
   test("an answer whose type differs from the question type throws", () => {
     expect(() => decideVerdict(scoreCriterion({}), noulAnswer(0.9))).toThrow(
       /score question/,

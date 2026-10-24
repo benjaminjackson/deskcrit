@@ -16,13 +16,13 @@ export const DEFAULT_MIN_CONFIDENCE = 0.5;
  * A noul probability of true above this value and below NOUL_UNCERTAIN_BAND_UPPER is uncertain.
  * The value itself is outside the band (verdict rule step 1, OQ-21).
  */
-export const NOUL_UNCERTAIN_BAND_LOWER = 0.3;
+const NOUL_UNCERTAIN_BAND_LOWER = 0.3;
 
 /**
  * A noul probability of true below this value and above NOUL_UNCERTAIN_BAND_LOWER is uncertain.
  * The value itself is outside the band (verdict rule step 1, OQ-21).
  */
-export const NOUL_UNCERTAIN_BAND_UPPER = 0.7;
+const NOUL_UNCERTAIN_BAND_UPPER = 0.7;
 
 /** The four verdicts a finding can have, with the wire names (FR-25, FR-27, CS-8). */
 export type Verdict = "pass" | "warn" | "fail" | "uncertain";
@@ -126,11 +126,13 @@ export function readVerdictValue(
  * (FR-25, FR-27, OQ-10, OQ-21). It does not change the answer or the criterion.
  */
 export function decideVerdict(criterion: Criterion, answer: Answer): Verdict {
+  // Read the value first, so that a box answer or an answer that does not fit the question type
+  // throws even when step 1 would give uncertain.
+  const value = readVerdictValue(criterion, answer);
+
   if (isUncertain(criterion, answer)) {
     return "uncertain";
   }
-
-  const value = readVerdictValue(criterion, answer);
 
   if (criterion.pass_when !== undefined) {
     if (predicateMatches(criterion, criterion.pass_when, value)) {
