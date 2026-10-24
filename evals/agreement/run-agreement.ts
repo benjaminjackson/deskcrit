@@ -39,11 +39,13 @@ import {
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { isMap, isSeq, parseDocument } from "yaml";
+import { formatTable } from "../support/format-table.ts";
 import {
   compileReportValidator,
   readPinnedModel,
 } from "../support/pinned-model-and-schema.ts";
 import { type CritRun, runCritBundle } from "../support/run-crit-bundle.ts";
+import { addUsage, type UsageTotals } from "../support/usage-totals.ts";
 import {
   formatScoredPngHashes,
   hashPngHashes,
@@ -153,14 +155,6 @@ const DEFAULT_OPTIONS: HarnessOptions = {
   runsDirectory: join(DEFAULT_HARNESS_DIRECTORY, "runs"),
   labelsDirectory: join(DEFAULT_HARNESS_DIRECTORY, "labels"),
   runCrit: runCritBundle,
-};
-
-/** The summed usage of every crit run, null where any run had no token count (FR-23, FR-33). */
-type UsageTotals = {
-  requests: number;
-  input_tokens: number | null;
-  cost_usd: number | null;
-  latency_ms: number;
 };
 
 /** What one harness run needs at every step: the options, the pinned model, and the checker. */
@@ -842,22 +836,6 @@ async function runCritOnFixture(
   return document;
 }
 
-/** Add one report's usage to the totals; a null token count or cost makes that total null (FR-33). */
-function addUsage(totals: UsageTotals, usage: ReportDocument["usage"]): void {
-  totals.requests += usage.requests;
-  totals.latency_ms += usage.latency_ms;
-  if (totals.input_tokens === null || usage.input_tokens === null) {
-    totals.input_tokens = null;
-  } else {
-    totals.input_tokens += usage.input_tokens;
-  }
-  if (totals.cost_usd === null || usage.cost_usd === null) {
-    totals.cost_usd = null;
-  } else {
-    totals.cost_usd += usage.cost_usd;
-  }
-}
-
 /**
  * Read labels/<pack>.csv for a pack and check it against the pack's criteria and fixtures, or
  * return null when the file does not exist. The harness never writes a label file (EV-5, CS-7).
@@ -1086,43 +1064,6 @@ function compareText(left: string, right: string): number {
     return 1;
   }
   return 0;
-}
-
-/** Format rows as a plain text table with columns padded to the widest cell, for the EV-4 and EV-5 tables. */
-function formatTable(
-  headers: readonly string[],
-  rows: readonly (readonly string[])[],
-): string {
-  const widths: number[] = [];
-  for (const header of headers) {
-    widths.push(header.length);
-  }
-  for (const row of rows) {
-    for (let column = 0; column < row.length; column += 1) {
-      const cellLength = (row[column] ?? "").length;
-      if (cellLength > (widths[column] ?? 0)) {
-        widths[column] = cellLength;
-      }
-    }
-  }
-  const lines: string[] = [];
-  lines.push(formatTableRow(headers, widths));
-  for (const row of rows) {
-    lines.push(formatTableRow(row, widths));
-  }
-  return lines.join("\n");
-}
-
-/** Pad each cell of one row of an EV-4 or EV-5 table to its column width and join the cells with two spaces. */
-function formatTableRow(
-  cells: readonly string[],
-  widths: readonly number[],
-): string {
-  const padded: string[] = [];
-  for (let column = 0; column < cells.length; column += 1) {
-    padded.push((cells[column] ?? "").padEnd(widths[column] ?? 0));
-  }
-  return padded.join("  ").trimEnd();
 }
 
 // Run only when node starts this file, not when a test imports it.
