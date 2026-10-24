@@ -10,7 +10,7 @@
 - `docs/PRD.md` is the behavioral specification with stable IDs. It is the source of truth for what to build. If `BRIEF.md` and `docs/PRD.md` disagree, `docs/PRD.md` wins and the disagreement is a defect to report.
 - `README.md` is a two-line summary. Do not treat it as a specification.
 
-Current state: the package scaffold exists. It has the build, lint, type check, and test tools, a placeholder `crit` command, and `CouldNotRunError`. There is no stage code yet. The first milestone is the spike described in `BRIEF.md` under Milestones: one screenshot, twenty hand-written questions, the danger-zone header, and a spreadsheet comparing Jev's answers with one designer's answers (PRD M-1). That spike decides whether the project continues. Do not build the full pipeline before the spike result is recorded in `docs/PRD.md`.
+Current state: the package scaffold exists. It has the build, lint, type check, and test tools, a placeholder `crit` command, and `CouldNotRunError`. There is no stage code yet. The first milestone is the spike described in `BRIEF.md` under Milestones: one screenshot, twenty hand-written questions, the danger-zone header, and a spreadsheet comparing Jev's answers with one designer's answers (PRD M-1). That spike decided whether the project continues. Its result is recorded in `docs/PRD.md` M-1: continue, decided by Benjamin Jackson on 2026-10-24, so M-2 work may start under the conditions listed there.
 
 ## Layout
 
