@@ -92,6 +92,38 @@ describe("scorePair", () => {
     expect(scorePair([], changes, [], "same").outcome).toBe("disagree");
   });
 
+  it("is uncertain for a same pair with no target when a change is uncertain and none is better or worse", () => {
+    const changesWithUncertain = [
+      changeOf("layout/ragged-edge", "same"),
+      changeOf("layout/no-alignment", "uncertain"),
+    ];
+    expect(scorePair([], changesWithUncertain, [], "same").outcome).toBe(
+      "uncertain",
+    );
+  });
+
+  it("disagrees for a pair with no target and a preference of after, even when every change is same", () => {
+    const allSame = [
+      changeOf("layout/ragged-edge", "same"),
+      changeOf("typography/heading-indistinct", "same"),
+    ];
+    expect(scorePair([], allSame, [], "after").outcome).toBe("disagree");
+  });
+
+  it("disagrees for a pair with no target and a preference of before, even when one change is worse", () => {
+    const oneWorse = [
+      changeOf("layout/ragged-edge", "same"),
+      changeOf("typography/heading-indistinct", "worse"),
+    ];
+    expect(scorePair([], oneWorse, [], "before").outcome).toBe("disagree");
+  });
+
+  it("throws when there is no criterion to score", () => {
+    expect(() => scorePair([], [], [], "same")).toThrow(
+      "the pair has no criterion to score",
+    );
+  });
+
   it("ignores a skipped criterion that is not a target", () => {
     const score = scorePair(
       [],

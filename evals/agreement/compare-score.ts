@@ -55,12 +55,17 @@ export function expectedChange(preference: HumanPreference): Change {
 /**
  * Score one pair against its human preference. The scored criteria are the pair's targets, or
  * every criterion in `changes` when the pair has no target. A criterion in `skipped`, asked in only
- * one run, is never scored (FR-36). Any definite change other than the expected one makes the pair
- * disagree; otherwise any uncertain change makes it uncertain (FR-37); otherwise it agrees. A
- * target that is not in `changes` is a fault in the pair list, so it throws. Decided 2026-10-24 by
- * the orchestrator of crit-8cu.4 and recorded in the EV-9 note in docs/PRD.md. Reconsider when:
- * Benjamin Jackson finds that a pair should count as agreeing although a target moved the wrong
- * way, or that a pair with no target should allow a change in a criterion nobody aimed at.
+ * one run, is never scored (FR-36). For a targeted pair, any definite change other than the
+ * expected one makes the pair disagree; otherwise any uncertain change makes it uncertain (FR-37);
+ * otherwise it agrees. A pair with no target is built so that no criterion in the packs covers its
+ * one change. With a preference of same it is scored the same way, with same expected of every
+ * change. With a preference of after or before, the person saw a difference the packs do not
+ * cover, so the pair disagrees whatever the changes are. A target that is not in `changes`, or an
+ * empty list of scored criteria, is a fault in the pair list or the packs, so it throws. Decided
+ * 2026-10-24 by the orchestrator of crit-8cu.4 and recorded in the EV-9 note in docs/PRD.md.
+ * Reconsider when: Benjamin Jackson finds that a pair should count as agreeing although a target
+ * moved the wrong way, or that a pair with no target should allow a change in a criterion nobody
+ * aimed at.
  */
 export function scorePair(
   targets: readonly string[],
@@ -87,6 +92,15 @@ export function scorePair(
       }
       throw new Error(`target ${target} is not in the compare document`);
     }
+  }
+  if (scored.length === 0) {
+    throw new Error(
+      "the pair has no criterion to score, because the compare document has no change",
+    );
+  }
+  if (targets.length === 0 && preference !== "same") {
+    // The person saw a difference that no criterion in the packs covers, so no change can agree.
+    return { outcome: "disagree", scored };
   }
   const expected = expectedChange(preference);
   let anyUncertain = false;
