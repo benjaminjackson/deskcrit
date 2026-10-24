@@ -1,6 +1,7 @@
-// EV-2, the durable schema check for `crit report --json` and `crit gate --json` (CS-21, AC-6).
+// EV-2, the durable schema check for `crit report --json`, `crit compare --json`, and `crit gate --json` (CS-21, AC-6).
 // It runs every golden case that writes a report and validates the stdout it gets against
-// schemas/report.schema.json, and every golden case that writes a gate document against
+// schemas/report.schema.json, every golden case that writes a compare document against
+// schemas/compare.schema.json, and every golden case that writes a gate document against
 // schemas/gate.schema.json, with Ajv, a maintained validator (CS-3). Negative cases prove each
 // validator is applied. It imports nothing from src/.
 
@@ -31,6 +32,15 @@ const gateAjv = new Ajv2020({ allErrors: true });
 gateAjv.addSchema(reportSchema, "report.schema.json");
 const validateGate = gateAjv.compile(gateSchema);
 
+// The compare schema refers to the report schema by the same id, so it gets its own Ajv with the
+// report schema loaded first, as the gate schema does.
+const compareSchema: object = JSON.parse(
+  readFileSync(join(REPOSITORY_ROOT, "schemas", "compare.schema.json"), "utf8"),
+);
+const compareAjv = new Ajv2020({ allErrors: true });
+compareAjv.addSchema(reportSchema, "report.schema.json");
+const validateCompare = compareAjv.compile(compareSchema);
+
 /** Read the stored exit code of one golden case, as text without the newline. */
 function readExpectedExitCode(goldenCase: GoldenCase): string {
   return readFileSync(
@@ -54,6 +64,14 @@ const gateCases = readGoldenCases().filter((goldenCase) => {
   }
   const exitCode = readExpectedExitCode(goldenCase);
   return exitCode === "0" || exitCode === "1";
+});
+
+/** The `crit compare` golden cases that run with --json and exit 0, so their stdout is one compare document. */
+const compareCases = readGoldenCases().filter((goldenCase) => {
+  if (goldenCase.arguments[0] !== "compare" || !isJsonCase(goldenCase)) {
+    return false;
+  }
+  return readExpectedExitCode(goldenCase) === "0";
 });
 
 describe("EV-2: every report the golden cases write is valid", () => {
@@ -122,5 +140,75 @@ describe("EV-2: every gate document the golden cases write is valid (section 8.3
     expect(validateGate(document)).toBe(true);
     delete document.gate;
     expect(validateGate(document)).toBe(false);
+  });
+});
+
+describe("EV-2: every compare document the golden cases write is valid (section 8.2)", () => {
+  it("has compare cases to validate", () => {
+    expect(compareCases.length).toBeGreaterThan(0);
+  });
+
+  for (const goldenCase of compareCases) {
+    it(`${goldenCase.name}: stdout validates against schemas/compare.schema.json (US-3)`, () => {
+      const result = runCrit(goldenCase.arguments, goldenCase.workingDirectory);
+      expect(result.exitCode).toBe(0);
+      const document: unknown = JSON.parse(result.stdout);
+      const isValid = validateCompare(document);
+      expect(validateCompare.errors ?? []).toEqual([]);
+      expect(isValid).toBe(true);
+    });
+  }
+
+  /** Run the first compare case and return its document, for the tests that change one field. */
+  function firstCompareDocument() {
+    const goldenCase = compareCases[0];
+    if (goldenCase === undefined) {
+      throw new Error("No compare case to copy");
+    }
+    const document = JSON.parse(
+      runCrit(goldenCase.arguments, goldenCase.workingDirectory).stdout,
+    );
+    expect(validateCompare(document)).toBe(true);
+    return document;
+  }
+
+  it("fails a compare document whose change is not one of better, worse, same, or uncertain (FR-36)", () => {
+    const document = firstCompareDocument();
+    document.changes[0].change = "improved";
+    expect(validateCompare(document)).toBe(false);
+  });
+
+  // crit compare always writes skipped: [] (the FR-36 note in docs/PRD.md), so the two tests
+  // below put a skipped entry into a real document to check that part of the schema.
+  it("passes a compare document with one skipped entry that names its run and reason (FR-36, section 8.2)", () => {
+    const document = firstCompareDocument();
+    document.skipped = [
+      {
+        criterion: "compare/content-fills-viewport",
+        run: "after",
+        reason:
+          "requires facts.viewport_width, which the facts file does not have",
+      },
+    ];
+    expect(validateCompare(document)).toBe(true);
+  });
+
+  it("fails a compare document with a skipped entry whose run is not before or after (section 8.2)", () => {
+    const document = firstCompareDocument();
+    document.skipped = [
+      {
+        criterion: "compare/content-fills-viewport",
+        run: "both",
+        reason:
+          "requires facts.viewport_width, which the facts file does not have",
+      },
+    ];
+    expect(validateCompare(document)).toBe(false);
+  });
+
+  it("fails a compare document whose before report still has its own usage (section 8.2)", () => {
+    const document = firstCompareDocument();
+    document.before.usage = document.usage;
+    expect(validateCompare(document)).toBe(false);
   });
 });

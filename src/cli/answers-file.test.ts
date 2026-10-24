@@ -17,7 +17,9 @@ import {
   checkRecordedImage,
   fingerprintImage,
   readAnswersFile,
+  readCompareAnswersFile,
   writeAnswersFile,
+  writeCompareAnswersFile,
 } from "./answers-file.js";
 
 /** The file name every message must hold (FR-4). */
@@ -472,4 +474,101 @@ describe("checkRecordedAnswers (FR-42, OQ-26)", () => {
       expect(String(caught)).toMatch(mismatchCase.message);
     });
   }
+});
+
+describe("writeCompareAnswersFile and readCompareAnswersFile (FR-42, OQ-26 a)", () => {
+  /** The SHA-256 of the three bytes "def", for the after run. */
+  const AFTER_SHA256 = fingerprintImage(new TextEncoder().encode("def"));
+
+  /** The two-run file text for the ask result above, with one fingerprint for each run. */
+  function compareText(): string {
+    return writeCompareAnswersFile(
+      { asked, imageSha256: ABC_SHA256 },
+      { asked, imageSha256: AFTER_SHA256 },
+    );
+  }
+
+  /** Return the error that reading this value as a two-run answers file throws. */
+  function readCompareError(value: unknown): unknown {
+    try {
+      readCompareAnswersFile(JSON.stringify(value), FILE_NAME);
+    } catch (error) {
+      return error;
+    }
+    return undefined;
+  }
+
+  it("give back both runs after a round trip, with version 2 first (FR-42)", () => {
+    const text = compareText();
+    expect(text.endsWith("}\n")).toBe(true);
+    expect(Object.keys(JSON.parse(text))).toEqual([
+      "answers_file_version",
+      "before",
+      "after",
+    ]);
+    const file = readCompareAnswersFile(text, FILE_NAME);
+    expect(file.before.image_sha256).toBe(ABC_SHA256);
+    expect(file.after.image_sha256).toBe(AFTER_SHA256);
+    expect(file.before.answers).toEqual(asked.answers);
+    expect(file.after.usage).toEqual(asked.usage);
+  });
+
+  it("write each run with the key order of the one-run file (OQ-26 a)", () => {
+    const value = JSON.parse(compareText());
+    expect(Object.keys(value.before)).toEqual([
+      "image_sha256",
+      "answers",
+      "usage",
+    ]);
+    const single = JSON.parse(writeAnswersFile(asked, ABC_SHA256));
+    expect(JSON.stringify(value.before.answers)).toBe(
+      JSON.stringify(single.answers),
+    );
+  });
+
+  it("refuse a one-run file and say compare needs version 2 (OQ-26 a)", () => {
+    const error = readCompareError(writtenValue());
+    expect(error).toBeInstanceOf(CouldNotRunError);
+    expect(String(error)).toContain(
+      `answers file ${FILE_NAME}: answers_file_version must be 2 for crit compare, which records a before and an after run`,
+    );
+  });
+
+  it("refuse an unknown top-level key and a missing run", () => {
+    const value = JSON.parse(compareText());
+    value.extra = true;
+    expect(String(readCompareError(value))).toContain(
+      "the top level has an unknown key extra",
+    );
+    const missingAfter = JSON.parse(compareText());
+    delete missingAfter.after;
+    expect(String(readCompareError(missingAfter))).toContain(
+      "the top level has no after",
+    );
+  });
+
+  it("name the run in the JSON path of a wrong shape (FR-4)", () => {
+    const value = JSON.parse(compareText());
+    value.before.answers[0].type = "maybe";
+    expect(String(readCompareError(value))).toContain(
+      "before.answers[0].type must be noul, choice, score, or box",
+    );
+    const badUsage = JSON.parse(compareText());
+    badUsage.after.usage.latency_ms = -1;
+    expect(String(readCompareError(badUsage))).toContain(
+      "after.usage.latency_ms must not be negative",
+    );
+    const extraRunKey = JSON.parse(compareText());
+    extraRunKey.after.answers_file_version = 1;
+    expect(String(readCompareError(extraRunKey))).toContain(
+      "after has an unknown key answers_file_version",
+    );
+  });
+
+  it("leave the crit report reader refusing a two-run file with its own message (OQ-26 a)", () => {
+    const error = readError(JSON.parse(compareText()));
+    expect(String(error)).toContain(
+      `answers file ${FILE_NAME}: answers_file_version must be 1`,
+    );
+  });
 });

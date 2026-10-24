@@ -15,7 +15,7 @@ const forbiddenPatterns: readonly RegExp[] = [
   /\bprocess\b/,
   /\bglobalThis\b/,
   /\bconsole\./,
-  /from\s+["']\.\.\/(?!compose\/report\.js|compose\/verdict\.js|compose\/gate\.js)/,
+  /from\s+["']\.\.\/(?!compose\/report\.js|compose\/verdict\.js|compose\/gate\.js|compose\/compare\.js)/,
   /\bDate\b/,
   /Math\.random/,
   /localeCompare|toLocale/,
@@ -149,4 +149,40 @@ test("only main.ts sets the exit code, and no file in src/cli/ calls process.exi
       expect(source).not.toMatch(/process\.exitCode/);
     }
   }
+});
+
+/**
+ * The only modules compare-command.ts may import: the package entry point for compare(), the
+ * answers file helpers, the report pipeline, the renderers, and read-inputs.ts for its input type,
+ * so the compare command holds no diff or verdict logic of its own (FR-63, FR-65, CS-6).
+ */
+const compareCommandAllowedImports: readonly string[] = [
+  "../index.js",
+  "./answers-file.js",
+  "./read-inputs.js",
+  "./render-json.js",
+  "./render-text.js",
+  "./report-command.js",
+];
+
+test("compare-command.ts imports only the entry point, the answers file helpers, the report pipeline, and the renderers, and does no I/O (FR-65, CS-6)", () => {
+  const source = readFileSync(
+    join(import.meta.dirname, "compare-command.ts"),
+    "utf8",
+  );
+  const importedModules: string[] = [];
+  for (const match of source.matchAll(/\sfrom\s+"([^"]+)"/g)) {
+    const moduleName = match[1];
+    if (moduleName !== undefined) {
+      importedModules.push(moduleName);
+    }
+  }
+  expect(importedModules.length).toBeGreaterThan(0);
+  for (const moduleName of importedModules) {
+    expect(compareCommandAllowedImports).toContain(moduleName);
+  }
+  expect(source).not.toMatch(/\bprocess\b/);
+  expect(source).not.toMatch(/\bconsole\./);
+  expect(source).not.toMatch(/\bimport\s*\(/);
+  expect(source).not.toMatch(/require\(/);
 });

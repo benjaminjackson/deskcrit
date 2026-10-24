@@ -9,12 +9,15 @@ import {
 } from "../ask/typesafe/adapter.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
 import { parseCommand } from "./args.js";
+import { runCompare } from "./compare-command.js";
 import { runGate } from "./gate-command.js";
 import { runPacksTest } from "./packs-test.js";
 import { runPacksValidate } from "./packs-validate-command.js";
 import {
+  type CompareInputs,
   type ReportInputs,
   readApiKey,
+  readCompareInputs,
   readReportInputs,
 } from "./read-inputs.js";
 import { type AnswerSource, runReport } from "./report-command.js";
@@ -39,7 +42,10 @@ export type CreateAdapter = (
  * every input first, then reads the key and asks Jev about each fixture, and exits 0 when every
  * fixture agrees with its label and 1 when any disagrees (FR-50, FR-53, EV-4). `crit gate` reads the
  * same inputs as report, writes the gate document to stdout once, and exits 0 when the gate passed
- * and 1 when it failed (FR-40, FR-41, section 8.3). `crit report`: parse argv, read the inputs, and run the stages. Without --answers it checks
+ * and 1 when it failed (FR-40, FR-41, section 8.3). `crit compare` reads both images and the
+ * inputs they share, runs both reports through one adapter or the two recorded runs of the
+ * --answers file, writes the two-run answers file with --save-answers before stdout, and exits 0
+ * whenever it ran, even when every change is worse (FR-35, FR-42, FR-43). `crit report`: parse argv, read the inputs, and run the stages. Without --answers it checks
  * the API key and makes the adapter; with --answers it does neither and makes no network call. With
  * --save-answers it writes the answers file before stdout. On success it writes the report to stdout
  * once and sets exit code 0, whatever the verdicts. On any error it writes only to stderr, writes no
@@ -74,6 +80,33 @@ export async function main(
       process.exitCode = output.anyDisagreement
         ? EXIT_CODE_FAILED
         : EXIT_CODE_RAN;
+      return;
+    }
+    if (command.command === "compare") {
+      const compareInputs = await readCompareInputs(
+        command.args,
+        workingDirectory,
+      );
+      const sources = chooseCompareAnswerSources(
+        compareInputs,
+        environment,
+        createAdapter,
+      );
+      const compareOutput = await runCompare(
+        compareInputs,
+        sources.before,
+        sources.after,
+      );
+      if (command.args.saveAnswersPath !== undefined) {
+        await writeAnswersFileText(
+          command.args.saveAnswersPath,
+          compareOutput.answersFileText,
+          workingDirectory,
+        );
+      }
+      process.stdout.write(compareOutput.stdoutText);
+      // Compare ran, so it exits 0 whatever the changes are (FR-43).
+      process.exitCode = EXIT_CODE_RAN;
       return;
     }
     const reportArguments = command.args;
@@ -120,6 +153,35 @@ function chooseAnswerSource(
   return {
     kind: "ask",
     adapter: makeAdapterFromKey(environment, createAdapter, inputs.model),
+  };
+}
+
+/**
+ * Return the answer source of each compare run. With --answers both runs take their recorded run
+ * from the file and no key is read. Otherwise one adapter, made from the key once, serves both runs
+ * (FR-22, FR-35, FR-42, CS-21).
+ */
+function chooseCompareAnswerSources(
+  inputs: CompareInputs,
+  environment: Readonly<Record<string, string | undefined>>,
+  createAdapter: CreateAdapter,
+): { readonly before: AnswerSource; readonly after: AnswerSource } {
+  const beforeRecorded = inputs.before.recordedAnswers;
+  const afterRecorded = inputs.after.recordedAnswers;
+  if (beforeRecorded !== undefined && afterRecorded !== undefined) {
+    return {
+      before: { kind: "recorded", recorded: beforeRecorded },
+      after: { kind: "recorded", recorded: afterRecorded },
+    };
+  }
+  const adapter = makeAdapterFromKey(
+    environment,
+    createAdapter,
+    inputs.before.model,
+  );
+  return {
+    before: { kind: "ask", adapter },
+    after: { kind: "ask", adapter },
   };
 }
 

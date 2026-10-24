@@ -1083,3 +1083,84 @@ describe("crit gate (FR-40, FR-41, FR-42, FR-60, section 8.3)", () => {
     });
   });
 });
+
+describe("crit compare (FR-35, FR-42, FR-43, FR-60)", () => {
+  beforeEach(() => {
+    copyFileSync(
+      join(workingDirectory, "page.png"),
+      join(workingDirectory, "after.png"),
+    );
+  });
+
+  it("asks both runs through one adapter, exits 0, and writes the two-run answers file before stdout", async () => {
+    const result = await runCrit([
+      "compare",
+      "page.png",
+      "after.png",
+      "--pack",
+      "minimal",
+      "--json",
+      "--save-answers",
+      "compare.answers.json",
+    ]);
+    expect(result.stderr).toBe("");
+    expect(result.exitCode).toBe(0);
+    expect(result.adapterOptions.length).toBe(1);
+    expect(result.requests.length).toBe(2);
+    const document = parseReport(result.stdout);
+    expect(document.mode).toBe("compare");
+    expect(document.skipped).toEqual([]);
+    const saved: unknown = JSON.parse(
+      readFileSync(join(workingDirectory, "compare.answers.json"), "utf8"),
+    );
+    expect(Object.keys(saved ?? {})).toEqual([
+      "answers_file_version",
+      "before",
+      "after",
+    ]);
+    expect(Reflect.get(saved ?? {}, "answers_file_version")).toBe(2);
+  });
+
+  it("replays the two-run file with no key and no adapter, and gives the same stdout (FR-42)", async () => {
+    const asked = await runCrit([
+      "compare",
+      "page.png",
+      "after.png",
+      "--pack",
+      "minimal",
+      "--json",
+      "--save-answers",
+      "compare.answers.json",
+    ]);
+    const askedStdout = asked.stdout;
+    stdoutText = "";
+    stderrText = "";
+    const replayed = await runCrit(
+      [
+        "compare",
+        "page.png",
+        "after.png",
+        "--pack",
+        "minimal",
+        "--json",
+        "--answers",
+        "compare.answers.json",
+      ],
+      {},
+    );
+    expect(replayed.stderr).toBe("");
+    expect(replayed.exitCode).toBe(0);
+    expect(replayed.adapterOptions).toEqual([]);
+    expect(replayed.stdout).toBe(askedStdout);
+  });
+
+  it("exits 2 with empty stdout when no key is set and no --answers is given (FR-22, FR-24)", async () => {
+    const result = await runCrit(
+      ["compare", "page.png", "after.png", "--pack", "minimal", "--json"],
+      {},
+    );
+    expect(result.exitCode).toBe(2);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toBe("crit: TYPESAFE_API_KEY is not set\n");
+  });
+});

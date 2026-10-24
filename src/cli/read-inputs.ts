@@ -1,4 +1,4 @@
-// Every file and environment read for `crit report` and `crit gate` (CS-6): the image, `.crit.yaml`, the bundled
+// Every file and environment read for `crit report`, `crit compare`, and `crit gate` (CS-6): the images, `.crit.yaml`, the bundled
 // packs, each pack directory, the facts file, the --answers file, and the API key. Each failure throws CouldNotRunError that names the
 // input, so the run exits with code 2 (FR-4, US-5, US-7, NFR-14). The stages get the values.
 
@@ -8,8 +8,12 @@ import { DEFAULT_GATE_POLICY, type GatePolicy, loadPack } from "../index.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
 import type { Pack } from "../shared/pack.js";
 import type { Context } from "../shared/state.js";
-import { type AnswersFile, readAnswersFile } from "./answers-file.js";
-import type { ReportArguments } from "./args.js";
+import {
+  type RecordedRun,
+  readAnswersFile,
+  readCompareAnswersFile,
+} from "./answers-file.js";
+import type { CompareArguments, ReportArguments } from "./args.js";
 import { loadBundledPacks } from "./bundled-packs.js";
 import {
   CRIT_YAML_FILE_NAME,
@@ -39,11 +43,30 @@ export type ReportInputs = {
   readonly gatePolicy: GatePolicy;
 };
 
-/** A checked answers file and the path the person gave, so later messages can name it (FR-4, FR-42). */
+/**
+ * One checked recorded run and the name later messages use for its file: the path the person gave,
+ * and for compare which run of the file it is (FR-4, FR-42).
+ */
 export type RecordedAnswers = {
-  readonly answersFile: AnswersFile;
+  readonly recordedRun: RecordedRun;
   readonly fileName: string;
 };
+
+/**
+ * Everything `crit compare` read: one ReportInputs for each image. The two share the same packs,
+ * context, facts, model, and gate policy objects, read once, so both runs are asked the same
+ * questions (FR-35).
+ */
+export type CompareInputs = {
+  readonly before: ReportInputs;
+  readonly after: ReportInputs;
+};
+
+/** The inputs that do not depend on the image, which compare reads once for both runs (FR-35). */
+type SharedInputs = Pick<
+  ReportInputs,
+  "packs" | "context" | "facts" | "model" | "json" | "gatePolicy"
+>;
 
 /** One loaded pack and where it came from, so a duplicate name can name both sources. */
 type LoadedPack = {
@@ -65,32 +88,100 @@ export async function readReportInputs(
     reportArguments.imagePath,
     workingDirectory,
   );
-  const critYaml = await readCritYaml(workingDirectory);
-  const packs = await readPacks(
-    reportArguments.packDirectories,
-    critYaml.packs ?? [],
-    workingDirectory,
-  );
-  let facts: unknown;
-  if (reportArguments.factsPath !== undefined) {
-    facts = await readFacts(reportArguments.factsPath, workingDirectory);
-  }
+  const shared = await readSharedInputs(reportArguments, workingDirectory);
   let recordedAnswers: RecordedAnswers | undefined;
   if (reportArguments.answersPath !== undefined) {
-    recordedAnswers = await readRecordedAnswers(
+    const text = await readAnswersFileText(
       reportArguments.answersPath,
       workingDirectory,
     );
+    recordedAnswers = {
+      recordedRun: readAnswersFile(text, reportArguments.answersPath),
+      fileName: reportArguments.answersPath,
+    };
   }
   return {
     imagePath: reportArguments.imagePath,
     imageBytes,
+    ...shared,
+    recordedAnswers,
+  };
+}
+
+/**
+ * Read every input of `crit compare`: the before and the after image, then the inputs both runs
+ * share, read once, and with --answers the two-run answers file (FR-35, FR-42). Each run gets its
+ * own run from that file, named in messages as the path and the run, such as
+ * "answers/x.json (before run)" (FR-4).
+ */
+export async function readCompareInputs(
+  compareArguments: CompareArguments,
+  workingDirectory: string,
+): Promise<CompareInputs> {
+  const beforeBytes = await readImage(
+    compareArguments.beforePath,
+    workingDirectory,
+  );
+  const afterBytes = await readImage(
+    compareArguments.afterPath,
+    workingDirectory,
+  );
+  const shared = await readSharedInputs(compareArguments, workingDirectory);
+  let beforeRecorded: RecordedAnswers | undefined;
+  let afterRecorded: RecordedAnswers | undefined;
+  if (compareArguments.answersPath !== undefined) {
+    const answersPath = compareArguments.answersPath;
+    const text = await readAnswersFileText(answersPath, workingDirectory);
+    const compareFile = readCompareAnswersFile(text, answersPath);
+    beforeRecorded = {
+      recordedRun: compareFile.before,
+      fileName: `${answersPath} (before run)`,
+    };
+    afterRecorded = {
+      recordedRun: compareFile.after,
+      fileName: `${answersPath} (after run)`,
+    };
+  }
+  return {
+    before: {
+      imagePath: compareArguments.beforePath,
+      imageBytes: beforeBytes,
+      ...shared,
+      recordedAnswers: beforeRecorded,
+    },
+    after: {
+      imagePath: compareArguments.afterPath,
+      imageBytes: afterBytes,
+      ...shared,
+      recordedAnswers: afterRecorded,
+    },
+  };
+}
+
+/**
+ * Read the inputs that do not depend on the image: `.crit.yaml`, the packs, and the facts file,
+ * and lay the --context flags over the file's context (FR-2, FR-3, FR-11, FR-22, FR-41, FR-51).
+ */
+async function readSharedInputs(
+  options: Omit<ReportArguments, "imagePath">,
+  workingDirectory: string,
+): Promise<SharedInputs> {
+  const critYaml = await readCritYaml(workingDirectory);
+  const packs = await readPacks(
+    options.packDirectories,
+    critYaml.packs ?? [],
+    workingDirectory,
+  );
+  let facts: unknown;
+  if (options.factsPath !== undefined) {
+    facts = await readFacts(options.factsPath, workingDirectory);
+  }
+  return {
     packs,
-    context: mergeContext(critYaml.context, reportArguments.contextFlags),
+    context: mergeContext(critYaml.context, options.contextFlags),
     facts,
     model: critYaml.model,
-    json: reportArguments.json,
-    recordedAnswers,
+    json: options.json,
     gatePolicy: {
       warn_fails_gate:
         critYaml.warn_fails_gate ?? DEFAULT_GATE_POLICY.warn_fails_gate,
@@ -246,23 +337,18 @@ async function readFacts(
 }
 
 /**
- * Read the --answers file and check its shape. An unreadable file stops the run and names the
- * path; readAnswersFile names it for bad JSON or a wrong shape (FR-4, FR-42, CS-7).
+ * Read the text of the --answers file. An unreadable file stops the run and names the path; the
+ * readers in answers-file.ts name it for bad JSON or a wrong shape (FR-4, FR-42, CS-7).
  */
-async function readRecordedAnswers(
+async function readAnswersFileText(
   answersPath: string,
   workingDirectory: string,
-): Promise<RecordedAnswers> {
-  let text: string;
+): Promise<string> {
   try {
-    text = await readFile(resolve(workingDirectory, answersPath), "utf8");
+    return await readFile(resolve(workingDirectory, answersPath), "utf8");
   } catch {
     throw new CouldNotRunError(`answers file ${answersPath} cannot be read`);
   }
-  return {
-    answersFile: readAnswersFile(text, answersPath),
-    fileName: answersPath,
-  };
 }
 
 /**

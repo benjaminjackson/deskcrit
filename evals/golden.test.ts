@@ -1,4 +1,4 @@
-// EV-1, the durable golden-output test for `crit report` and `crit gate` (CS-21, AC-6). Each folder under
+// EV-1, the durable golden-output test for `crit report`, `crit compare`, and `crit gate` (CS-21, AC-6). Each folder under
 // evals/golden/cases/ names the arguments in case.json and stores the stdout, stderr, and exit code
 // a person approved. The test runs the built bundle twice per case with a recorded --answers file
 // and an environment that holds only PATH, so it makes no network call and needs no key (FR-42).
@@ -16,8 +16,14 @@
 // gate-uncertain.answers.json, which keep only the answers of page.answers.json that their packs in
 // evals/golden/packs/gate-*/ ask, with the same image_sha256 and usage. Two gate cases run from
 // evals/golden/warn-fails-gate/, whose .crit.yaml sets warn_fails_gate: true.
+// The compare cases use evals/golden/answers/compare-*.answers.json, two-run files (version 2) that
+// were written by hand for the pack in evals/golden/packs/compare/, not recorded from Jev. Each run
+// copies its image_sha256 and usage from page.answers.json (before) or page-large.answers.json
+// (after; both runs in compare-same-image), and its distributions were chosen to give each change
+// of FR-36 and FR-37. These cases check the CLI, not Jev.
 
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
@@ -279,4 +285,192 @@ describe("EV-1: what the crit gate golden cases show (FR-40, FR-41, section 8.3)
       }
     });
   }
+});
+
+/** The four values of a compare change, in the order of the readable compare output (FR-36, FR-37). */
+const CHANGE_VALUES = ["worse", "better", "uncertain", "same"];
+
+/** Return true when the case runs `crit compare` (FR-60). */
+function isCompareCase(goldenCase: {
+  readonly arguments: readonly string[];
+}): boolean {
+  return goldenCase.arguments[0] === "compare";
+}
+
+/** Return true when the list of entries is sorted by criterion, by UTF-16 code unit (section 8.2). */
+function isSortedByCriterion(
+  entries: readonly { readonly criterion: string }[],
+): boolean {
+  for (let index = 1; index < entries.length; index++) {
+    const previous = entries[index - 1];
+    const current = entries[index];
+    if (previous !== undefined && current !== undefined) {
+      if (previous.criterion > current.criterion) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+/** Read one answers file as JSON, from its path relative to evals/golden/ as case.json gives it. */
+function readGoldenAnswersFile(relativePath: string) {
+  return JSON.parse(readFileSync(join(GOLDEN_DIRECTORY, relativePath), "utf8"));
+}
+
+describe("EV-1: what the crit compare golden cases show (FR-35 to FR-37, FR-39, FR-43, section 8.2)", () => {
+  /** The compare --json cases that ran, so their stdout is one compare document. */
+  const compareJsonCases = goldenCases.filter((goldenCase) => {
+    if (!isCompareCase(goldenCase) || !isJsonCase(goldenCase)) {
+      return false;
+    }
+    return readExpectedOutput(goldenCase).exitCode === 0;
+  });
+
+  it("has compare cases that between them show every change value (FR-36, FR-37)", () => {
+    const changesSeen = new Set<string>();
+    for (const goldenCase of compareJsonCases) {
+      const document = JSON.parse(runCrit(goldenCase.arguments).stdout);
+      for (const entry of document.changes) {
+        changesSeen.add(entry.change);
+      }
+    }
+    expect([...changesSeen].sort()).toEqual([...CHANGE_VALUES].sort());
+  });
+
+  for (const goldenCase of compareJsonCases) {
+    it(`${goldenCase.name}: the document has mode compare, a summary that counts the changes, sorted lists, and summed usage`, () => {
+      const result = runCrit(goldenCase.arguments);
+      expect(result.exitCode).toBe(0);
+      expect(result.stderr).toBe("");
+      const document = JSON.parse(result.stdout);
+      expect(document.mode).toBe("compare");
+
+      const tally = { improved: 0, regressed: 0, same: 0, uncertain: 0 };
+      for (const entry of document.changes) {
+        expect(CHANGE_VALUES).toContain(entry.change);
+        // The model id is on each change and at the top level, and not in usage (FR-33).
+        expect(entry.model).toBe(document.model);
+        if (entry.change === "better") {
+          tally.improved += 1;
+        } else if (entry.change === "worse") {
+          tally.regressed += 1;
+        } else if (entry.change === "same") {
+          tally.same += 1;
+        } else {
+          tally.uncertain += 1;
+        }
+      }
+      expect(document.summary).toEqual(tally);
+      expect(isSortedByCriterion(document.changes)).toBe(true);
+      expect(isSortedByCriterion(document.skipped)).toBe(true);
+      // Both runs share packs, context, and facts (FR-35), so build skips the same criteria in
+      // both and crit compare always writes an empty skipped list. The PRD records this at FR-36.
+      expect(document.skipped).toEqual([]);
+      expect(document.before.skipped).toEqual(document.after.skipped);
+
+      // usage holds the sums over both runs: one request each, and the recorded token counts and costs (FR-33).
+      expect(sortedKeysOf(document.usage)).toEqual([...USAGE_FIELDS].sort());
+      expect(document.usage.requests).toBe(2);
+      const answersPath =
+        goldenCase.arguments[goldenCase.arguments.indexOf("--answers") + 1] ??
+        "";
+      const answersFile = readGoldenAnswersFile(answersPath);
+      expect(document.usage.input_tokens).toBe(
+        answersFile.before.usage.input_tokens +
+          answersFile.after.usage.input_tokens,
+      );
+      expect(document.usage.cost_usd).toBe(
+        answersFile.before.usage.cost_usd + answersFile.after.usage.cost_usd,
+      );
+      expect(document.usage.latency_ms).toBe(
+        answersFile.before.usage.latency_ms +
+          answersFile.after.usage.latency_ms,
+      );
+    });
+  }
+
+  it("compare-better-json: single-focal-point moves from level 2 to level 0, so its change is better (US-3)", () => {
+    const goldenCase = findGoldenCase("compare-better-json");
+    const document = JSON.parse(runCrit(goldenCase.arguments).stdout);
+    let found = 0;
+    for (const entry of document.changes) {
+      if (entry.criterion !== "compare/single-focal-point") {
+        continue;
+      }
+      found += 1;
+      expect(entry.change).toBe("better");
+      expect(entry.before).toEqual({ verdict: "fail", value: 2 });
+      expect(entry.after).toEqual({ verdict: "pass", value: 0 });
+    }
+    expect(found).toBe(1);
+  });
+
+  it("compare-worse-json: every change is worse and crit compare still exits 0 (FR-43)", () => {
+    const goldenCase = findGoldenCase("compare-worse-json");
+    const result = runCrit(goldenCase.arguments);
+    expect(result.exitCode).toBe(0);
+    const document = JSON.parse(result.stdout);
+    expect(document.changes.length).toBeGreaterThan(0);
+    for (const entry of document.changes) {
+      expect(entry.change).toBe("worse");
+    }
+  });
+
+  it("compare-text: groups the changes worse, better, uncertain, same, then the summary and the usage line (FR-32, FR-33, FR-39)", () => {
+    const goldenCase = findGoldenCase("compare-text");
+    const result = runCrit(goldenCase.arguments);
+    expect(result.exitCode).toBe(0);
+    const worseIndex = result.stdout.indexOf("Worse (");
+    const betterIndex = result.stdout.indexOf("Better (");
+    const uncertainIndex = result.stdout.indexOf("Uncertain (");
+    const sameIndex = result.stdout.indexOf("Same (");
+    expect(worseIndex).toBe(0);
+    expect(betterIndex).toBeGreaterThan(worseIndex);
+    expect(uncertainIndex).toBeGreaterThan(betterIndex);
+    expect(sameIndex).toBeGreaterThan(uncertainIndex);
+    const lines = result.stdout.trimEnd().split("\n");
+    expect(lines[lines.length - 2]).toBe(
+      "Improved: 1, regressed: 1, same: 1, uncertain: 1",
+    );
+    expect(lines[lines.length - 1]).toMatch(
+      /^Requests: 2, input tokens: \d+, cost: \$/,
+    );
+    // \u001b is the escape character that starts every terminal colour code.
+    expect(result.stdout).not.toContain("\u001b");
+  });
+
+  it(
+    "--save-answers on a replay writes the same two-run file, and a replay of that file gives the same output (FR-42)",
+    () => {
+      const goldenCase = findGoldenCase("compare-better-json");
+      const temporaryDirectory = mkdtempSync(join(tmpdir(), "crit-compare-"));
+      try {
+        const savedPath = join(temporaryDirectory, "saved.answers.json");
+        const firstRun = runCrit([
+          ...goldenCase.arguments,
+          "--save-answers",
+          savedPath,
+        ]);
+        expect(firstRun.stderr).toBe("");
+        expect(firstRun.exitCode).toBe(0);
+        const savedText = readFileSync(savedPath, "utf8");
+        const originalText = readFileSync(
+          join(GOLDEN_DIRECTORY, "answers", "compare-mixed.answers.json"),
+          "utf8",
+        );
+        expect(savedText).toBe(originalText);
+
+        const replayArguments = [...goldenCase.arguments];
+        replayArguments[replayArguments.indexOf("--answers") + 1] = savedPath;
+        const replay = runCrit(replayArguments);
+        expect(replay.exitCode).toBe(0);
+        expect(replay.stdout).toBe(firstRun.stdout);
+      } finally {
+        // recursive and force remove the folder and the file in it, and do not fail if it is gone.
+        rmSync(temporaryDirectory, { recursive: true, force: true });
+      }
+    },
+    CRIT_TWICE_TIMEOUT_MS,
+  );
 });
