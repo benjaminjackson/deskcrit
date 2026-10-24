@@ -185,9 +185,12 @@ type HarnessContext = {
  * disagreed, and 0 otherwise. Output is written once at the end, so a stopped run prints no
  * partial scores (EV-4, EV-5, FR-24).
  */
-async function main(): Promise<void> {
+export async function main(
+  argv: readonly string[] = process.argv.slice(2),
+  options: HarnessOptions = DEFAULT_OPTIONS,
+): Promise<void> {
   try {
-    const output = await runHarness(process.argv.slice(2), DEFAULT_OPTIONS);
+    const output = await runHarness(argv, options);
     process.stdout.write(output.text);
     process.exitCode = output.exitCode;
   } catch (error) {
@@ -451,8 +454,9 @@ function readSavedAnswersFile(
 
 /**
  * Ask crit about one fixture in live mode and save the answers with --save-answers to the file the
- * plan names (FR-42). It first deletes the files the plan lists, which only --rerun-same-set does.
- * When the plan asks only some criteria, crit gets a pack made of only those criteria.
+ * plan names (FR-42). Only after crit succeeds does it delete the files the plan lists, which only
+ * --rerun-same-set does, so a failed run leaves the saved files as they were. When the plan asks
+ * only some criteria, crit gets a pack made of only those criteria.
  */
 async function askFixture(
   context: HarnessContext,
@@ -461,18 +465,20 @@ async function askFixture(
 ): Promise<ReportDocument> {
   const directory = fixtureAnswersDirectory(context, pack, fixturePlan.fixture);
   mkdirSync(directory, { recursive: true });
-  for (const fileName of fixturePlan.fileNamesToDelete) {
-    rmSync(join(directory, fileName));
-  }
   const packDirectory = packDirectoryFor(context, pack, fixturePlan.criteria);
   const answersPath = join(directory, fixturePlan.answersFileName);
-  return await runCritOnFixture(
+  // runCritOnFixture throws unless crit exited 0 or 1, so the deletes below run only after success.
+  const report = await runCritOnFixture(
     context,
     pack,
     fixturePlan.fixture,
     packDirectory,
     ["--save-answers", answersPath],
   );
+  for (const fileName of fixturePlan.fileNamesToDelete) {
+    rmSync(join(directory, fileName));
+  }
+  return report;
 }
 
 /**

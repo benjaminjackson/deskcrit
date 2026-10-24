@@ -270,7 +270,7 @@ export function planReplay(
       const criterion = criterionForQuestionId(questionId);
       if (!packCriteria.includes(criterion)) {
         throw new Error(
-          `${packName} fixture ${fixture}: ${savedFile.fileName} answers ${questionId}, but ${criterion} is not in the pack`,
+          `${packName} fixture ${fixture}: ${savedFile.fileName} answers ${questionId}, but ${criterion} is not in the pack. Removing a criterion means removing its answers from the saved answers files by hand, as commit 21984a3 did.`,
         );
       }
       fileCriteria.add(criterion);

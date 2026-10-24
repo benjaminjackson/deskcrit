@@ -21,15 +21,25 @@ import {
   type CritRun,
   type CritRunner,
   type HarnessOptions,
+  main as harnessMain,
   runHarness,
 } from "./run-agreement.ts";
 
-/** One criterion of the test pack: its id and a background colour for each of its two fixtures. */
+/**
+ * One criterion of the test pack: its id, a background colour for each of its two fixtures, and
+ * the start of its fixture file names, which is the id unless a test renames the criterion.
+ */
 type TestCriterion = {
   readonly id: string;
   readonly positiveColour: string;
   readonly negativeColour: string;
+  readonly fixtureStem?: string;
 };
+
+/** Return the start of a criterion's fixture file names. */
+function fixtureStemOf(criterion: TestCriterion): string {
+  return criterion.fixtureStem ?? criterion.id;
+}
 
 const FIRST: TestCriterion = {
   id: "first",
@@ -72,18 +82,23 @@ function packYaml(criteria: readonly TestCriterion[]): string {
       `    fix: 'Remove the ${criterion.id} defect.'`,
       "    fixtures:",
       "      positive:",
-      `        - fixtures/${criterion.id}.positive.png`,
+      `        - fixtures/${fixtureStemOf(criterion)}.positive.png`,
       "      negative:",
-      `        - fixtures/${criterion.id}.negative.png`,
+      `        - fixtures/${fixtureStemOf(criterion)}.negative.png`,
     );
   }
   return `${lines.join("\n")}\n`;
 }
 
-/** Write the pack's pack.yaml, its fixture PNGs, and a rendered.json that names their hashes. */
+/**
+ * Write the pack's pack.yaml, its fixture PNGs, and, unless writeRenderedJson is false, a
+ * rendered.json that names their hashes. A pack with no rendered.json has no frozen set, so the
+ * guard checks only the saved answers.
+ */
 async function writePack(
   packDirectory: string,
   criteria: readonly TestCriterion[],
+  writeRenderedJson = true,
 ): Promise<void> {
   const fixturesDirectory = join(packDirectory, "fixtures");
   mkdirSync(fixturesDirectory, { recursive: true });
@@ -95,7 +110,7 @@ async function writePack(
       { kind: "negative", colour: criterion.negativeColour },
     ];
     for (const image of images) {
-      const fileName = `${criterion.id}.${image.kind}.png`;
+      const fileName = `${fixtureStemOf(criterion)}.${image.kind}.png`;
       const png = await sharp({
         create: {
           width: 400,
@@ -113,10 +128,46 @@ async function writePack(
       });
     }
   }
-  writeFileSync(
-    join(fixturesDirectory, "rendered.json"),
-    JSON.stringify(records),
-  );
+  if (writeRenderedJson) {
+    writeFileSync(
+      join(fixturesDirectory, "rendered.json"),
+      JSON.stringify(records),
+    );
+  }
+}
+
+/** Run a step with stdout, stderr, and the exit code caught, and put them back afterwards. */
+async function catchOutput(step: () => Promise<void>): Promise<CritRun> {
+  let stdout = "";
+  let stderr = "";
+  const stdoutSpy = vi
+    .spyOn(process.stdout, "write")
+    .mockImplementation((chunk: string | Uint8Array) => {
+      stdout += String(chunk);
+      return true;
+    });
+  const stderrSpy = vi
+    .spyOn(process.stderr, "write")
+    .mockImplementation((chunk: string | Uint8Array) => {
+      stderr += String(chunk);
+      return true;
+    });
+  const exitCodeBefore = process.exitCode;
+  // Clear the exit code, so a step that sets none reads as 0.
+  process.exitCode = undefined;
+  try {
+    await step();
+    const exitCode = process.exitCode;
+    return {
+      stdout,
+      stderr,
+      exitCode: typeof exitCode === "number" ? exitCode : 0,
+    };
+  } finally {
+    stdoutSpy.mockRestore();
+    stderrSpy.mockRestore();
+    process.exitCode = exitCodeBefore;
+  }
 }
 
 /** Return the SHA-256 of every file in a folder, keyed by file name, to check nothing changed. */
@@ -139,33 +190,22 @@ function questionIdsIn(answersPath: string): string[] {
 
 /**
  * A crit runner that calls crit's main in-process with the stub adapter and records the question
- * ids of every request, so the test sees what a live run asked. It catches what main writes to
- * stdout and stderr and the exit code it sets, then puts them back.
+ * ids of every request, so the test sees what a live run asked. While failure.fail is true, the
+ * stub rejects every request, as the real adapter does when TypeSafe fails, so crit exits 2.
  */
-function makeStubCritRunner(askedQuestionIds: string[][]): CritRunner {
+function makeStubCritRunner(
+  askedQuestionIds: string[][],
+  failure: { fail: boolean },
+): CritRunner {
   return async (critArguments, environment, workingDirectory) => {
-    let stdout = "";
-    let stderr = "";
-    const stdoutSpy = vi
-      .spyOn(process.stdout, "write")
-      .mockImplementation((chunk: string | Uint8Array) => {
-        stdout += String(chunk);
-        return true;
-      });
-    const stderrSpy = vi
-      .spyOn(process.stderr, "write")
-      .mockImplementation((chunk: string | Uint8Array) => {
-        stderr += String(chunk);
-        return true;
-      });
-    const exitCodeBefore = process.exitCode;
-    let run: CritRun;
-    try {
+    return await catchOutput(async () => {
       await critMain(
         critArguments,
         environment,
         () => {
-          const stub = createStubAdapter();
+          const stub = failure.fail
+            ? createStubAdapter({ failWith: new Error("stub failure") })
+            : createStubAdapter();
           return {
             askQuestions: async (request) => {
               askedQuestionIds.push(
@@ -177,18 +217,7 @@ function makeStubCritRunner(askedQuestionIds: string[][]): CritRunner {
         },
         workingDirectory,
       );
-      const exitCode = process.exitCode;
-      run = {
-        stdout,
-        stderr,
-        exitCode: typeof exitCode === "number" ? exitCode : 0,
-      };
-    } finally {
-      stdoutSpy.mockRestore();
-      stderrSpy.mockRestore();
-      process.exitCode = exitCodeBefore;
-    }
-    return run;
+    });
   };
 }
 
@@ -197,6 +226,7 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
   let packDirectory = "";
   let answersDirectory = "";
   let askedQuestionIds: string[][] = [];
+  let failure = { fail: false };
   let options: HarnessOptions;
 
   beforeEach(() => {
@@ -213,11 +243,12 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
       "fixtures",
     );
     askedQuestionIds = [];
+    failure = { fail: false };
     options = {
       harnessDirectory,
       runsDirectory: join(harnessDirectory, "runs"),
       labelsDirectory: join(harnessDirectory, "labels"),
-      runCrit: makeStubCritRunner(askedQuestionIds),
+      runCrit: makeStubCritRunner(askedQuestionIds, failure),
     };
     // A fake key: the stub adapter never sends it anywhere.
     vi.stubEnv("TYPESAFE_API_KEY", "test-key-not-sent");
@@ -283,13 +314,91 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
     expect(replay.text).toContain("Usage: 10 requests");
   });
 
-  it("refuses a second live run with nothing left to ask and sends no request", async () => {
-    await writePack(packDirectory, [FIRST, SECOND]);
+  it("refuses a live run with no pair left to ask and sends no request", async () => {
+    // With no rendered.json there is no set hash and no scored PNG list, so the only refusal that
+    // can stop this run is the one that finds every pair already answered.
+    await writePack(packDirectory, [FIRST, SECOND], false);
     await runHarness(["--live", "--pack", packDirectory], options);
     askedQuestionIds.length = 0;
     await expect(
       runHarness(["--live", "--pack", packDirectory], options),
-    ).rejects.toThrow(/no request was sent/);
+    ).rejects.toThrow(
+      /every pair of a fixture and a criterion already has a saved answer with this model, so no pair is left to ask/,
+    );
     expect(askedQuestionIds).toEqual([]);
+  });
+
+  it("refuses a criterion renamed on fixtures already scored and sends no request", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+    const before = hashFiles(answersDirectory);
+    // first is renamed to renamed and keeps its fixtures; third brings new PNGs, so the set as a
+    // whole is new and only the rule about a criterion's own fixtures can refuse it.
+    const renamed: TestCriterion = {
+      ...FIRST,
+      id: "renamed",
+      fixtureStem: "first",
+    };
+    await writePack(packDirectory, [renamed, SECOND, THIRD]);
+    askedQuestionIds.length = 0;
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], options),
+    ).rejects.toThrow(
+      /demo\/renamed has never been scored on its own fixture fixtures\/first\.negative\.png/,
+    );
+    expect(askedQuestionIds).toEqual([]);
+    expect(hashFiles(answersDirectory)).toEqual(before);
+  });
+
+  it("with --rerun-same-set keeps the added files when crit fails and deletes them when it succeeds", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+    await writePack(packDirectory, [FIRST, SECOND, THIRD]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+    const before = hashFiles(answersDirectory);
+    expect(before.has("first.negative.png.answers-2.json")).toBe(true);
+
+    failure.fail = true;
+    await expect(
+      runHarness(
+        ["--live", "--rerun-same-set", "--pack", packDirectory],
+        options,
+      ),
+    ).rejects.toThrow(/crit exited 2/);
+    expect(hashFiles(answersDirectory)).toEqual(before);
+
+    failure.fail = false;
+    askedQuestionIds.length = 0;
+    await runHarness(
+      ["--live", "--rerun-same-set", "--pack", packDirectory],
+      options,
+    );
+    expect(askedQuestionIds).toHaveLength(6);
+    const after = [...hashFiles(answersDirectory).keys()].sort();
+    expect(after).toEqual([
+      "first.negative.png.answers.json",
+      "first.positive.png.answers.json",
+      "second.negative.png.answers.json",
+      "second.positive.png.answers.json",
+      "third.negative.png.answers.json",
+      "third.positive.png.answers.json",
+    ]);
+    expect(
+      questionIdsIn(join(answersDirectory, "first.positive.png.answers.json")),
+    ).toEqual(["demo/first", "demo/second", "demo/third"]);
+  });
+
+  it("stops the replay with exit code 2 when a saved file answers a criterion no longer in the pack", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+    await writePack(packDirectory, [FIRST]);
+    const run = await catchOutput(async () => {
+      await harnessMain(["--pack", packDirectory], options);
+    });
+    expect(run.exitCode).toBe(2);
+    expect(run.stdout).toBe("");
+    expect(run.stderr).toContain(
+      "answers demo/second, but demo/second is not in the pack. Removing a criterion means removing its answers from the saved answers files by hand",
+    );
   });
 });
