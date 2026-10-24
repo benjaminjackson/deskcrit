@@ -121,38 +121,95 @@ test("zero questions still call the adapter and give empty answers", async () =>
   expect(result.usage.model).toBe(STUB_MODEL_ID);
 });
 
-const mismatches: Array<{ name: string; answers: Answer[]; message: RegExp }> =
-  [
-    {
-      name: "an answer is missing",
-      answers: [noulAnswer],
-      message: /no answer for question layout\/density/,
-    },
-    {
-      name: "a question has two answers",
-      answers: [noulAnswer, scoreAnswer, noulAnswer],
-      message: /two answers for question typography\/line-length/,
-    },
-    {
-      name: "an answer names an unknown question",
-      answers: [
-        noulAnswer,
-        scoreAnswer,
-        { ...noulAnswer, question_id: "other/criterion" },
-      ],
-      message: /unknown question other\/criterion/,
-    },
-    {
-      name: "an answer has the wrong type",
-      answers: [noulAnswer, { ...noulAnswer, question_id: "layout/density" }],
-      message: /noul answer for score question layout\/density/,
-    },
-  ];
+const choiceQuestion: Question = {
+  id: "layout/alignment",
+  criterion: "layout/alignment",
+  type: "choice",
+  instructions:
+    "Looking at the image at `screenshot`, how is the text aligned?",
+  criteria: [
+    { option: "consistent", description: "One alignment." },
+    { option: "mixed", description: "Several alignments." },
+  ],
+};
+
+// JSON.parse returns an untyped value, which lets this test build an answer that breaks the Answer
+// type, the way a faulty adapter or answers file could at run time.
+const noulAnswerWithConfidence: Answer = JSON.parse(
+  JSON.stringify({ ...noulAnswer, confidence: 0.8 }),
+);
+
+const mismatches: Array<{
+  name: string;
+  questions?: Question[];
+  answers: Answer[];
+  message: RegExp;
+}> = [
+  {
+    name: "an answer is missing",
+    answers: [noulAnswer],
+    message: /no answer for question layout\/density/,
+  },
+  {
+    name: "a question has two answers",
+    answers: [noulAnswer, scoreAnswer, noulAnswer],
+    message: /two answers for question typography\/line-length/,
+  },
+  {
+    name: "an answer names an unknown question",
+    answers: [
+      noulAnswer,
+      scoreAnswer,
+      { ...noulAnswer, question_id: "other/criterion" },
+    ],
+    message: /unknown question other\/criterion/,
+  },
+  {
+    name: "an answer has the wrong type",
+    answers: [noulAnswer, { ...noulAnswer, question_id: "layout/density" }],
+    message: /noul answer for score question layout\/density/,
+  },
+  {
+    name: "two questions share an id",
+    questions: [...questions, { ...choiceQuestion, id: "layout/density" }],
+    answers: [noulAnswer, scoreAnswer],
+    message: /two questions have the id layout\/density/,
+  },
+  {
+    name: "a choice answer has keys that are not the options",
+    questions: [choiceQuestion],
+    answers: [
+      {
+        type: "choice",
+        question_id: "layout/alignment",
+        model: STUB_MODEL_ID,
+        distribution: { consistent: 0.6, centred: 0.4 },
+        confidence: 0.5,
+      },
+    ],
+    message:
+      /distribution keys consistent, centred for question layout\/alignment/,
+  },
+  {
+    name: "a score answer has keys that are not the level indexes",
+    answers: [
+      noulAnswer,
+      { ...scoreAnswer, distribution: { "0": 0.5, "1": 0.3, "2": 0.2 } },
+    ],
+    message: /distribution keys 0, 1, 2 for question layout\/density/,
+  },
+  {
+    name: "a noul answer has a confidence",
+    answers: [noulAnswerWithConfidence, scoreAnswer],
+    message: /confidence for noul question typography\/line-length/,
+  },
+];
 
 for (const mismatch of mismatches) {
   test(`ask throws a plain Error when ${mismatch.name}`, async () => {
     const stub = createStubAdapter({ answers: mismatch.answers });
-    const outcome = ask(state, questions, stub);
+    // `??` uses the shared questions when the case gives none of its own.
+    const outcome = ask(state, mismatch.questions ?? questions, stub);
     await expect(outcome).rejects.toThrow(mismatch.message);
     await expect(outcome).rejects.not.toBeInstanceOf(CouldNotRunError);
   });

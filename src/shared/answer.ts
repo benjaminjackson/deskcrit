@@ -34,7 +34,11 @@ export type ScoreAnswer = AnswerBase & {
   readonly confidence: number;
 };
 
-/** A rectangle in pixels of the prepared image. Compose maps it back to the original (FR-8). */
+/**
+ * A rectangle in pixels of the prepared image. Compose maps it back to the original (FR-8).
+ * TypeSafe returns a box as top, bottom, left and right fractions of the image, so the real
+ * adapter (crit-cy8.7) converts them to pixels with the prepared image's width and height.
+ */
 export type Region = {
   readonly x: number;
   readonly y: number;
