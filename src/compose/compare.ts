@@ -111,6 +111,7 @@ export type CompareInput = {
  */
 export function compare(input: CompareInput): CompareReport {
   assertSameRun(input.before, input.after);
+  assertPacksMatchReport(input.packs, input.before);
   const criteriaByKey = indexCriteriaByKey(input.packs);
 
   const beforeFindings = indexFindingsByCriterion(input.before.findings);
@@ -204,6 +205,36 @@ function assertSameRun(before: Report, after: Report): void {
   ) {
     throw new CouldNotRunError(
       `The two reports must use the same context, but the before report has context ${JSON.stringify(before.context)} and the after report has context ${JSON.stringify(after.context)}.`,
+    );
+  }
+}
+
+/**
+ * Checks that the packs given to compare are the packs the reports name, by name and version in
+ * the same order, so each value is read with the criteria the runs used (FR-35). A mismatch is
+ * input the caller got wrong, so it throws CouldNotRunError naming both lists (CS-16).
+ */
+function assertPacksMatchReport(packs: readonly Pack[], report: Report): void {
+  let packsMatch = packs.length === report.packs.length;
+  for (let index = 0; packsMatch && index < packs.length; index++) {
+    const givenPack = packs[index];
+    const reportPack = report.packs[index];
+    if (
+      givenPack === undefined ||
+      reportPack === undefined ||
+      givenPack.name !== reportPack.name ||
+      givenPack.version !== reportPack.version
+    ) {
+      packsMatch = false;
+    }
+  }
+  if (!packsMatch) {
+    const givenList: Array<{ name: string; version: string }> = [];
+    for (const pack of packs) {
+      givenList.push({ name: pack.name, version: pack.version });
+    }
+    throw new CouldNotRunError(
+      `The packs given to compare must be the packs the reports used, but compare got packs ${JSON.stringify(givenList)} and the reports have packs ${JSON.stringify(report.packs)}.`,
     );
   }
 }
@@ -592,17 +623,10 @@ function sumUsage(before: ReportUsage, after: ReportUsage): ReportUsage {
 
 /** Returns a copy of one report's fields without its usage, for the before and after fields (section 8.2). */
 function withoutUsage(report: Report): ReportWithoutUsage {
-  return {
-    schema_version: report.schema_version,
-    mode: report.mode,
-    tool: report.tool,
-    image: report.image,
-    context: report.context,
-    packs: report.packs,
-    model: report.model,
-    findings: report.findings,
-    skipped: report.skipped,
-  };
+  // A rest spread copies every field except usage, so an optional field added to Report later
+  // (AC-2) reaches the compare document without a change here. `usage` itself is not used.
+  const { usage, ...rest } = report;
+  return rest;
 }
 
 /** Orders two entries by criterion key, by UTF-16 code unit, so the order is the same on every machine (section 8.2, CS-18). */

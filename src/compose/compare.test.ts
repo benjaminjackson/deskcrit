@@ -313,6 +313,51 @@ describe("compareFinding through compare (FR-36, FR-37)", () => {
       after: noulFinding("busy", "warn", 0.75),
       change: "better",
     },
+    {
+      name: "pass_when level_at_least, equal pass, level 2 to 3 gives better",
+      criterion: scoreCriterion("legible", {
+        pass_when: { level_at_least: 2 },
+      }),
+      before: scoreFinding("legible", "pass", 2),
+      after: scoreFinding("legible", "pass", 3),
+      change: "better",
+    },
+    {
+      name: "pass_when level_at_least, equal pass, level 3 to 2 gives worse",
+      criterion: scoreCriterion("legible", {
+        pass_when: { level_at_least: 2 },
+      }),
+      before: scoreFinding("legible", "pass", 3),
+      after: scoreFinding("legible", "pass", 2),
+      change: "worse",
+    },
+    {
+      name: "pass_when probability_at_least, equal pass, exact 0.15 rise gives better",
+      criterion: noulCriterion("clear", {
+        pass_when: { probability_at_least: 0.7 },
+      }),
+      before: noulFinding("clear", "pass", 0.8),
+      after: noulFinding("clear", "pass", 0.95),
+      change: "better",
+    },
+    {
+      name: "pass_when probability_at_least, equal pass, exact 0.15 fall gives worse",
+      criterion: noulCriterion("clear", {
+        pass_when: { probability_at_least: 0.7 },
+      }),
+      before: noulFinding("clear", "pass", 0.95),
+      after: noulFinding("clear", "pass", 0.8),
+      change: "worse",
+    },
+    {
+      name: "pass_when probability_at_least, equal pass, 0.1 rise gives same",
+      criterion: noulCriterion("clear", {
+        pass_when: { probability_at_least: 0.7 },
+      }),
+      before: noulFinding("clear", "pass", 0.8),
+      after: noulFinding("clear", "pass", 0.9),
+      change: "same",
+    },
   ];
 
   for (const testCase of cases) {
@@ -674,6 +719,24 @@ describe("the same run check (FR-35)", () => {
       });
     expect(run).toThrow(CouldNotRunError);
     expect(run).toThrow(/packs/);
+  });
+
+  test("packs given to compare that differ from the reports' packs throw CouldNotRunError", () => {
+    const otherVersion: Pack = {
+      ...makePack([lowerBetterNoul]),
+      version: "2.0.0",
+    };
+    const run = () =>
+      compare({
+        before: makeReport([]),
+        after: makeReport([]),
+        packs: [otherVersion],
+      });
+    expect(run).toThrow(CouldNotRunError);
+    expect(run).toThrow(/packs/);
+    expect(() =>
+      compare({ before: makeReport([]), after: makeReport([]), packs: [] }),
+    ).toThrow(CouldNotRunError);
   });
 
   test("different contexts throw CouldNotRunError naming the context", () => {
