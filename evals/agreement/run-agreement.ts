@@ -3,33 +3,47 @@
 // schemas/report.schema.json, and prints the EV-4 fixture table, the EV-5 agreement table, and
 // the label coverage. It imports no stage code (AC-6, CS-21).
 //
-// Live mode (`npm run test:live`) asks TypeSafe once per image and saves the raw answers with
-// --save-answers into runs/<pack>/<model>/. Replay mode (`npm run eval:agreement`) scores those
-// saved answers with --answers, needs no key, and makes no network call (FR-42).
+// Live mode (`npm run test:live`) asks TypeSafe only the pairs of a fixture and a criterion that no
+// saved answers file of the pinned model answers yet, and saves each fixture's new answers with
+// --save-answers in a new file under runs/<pack>/<model>/: <image>.answers.json first, then
+// <image>.answers-2.json and so on. It never writes a saved file again. Replay mode
+// (`npm run eval:agreement`) scores every saved file with --answers against a pack of only the
+// criteria that file answers, needs no key, and makes no network call (EV-4 rule 5, FR-42).
 //
 // Usage: node evals/agreement/run-agreement.ts [--live] [--rerun-same-set] [--pack <dir>]...
-// A live run refuses a fixture set whose PNGs were all already scored with the same model, unless
-// a person passes --rerun-same-set. Only a person passes it, never an agent (EV-4 rule 5).
+// A live run with no pair left to ask is refused, unless a person passes --rerun-same-set, which
+// asks every pair again and replaces the saved answers. Only a person passes it, never an agent.
 // Without --pack it measures every first-party pack under packs/. Exit 0 when every fixture agrees,
 // 1 when any EV-4 fixture disagrees, and 2 when the harness could not run (FR-24).
 
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
+  mkdtempSync,
   readdirSync,
   readFileSync,
+  rmSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
+import { tmpdir } from "node:os";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  normalize,
+  resolve,
+} from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { parseDocument } from "yaml";
+import { isMap, isSeq, parseDocument } from "yaml";
 import {
   compileReportValidator,
   readPinnedModel,
 } from "../support/pinned-model-and-schema.ts";
 import {
-  decideLiveRun,
   formatScoredPngHashes,
   hashPngHashes,
   parseScoredPngHashes,
@@ -40,6 +54,14 @@ import {
   type LabelPackCheck,
   readLabels,
 } from "./labels.ts";
+import {
+  answersFileNumber,
+  type LiveFixturePlan,
+  type PlanFixture,
+  planLiveRun,
+  planReplay,
+  type SavedAnswersFile,
+} from "./plan-run.ts";
 import {
   AGREEMENT_FLOOR,
   type Coverage,
@@ -56,16 +78,14 @@ import {
   type Verdict,
 } from "./score.ts";
 
-const HARNESS_DIRECTORY = import.meta.dirname;
-const REPOSITORY_DIRECTORY = resolve(HARNESS_DIRECTORY, "..", "..");
+const DEFAULT_HARNESS_DIRECTORY = import.meta.dirname;
+const REPOSITORY_DIRECTORY = resolve(DEFAULT_HARNESS_DIRECTORY, "..", "..");
 const CRIT_BUNDLE_PATH = join(REPOSITORY_DIRECTORY, "dist", "crit.js");
 const REPORT_SCHEMA_PATH = join(
   REPOSITORY_DIRECTORY,
   "schemas",
   "report.schema.json",
 );
-const LABELS_DIRECTORY = join(HARNESS_DIRECTORY, "labels");
-const RUNS_DIRECTORY = join(HARNESS_DIRECTORY, "runs");
 const FIRST_PARTY_PACKS_DIRECTORY = join(REPOSITORY_DIRECTORY, "packs");
 
 const EXIT_CODE_AGREED = 0;
@@ -104,11 +124,39 @@ type PackResult = {
   readonly agreement: readonly CriterionAgreement[] | null;
 };
 
-/** What one child process of crit gave back. */
-type CritRun = {
+/** What one run of crit gave back. */
+export type CritRun = {
   readonly stdout: string;
   readonly stderr: string;
   readonly exitCode: number | null;
+};
+
+/**
+ * Runs `crit` with these arguments and environment, with the harness folder as its working
+ * directory. The harness runs the built bundle; a test passes one that runs crit in-process with
+ * the stub adapter, so no request reaches TypeSafe.
+ */
+export type CritRunner = (
+  critArguments: readonly string[],
+  environment: NodeJS.ProcessEnv,
+  workingDirectory: string,
+) => Promise<CritRun>;
+
+/** The folders the harness reads and writes, and how it runs crit. Tests point them at a temporary folder. */
+export type HarnessOptions = {
+  /** The folder with the .crit.yaml that pins the model; crit runs with it as its working directory. */
+  readonly harnessDirectory: string;
+  readonly runsDirectory: string;
+  readonly labelsDirectory: string;
+  readonly runCrit: CritRunner;
+};
+
+/** The options of the real harness: this folder, its runs/ and labels/, and the built bundle. */
+const DEFAULT_OPTIONS: HarnessOptions = {
+  harnessDirectory: DEFAULT_HARNESS_DIRECTORY,
+  runsDirectory: join(DEFAULT_HARNESS_DIRECTORY, "runs"),
+  labelsDirectory: join(DEFAULT_HARNESS_DIRECTORY, "labels"),
+  runCrit: runCritBundle,
 };
 
 /** The summed usage of every crit run, null where any run had no token count (FR-23, FR-33). */
@@ -119,14 +167,27 @@ type UsageTotals = {
   latency_ms: number;
 };
 
+/** What one harness run needs at every step: the options, the pinned model, and the checker. */
+type HarnessContext = {
+  readonly options: HarnessOptions;
+  readonly pinnedModel: string;
+  readonly validateReport: ReturnType<
+    typeof compileReportValidator<ReportDocument>
+  >;
+  /** A temporary folder for the packs made of only some criteria, removed when the run ends. */
+  readonly temporaryDirectory: string;
+  /** The pack directory already written for each set of criteria, keyed by the joined criterion ids. */
+  readonly subsetPackDirectories: Map<string, string>;
+};
+
 /**
  * Run the harness and set the exit code: 2 when any step could not run, 1 when an EV-4 fixture
  * disagreed, and 0 otherwise. Output is written once at the end, so a stopped run prints no
  * partial scores (EV-4, EV-5, FR-24).
  */
-function main(): void {
+async function main(): Promise<void> {
   try {
-    const output = runHarness(process.argv.slice(2));
+    const output = await runHarness(process.argv.slice(2), DEFAULT_OPTIONS);
     process.stdout.write(output.text);
     process.exitCode = output.exitCode;
   } catch (error) {
@@ -137,13 +198,16 @@ function main(): void {
 }
 
 /**
- * Parse the flags, check the key in live mode, run crit on every fixture image of every pack,
- * score the reports, and return the text to print with its exit code (EV-4, EV-5, FR-42, CS-21).
+ * Parse the flags and check the key in live mode. A live run first plans every pack, so a refusal
+ * comes before any request, then asks crit only the pairs of a fixture and a criterion with no
+ * saved answer, each fixture's new answers in a new file (EV-4 rule 5). Both modes then score the
+ * saved answers with --answers and return the text to print with its exit code (EV-4, EV-5,
+ * FR-42, CS-21).
  */
-function runHarness(argv: readonly string[]): {
-  text: string;
-  exitCode: number;
-} {
+export async function runHarness(
+  argv: readonly string[],
+  options: HarnessOptions,
+): Promise<{ text: string; exitCode: number }> {
   const parsed = parseArgs({
     args: [...argv],
     options: {
@@ -155,26 +219,41 @@ function runHarness(argv: readonly string[]): {
     allowPositionals: false,
   });
   const live = parsed.values.live ?? false;
+  const rerunSameSet = parsed.values["rerun-same-set"] ?? false;
   if (live && !isApiKeyPresent()) {
     throw new Error(
       "TYPESAFE_API_KEY is not set. Live mode asks TypeSafe and needs the key; no request was sent. Use npm run eval:agreement to score saved answers with no key.",
     );
   }
-  if (!existsSync(CRIT_BUNDLE_PATH)) {
-    throw new Error(
-      `${CRIT_BUNDLE_PATH} does not exist; run npm run build first`,
+  const temporaryDirectory = mkdtempSync(join(tmpdir(), "crit-agreement-"));
+  try {
+    const context: HarnessContext = {
+      options,
+      pinnedModel: readPinnedModel(options.harnessDirectory),
+      validateReport:
+        compileReportValidator<ReportDocument>(REPORT_SCHEMA_PATH),
+      temporaryDirectory,
+      subsetPackDirectories: new Map<string, string>(),
+    };
+    return await runHarnessWithContext(
+      context,
+      listPackDirectories(parsed.values.pack ?? []),
+      live,
+      rerunSameSet,
     );
+  } finally {
+    rmSync(temporaryDirectory, { recursive: true, force: true });
   }
-  const pinnedModel = readPinnedModel(HARNESS_DIRECTORY);
-  const packDirectories = listPackDirectories(parsed.values.pack ?? []);
-  const validateReport =
-    compileReportValidator<ReportDocument>(REPORT_SCHEMA_PATH);
-  if (live && !(parsed.values["rerun-same-set"] ?? false)) {
-    for (const packDirectory of packDirectories) {
-      refuseSecondRunOnSameSet(readPackFixtures(packDirectory), pinnedModel);
-    }
-  }
+}
 
+/** Plan and ask in live mode, then score every pack from its saved answers (EV-4, EV-5). */
+async function runHarnessWithContext(
+  context: HarnessContext,
+  packDirectories: readonly string[],
+  live: boolean,
+  rerunSameSet: boolean,
+): Promise<{ text: string; exitCode: number }> {
+  const packs = packDirectories.map(readPackFixtures);
   const usageTotals: UsageTotals = {
     requests: 0,
     input_tokens: 0,
@@ -182,34 +261,43 @@ function runHarness(argv: readonly string[]): {
     latency_ms: 0,
   };
   const modelIds: string[] = [];
-  const packResults: PackResult[] = [];
-  for (const packDirectory of packDirectories) {
-    const pack = readPackFixtures(packDirectory);
-    // Record the set before the first request, so a run that stops part way still counts as
-    // scored and the next live run on the same fixtures is refused (EV-4 rule 5).
-    if (live) {
-      recordFrozenSet(pack, pinnedModel);
+  if (live) {
+    // Plan every pack before the first request, so a refused pack sends nothing at all.
+    const plans: LiveFixturePlan[][] = [];
+    for (const pack of packs) {
+      plans.push(planPackLiveRun(context, pack, rerunSameSet));
     }
+    for (const [index, pack] of packs.entries()) {
+      // Record the set before the first request, so a run that stops part way still counts as
+      // scored and the next live run on the same fixtures is refused (EV-4 rule 5).
+      recordFrozenSet(context, pack);
+      for (const fixturePlan of plans[index] ?? []) {
+        const report = await askFixture(context, pack, fixturePlan);
+        modelIds.push(report.model);
+        addUsage(usageTotals, report.usage);
+      }
+    }
+  }
+
+  const packResults: PackResult[] = [];
+  for (const pack of packs) {
     const verdictsByFixture = new Map<string, FixtureVerdicts>();
     for (const fixture of listFixtureImages(pack)) {
-      const report = runCritOnFixture(
-        pack,
-        fixture,
-        pinnedModel,
-        live,
-        validateReport,
-      );
-      modelIds.push(report.model);
       const verdicts = new Map<string, Verdict>();
-      for (const finding of report.findings) {
-        modelIds.push(finding.model);
-        verdicts.set(finding.criterion, finding.verdict);
+      for (const report of await replayFixture(context, pack, fixture)) {
+        modelIds.push(report.model);
+        for (const finding of report.findings) {
+          modelIds.push(finding.model);
+          verdicts.set(finding.criterion, finding.verdict);
+        }
+        if (!live) {
+          addUsage(usageTotals, report.usage);
+        }
       }
       verdictsByFixture.set(fixture, verdicts);
-      addUsage(usageTotals, report.usage);
     }
     const fixtureRows = scoreFixtureTests(pack.criteria, verdictsByFixture);
-    const labels = readPackLabels(pack);
+    const labels = readPackLabels(context, pack);
     let agreement: CriterionAgreement[] | null = null;
     if (labels !== null) {
       const criterionIds = pack.criteria.map((criterion) => criterion.id);
@@ -222,8 +310,8 @@ function runHarness(argv: readonly string[]): {
     }
     packResults.push({ pack, fixtureRows, labels, agreement });
   }
-  const model = findSingleModel(pinnedModel, modelIds);
-  const coverage = measureCoverage(readAllLabels(packResults));
+  const model = findSingleModel(context.pinnedModel, modelIds);
+  const coverage = measureCoverage(readAllLabels(context, packResults));
 
   const sections: string[] = [];
   sections.push(formatHeader(live, packResults, model, usageTotals));
@@ -235,11 +323,250 @@ function runHarness(argv: readonly string[]): {
         anyDisagreed = true;
       }
     }
-    sections.push(formatAgreement(result));
+    sections.push(formatAgreement(context, result));
   }
   sections.push(formatCoverage(coverage));
   const exitCode = anyDisagreed ? EXIT_CODE_DISAGREED : EXIT_CODE_AGREED;
   return { text: `${sections.join("\n\n")}\n`, exitCode };
+}
+
+/**
+ * Plan a live run on one pack from its fixtures, their saved answers, and the guard files, or
+ * throw when EV-4 rule 5 refuses it. The message says that no request was sent and that only a
+ * person may pass --rerun-same-set.
+ */
+function planPackLiveRun(
+  context: HarnessContext,
+  pack: PackFixtures,
+  rerunSameSet: boolean,
+): LiveFixturePlan[] {
+  const fixtures: PlanFixture[] = [];
+  for (const fixture of listFixtureImages(pack)) {
+    const imagePath = join(pack.directory, fixture);
+    if (!existsSync(imagePath)) {
+      throw new Error(
+        `${pack.name} fixture ${fixture}: ${imagePath} does not exist`,
+      );
+    }
+    fixtures.push({
+      fixture,
+      pngSha256: createHash("sha256")
+        .update(readFileSync(imagePath))
+        .digest("hex"),
+      savedFiles: readSavedAnswersFiles(context, pack, fixture),
+    });
+  }
+  let storedSetHash: string | null = null;
+  const hashPath = frozenSetHashPath(context, pack);
+  if (existsSync(hashPath)) {
+    storedSetHash = readFileSync(hashPath, "utf8").trim();
+  }
+  let scoredPngHashes: string[] | null = null;
+  const listPath = scoredPngListPath(context, pack);
+  if (existsSync(listPath)) {
+    scoredPngHashes = parseScoredPngHashes(readFileSync(listPath, "utf8"));
+  }
+  try {
+    return planLiveRun({
+      packName: pack.name,
+      criteria: pack.criteria,
+      fixtures,
+      currentSetPngHashes: readFixtureSetPngHashes(pack),
+      storedSetHash,
+      scoredPngHashes,
+      rerunSameSet,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `${message} (${join(context.options.runsDirectory, pack.name, context.pinnedModel)}). EV-4 rule 5 allows no second run on a pair already scored; no request was sent. A person may pass --rerun-same-set to run it again.`,
+    );
+  }
+}
+
+/**
+ * Return the saved answers files of one fixture with the pinned model, first file first: the name,
+ * the recorded image_sha256, and the question ids of each. Throw on a file that is not JSON or has
+ * no answers list, naming it; crit checks the rest of its shape when it replays it (FR-42).
+ */
+function readSavedAnswersFiles(
+  context: HarnessContext,
+  pack: PackFixtures,
+  fixture: string,
+): SavedAnswersFile[] {
+  const directory = fixtureAnswersDirectory(context, pack, fixture);
+  if (!existsSync(directory)) {
+    return [];
+  }
+  const imageFileName = basename(fixture);
+  const numbered: { n: number; fileName: string }[] = [];
+  for (const fileName of readdirSync(directory)) {
+    const n = answersFileNumber(imageFileName, fileName);
+    if (n !== null) {
+      numbered.push({ n, fileName });
+    }
+  }
+  numbered.sort((left, right) => left.n - right.n);
+  const savedFiles: SavedAnswersFile[] = [];
+  for (const entry of numbered) {
+    const filePath = join(directory, entry.fileName);
+    savedFiles.push(readSavedAnswersFile(filePath, entry.fileName));
+  }
+  return savedFiles;
+}
+
+/** Read the image_sha256 and the question ids of one saved answers file (FR-42, OQ-26 a). */
+function readSavedAnswersFile(
+  filePath: string,
+  fileName: string,
+): SavedAnswersFile {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(filePath, "utf8"));
+  } catch {
+    throw new Error(`${filePath}: not JSON`);
+  }
+  if (typeof parsed !== "object" || parsed === null) {
+    throw new Error(`${filePath}: not an answers file`);
+  }
+  const record = parsed as Record<string, unknown>;
+  const imageSha256 = record.image_sha256;
+  const answers = record.answers;
+  if (typeof imageSha256 !== "string" || !Array.isArray(answers)) {
+    throw new Error(`${filePath}: not an answers file`);
+  }
+  const questionIds: string[] = [];
+  for (const answer of answers) {
+    const questionId: unknown =
+      typeof answer === "object" && answer !== null
+        ? (answer as Record<string, unknown>).question_id
+        : undefined;
+    if (typeof questionId !== "string") {
+      throw new Error(`${filePath}: an answer has no question_id`);
+    }
+    questionIds.push(questionId);
+  }
+  return { fileName, imageSha256, questionIds };
+}
+
+/**
+ * Ask crit about one fixture in live mode and save the answers with --save-answers to the file the
+ * plan names (FR-42). It first deletes the files the plan lists, which only --rerun-same-set does.
+ * When the plan asks only some criteria, crit gets a pack made of only those criteria.
+ */
+async function askFixture(
+  context: HarnessContext,
+  pack: PackFixtures,
+  fixturePlan: LiveFixturePlan,
+): Promise<ReportDocument> {
+  const directory = fixtureAnswersDirectory(context, pack, fixturePlan.fixture);
+  mkdirSync(directory, { recursive: true });
+  for (const fileName of fixturePlan.fileNamesToDelete) {
+    rmSync(join(directory, fileName));
+  }
+  const packDirectory = packDirectoryFor(context, pack, fixturePlan.criteria);
+  const answersPath = join(directory, fixturePlan.answersFileName);
+  return await runCritOnFixture(
+    context,
+    pack,
+    fixturePlan.fixture,
+    packDirectory,
+    ["--save-answers", answersPath],
+  );
+}
+
+/**
+ * Replay every saved answers file of one fixture with --answers and no key, each against a pack of
+ * only the criteria that file answers, and return the reports (EV-4 rule 5, FR-42).
+ */
+async function replayFixture(
+  context: HarnessContext,
+  pack: PackFixtures,
+  fixture: string,
+): Promise<ReportDocument[]> {
+  const savedFiles = readSavedAnswersFiles(context, pack, fixture);
+  const packCriteria = pack.criteria.map((criterion) => criterion.criterion);
+  const filePlans = planReplay(pack.name, packCriteria, fixture, savedFiles);
+  const directory = fixtureAnswersDirectory(context, pack, fixture);
+  const reports: ReportDocument[] = [];
+  for (const filePlan of filePlans) {
+    const packDirectory = filePlan.coversWholePack
+      ? pack.directory
+      : packDirectoryFor(context, pack, filePlan.criteria);
+    const answersPath = join(directory, filePlan.fileName);
+    reports.push(
+      await runCritOnFixture(context, pack, fixture, packDirectory, [
+        "--answers",
+        answersPath,
+      ]),
+    );
+  }
+  return reports;
+}
+
+/**
+ * Return the pack directory to give crit for these criteria: the pack itself when they are all of
+ * its criteria, or else a temporary pack whose pack.yaml keeps the pack's name and fields and only
+ * these criteria. The temporary folder is named after the pack.
+ */
+function packDirectoryFor(
+  context: HarnessContext,
+  pack: PackFixtures,
+  criteria: readonly string[],
+): string {
+  if (criteria.length === pack.criteria.length) {
+    return pack.directory;
+  }
+  const key = criteria.join("\n");
+  const existing = context.subsetPackDirectories.get(key);
+  if (existing !== undefined) {
+    return existing;
+  }
+  const keep = new Set<string>(criteria);
+  const document = parseDocument(
+    readFileSync(join(pack.directory, "pack.yaml"), "utf8"),
+    { schema: "core", uniqueKeys: true },
+  );
+  const criteriaNode = document.get("criteria", true);
+  if (!isSeq(criteriaNode)) {
+    throw new Error(
+      `${pack.directory}/pack.yaml: the pack has no criteria list`,
+    );
+  }
+  criteriaNode.items = criteriaNode.items.filter((item) => {
+    if (!isMap(item)) {
+      return false;
+    }
+    return keep.has(`${pack.name}/${String(item.get("id"))}`);
+  });
+  const directory = join(
+    context.temporaryDirectory,
+    String(context.subsetPackDirectories.size + 1),
+    pack.name,
+  );
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(
+    join(directory, "pack.yaml"),
+    document.toString({ lineWidth: 0 }),
+  );
+  context.subsetPackDirectories.set(key, directory);
+  return directory;
+}
+
+/** The folder that holds a fixture's saved answers files with the pinned model. */
+function fixtureAnswersDirectory(
+  context: HarnessContext,
+  pack: PackFixtures,
+  fixture: string,
+): string {
+  return dirname(
+    join(
+      context.options.runsDirectory,
+      pack.name,
+      context.pinnedModel,
+      fixture,
+    ),
+  );
 }
 
 /**
@@ -256,59 +583,32 @@ function readFixtureSetPngHashes(pack: PackFixtures): string[] | null {
 }
 
 /** The path of the file that keeps the hash of the fixture set the last live run scored. */
-function frozenSetHashPath(pack: PackFixtures, pinnedModel: string): string {
-  return join(RUNS_DIRECTORY, pack.name, pinnedModel, "rendered.json.sha256");
+function frozenSetHashPath(
+  context: HarnessContext,
+  pack: PackFixtures,
+): string {
+  return join(
+    context.options.runsDirectory,
+    pack.name,
+    context.pinnedModel,
+    "rendered.json.sha256",
+  );
 }
 
 /**
  * The path of the file that lists, one per line, the hash of every PNG that a live run with this
  * model has scored for this pack, across all runs.
  */
-function scoredPngListPath(pack: PackFixtures, pinnedModel: string): string {
-  return join(RUNS_DIRECTORY, pack.name, pinnedModel, "scored-png-sha256.txt");
-}
-
-/**
- * Throw before any request is sent when every fixture PNG of the pack was already scored with
- * this model, because EV-4 rule 5 says the first scored run decides and no criterion is run
- * again on the same fixtures. That covers this exact set, which the older single-hash file can
- * show, and a smaller set left after criteria were removed, which the scored PNG list shows. A
- * person who must run it again, for example after a run that stopped part way, passes
- * --rerun-same-set.
- */
-function refuseSecondRunOnSameSet(
+function scoredPngListPath(
+  context: HarnessContext,
   pack: PackFixtures,
-  pinnedModel: string,
-): void {
-  const currentPngHashes = readFixtureSetPngHashes(pack);
-  if (currentPngHashes === null) {
-    return;
-  }
-  const hashPath = frozenSetHashPath(pack, pinnedModel);
-  let storedSetHash: string | null = null;
-  if (existsSync(hashPath)) {
-    storedSetHash = readFileSync(hashPath, "utf8").trim();
-  }
-  const listPath = scoredPngListPath(pack, pinnedModel);
-  let scoredPngHashes: string[] | null = null;
-  if (existsSync(listPath)) {
-    scoredPngHashes = parseScoredPngHashes(readFileSync(listPath, "utf8"));
-  }
-  const decision = decideLiveRun(
-    currentPngHashes,
-    storedSetHash,
-    scoredPngHashes,
+): string {
+  return join(
+    context.options.runsDirectory,
+    pack.name,
+    context.pinnedModel,
+    "scored-png-sha256.txt",
   );
-  if (decision === "refuse-same-set") {
-    throw new Error(
-      `${pack.name}: a live run with ${pinnedModel} already scored this fixture set (${hashPath}), and EV-4 rule 5 allows no second run on the same set; no request was sent. A person may pass --rerun-same-set to run it again.`,
-    );
-  }
-  if (decision === "refuse-all-scored") {
-    throw new Error(
-      `${pack.name}: live runs with ${pinnedModel} already scored every fixture in this set (${listPath}), and EV-4 rule 5 allows no second run on the same fixtures; no request was sent. A person may pass --rerun-same-set to run it again.`,
-    );
-  }
 }
 
 /**
@@ -318,16 +618,16 @@ function refuseSecondRunOnSameSet(
  * the guard knows each scored fixture. A pack with no rendered.json, such as one made of captured
  * pages only, gets no files.
  */
-function recordFrozenSet(pack: PackFixtures, pinnedModel: string): void {
+function recordFrozenSet(context: HarnessContext, pack: PackFixtures): void {
   const currentPngHashes = readFixtureSetPngHashes(pack);
   if (currentPngHashes === null) {
     return;
   }
   const hash = hashPngHashes(currentPngHashes);
-  const hashPath = frozenSetHashPath(pack, pinnedModel);
+  const hashPath = frozenSetHashPath(context, pack);
   mkdirSync(dirname(hashPath), { recursive: true });
   writeFileSync(hashPath, `${hash}\n`);
-  const listPath = scoredPngListPath(pack, pinnedModel);
+  const listPath = scoredPngListPath(context, pack);
   let previousPngHashes: string[] = [];
   if (existsSync(listPath)) {
     previousPngHashes = parseScoredPngHashes(readFileSync(listPath, "utf8"));
@@ -481,49 +781,38 @@ function listFixtureImages(pack: PackFixtures): string[] {
   sorted.sort(compareText);
   return sorted;
 }
-
 /**
- * Run `crit report --json` on one fixture image of a pack and return the checked report. Live mode
- * saves the raw answers with --save-answers; replay mode reads them with --answers and runs crit
- * without the key. An exit code of 2, or any code but 0 and 1, stops the harness and names the
- * fixture (FR-24, FR-42, EV-2).
+ * Run `crit report --json` on one fixture image with this pack directory and these extra flags,
+ * and return the checked report. With --answers the key is removed from crit's environment, so
+ * crit cannot reach TypeSafe. An exit code of 2, or any code but 0 and 1, stops the harness and
+ * names the fixture (FR-24, FR-42, EV-2).
  */
-function runCritOnFixture(
+async function runCritOnFixture(
+  context: HarnessContext,
   pack: PackFixtures,
   fixture: string,
-  pinnedModel: string,
-  live: boolean,
-  validateReport: ReturnType<typeof compileReportValidator<ReportDocument>>,
-): ReportDocument {
+  packDirectory: string,
+  answerFlags: readonly string[],
+): Promise<ReportDocument> {
   const imagePath = join(pack.directory, fixture);
-  const answersPath = join(
-    RUNS_DIRECTORY,
-    pack.name,
-    pinnedModel,
-    `${fixture}.answers.json`,
-  );
   const critArguments = [
     "report",
     imagePath,
     "--pack",
-    pack.directory,
+    packDirectory,
     "--json",
+    ...answerFlags,
   ];
   // A copy of the environment; replay removes the key so crit cannot reach TypeSafe (FR-42).
   const environment = { ...process.env };
-  if (live) {
-    mkdirSync(dirname(answersPath), { recursive: true });
-    critArguments.push("--save-answers", answersPath);
-  } else {
-    if (!existsSync(answersPath)) {
-      throw new Error(
-        `${pack.name} fixture ${fixture}: no saved answers at ${answersPath}; record them with npm run test:live`,
-      );
-    }
-    critArguments.push("--answers", answersPath);
+  if (answerFlags.includes("--answers")) {
     delete environment.TYPESAFE_API_KEY;
   }
-  const run = runCrit(critArguments, environment);
+  const run = await context.options.runCrit(
+    critArguments,
+    environment,
+    context.options.harnessDirectory,
+  );
   if (run.exitCode !== 0 && run.exitCode !== 1) {
     throw new Error(
       `${pack.name} fixture ${fixture}: crit exited ${String(run.exitCode)}: ${run.stderr.trim()}`,
@@ -535,8 +824,8 @@ function runCritOnFixture(
   } catch {
     throw new Error(`${pack.name} fixture ${fixture}: crit did not write JSON`);
   }
-  if (!validateReport(document)) {
-    const errors = JSON.stringify(validateReport.errors);
+  if (!context.validateReport(document)) {
+    const errors = JSON.stringify(context.validateReport.errors);
     throw new Error(
       `${pack.name} fixture ${fixture}: the report does not match ${REPORT_SCHEMA_PATH}: ${errors}`,
     );
@@ -545,18 +834,24 @@ function runCritOnFixture(
 }
 
 /**
- * Run the built crit bundle as a child process with the harness folder as its working directory,
- * so crit reads evals/agreement/.crit.yaml. This is the only function that starts a process (AC-6).
+ * Run the built crit bundle as a child process in the working directory given, so crit reads that
+ * folder's .crit.yaml. This is the only function that starts a process (AC-6).
  */
-function runCrit(
+async function runCritBundle(
   critArguments: readonly string[],
   environment: NodeJS.ProcessEnv,
-): CritRun {
+  workingDirectory: string,
+): Promise<CritRun> {
+  if (!existsSync(CRIT_BUNDLE_PATH)) {
+    throw new Error(
+      `${CRIT_BUNDLE_PATH} does not exist; run npm run build first`,
+    );
+  }
   const result = spawnSync(
     process.execPath,
     [CRIT_BUNDLE_PATH, ...critArguments],
     {
-      cwd: HARNESS_DIRECTORY,
+      cwd: workingDirectory,
       env: environment,
       encoding: "utf8",
       maxBuffer: 64 * 1024 * 1024,
@@ -592,8 +887,11 @@ function addUsage(totals: UsageTotals, usage: ReportDocument["usage"]): void {
  * Read labels/<pack>.csv for a pack and check it against the pack's criteria and fixtures, or
  * return null when the file does not exist. The harness never writes a label file (EV-5, CS-7).
  */
-function readPackLabels(pack: PackFixtures): FixtureLabel[] | null {
-  const labelPath = join(LABELS_DIRECTORY, `${pack.name}.csv`);
+function readPackLabels(
+  context: HarnessContext,
+  pack: PackFixtures,
+): FixtureLabel[] | null {
+  const labelPath = join(context.options.labelsDirectory, `${pack.name}.csv`);
   if (!existsSync(labelPath)) {
     return null;
   }
@@ -618,13 +916,14 @@ function readPackLabels(pack: PackFixtures): FixtureLabel[] | null {
  * checked against the pack (EV-5, FR-55).
  */
 function readAllLabels(
+  context: HarnessContext,
   packResults: readonly PackResult[],
 ): Map<string, readonly FixtureLabel[]> {
   const labelsByDomain = new Map<string, readonly FixtureLabel[]>();
-  if (!existsSync(LABELS_DIRECTORY)) {
+  if (!existsSync(context.options.labelsDirectory)) {
     return labelsByDomain;
   }
-  const fileNames = readdirSync(LABELS_DIRECTORY);
+  const fileNames = readdirSync(context.options.labelsDirectory);
   fileNames.sort(compareText);
   for (const fileName of fileNames) {
     if (!fileName.endsWith(".csv")) {
@@ -633,7 +932,7 @@ function readAllLabels(
     const domain = fileName.slice(0, -".csv".length);
     if (!FIRST_PARTY_DOMAINS.includes(domain)) {
       throw new Error(
-        `${join(LABELS_DIRECTORY, fileName)}: not named after one of the seven domains (${FIRST_PARTY_DOMAINS.join(", ")})`,
+        `${join(context.options.labelsDirectory, fileName)}: not named after one of the seven domains (${FIRST_PARTY_DOMAINS.join(", ")})`,
       );
     }
     const measuredPack = packResults.find(
@@ -642,7 +941,7 @@ function readAllLabels(
     if (measuredPack !== undefined) {
       labelsByDomain.set(domain, measuredPack.labels ?? []);
     } else {
-      const labelPath = join(LABELS_DIRECTORY, fileName);
+      const labelPath = join(context.options.labelsDirectory, fileName);
       labelsByDomain.set(
         domain,
         readLabels(labelPath, readFileSync(labelPath, "utf8"), undefined),
@@ -731,8 +1030,11 @@ function formatFixtureTests(result: PackResult): string {
  * labels beside it, the uncertain, cannot tell, and not asked counts, and what the criterion may
  * ship with against AGREEMENT_FLOOR (EV-5, OQ-9, FR-27).
  */
-function formatAgreement(result: PackResult): string {
-  const labelFile = join(LABELS_DIRECTORY, `${result.pack.name}.csv`);
+function formatAgreement(context: HarnessContext, result: PackResult): string {
+  const labelFile = join(
+    context.options.labelsDirectory,
+    `${result.pack.name}.csv`,
+  );
   if (result.agreement === null) {
     return `EV-5 agreement: ${result.pack.name}\nNo label file at ${labelFile}, so EV-5 is not measured for this pack.`;
   }
@@ -851,4 +1153,7 @@ function formatTableRow(
   return padded.join("  ").trimEnd();
 }
 
-main();
+// Run only when node starts this file, not when a test imports it.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  await main();
+}
