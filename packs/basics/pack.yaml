@@ -7,37 +7,15 @@
 # (JC-5). Every fix hint is a draft until Benjamin Jackson approves it (G-4).
 # "Boxes do not split or join groups" is left out: in EV-4 on 2026-10-24 its fixtures agreed at
 # 0.7, under the 0.8 floor, after two fixture reworks. Reconsider with new fixtures or a new model.
+# "Body text is not too small to read" and "Captions and labels are not too small to read" are
+# left out: at realistic sizes (11 px body text, 9 px captions) EV-4 agreed at 0.5, because Jev
+# does not see that text as too small to tell the letters apart. A check that fires only on text
+# too small to be real is worse than no check. Reconsider when the question or the model changes.
 name: basics
 version: 0.1.0
 title: Basics, checks for common mistakes
 license: MIT
 criteria:
-  - id: body-text-too-small
-    title: 'Body text is too small to read'
-    source: 'Lupton, Thinking with Type (2nd ed. 2010), "Letter" chapter, "Size".'
-    question:
-      type: noul
-      instructions: 'In the image at screenshot: Is the paragraph text so small that its letters cannot be told apart at the size of the image?'
-      criteria:
-        "true": 'The paragraph text is so small that its letters cannot be told apart at the size of the image.'
-        "false": 'The letters of the paragraph text can be told apart at the size of the image.'
-    fail_when: { probability_at_least: 0.7 }
-    pass_when: { probability_at_most: 0.3 }
-    fix: 'Set paragraph text at a reading size, so every letter can be told apart. Lupton gives 9 to 11 pt as the common range for printed text (Lupton, Thinking with Type, "Size"). [draft until Benjamin Jackson approves (G-4)]'
-    fixtures:
-      positive:
-        - fixtures/body-text-too-small.positive.png
-        - fixtures/body-text-too-small--2.positive.png
-        - fixtures/body-text-too-small--3.positive.png
-        - fixtures/body-text-too-small--4.positive.png
-        - fixtures/body-text-too-small--5.positive.png
-      negative:
-        - fixtures/body-text-too-small.negative.png
-        - fixtures/body-text-too-small--2.negative.png
-        - fixtures/body-text-too-small--3.negative.png
-        - fixtures/body-text-too-small--4.negative.png
-        - fixtures/body-text-too-small--5.negative.png
-
   - id: decorative-face-for-paragraphs
     title: 'Paragraphs are set in a decorative face'
     source: 'Bringhurst, The Elements of Typographic Style (1992), chapter 6 "Choosing and combining type", section 6.2.1 (choose faces that suit the task).'
@@ -143,33 +121,6 @@ criteria:
         - fixtures/content-touches-page-edge--3.negative.png
         - fixtures/content-touches-page-edge--4.negative.png
         - fixtures/content-touches-page-edge--5.negative.png
-
-  - id: captions-labels-too-small
-    title: 'Captions or labels are too small to read'
-    source: 'Apple, Human Interface Guidelines, "Typography", table of default and minimum sizes: iOS and iPadOS, default 17 pt, minimum 11 pt. Checked on the rendered page on 2026-10-24.'
-    link: https://developer.apple.com/design/human-interface-guidelines/typography
-    question:
-      type: noul
-      instructions: 'In the image at screenshot: Are captions or labels so small that their letters cannot be told apart at the size of the image?'
-      criteria:
-        "true": 'Some captions or labels are so small that their letters cannot be told apart at the size of the image.'
-        "false": 'The letters of every caption and label can be told apart at the size of the image.'
-    fail_when: { probability_at_least: 0.7 }
-    pass_when: { probability_at_most: 0.3 }
-    fix: 'Make captions, labels, and legal text large enough to read. Apple gives 11 pt as the smallest text size on iOS (Apple, Human Interface Guidelines, "Typography"). [draft until Benjamin Jackson approves (G-4)]'
-    fixtures:
-      positive:
-        - fixtures/captions-labels-too-small.positive.png
-        - fixtures/captions-labels-too-small--2.positive.png
-        - fixtures/captions-labels-too-small--3.positive.png
-        - fixtures/captions-labels-too-small--4.positive.png
-        - fixtures/captions-labels-too-small--5.positive.png
-      negative:
-        - fixtures/captions-labels-too-small.negative.png
-        - fixtures/captions-labels-too-small--2.negative.png
-        - fixtures/captions-labels-too-small--3.negative.png
-        - fixtures/captions-labels-too-small--4.negative.png
-        - fixtures/captions-labels-too-small--5.negative.png
 
   - id: all-caps-long-text
     title: 'Long text is set in all capitals'
