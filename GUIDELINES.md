@@ -122,8 +122,8 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 ### Display type is spaced tighter than text
 - **Rule:** As type gets larger, the space between its letters and words looks wider, so headlines need tighter letter and word spacing than text. A large heading set with the spacing of text looks loose.
 - **Source:** Lupton, *Thinking with Type* (1st ed. 2004), p. 80: "Because the space between characters expands as the type size increases, designers often fine-tune letterspacing when working with large letters." Lupton supports adjusting large type but not tightening it as a rule: on p. 81 she says negative tracking "is rarely desirable" and "should be used sparingly". Bringhurst, section 2.1.1, p. 26 (from the scan's OCR text): "At larger sizes, when letterfit is tightened, the spacing of words can be tightened as well." Hochuli, *Detail in Typography* (2008), p. 34, paraphrased: smaller type sizes need proportionally more word space and larger sizes proportionally less, so a large headline needs tighter word spaces than text.
-- **Judged by:** askable. Question: "Does a heading set at display size, several times larger than the body text, have gaps between its letters or words that are wide enough to see as gaps?" A difference of a pixel or two between letters will likely be missed.
-- **Defect range:** `display-type-loose`: not measured. A display heading of about 64 to 96 px, three or more times the size of the text, set with letter spacing of 0.01 to 0.03 em and up to 0.1 em of extra word spacing; the clean version is tracked to -0.015 to -0.03 em.
+- **Judged by:** not encoded.
+- **Not encoded (FR-45):** Bringhurst allows tighter word spacing at large sizes but does not require it, and no checked source says that display type must have tighter letter spacing than text, so the `display-type-loose` criterion came out of the pack on 2026-10-24.
 
 ### Weight and stroke thickness at small sizes
 - **Rule:** Hairline and very light weights are for large sizes. Small text needs enough stroke thickness to hold up against its background.
