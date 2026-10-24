@@ -4,7 +4,7 @@
 
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import { loadPack } from "../packs/load-pack.js";
+import { loadPack } from "../index.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
 import type { Pack } from "../shared/pack.js";
 import type { Context } from "../shared/state.js";
