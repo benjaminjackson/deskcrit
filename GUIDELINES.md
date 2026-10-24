@@ -212,7 +212,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 ### Balance
 - **Rule:** Visual weight comes from size, darkness, colour, and isolation, and where an element sits changes its weight. A layout may be symmetrical or not, but a heavy side needs a counterweight.
 - **Source:** Arnheim, *Art and Visual Perception*, chapter I "Balance", sections "Weight" and "Psychological and physical balance".
-- **Judged by:** askable. Question: "Do the large or dark elements all sit on one side of the page, while the other side holds only small, light text or empty space, with nothing large or dark there to counter them?" The first wording asked whether the other side was empty. On 2026-10-24 it stayed quiet on a fixture whose lighter side held a few lines of text, so the question now asks whether anything on that side is large or dark enough to counter the heavy side.
+- **Judged by:** askable. Question: "Does one side of the page carry much more visual weight than the other, with nothing on the lighter side strong enough to balance it?" The first wording asked whether the other side was empty. On 2026-10-24 it stayed quiet on a fixture whose lighter side held a few lines of text, so the question now asks about balance of visual weight, not about empty space.
 - **Defect range:** `lopsided-balance`: not measured. The large or dark elements of a page placed on its left or right side, with the other side empty and nothing to counter them.
 
 ### One element dominates
