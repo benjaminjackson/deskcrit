@@ -244,6 +244,126 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
+## body-text-smaller-than-interface-text.positive.png
+
+- Rights basis: own work licensed under the pack license
+- Source: packs/basics/templates/body-text-smaller-than-interface-text.html, defect=on
+- License: MIT
+- Attribution text: none
+- Source URL: not applicable
+- Capture date: not applicable
+- Viewport: 1280x800
+- Device scale factor: 1
+- Browser version: 153.0.8010.12
+
+## body-text-smaller-than-interface-text.negative.png
+
+- Rights basis: own work licensed under the pack license
+- Source: packs/basics/templates/body-text-smaller-than-interface-text.html, defect=off
+- License: MIT
+- Attribution text: none
+- Source URL: not applicable
+- Capture date: not applicable
+- Viewport: 1280x800
+- Device scale factor: 1
+- Browser version: 153.0.8010.12
+
+## body-text-smaller-than-interface-text--2.positive.png
+
+- Rights basis: own work licensed under the pack license
+- Source: packs/basics/templates/body-text-smaller-than-interface-text--2.html, defect=on
+- License: MIT
+- Attribution text: none
+- Source URL: not applicable
+- Capture date: not applicable
+- Viewport: 1280x800
+- Device scale factor: 1
+- Browser version: 153.0.8010.12
+
+## body-text-smaller-than-interface-text--2.negative.png
+
+- Rights basis: own work licensed under the pack license
+- Source: packs/basics/templates/body-text-smaller-than-interface-text--2.html, defect=off
+- License: MIT
+- Attribution text: none
+- Source URL: not applicable
+- Capture date: not applicable
+- Viewport: 1280x800
+- Device scale factor: 1
+- Browser version: 153.0.8010.12
+
+## body-text-smaller-than-interface-text--3.positive.png
+
+- Rights basis: own work licensed under the pack license
+- Source: packs/basics/templates/body-text-smaller-than-interface-text--3.html, defect=on
+- License: MIT
+- Attribution text: none
+- Source URL: not applicable
+- Capture date: not applicable
+- Viewport: 1280x800
+- Device scale factor: 1
+- Browser version: 153.0.8010.12
+
+## body-text-smaller-than-interface-text--3.negative.png
+
+- Rights basis: own work licensed under the pack license
+- Source: packs/basics/templates/body-text-smaller-than-interface-text--3.html, defect=off
+- License: MIT
+- Attribution text: none
+- Source URL: not applicable
+- Capture date: not applicable
+- Viewport: 1280x800
+- Device scale factor: 1
+- Browser version: 153.0.8010.12
+
+## body-text-smaller-than-interface-text--4.positive.png
+
+- Rights basis: own work licensed under the pack license
+- Source: packs/basics/templates/body-text-smaller-than-interface-text--4.html, defect=on
+- License: MIT
+- Attribution text: none
+- Source URL: not applicable
+- Capture date: not applicable
+- Viewport: 1280x800
+- Device scale factor: 1
+- Browser version: 153.0.8010.12
+
+## body-text-smaller-than-interface-text--4.negative.png
+
+- Rights basis: own work licensed under the pack license
+- Source: packs/basics/templates/body-text-smaller-than-interface-text--4.html, defect=off
+- License: MIT
+- Attribution text: none
+- Source URL: not applicable
+- Capture date: not applicable
+- Viewport: 1280x800
+- Device scale factor: 1
+- Browser version: 153.0.8010.12
+
+## body-text-smaller-than-interface-text--5.positive.png
+
+- Rights basis: own work licensed under the pack license
+- Source: packs/basics/templates/body-text-smaller-than-interface-text--5.html, defect=on
+- License: MIT
+- Attribution text: none
+- Source URL: not applicable
+- Capture date: not applicable
+- Viewport: 1280x800
+- Device scale factor: 1
+- Browser version: 153.0.8010.12
+
+## body-text-smaller-than-interface-text--5.negative.png
+
+- Rights basis: own work licensed under the pack license
+- Source: packs/basics/templates/body-text-smaller-than-interface-text--5.html, defect=off
+- License: MIT
+- Attribution text: none
+- Source URL: not applicable
+- Capture date: not applicable
+- Viewport: 1280x800
+- Device scale factor: 1
+- Browser version: 153.0.8010.12
+
 ## centred-or-right-paragraphs.positive.png
 
 - Rights basis: own work licensed under the pack license
