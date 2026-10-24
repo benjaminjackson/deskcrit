@@ -11,12 +11,8 @@ import { buildQuestions } from "../build/build.js";
 import { compose } from "../compose/compose.js";
 import { prepareImage } from "../prepare/prepare.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
-import {
-  type AnswersFile,
-  checkRecordedAnswers,
-  writeAnswersFile,
-} from "./answers-file.js";
-import type { ReportInputs } from "./read-inputs.js";
+import { checkRecordedAnswers, writeAnswersFile } from "./answers-file.js";
+import type { RecordedAnswers, ReportInputs } from "./read-inputs.js";
 import { renderReportJson } from "./render-json.js";
 import { renderReportText } from "./render-text.js";
 
@@ -29,11 +25,7 @@ const TOOL_NAME = "deskcrit";
  */
 export type AnswerSource =
   | { readonly kind: "ask"; readonly adapter: TypeSafeAdapter }
-  | {
-      readonly kind: "recorded";
-      readonly recorded: AnswersFile;
-      readonly fileName: string;
-    };
+  | { readonly kind: "recorded"; readonly recorded: RecordedAnswers };
 
 /** What a report run gives main.ts to write: the report, and the answers file text for --save-answers (FR-42). */
 export type ReportOutput = {
@@ -66,9 +58,9 @@ export async function runReport(
     asked = await ask(built.state, built.questions, answerSource.adapter);
   } else {
     asked = checkRecordedAnswers(
-      answerSource.recorded,
+      answerSource.recorded.answersFile,
       built.questions,
-      answerSource.fileName,
+      answerSource.recorded.fileName,
     );
   }
   const report = compose({

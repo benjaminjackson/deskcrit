@@ -3,10 +3,12 @@
 // (FR-1 to FR-4, FR-22, FR-24, FR-31, FR-33, FR-43, FR-51, FR-61, US-1, US-5, US-7, US-8, NFR-14).
 
 import {
+  chmodSync,
   copyFileSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -748,5 +750,55 @@ describe("--save-answers and --answers (FR-42, CS-21)", () => {
     expect(result.stderr).toBe(
       "crit: answers file no-such-directory/answers.json cannot be written\n",
     );
+  });
+
+  it("leaves an earlier answers file unchanged when the write fails (FR-42, AC-7)", async () => {
+    mkdirSync(join(workingDirectory, "recordings"));
+    writeFileSync(
+      join(workingDirectory, "recordings", "answers.json"),
+      "EARLIER",
+    );
+    // A folder without write permission makes the write of the temporary file fail.
+    chmodSync(join(workingDirectory, "recordings"), 0o555);
+    try {
+      const result = await runCrit([
+        "report",
+        "page.png",
+        "--pack",
+        "minimal",
+        "--save-answers",
+        "recordings/answers.json",
+      ]);
+      expect(result.exitCode).toBe(2);
+      expect(result.stdout).toBe("");
+    } finally {
+      chmodSync(join(workingDirectory, "recordings"), 0o755);
+    }
+    expect(
+      readFileSync(
+        join(workingDirectory, "recordings", "answers.json"),
+        "utf8",
+      ),
+    ).toBe("EARLIER");
+  });
+
+  it("removes the temporary file when the rename fails (FR-42, AC-7)", async () => {
+    // A folder at the target path makes the rename fail after the temporary file is written.
+    mkdirSync(join(workingDirectory, "answers.json"));
+    const result = await runCrit([
+      "report",
+      "page.png",
+      "--pack",
+      "minimal",
+      "--save-answers",
+      "answers.json",
+    ]);
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toBe(
+      "crit: answers file answers.json cannot be written\n",
+    );
+    expect(
+      readdirSync(workingDirectory).filter((name) => name.endsWith(".tmp")),
+    ).toEqual([]);
   });
 });

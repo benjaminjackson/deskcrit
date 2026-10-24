@@ -1,7 +1,7 @@
 // The one place that writes stdout and stderr and sets the exit code (CS-17, FR-43, FR-61).
 
-import { writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { rename, rm, writeFile } from "node:fs/promises";
+import { basename, dirname, join, resolve } from "node:path";
 import type { TypeSafeAdapter } from "../ask/adapter.js";
 import {
   createTypeSafeAdapter,
@@ -74,8 +74,7 @@ function chooseAnswerSource(
   if (inputs.recordedAnswers !== undefined) {
     return {
       kind: "recorded",
-      recorded: inputs.recordedAnswers.answersFile,
-      fileName: inputs.recordedAnswers.fileName,
+      recorded: inputs.recordedAnswers,
     };
   }
   const apiKey = readApiKey(environment);
@@ -87,20 +86,28 @@ function chooseAnswerSource(
 }
 
 /**
- * Write the answers file text to the --save-answers path. A write error stops the run, names the
- * path, and leaves stdout empty (FR-4, FR-42, AC-7).
+ * Write the answers file text to the --save-answers path through a temporary file in the same
+ * folder and then rename it over the target, so a failed or partial write never empties an
+ * earlier recording at that path. The temporary file shares the folder so the rename stays on one
+ * disk. A write or rename error removes the temporary file, stops the run, names the path, and
+ * leaves stdout empty (FR-4, FR-42, AC-7).
  */
 async function writeAnswersFileText(
   saveAnswersPath: string,
   answersFileText: string,
   workingDirectory: string,
 ): Promise<void> {
+  const targetPath = resolve(workingDirectory, saveAnswersPath);
+  const temporaryPath = join(
+    dirname(targetPath),
+    `.${basename(targetPath)}.${process.pid}.tmp`,
+  );
   try {
-    await writeFile(
-      resolve(workingDirectory, saveAnswersPath),
-      answersFileText,
-    );
+    await writeFile(temporaryPath, answersFileText);
+    await rename(temporaryPath, targetPath);
   } catch {
+    // force: true makes a missing temporary file (the write itself failed) not an error.
+    await rm(temporaryPath, { force: true }).catch(() => undefined);
     throw new CouldNotRunError(
       `answers file ${saveAnswersPath} cannot be written`,
     );
