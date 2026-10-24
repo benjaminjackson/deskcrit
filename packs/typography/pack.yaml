@@ -9,16 +9,17 @@
 # heading-floats, list-wrap-under-bullet, display-quote-not-hung,
 # display-type-loose, thin-small-text, and display-straight-quotes. Add one back when someone
 # finds a source that states its rule.
-# EV-4 on 2026-10-24 (jev-1.14.0): display-caps-tight, heading-lines-collide, and
-# headings-differ-only-in-size were decided by the first run and ship with fail.
+# EV-4 on 2026-10-24 (jev-1.14.0): heading-lines-collide and headings-differ-only-in-size were
+# decided by the first run and ship with fail.
 # heading-indistinct agreed on every fixture after one rewording (a482a92) and ships with fail.
-# display-kerning-gap and justified-word-gaps left all five positives quiet in their first run on
-# pairs a person judged real (a482a92). Each is reworded once under R-4 and is not yet scored in
-# its new form. Thirteen criteria still left positives quiet after one rewording (a482a92) and
-# were removed under R-4: measure-too-long, body-leading-too-tight, body-leading-too-loose,
-# too-many-typefaces, near-identical-sizes, stacked-emphasis, rivers-of-white, rag-staircase,
-# paragraph-runt, first-paragraph-indented, baselines-misaligned, faux-italic-display, and
-# display-ligature-missing. GUIDELINES.md records the result for each one.
+# display-caps-tight is reworded once under R-4 and is not yet scored in its new form: later runs on
+# unchanged fixtures left one and then two positives quiet (see 87d2a2a).
+# Fifteen criteria still left positives quiet after one rewording and were removed under R-4:
+# measure-too-long, body-leading-too-tight, body-leading-too-loose, too-many-typefaces,
+# near-identical-sizes, stacked-emphasis, rivers-of-white, rag-staircase, paragraph-runt,
+# first-paragraph-indented, baselines-misaligned, faux-italic-display, display-ligature-missing
+# (a482a92), display-kerning-gap, and justified-word-gaps (87d2a2a). GUIDELINES.md records the
+# result for each one.
 # Every question is a noul in the defect form: true means the defect is
 # there (JC-5). Each question names a feature that can be seen, not a degree,
 # and none asks Jev to count, measure, or name a colour (NFR-9, JC-2).
@@ -117,74 +118,16 @@ criteria:
         - fixtures/headings-differ-only-in-size--4.negative.png
         - fixtures/headings-differ-only-in-size--5.negative.png
 
-  # GUIDELINES.md: Even word spacing in justified text
-  - id: justified-word-gaps
-    title: "Justified lines have holes between words"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), sections 2.1.1 and 2.1.2, pp. 26-27; Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"The line\", p. 34."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: In a paragraph whose lines all end at the same right edge, do some lines look stretched, with holes between the words that break the even texture of the text? Judge only what is visible."
-      criteria:
-        "true": "In a paragraph whose lines all end at the same right edge, some lines look stretched, with holes between the words that break the even texture of the text."
-        "false": "The word spaces look even in every paragraph whose lines end at the same right edge, or no paragraph on the page has lines that all end at the same right edge."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Keep word spaces even: justify only where the measure is wide enough and hyphenation is on, and set the text ragged right otherwise (Bringhurst, The Elements of Typographic Style, 2.1.1 and 2.1.2, pp. 26-27; Hochuli, Detail in Typography, \"The line\", p. 34)."
-    fixtures:
-      positive:
-        - fixtures/justified-word-gaps.positive.png
-        - fixtures/justified-word-gaps--2.positive.png
-        - fixtures/justified-word-gaps--3.positive.png
-        - fixtures/justified-word-gaps--4.positive.png
-        - fixtures/justified-word-gaps--5.positive.png
-      negative:
-        - fixtures/justified-word-gaps.negative.png
-        - fixtures/justified-word-gaps--2.negative.png
-        - fixtures/justified-word-gaps--3.negative.png
-        - fixtures/justified-word-gaps--4.negative.png
-        - fixtures/justified-word-gaps--5.negative.png
-
-  # GUIDELINES.md: Kerning
-  - id: display-kerning-gap
-    title: "A letter pair in a large headline has a visible gap"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.1.8, pp. 32-33."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: In a large heading, does the spacing between the letters look uneven, so that at some point a letter seems to stand apart from the letter next to it and the word looks broken there? Judge only what is visible."
-      criteria:
-        "true": "In a large heading, the spacing between the letters looks uneven: at some point a letter seems to stand apart from the letter next to it, and the word looks broken there."
-        "false": "The letters of every large heading look evenly spaced, or the page has no large heading."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Kern the letter pairs of large headlines, such as AV, To, and Wa, so the space between every pair looks even, with no gaps and no collisions (Bringhurst, The Elements of Typographic Style, 2.1.8, p. 32; Hochuli, Detail in Typography, p. 30)."
-    fixtures:
-      positive:
-        - fixtures/display-kerning-gap.positive.png
-        - fixtures/display-kerning-gap--2.positive.png
-        - fixtures/display-kerning-gap--3.positive.png
-        - fixtures/display-kerning-gap--4.positive.png
-        - fixtures/display-kerning-gap--5.positive.png
-      negative:
-        - fixtures/display-kerning-gap.negative.png
-        - fixtures/display-kerning-gap--2.negative.png
-        - fixtures/display-kerning-gap--3.negative.png
-        - fixtures/display-kerning-gap--4.negative.png
-        - fixtures/display-kerning-gap--5.negative.png
-
   # GUIDELINES.md: Letterspace capitals and small caps
   - id: display-caps-tight
     title: "Capitals in a large heading touch each other"
     source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.1.6 \"Letterspace all strings of capitals and small caps\", p. 30; Hochuli, Detail in Typography (Hyphen Press, 2008), p. 30."
     question:
       type: noul
-      instructions: "In the image at screenshot: In a large heading or label set in capitals, do neighbouring capitals touch, with no visible space between them? Judge only what is visible."
+      instructions: "In the image at screenshot: In a heading or label set in capital letters, do the letters look crammed together, so that the word reads as a tight dark block instead of a row of separate letters? Judge only what is visible."
       criteria:
-        "true": "In a large heading or label set in capitals, neighbouring capitals touch with no visible space between them."
-        "false": "In every heading or label set in capitals, a visible space separates neighbouring capitals."
+        "true": "In a heading or label set in capital letters, the letters look crammed together, and the word reads as a tight dark block instead of a row of separate letters."
+        "false": "Every heading or label set in capital letters shows clear space between its letters, or the page has no text set in capital letters."
     fail_when:
       probability_at_least: 0.7
     pass_when:
