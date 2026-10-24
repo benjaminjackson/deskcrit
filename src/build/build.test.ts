@@ -200,6 +200,22 @@ describe("FR-13, US-7: requires skips", () => {
     expect(result.skipped).toHaveLength(5);
   });
 
+  it("throws CouldNotRunError that names the pack, criterion, and path when a requires path does not start with facts.", () => {
+    const broken = [
+      makePack("layout", [
+        makeNoulCriterion("reflow", { requires: ["viewport_width"] }),
+      ]),
+    ];
+    for (const facts of [undefined, { viewport_width: 320 }]) {
+      expect(() => buildQuestions(makeInput(broken, { facts }))).toThrow(
+        CouldNotRunError,
+      );
+      expect(() => buildQuestions(makeInput(broken, { facts }))).toThrow(
+        "pack layout, criterion reflow: the requires path viewport_width does not start with facts.",
+      );
+    }
+  });
+
   it("records a criterion that fails both checks once, with the platform reason", () => {
     const both = [
       makePack("both", [
@@ -442,7 +458,7 @@ describe("NFR-11, CS-16: context size", () => {
       buildQuestions(
         makeInput(packs, { context: { purpose: "y".repeat(100_000) } }),
       ),
-    ).toThrow(/the context come to about/);
+    ).toThrow(/the estimated size of the context is about/);
   });
 
   it("accepts a small facts file", () => {
@@ -488,13 +504,14 @@ describe("CS-18, CS-6: determinism and no argument changes", () => {
     expect(result.state.context).toEqual({ platform: "web" });
   });
 
-  it("throws a plain Error on a duplicate question id, because the loader keeps ids unique", () => {
+  it("throws CouldNotRunError that names the pack when two packs have the same name", () => {
     const packs = [
       makePack("p", [makeNoulCriterion("a")]),
-      makePack("p", [makeNoulCriterion("a")]),
+      makePack("p", [makeNoulCriterion("b")]),
     ];
+    expect(() => buildQuestions(makeInput(packs))).toThrow(CouldNotRunError);
     expect(() => buildQuestions(makeInput(packs))).toThrow(
-      "duplicate question id p/a",
+      "two packs are named p",
     );
   });
 });

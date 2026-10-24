@@ -14,13 +14,13 @@ import {
 import type { BuildInput, BuildResult, Skipped } from "./types.js";
 
 /** The default per-question context limit in TypeSafe tokens (NFR-11, JC-4). */
-export const MAX_CONTEXT_TOKENS_PER_QUESTION = 32_000;
+const MAX_CONTEXT_TOKENS_PER_QUESTION = 32_000;
 
 /**
  * How many characters build counts as one token when it estimates the context size (NFR-11).
  * Provisional: there is no tokenizer in the stack, and 3 is on the safe side for JSON text.
  */
-export const CHARACTERS_PER_TOKEN_ESTIMATE = 3;
+const CHARACTERS_PER_TOKEN_ESTIMATE = 3;
 
 /** One criterion that passed the platform and facts checks, with the key that names it in output (FR-14). */
 type KeptCriterion = {
@@ -42,11 +42,29 @@ type CriterionSelection = {
  * (FR-71) can call them once per image.
  */
 export function buildQuestions(input: BuildInput): BuildResult {
+  checkPackNamesUnique(input.packs);
   const selection = selectCriteria(input.packs, input.context, input.facts);
   const state = buildState(input.image, input.context, input.facts);
   const questions = buildQuestionsForCriteria(selection.kept);
   checkContextSize(state, questions);
   return { state, questions, skipped: selection.skipped };
+}
+
+/**
+ * Throw CouldNotRunError when two packs have the same name, because their question ids would
+ * clash and compose could not tell their answers apart (FR-14, CS-16). The loader reads one pack
+ * at a time, so it cannot see this.
+ */
+function checkPackNamesUnique(packs: readonly Pack[]): void {
+  const seenNames = new Set<string>();
+  for (const pack of packs) {
+    if (seenNames.has(pack.name)) {
+      throw new CouldNotRunError(
+        `two packs are named ${pack.name}; each pack needs its own name`,
+      );
+    }
+    seenNames.add(pack.name);
+  }
 }
 
 /**
@@ -73,7 +91,7 @@ function selectCriteria(
         skipped.push({ criterion: key, reason: platformReason });
         continue;
       }
-      const missingPath = findMissingFactsPath(criterion.requires, facts);
+      const missingPath = findMissingFactsPath(pack.name, criterion, facts);
       if (missingPath !== undefined) {
         skipped.push({
           criterion: key,
@@ -115,16 +133,23 @@ function findPlatformExclusion(
 /**
  * Return the first `requires` path, in the order listed, that the facts do not have, or undefined
  * when all are there (FR-13, US-7). A key whose value is null or empty counts as present. When no
- * facts file was given, every path is missing.
+ * facts file was given, every path is missing. A path that does not start with "facts." throws
+ * CouldNotRunError, because the pack schema does not check the prefix and the path names no fact.
  */
 function findMissingFactsPath(
-  requires: readonly string[] | undefined,
+  packName: string,
+  criterion: Criterion,
   facts: unknown,
 ): string | undefined {
-  if (requires === undefined) {
+  if (criterion.requires === undefined) {
     return undefined;
   }
-  for (const path of requires) {
+  for (const path of criterion.requires) {
+    if (!path.startsWith("facts.")) {
+      throw new CouldNotRunError(
+        `pack ${packName}, criterion ${criterion.id}: the requires path ${path} does not start with facts.`,
+      );
+    }
     if (!hasFactsPath(facts, path)) {
       return path;
     }
@@ -134,17 +159,14 @@ function findMissingFactsPath(
 
 /**
  * Return true when the facts hold the key at a path such as "facts.viewport.width" (FR-13). The
- * first segment "facts" names the facts file itself, so the walk starts below it.
+ * first segment "facts" names the facts file itself, so the walk starts below it. The caller has
+ * already checked that the path starts with "facts.".
  */
 function hasFactsPath(facts: unknown, path: string): boolean {
   if (facts === undefined) {
     return false;
   }
   const segments = path.split(".");
-  if (segments[0] !== "facts") {
-    // The loader checks that every path starts with "facts.", so this is a broken invariant.
-    throw new Error(`requires path ${path} does not start with facts.`);
-  }
   let current: unknown = facts;
   for (const segment of segments.slice(1)) {
     if (typeof current !== "object" || current === null) {
@@ -176,17 +198,21 @@ function buildState(
     width: image.width,
     height: image.height,
   };
+  const state: {
+    [IMAGE_STATE_PATH]: StateImage;
+    context?: Context;
+    facts?: unknown;
+  } = {
+    [IMAGE_STATE_PATH]: stateImage,
+  };
   const stateContext = copyGivenContext(context);
-  if (stateContext === undefined && facts === undefined) {
-    return { [IMAGE_STATE_PATH]: stateImage };
+  if (stateContext !== undefined) {
+    state.context = stateContext;
   }
-  if (stateContext === undefined) {
-    return { [IMAGE_STATE_PATH]: stateImage, facts };
+  if (facts !== undefined) {
+    state.facts = facts;
   }
-  if (facts === undefined) {
-    return { [IMAGE_STATE_PATH]: stateImage, context: stateContext };
-  }
-  return { [IMAGE_STATE_PATH]: stateImage, context: stateContext, facts };
+  return state;
 }
 
 /** Copy only the context keys that were given, or return undefined when none was (FR-2, FR-17). */
@@ -214,7 +240,8 @@ function copyGivenContext(context: Context): Context | undefined {
 /**
  * Turn each kept criterion into its one question, followed by its Box question when `locate` is
  * true, in the order given (FR-14, FR-16). It throws a plain Error on a duplicate question id,
- * because the loader keeps pack names and criterion ids unique.
+ * because that is a broken invariant: checkPackNamesUnique keeps pack names unique, the loader
+ * keeps criterion ids unique within a pack, and the id pattern has no "#" to clash with a Box id.
  */
 function buildQuestionsForCriteria(kept: readonly KeptCriterion[]): Question[] {
   const questions: Question[] = [];
@@ -327,10 +354,10 @@ function checkContextSize(state: State, questions: readonly Question[]): void {
     if (tokens > MAX_CONTEXT_TOKENS_PER_QUESTION) {
       let input = "the context";
       if (state.facts !== undefined) {
-        input = "the facts file and context";
+        input = "the facts file and the context";
       }
       throw new CouldNotRunError(
-        `${input} come to about ${tokens} tokens for question ${question.id}, over the ${MAX_CONTEXT_TOKENS_PER_QUESTION}-token limit per question (NFR-11)`,
+        `the estimated size of ${input} is about ${tokens} tokens for question ${question.id}, over the ${MAX_CONTEXT_TOKENS_PER_QUESTION}-token limit per question (NFR-11)`,
       );
     }
   }
