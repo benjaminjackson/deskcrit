@@ -2,28 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Layout fixture: white-space-scattered--5</title>
-    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
+    <title>Layout fixture: white-space-scattered 5</title>
     <style>
-      /* A budget map: four bands of coloured segments, 6 px apart. Off: the bands are a small block at the
-         bottom left, with a large empty page above and to the right. On: the bands fill the page, so no open
-         area is left (OQ-17). */
-      .map { position: absolute; left: 48px; bottom: 48px; width: 440px; height: 280px; display: flex; flex-direction: column; gap: 6px; }
-      .band { flex: 1; display: flex; gap: 6px; }
-      .seg { color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; }
-      .a { background: #b45309; } .b { background: #0f766e; } .c { background: #6d28d9; } .d { background: #be123c; } .e { background: #1d4ed8; }
-      [data-defect="on"] .map { inset: 6px; width: auto; height: auto; }
-      [data-defect="on"] .seg { font-size: 22px; font-weight: 700; }
+      /* A pricing page for a team chat tool: a bar, a headline with one line of text, and three plan cards with a price, a button, and a feature list. The defect gives the bar, the headline block, the cards, and the page margin one equal 24 px gap. The clean page has a wide side margin, a tall open headline area, a 16 px gap between cards, and tight lines inside each card. (OQ-17) */
+      body { display: flex; flex-direction: column; background: #f3f2fb; padding: 0 130px 56px; }
+      .bar { height: 72px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: var(--color-muted); } .bar b { color: var(--color-text); font-size: 20px; }
+      .head { text-align: center; padding: 40px 0 56px; } .head h1 { font-size: 44px; margin-bottom: 8px; } .head p { color: var(--color-muted); font-size: 18px; }
+      .plans { display: flex; gap: 16px; flex: 1; }
+      .plan { flex: 1; background: #fff; border: 1px solid #dcd9f0; border-radius: 12px; padding: 20px; }
+      .plan h3 { font-size: 18px; } .plan .price { font-size: 34px; font-weight: 700; margin: 4px 0 8px; } .plan .price small { font-size: 14px; font-weight: 400; color: var(--color-muted); }
+      .plan .btn { display: block; text-align: center; border: 1px solid #5b4fd1; color: #5b4fd1; border-radius: 8px; padding: 10px; font-weight: 700; margin-bottom: 14px; }
+      .plan.main .btn { background: #5b4fd1; color: #fff; }
+      .plan li { list-style: none; font-size: 14px; padding: 4px 0; color: var(--color-muted); }
+      [data-defect="on"] body { padding: 24px; gap: 24px; }
+      [data-defect="on"] .bar { height: 56px; background: #fff; border-radius: 12px; padding: 0 24px; }
+      [data-defect="on"] .head { padding: 24px; background: #e6e3f8; border-radius: 12px; }
+      [data-defect="on"] .plans { gap: 24px; }
+      [data-defect="on"] .plan { padding: 24px; } [data-defect="on"] .plan .btn { margin-bottom: 24px; }
     </style>
   </head>
   <body>
-    <div class="map">
-      <div class="band"><div class="seg a" style="flex:5">Rent</div><div class="seg b" style="flex:2">Food</div><div class="seg c" style="flex:2">Bus</div><div class="seg d" style="flex:1">Gym</div></div>
-      <div class="band"><div class="seg e" style="flex:3">Power</div><div class="seg a" style="flex:2">Water</div><div class="seg b" style="flex:4">Phone</div><div class="seg c" style="flex:1">Tax</div></div>
-      <div class="band"><div class="seg d" style="flex:2">Books</div><div class="seg e" style="flex:2">Music</div><div class="seg a" style="flex:3">Games</div><div class="seg b" style="flex:2">Pets</div><div class="seg c" style="flex:1">Gifts</div></div>
-      <div class="band"><div class="seg c" style="flex:4">Savings</div><div class="seg d" style="flex:3">Repairs</div><div class="seg e" style="flex:2">Travel</div><div class="seg a" style="flex:2">Fun</div></div>
+    <div class="bar"><b>Murmur</b><span>Features &nbsp;·&nbsp; Pricing &nbsp;·&nbsp; Help &nbsp;·&nbsp; Log in</span></div>
+    <div class="head"><h1>Simple plans for teams of any size</h1><p>Start free. Change plans whenever your team changes.</p></div>
+    <div class="plans">
+      <div class="plan"><h3>Free</h3><div class="price">$0<small> / user / month</small></div><span class="btn">Get started</span><ul><li>90 days of history</li><li>10 integrations</li><li>1-to-1 video calls</li><li>2 GB of file storage</li><li>Community support</li><li>Mobile apps</li></ul></div>
+      <div class="plan main"><h3>Team</h3><div class="price">$7<small> / user / month</small></div><span class="btn">Start 30-day trial</span><ul><li>Unlimited history</li><li>Unlimited integrations</li><li>Group video calls</li><li>100 GB of file storage</li><li>Email support</li><li>Mobile apps</li></ul></div>
+      <div class="plan"><h3>Company</h3><div class="price">$14<small> / user / month</small></div><span class="btn">Talk to us</span><ul><li>Single sign-on</li><li>Audit log</li><li>Priority support</li><li>1 TB of file storage</li><li>Admin controls</li><li>Mobile apps</li></ul></div>
     </div>
   </body>
 </html>

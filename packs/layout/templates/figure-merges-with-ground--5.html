@@ -7,21 +7,39 @@
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* A hero banner for a seed shop: a headline and a round "Shop seeds" button over a full-width pattern of dense coloured checks and dots, like a busy photo. Without the defect the headline and button sit on a calm dark green panel over the pattern. The defect removes the panel, so the headline and the button sit directly on the pattern (OQ-17). */
-      body { background:
-        radial-gradient(circle at 12px 12px, #ff7f50 0 7px, transparent 8px) 0 0 / 34px 34px,
-        repeating-conic-gradient(#1d3557 0 25%, #a8dadc 0 50%) 0 0 / 60px 60px; }
-      .hero { position: absolute; left: 140px; top: 180px; width: 1000px; padding: 56px 64px; border-radius: 12px; background: #0f2a1d; }
-      h1 { font-size: 76px; font-weight: 800; line-height: 1.05; color: #fff; margin-bottom: 32px; }
-      .btn { display: inline-block; padding: 18px 44px; border-radius: 40px; background: #ffd166; color: #1b1b1b; font-size: 30px; font-weight: 800; }
-      [data-defect="on"] .hero { background: none; }
-      [data-defect="on"] .btn { background: #ff7f50; color: #1d3557; }
+      /* A swim club home page: a white nav bar over a hero of teal water ripples (many overlapping rings). A white headline, line of text and button sit in the middle of the water. The defect removes the dark soft patch that sits between the water and the text (OQ-17). */
+      .nav { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 64px; border-bottom: 1px solid var(--color-border); }
+      .logo { font-size: 22px; font-weight: 700; color: #0b5c66; }
+      .links { display: flex; gap: 32px; color: var(--color-muted); font-size: 15px; }
+      .hero { position: relative; height: 728px; overflow: hidden; background: #2a8a93; }
+      .hero svg { position: absolute; left: 0; top: 0; }
+      .patch { position: absolute; left: 140px; top: 120px; width: 1000px; height: 460px; background: radial-gradient(closest-side at center, rgba(4, 40, 48, 0.88) 0%, rgba(4, 40, 48, 0.8) 55%, rgba(4, 40, 48, 0) 100%); }
+      [data-defect="on"] .patch { display: none; }
+      .copy { position: absolute; left: 190px; top: 210px; width: 900px; text-align: center; color: #fff; }
+      .copy h1 { font-family: var(--font-serif); font-size: 76px; line-height: 1.05; font-weight: 700; margin-bottom: 20px; }
+      .copy p { font-size: 24px; margin-bottom: 32px; }
+      .btn { display: inline-block; padding: 14px 34px; border: 2px solid #fff; color: #fff; font-weight: 700; font-size: 17px; }
     </style>
   </head>
   <body>
+    <div class="nav"><div class="logo">Lakeside Swim Club</div><div class="links"><span>Sessions</span><span>Membership</span><span>Safety</span><span>Contact</span></div></div>
     <div class="hero">
-      <h1>Sow now for a summer of tomatoes</h1>
-      <span class="btn">Shop seeds</span>
+      <svg id="tex" width="1280" height="728" viewBox="0 0 1280 728"></svg>
+      <div class="patch"></div>
+      <div class="copy"><h1>Open water, every morning</h1><p>Guided swims from the jetty at six and seven, all year round.</p><span class="btn">Book a session</span></div>
     </div>
+    <script>
+      var seed = 41;
+      function random() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+      var markup = '';
+      for (var index = 0; index < 260; index++) {
+        var x = random() * 1280, y = random() * 728, size = 20 + random() * 70;
+        for (var ring = 0; ring < 4; ring++) {
+          var light = random() < 0.5 ? 62 : 30;
+          markup += '<ellipse cx="' + x.toFixed(0) + '" cy="' + y.toFixed(0) + '" rx="' + (size + ring * 14).toFixed(0) + '" ry="' + ((size + ring * 14) * 0.38).toFixed(0) + '" fill="none" stroke="hsl(' + (180 + random() * 20).toFixed(0) + ',45%,' + light + '%)" stroke-width="' + (2 + random() * 3).toFixed(1) + '" opacity="0.8"/>';
+        }
+      }
+      document.getElementById('tex').innerHTML = markup;
+    </script>
   </body>
 </html>

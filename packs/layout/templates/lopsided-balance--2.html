@@ -7,30 +7,21 @@
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* A feature page: a big dark photo block on the right, a heading and text on the left. The
-         defect shrinks the left text to a small caption at the top and leaves the left empty. */
-      main { display: flex; gap: 48px; margin: 56px 80px 0; align-items: flex-start; }
-      .text { width: 600px; padding-top: 120px; }
-      h1 { font-family: var(--font-serif); font-size: 58px; font-weight: 700; line-height: 1.1; margin-bottom: 20px; }
-      p { font-size: 20px; color: var(--color-muted); }
-      .photo { width: 440px; height: 520px; border-radius: 6px; background: linear-gradient(200deg, #14213d 0%, #2b3a55 100%); }
-      [data-defect="on"] .photo { width: 720px; height: 700px; background: #0b0f1a; margin-top: -20px; }
-      [data-defect="on"] .text { width: 200px; padding-top: 0; }
-      [data-defect="on"] h1 { font-family: var(--font-sans); font-size: 16px; margin-bottom: 8px; }
-      [data-defect="on"] p { font-size: 13px; }
-      [data-defect="on"] main { justify-content: flex-end; margin-left: 0; }
-      [data-defect="on"] .text { margin-right: 0; position: absolute; left: 40px; top: 40px; }
-      [data-defect="on"] main { margin-right: 0; margin-top: 50px; }
-      [data-defect="on"] .text p { display: none; }
+      /* A coffee roaster landing page: a dark brown panel with the headline and a large photo block, each 600 x 330 px, under a light header. Without the defect the panel sits top left and the photo bottom right. The defect stacks both at the left edge and leaves the right half empty. (OQ-17) */
+      header { position: absolute; left: 0; top: 0; width: 1280px; height: 64px; padding: 0 48px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e6dfd8; }
+      header b { font-size: 20px; color: #2a1d16; }
+      header span { font-size: 14px; color: var(--color-muted); margin-left: 28px; }
+      .panel { position: absolute; left: 48px; top: 96px; width: 600px; height: 330px; background: #2a1d16; color: #f5ebe0; padding: 40px; }
+      .panel h1 { font-size: 44px; line-height: 1.1; margin-bottom: 14px; }
+      .panel p { font-size: 16px; color: #d8c8b8; margin-bottom: 22px; }
+      .panel a { display: inline-block; background: #e9b872; color: #2a1d16; font-weight: 700; padding: 10px 20px; font-size: 15px; }
+      .photo { position: absolute; left: 632px; top: 440px; width: 600px; height: 330px; background: radial-gradient(circle at 62% 52%, #f3e3cf 0 16%, #8a5a3a 17% 40%, #4a2e1c 41% 100%); }
+      [data-defect="on"] .photo { left: 48px; top: 440px; }
     </style>
   </head>
   <body>
-    <main>
-      <div class="text">
-        <h1>Salt marsh walks at low tide</h1>
-        <p>Guided evening walks along the old sea wall, with a local naturalist and a flask of soup.</p>
-      </div>
-      <div class="photo"></div>
-    </main>
+    <header><b>Kiln &amp; Bean</b><nav><span>Shop</span><span>Subscriptions</span><span>Brewing guides</span><span>Visit</span></nav></header>
+    <div class="panel"><h1>Roasted on Tuesday, at your door by Thursday</h1><p>Small lots from three farms, roasted in batches of twelve kilos.</p><a>Start a subscription</a></div>
+    <div class="photo"></div>
   </body>
 </html>

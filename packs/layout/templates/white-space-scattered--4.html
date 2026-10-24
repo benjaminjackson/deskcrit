@@ -2,29 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Layout fixture: white-space-scattered--4</title>
-    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
+    <title>Layout fixture: white-space-scattered 4</title>
     <style>
-      /* Five dark columns of boxes with short labels, 6 px apart. Off: the columns are narrow and short, at the
-         bottom right, with a large empty page. On: the columns fill the page, so no open area is left (OQ-17). */
-      body { background: #111827; }
-      .cols { display: flex; gap: 6px; position: absolute; right: 48px; bottom: 48px; width: 400px; height: 260px; }
-      .col { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-      .box { flex: 1; background: #374151; color: #e5e7eb; font-size: 11px; display: flex; align-items: center; justify-content: center; }
-      .box.w2 { flex: 2; background: #4b5563; } .box.w3 { flex: 3; background: #1f2937; border: 1px solid #4b5563; }
-      [data-defect="on"] .cols { inset: 6px; width: auto; height: auto; }
-      [data-defect="on"] .box { font-size: 22px; }
+      /* A magazine article page about tidal energy: a section bar, a headline block, a body column with three paragraphs, and a side column with two related-story cards. The defect gives the bar, the headline, the body, the side cards, and the page margin one equal 24 px gap. The clean page has a wide top and side margin, a narrow body column, and tight lines inside the byline and the side cards. (OQ-17) */
+      body { display: flex; flex-direction: column; background: #fff; padding: 0 150px; font-family: var(--font-serif); }
+      .bar { height: 64px; display: flex; align-items: center; justify-content: space-between; font-family: var(--font-sans); font-size: 14px; color: var(--color-muted); border-bottom: 1px solid var(--color-border); } .bar b { color: var(--color-text); font-size: 18px; }
+      .head { padding: 48px 0 40px; } .head h1 { font-size: 46px; line-height: 1.12; max-width: 760px; margin-bottom: 8px; }
+      .head p { font-family: var(--font-sans); font-size: 14px; color: var(--color-muted); }
+      .cols { display: flex; gap: 72px; }
+      .body { width: 560px; } .body p { font-size: 18px; line-height: 1.6; margin-bottom: 18px; }
+      .side { width: 260px; } .side div { background: #eef3f2; border-radius: 8px; padding: 14px; margin-bottom: 14px; font-family: var(--font-sans); } .side small { color: var(--color-muted); font-size: 12px; } .side b { display: block; font-size: 15px; line-height: 1.3; margin-top: 2px; }
+      [data-defect="on"] body { padding: 0 24px 24px; gap: 24px; }
+      [data-defect="on"] .bar { border: 0; background: #eef3f2; border-radius: 12px; padding: 0 24px; margin-top: 24px; }
+      [data-defect="on"] .head { padding: 0; } 
+      [data-defect="on"] .cols { gap: 24px; flex: 1; }
+      [data-defect="on"] .body p { font-size: 20px; line-height: 1.7; } [data-defect="on"] .body { flex: 1; width: auto; background: #f7f9f9; border-radius: 12px; padding: 24px; }
+      [data-defect="on"] .side { width: 380px; display: flex; flex-direction: column; gap: 24px; }
+      [data-defect="on"] .side div { margin: 0; padding: 24px; }
     </style>
   </head>
   <body>
+    <div class="bar"><b>The Coastline Review</b><span>Science &nbsp;·&nbsp; Energy &nbsp;·&nbsp; Notes</span></div>
+    <div class="head"><h1>The quiet turbines that could power a harbour town</h1><p>By Mara Eskin · Field report · 9 min read</p></div>
     <div class="cols">
-      <div class="col"><div class="box">Ash</div><div class="box w2">Birch</div><div class="box">Cedar</div><div class="box w3">Elm</div></div>
-      <div class="col"><div class="box w3">Fir</div><div class="box">Gum</div><div class="box w2">Holly</div><div class="box">Iroko</div></div>
-      <div class="col"><div class="box w2">Juniper</div><div class="box">Karri</div><div class="box w3">Larch</div><div class="box">Maple</div></div>
-      <div class="col"><div class="box">Nutmeg</div><div class="box w3">Oak</div><div class="box">Pine</div><div class="box w2">Quince</div></div>
-      <div class="col"><div class="box w2">Rowan</div><div class="box">Spruce</div><div class="box w2">Teak</div><div class="box w2">Yew</div></div>
+      <div class="body"><p>Every twelve hours the water in the narrows runs out to sea, and every twelve hours it comes back. For the town of Vesk, that rhythm is now a power plant.</p><p>Four turbines sit on the seabed, each the height of a two-storey house. They turn slowly, about as fast as a bicycle wheel, and make almost no sound above the surface.</p><p>Engineers chose the narrows because the current there never stops for long, and the seabed is flat rock that holds the anchors well.</p><p>The town expects them to cover a third of its winter demand, and the harbour master says the fishing boats have not noticed a thing.</p></div>
+      <div class="side"><div><small>Energy</small><b>How a tide table became a power forecast</b></div><div><small>Field notes</small><b>A week on the service boat</b></div><div><small>Profile</small><b>The harbour master who reads the tide tables for fun</b></div></div>
     </div>
   </body>
 </html>

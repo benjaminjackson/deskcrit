@@ -7,25 +7,33 @@
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* A weekly planner: a full-width header bar (x=80 to 1200) over three columns of cards at x=80, 460 and 840 (360 px wide, 20 px apart). In the second row a double-width card spans columns 1 and 2 (x=80 to 820). The defect moves it to x=250 to 610, which no other block uses. (OQ-17) */
-      body { background: #f3f5f8; }
-      .head { position: absolute; left: 80px; top: 36px; width: 1120px; height: 64px; background: #dfe5ee; padding: 0 24px; display: flex; align-items: center; font-size: 28px; font-weight: 700; }
-      .card { position: absolute; width: 360px; height: 150px; padding: 22px 26px; background: #fff; border: 2px solid #1f4e79; border-top-width: 10px; }
-      .card h2 { font-size: 22px; margin-bottom: 6px; }
-      .c1 { left: 80px; } .c2 { left: 460px; } .c3 { left: 840px; }
-      .wide { left: 80px; width: 740px; }
-      [data-defect="on"] .wide { left: 250px; width: 360px; }
+      /* A magazine article: the title, byline, body text and photo all run from x=300 to x=980. The defect pulls the photo's left edge out to x=264, so it starts where no other block starts (OQ-17). */
+      body { background: #fffefb; font-family: var(--font-serif); }
+      .nav { height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 80px; border-bottom: 1px solid #e8e2d4; font-family: var(--font-sans); }
+      .nav b { font-size: 20px; letter-spacing: 0.02em; }
+      .nav span { color: var(--color-muted); font-size: 14px; margin-left: 24px; }
+      article { margin-left: 300px; width: 680px; padding-top: 36px; }
+      .kicker { font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #a23b1a; margin-bottom: 10px; }
+      h1 { font-size: 44px; line-height: 1.1; margin-bottom: 12px; }
+      .by { font-family: var(--font-sans); font-size: 14px; color: var(--color-muted); margin-bottom: 22px; }
+      p { font-size: 19px; line-height: 1.55; margin-bottom: 18px; }
+      .photo { height: 250px; background: linear-gradient(180deg, #a9c4d6 0%, #a9c4d6 52%, #6d8f6a 52%, #4f7451 100%); position: relative; margin-bottom: 8px; }
+      .photo i { position: absolute; left: 90px; bottom: 98px; width: 0; height: 0; border-left: 70px solid transparent; border-right: 70px solid transparent; border-bottom: 90px solid #5c6f7e; }
+      .photo i + i { left: 250px; border-bottom-width: 120px; border-left-width: 90px; border-right-width: 90px; }
+      .photo b { position: absolute; right: 70px; top: 40px; width: 50px; height: 50px; border-radius: 50%; background: #f6e7b4; }
+      .cap { font-family: var(--font-sans); font-size: 13px; color: var(--color-muted); margin-bottom: 20px; }
+      [data-defect="on"] .figure { margin-left: -36px; }
     </style>
   </head>
   <body>
-    <div class="head">Studio week</div>
-    <div class="card c1" style="top:130px"><h2>Monday</h2><p>Brief and kickoff.</p></div>
-    <div class="card c2" style="top:130px"><h2>Tuesday</h2><p>Sketches on paper.</p></div>
-    <div class="card c3" style="top:130px"><h2>Wednesday</h2><p>Client call.</p></div>
-    <div class="card wide" style="top:310px"><h2>Thursday</h2><p>Build the first screens.</p></div>
-    <div class="card c3" style="top:310px"><h2>Friday</h2><p>Review and ship.</p></div>
-    <div class="card c1" style="top:490px"><h2>Notes</h2><p>Open questions.</p></div>
-    <div class="card c2" style="top:490px"><h2>Files</h2><p>Shared folder.</p></div>
-    <div class="card c3" style="top:490px"><h2>People</h2><p>Who to ask.</p></div>
+    <div class="nav"><b>The Ridgeway Review</b><div><span>Walks</span><span>Places</span><span>Essays</span></div></div>
+    <article>
+      <div class="kicker">Walking</div>
+      <h1>Three days along the old drove road</h1>
+      <div class="by">By the editors, 12 minute read</div>
+      <p>The drove road leaves the village behind a row of cottages and climbs for an hour before the first view opens. By then the traffic has gone and the only sound is wind in the thorn hedges.</p>
+      <div class="figure"><div class="photo"><b></b><i></i><i></i></div><div class="cap">The first ridge, seen from the lower pasture.</div></div>
+      <p>Most walkers stop at the second gate, where a stone trough still collects rain. Those who carry on reach the tops by noon and have the whole plain laid out below them.</p>
+    </article>
   </body>
 </html>

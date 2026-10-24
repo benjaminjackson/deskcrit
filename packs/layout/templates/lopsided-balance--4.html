@@ -7,38 +7,31 @@
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* An app page: a dark sidebar full of menu items on the left. Off: the main area holds a
-         row of stat cards and a chart block. On: the main area holds only one small line. */
-      .app { display: flex; height: 800px; }
-      .side { width: 400px; background: #172033; color: #dfe5f0; padding: 40px 32px; }
-      .side h2 { font-size: 26px; margin-bottom: 28px; color: #fff; }
-      .side div { font-size: 19px; padding: 14px 0; border-bottom: 1px solid #2c3850; }
-      .main { flex: 1; padding: 48px 56px; }
-      .main h1 { font-size: 34px; margin-bottom: 28px; }
-      .cards { display: flex; gap: 20px; margin-bottom: 24px; }
-      .card { flex: 1; height: 150px; border: 1px solid var(--color-border); border-radius: 10px; padding: 20px; background: #eef3fa; }
-      .card b { display: block; font-size: 40px; margin-top: 8px; }
-      .chart { height: 360px; border-radius: 10px; background: #d5e4f7; }
-      [data-defect="on"] .cards, [data-defect="on"] .chart { display: none; }
-      [data-defect="on"] .main h1 { font-size: 15px; font-weight: 400; color: var(--color-muted); }
+      /* An analytics dashboard: a dark sidebar down the left edge, one dark chart card 500 x 340 px, and three small pale stat cards. Without the defect the chart card sits at the right and the stat cards at the left of the content area. The defect moves the chart card next to the sidebar, with the stat cards beneath it, so everything dark is on the left and the right 460 px is empty. (OQ-17) */
+      body { background: #f4f5f7; }
+      aside { position: absolute; left: 0; top: 0; width: 240px; height: 800px; background: #14181f; color: #c9d1dc; padding: 28px 24px; }
+      aside b { color: #fff; font-size: 18px; display: block; margin-bottom: 28px; }
+      aside p { font-size: 15px; padding: 9px 0; }
+      h1 { position: absolute; left: 280px; top: 32px; font-size: 24px; }
+      .chart { position: absolute; left: 740px; top: 100px; width: 500px; height: 340px; background: #1b2433; color: #fff; padding: 24px; border-radius: 6px; }
+      .chart h2 { font-size: 16px; font-weight: 400; color: #a9b6c8; margin-bottom: 8px; }
+      .chart .big { font-size: 40px; font-weight: 700; }
+      .bars { position: absolute; left: 24px; right: 24px; bottom: 24px; height: 160px; background: linear-gradient(90deg, #4f8cff 0 8%, transparent 8% 12%, #4f8cff 12% 20%, transparent 20% 24%, #4f8cff 24% 32%, transparent 32% 36%, #4f8cff 36% 44%, transparent 44% 48%, #4f8cff 48% 56%, transparent 56% 60%, #4f8cff 60% 68%, transparent 68% 72%, #4f8cff 72% 80%, transparent 80% 84%, #4f8cff 84% 92%, transparent 92%); clip-path: polygon(0 40%, 12% 40%, 12% 60%, 24% 60%, 24% 30%, 36% 30%, 36% 55%, 48% 55%, 48% 15%, 60% 15%, 60% 45%, 72% 45%, 72% 25%, 84% 25%, 84% 0, 100% 0, 100% 100%, 0 100%); }
+      .stat { position: absolute; left: 280px; width: 420px; height: 96px; background: #fff; border: 1px solid #e3e6ea; border-radius: 6px; padding: 16px 20px; }
+      .stat span { font-size: 14px; color: var(--color-muted); display: block; }
+      .stat b { font-size: 26px; }
+      [data-defect="on"] .chart { left: 280px; }
+      [data-defect="on"] .stat { top: 476px !important; }
+      [data-defect="on"] .s2 { top: 582px !important; }
+      [data-defect="on"] .s3 { top: 688px !important; }
     </style>
   </head>
   <body>
-    <div class="app">
-      <div class="side">
-        <h2>Workspace</h2>
-        <div>Overview</div><div>Orders</div><div>Shipments</div><div>Returns</div><div>Suppliers</div>
-        <div>Invoices</div><div>Reports</div><div>Staff rota</div><div>Settings</div><div>Help centre</div>
-      </div>
-      <div class="main">
-        <h1>Orders this week</h1>
-        <div class="cards">
-          <div class="card">New<b>128</b></div>
-          <div class="card">Packed<b>96</b></div>
-          <div class="card">Sent<b>74</b></div>
-        </div>
-        <div class="chart"></div>
-      </div>
-    </div>
+    <aside><b>Tallymark</b><p>Overview</p><p>Orders</p><p>Customers</p><p>Reports</p><p>Settings</p></aside>
+    <h1>Overview, last 30 days</h1>
+    <div class="chart"><h2>Revenue</h2><div class="big">$48,210</div><div class="bars"></div></div>
+    <div class="stat s1" style="top:100px"><span>Orders</span><b>1,284</b></div>
+    <div class="stat s2" style="top:216px"><span>Average basket</span><b>$37.55</b></div>
+    <div class="stat s3" style="top:332px"><span>Returning customers</span><b>41%</b></div>
   </body>
 </html>

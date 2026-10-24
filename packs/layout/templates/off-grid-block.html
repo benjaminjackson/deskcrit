@@ -7,18 +7,32 @@
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* Four wide solid bands stacked in one column, all from x=140 to x=1000. The defect moves the third band 100 px to the right, so it starts and ends on no line the others use. (OQ-17) */
-      h1 { position: absolute; left: 140px; top: 48px; font-size: 32px; font-weight: 700; }
-      .band { position: absolute; left: 140px; width: 860px; height: 120px; padding: 24px 32px; color: #fff; }
-      .band h2 { font-size: 24px; margin-bottom: 6px; }
-      [data-defect="on"] .odd { left: 240px; }
+      /* An account settings page: a left menu (x=64 to 264) and four stacked cards that all run from x=304 to x=1216. The defect nudges the Billing card 28 px to the right, so its left and right edges match no other block (OQ-17). */
+      body { background: #f4f5f7; }
+      .top { height: 60px; background: #fff; border-bottom: 1px solid var(--color-border); display: flex; align-items: center; justify-content: space-between; padding: 0 64px; }
+      .top b { font-size: 18px; }
+      .top span { color: var(--color-muted); font-size: 14px; }
+      .menu { position: absolute; left: 64px; top: 92px; width: 200px; }
+      .menu div { padding: 10px 14px; border-radius: 6px; color: var(--color-muted); font-size: 15px; margin-bottom: 4px; }
+      .menu .on { background: #e3ebf7; color: #0b4a8f; font-weight: 700; }
+      .col { position: absolute; left: 304px; top: 92px; width: 912px; }
+      h1 { font-size: 28px; margin-bottom: 20px; }
+      .card { background: #fff; border: 1px solid var(--color-border); border-radius: 8px; padding: 18px 24px; height: 128px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+      .card h2 { font-size: 17px; margin-bottom: 4px; }
+      .card p { color: var(--color-muted); font-size: 14px; max-width: 560px; }
+      .btn { border: 1px solid #0b5cad; color: #0b5cad; border-radius: 6px; padding: 8px 18px; font-size: 14px; font-weight: 700; }
+      [data-defect="on"] .odd { position: relative; left: 28px; }
     </style>
   </head>
   <body>
-    <h1>Garden planner</h1>
-    <div class="band" style="top:130px;background:#1f4e79"><h2>Seed trays</h2><p>Sow tomatoes indoors six weeks before the last frost.</p></div>
-    <div class="band" style="top:280px;background:#2b7a4b"><h2>Raised beds</h2><p>Fill new beds with compost and topsoil in early spring.</p></div>
-    <div class="band odd" style="top:430px;background:#b4531a"><h2>Pruning</h2><p>Pinch the side shoots off tomatoes once a week.</p></div>
-    <div class="band" style="top:580px;background:#7b2d8e"><h2>Harvest</h2><p>Pick beans every few days so the plants keep flowering.</p></div>
+    <div class="top"><b>Tallis Cloud</b><span>Workspace: Harbour Studio</span></div>
+    <div class="menu"><div>Profile</div><div>Notifications</div><div class="on">Billing</div><div>Members</div><div>Integrations</div><div>Security</div></div>
+    <div class="col">
+      <h1>Account settings</h1>
+      <div class="card"><div><h2>Profile</h2><p>Your name and photo appear on comments and in the member list.</p></div><span class="btn">Edit</span></div>
+      <div class="card"><div><h2>Notifications</h2><p>Choose which updates reach your inbox and which stay inside the app.</p></div><span class="btn">Manage</span></div>
+      <div class="card odd"><div><h2>Billing</h2><p>Your plan renews on 1 March. The invoice goes to the address on file.</p></div><span class="btn">View invoices</span></div>
+      <div class="card"><div><h2>Sessions</h2><p>Sign out of devices you no longer use. You are signed in on three now.</p></div><span class="btn">Review</span></div>
+    </div>
   </body>
 </html>

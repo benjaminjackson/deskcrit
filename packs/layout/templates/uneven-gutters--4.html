@@ -7,27 +7,29 @@
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* A pricing page: four solid teal plan cards on a white page, 24 px apart, so each gap is a white stripe. The defect makes the third gap 120 px wide. (OQ-17) */
-      main { margin: 64px 80px 0; }
-      h1 { font-size: 30px; font-weight: 700; margin-bottom: 48px; }
-      .row { display: flex; }
-      .plan { width: 240px; height: 440px; background: #0f766e; color: #fff; border-radius: 6px; padding: 24px; margin-right: 24px; }
-      .plan:last-child { margin-right: 0; }
-      .plan h2 { font-size: 22px; margin-bottom: 8px; }
-      .plan .cost { font-size: 40px; font-weight: 700; margin-bottom: 14px; }
-      .plan p { font-size: 16px; opacity: .85; }
-      [data-defect="on"] .third { margin-right: 120px; }
+      /* An app landing page: a headline, then three feature cards in one row with 32 px gaps. The defect makes the second gap 46 px (OQ-17). */
+      body { background: #fffdf8; }
+      .nav { height: 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 80px; }
+      .logo { font-size: 22px; font-weight: 700; color: #b45309; }
+      .nav .cta { background: #b45309; color: #fff; padding: 9px 20px; border-radius: 6px; font-size: 15px; font-weight: 700; }
+      .intro { text-align: center; padding: 52px 200px 44px; }
+      .intro h1 { font-family: var(--font-serif); font-size: 50px; line-height: 1.1; margin-bottom: 16px; }
+      .intro p { font-size: 20px; color: var(--color-muted); }
+      .row { --gap-second: 32px; padding: 0 80px; display: grid; grid-template-columns: 1fr 32px 1fr var(--gap-second) 1fr; }
+      [data-defect="on"] .row { --gap-second: 46px; }
+      .feature { background: #fdf0dc; border-radius: 12px; padding: 28px; height: 300px; }
+      .icon { width: 44px; height: 44px; border-radius: 10px; background: #b45309; margin-bottom: 20px; }
+      .feature h2 { font-size: 22px; margin-bottom: 10px; }
+      .feature p { font-size: 16px; color: #4a4036; }
     </style>
   </head>
   <body>
-    <main>
-      <h1>Choose a plan</h1>
-      <div class="row">
-        <div class="plan"><h2>Solo</h2><div class="cost">5</div><p>One user, one project.</p></div>
-        <div class="plan"><h2>Duo</h2><div class="cost">9</div><p>Two users, five projects.</p></div>
-        <div class="plan third"><h2>Team</h2><div class="cost">24</div><p>Ten users, shared folders.</p></div>
-        <div class="plan"><h2>Studio</h2><div class="cost">60</div><p>Unlimited users and projects.</p></div>
-      </div>
-    </main>
+    <div class="nav"><div class="logo">Fieldnote</div><div class="cta">Get the app</div></div>
+    <div class="intro"><h1>Notes for people who work outdoors</h1><p>Write on the trail, sync when you are back in range.</p></div>
+    <div class="row">
+      <div class="feature"><div class="icon"></div><h2>Works offline</h2><p>Every note, photo and map pin is saved on your phone first and uploaded later, so a weak signal never loses work.</p></div><i></i>
+      <div class="feature"><div class="icon" style="border-radius:50%"></div><h2>Pins on a map</h2><p>Drop a pin with a note and see every site you visited this season on one map, grouped by day.</p></div><i></i>
+      <div class="feature"><div class="icon" style="border-radius:4px"></div><h2>Share a report</h2><p>Turn a week of notes into one tidy report and send it to your team as a link or a PDF.</p></div>
+    </div>
   </body>
 </html>

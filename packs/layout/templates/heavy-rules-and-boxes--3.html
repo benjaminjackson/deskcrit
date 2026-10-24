@@ -2,53 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Layout fixture: heavy rules and boxes, variant 3</title>
+    <title>Layout fixture: heavy-rules-and-boxes--3</title>
     <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-/*
- * Criterion heavy-rules-and-boxes. A settings page has three sections of two rows each. The defect only draws a dark 3 px
- * border on every cell, card, or section, so the lines are as strong as the
- * text. Without it the same content is separated by space and a pale tone or
- * a pale hairline. Nothing else changes (OQ-17).
- */
-
-main { width: 860px; margin: 44px 0 0 140px; }
-h1 { font-size: 34px; font-weight: 700; margin-bottom: 26px; }
-section { margin-bottom: 26px; padding: 4px 22px 4px; border: 3px solid transparent; }
-section h2 { font-size: 20px; font-weight: 700; color: var(--color-muted); padding: 12px 0 6px; }
-.row { display: flex; justify-content: space-between; font-size: 20px; padding: 14px 0; border-top: 3px solid transparent; }
-section h2 + .row { border-top-color: #e6e9ed; }
-.val { color: var(--color-muted); }
-
-[data-defect="on"] section { border: 6px solid #000; padding: 0 0 0; }
-[data-defect="on"] section h2 { border-bottom: 6px solid #000; padding: 12px 22px; color: #000; }
-[data-defect="on"] .row { border: 6px solid #000; border-top: 0; padding: 14px 22px; margin: 0; }
-[data-defect="on"] .row .val { color: #000; }
-[data-defect="on"] h1 { border: 6px solid #000; padding: 2px 18px; width: 860px; margin-bottom: 18px; }
-[data-defect="on"] main { margin-top: 24px; }
-[data-defect="on"] section { margin-bottom: 18px; }
+      /* An account settings page with a left menu of five items and three settings sections, each section with three label-and-control rows. Without the defect, sections are separated by space and rows by 1 px pale hairlines. The defect draws every menu item, section, and row inside a 2 px near-black (#1a1a1a) border or rule. (OQ-17) */
+      body { background: #fff; }
+      h1 { position: absolute; left: 48px; top: 30px; font-size: 26px; }
+      nav { position: absolute; left: 48px; top: 96px; width: 200px; }
+      nav p { padding: 10px 14px; font-size: 15px; color: #3a4350; }
+      nav p.on { background: #eef2f7; font-weight: 700; color: #14181f; }
+      main { position: absolute; left: 290px; top: 96px; width: 940px; }
+      section { margin-bottom: 30px; }
+      section h2 { font-size: 17px; margin-bottom: 6px; }
+      .row { display: flex; justify-content: space-between; align-items: center; height: 54px; padding: 0 4px; border-bottom: 1px solid #e6e9ee; font-size: 15px; }
+      .row:last-child { border-bottom: 0; }
+      .row span { color: var(--color-muted); }
+      .row em { font-style: normal; color: #14181f; }
+      [data-defect="on"] nav p { border: 2px solid #1a1a1a; margin-bottom: -2px; }
+      [data-defect="on"] section { border: 2px solid #1a1a1a; padding: 12px 18px 6px; margin-bottom: 20px; }
+      [data-defect="on"] .row { border-bottom: 2px solid #1a1a1a; height: 46px; }
+      [data-defect="on"] .row:last-child { border-bottom: 0; }
     </style>
   </head>
   <body>
+    <h1>Account settings</h1>
+    <nav><p class="on">Profile</p><p>Security</p><p>Notifications</p><p>Billing</p><p>Connected apps</p></nav>
     <main>
-      <h1>Group settings</h1>
-      <section>
-        <h2>Profile</h2>
-        <div class="row"><span>Display name</span><span class="val">Harbour Reading Group</span></div>
-        <div class="row"><span>Contact email</span><span class="val">hello@example.org</span></div>
-      </section>
-      <section>
-        <h2>Notifications</h2>
-        <div class="row"><span>Event reminders</span><span class="val">On</span></div>
-        <div class="row"><span>Weekly digest</span><span class="val">Off</span></div>
-      </section>
-      <section>
-        <h2>Privacy</h2>
-        <div class="row"><span>Show member list</span><span class="val">Members only</span></div>
-        <div class="row"><span>Search listing</span><span class="val">Hidden</span></div>
-      </section>
+      <section><h2>Profile</h2><div class="row"><span>Display name</span><em>Marlow Dairies</em></div><div class="row"><span>Email</span><em>office@marlowdairies.example</em></div><div class="row"><span>Time zone</span><em>London (GMT+0)</em></div></section>
+      <section><h2>Security</h2><div class="row"><span>Password</span><em>Changed 3 months ago</em></div><div class="row"><span>Two-step sign-in</span><em>On</em></div><div class="row"><span>Active sessions</span><em>2 devices</em></div></section>
+      <section><h2>Notifications</h2><div class="row"><span>Weekly summary</span><em>Mondays</em></div><div class="row"><span>New order alerts</span><em>Email and phone</em></div><div class="row"><span>Product news</span><em>Off</em></div></section>
     </main>
   </body>
 </html>

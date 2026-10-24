@@ -7,22 +7,41 @@
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
-      /* A narrow left column of three solid blocks (x=80 to 480) and a wide right column of three solid blocks (x=520 to 1200). The defect moves the middle block of the right column to start at x=600 and end at x=1120. (OQ-17) */
-      h1 { position: absolute; left: 80px; top: 40px; font-size: 32px; font-weight: 700; }
-      .blk { position: absolute; padding: 22px 28px; height: 150px; color: #fff; }
-      .blk h2 { font-size: 22px; margin-bottom: 6px; }
-      .l { left: 80px; width: 400px; background: #334155; }
-      .r { left: 520px; width: 680px; background: #0f766e; }
-      [data-defect="on"] .odd { left: 600px; width: 520px; }
+      /* A product page: the photo fills x=80 to x=600. The right column has a title, price, and three bordered blocks that all run from x=660 to x=1200. The defect moves the delivery block 28 px right, so its left edge matches nothing (OQ-17). */
+      body { background: #fff; }
+      .nav { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 80px; border-bottom: 1px solid var(--color-border); }
+      .nav b { font-size: 20px; color: #234e3a; }
+      .nav span { color: var(--color-muted); font-size: 14px; margin-left: 26px; }
+      .photo { position: absolute; left: 80px; top: 92px; width: 520px; height: 640px; background: #e8efe9; }
+      .photo i { position: absolute; left: 150px; top: 230px; width: 220px; height: 260px; background: #3d6b53; border-radius: 40px 40px 14px 14px; }
+      .photo i::before { content: ""; position: absolute; left: 60px; top: -60px; width: 100px; height: 80px; border: 18px solid #3d6b53; border-bottom: none; border-radius: 60px 60px 0 0; }
+      .info { position: absolute; left: 660px; top: 92px; width: 540px; }
+      .crumbs { color: var(--color-muted); font-size: 13px; margin-bottom: 12px; }
+      h1 { font-size: 34px; line-height: 1.15; margin-bottom: 8px; }
+      .price { font-size: 26px; font-weight: 700; margin-bottom: 12px; }
+      .desc { color: #3a4249; font-size: 16px; margin-bottom: 20px; }
+      .block { border: 1px solid var(--color-border); border-radius: 8px; padding: 14px 18px; margin-bottom: 14px; }
+      .block h2 { font-size: 15px; margin-bottom: 8px; }
+      .sizes { display: flex; gap: 10px; }
+      .sizes span { border: 1px solid var(--color-border); border-radius: 6px; padding: 6px 16px; font-size: 14px; }
+      .sizes .sel { background: #234e3a; color: #fff; border-color: #234e3a; }
+      .block p { font-size: 14px; color: var(--color-muted); }
+      .btn { background: #234e3a; color: #fff; text-align: center; border-radius: 8px; padding: 14px 0; font-weight: 700; }
+      [data-defect="on"] .odd { margin-left: 28px; }
     </style>
   </head>
   <body>
-    <h1>Trip board</h1>
-    <div class="blk l" style="top:120px"><h2>Flights</h2><p>Out on Friday, back on Monday.</p></div>
-    <div class="blk l" style="top:300px"><h2>Hotel</h2><p>Two nights near the station.</p></div>
-    <div class="blk l" style="top:480px"><h2>Budget</h2><p>Keep it under four hundred.</p></div>
-    <div class="blk r" style="top:120px"><h2>Saturday</h2><p>Old town walk, lunch by the river.</p></div>
-    <div class="blk r odd" style="top:300px"><h2>Sunday</h2><p>Market in the morning, museum after.</p></div>
-    <div class="blk r" style="top:480px"><h2>Packing</h2><p>Light jacket, walking shoes, charger.</p></div>
+    <div class="nav"><b>Alder &amp; Pine</b><div><span>Bags</span><span>Jackets</span><span>Boots</span><span>Basket</span></div></div>
+    <div class="photo"><i></i></div>
+    <div class="info">
+      <div class="crumbs">Bags / Daypacks</div>
+      <h1>Trailhead daypack, 22 litre</h1>
+      <div class="price">$89</div>
+      <p class="desc">A waxed canvas pack with a padded back, two side pockets and a roll top that keeps the rain out.</p>
+      <div class="block"><h2>Colour</h2><div class="sizes"><span class="sel">Forest</span><span>Sand</span><span>Slate</span></div></div>
+      <div class="block"><h2>Size</h2><div class="sizes"><span>18 L</span><span class="sel">22 L</span><span>30 L</span></div></div>
+      <div class="block odd"><h2>Delivery</h2><p>Free on orders over $60. Arrives in three to five working days.</p></div>
+      <div class="btn">Add to basket</div>
+    </div>
   </body>
 </html>
