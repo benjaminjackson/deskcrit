@@ -4,6 +4,7 @@
 
 import { createHash } from "node:crypto";
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readdirSync,
@@ -400,5 +401,26 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
     expect(run.stderr).toContain(
       "answers demo/second, but demo/second is not in the pack. Removing a criterion means removing its answers from the saved answers files by hand",
     );
+  });
+
+  it("stops a live run with exit code 2 before the first request when a label file is named after no domain", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    const labelsDirectory = join(options.harnessDirectory, "labels");
+    mkdirSync(labelsDirectory, { recursive: true });
+    writeFileSync(
+      join(labelsDirectory, "nodomain.csv"),
+      "fixture,criterion,defect_present\n",
+    );
+    const run = await catchOutput(async () => {
+      await harnessMain(["--live", "--pack", packDirectory], options);
+    });
+    expect(run.exitCode).toBe(2);
+    expect(run.stdout).toBe("");
+    expect(run.stderr).toContain(
+      "nodomain.csv: not named after one of the seven domains",
+    );
+    expect(askedQuestionIds).toEqual([]);
+    // Nothing was saved, so no answers folder was made for the pack.
+    expect(existsSync(join(options.runsDirectory, "demo"))).toBe(false);
   });
 });

@@ -264,6 +264,13 @@ async function runHarnessWithContext(
     latency_ms: 0,
   };
   const modelIds: string[] = [];
+  // Read and check every label file before the first request, so a bad label file stops a live
+  // run before it asks TypeSafe anything (EV-5, crit-cy8.44).
+  const labelsByPack = new Map<string, readonly FixtureLabel[] | null>();
+  for (const pack of packs) {
+    labelsByPack.set(pack.name, readPackLabels(context, pack));
+  }
+  const labelsByDomain = readAllLabels(context, labelsByPack);
   if (live) {
     // Plan every pack before the first request, so a refused pack sends nothing at all.
     const plans: LiveFixturePlan[][] = [];
@@ -300,7 +307,7 @@ async function runHarnessWithContext(
       verdictsByFixture.set(fixture, verdicts);
     }
     const fixtureRows = scoreFixtureTests(pack.criteria, verdictsByFixture);
-    const labels = readPackLabels(context, pack);
+    const labels = labelsByPack.get(pack.name) ?? null;
     let agreement: CriterionAgreement[] | null = null;
     if (labels !== null) {
       const criterionIds = pack.criteria.map((criterion) => criterion.id);
@@ -314,7 +321,7 @@ async function runHarnessWithContext(
     packResults.push({ pack, fixtureRows, labels, agreement });
   }
   const model = findSingleModel(context.pinnedModel, modelIds);
-  const coverage = measureCoverage(readAllLabels(context, packResults));
+  const coverage = measureCoverage(labelsByDomain);
 
   const sections: string[] = [];
   sections.push(formatHeader(live, packResults, model, usageTotals));
@@ -919,11 +926,11 @@ function readPackLabels(
 /**
  * Read every label file in labels/ for the coverage count. A file must be named after one of the
  * seven first-party domains. A pack measured in this run reuses the labels it already read and
- * checked against the pack (EV-5, FR-55).
+ * checked against the pack, which labelsByPack holds by pack name (EV-5, FR-55).
  */
 function readAllLabels(
   context: HarnessContext,
-  packResults: readonly PackResult[],
+  labelsByPack: ReadonlyMap<string, readonly FixtureLabel[] | null>,
 ): Map<string, readonly FixtureLabel[]> {
   const labelsByDomain = new Map<string, readonly FixtureLabel[]>();
   if (!existsSync(context.options.labelsDirectory)) {
@@ -941,11 +948,8 @@ function readAllLabels(
         `${join(context.options.labelsDirectory, fileName)}: not named after one of the seven domains (${FIRST_PARTY_DOMAINS.join(", ")})`,
       );
     }
-    const measuredPack = packResults.find(
-      (result) => result.pack.name === domain,
-    );
-    if (measuredPack !== undefined) {
-      labelsByDomain.set(domain, measuredPack.labels ?? []);
+    if (labelsByPack.has(domain)) {
+      labelsByDomain.set(domain, labelsByPack.get(domain) ?? []);
     } else {
       const labelPath = join(context.options.labelsDirectory, fileName);
       labelsByDomain.set(
