@@ -41,15 +41,23 @@ export type GoldenCase = {
   readonly directory: string;
   readonly description: string;
   readonly arguments: readonly string[];
+  /**
+   * The folder the case runs from: evals/golden/, or the folder that the optional working_directory
+   * key of case.json names, relative to evals/golden/. A case uses it to read its own .crit.yaml.
+   */
+  readonly workingDirectory: string;
 };
 
 /**
- * Run the built crit bundle with these arguments and return its stdout, stderr, and exit code
- * (CS-21). The child environment holds only PATH, so a TYPESAFE_API_KEY on the developer machine
+ * Run the built crit bundle with these arguments, from evals/golden/ or the given folder, and
+ * return its stdout, stderr, and exit code (CS-21). The child environment holds only PATH, so a TYPESAFE_API_KEY on the developer machine
  * cannot reach the child and cause a network call (FR-42). A missing bundle throws an error that
  * says to build it, so no test passes or skips without it.
  */
-export function runCrit(commandArguments: readonly string[]): CritOutput {
+export function runCrit(
+  commandArguments: readonly string[],
+  workingDirectory: string = GOLDEN_DIRECTORY,
+): CritOutput {
   if (!existsSync(BUNDLE_PATH)) {
     throw new Error(
       `The bundle ${BUNDLE_PATH} does not exist. Run "npm run build" first; "npm test" does this for you.`,
@@ -64,7 +72,7 @@ export function runCrit(commandArguments: readonly string[]): CritOutput {
     process.execPath,
     [BUNDLE_PATH, ...commandArguments],
     {
-      cwd: GOLDEN_DIRECTORY,
+      cwd: workingDirectory,
       env: childEnvironment,
       encoding: "utf8",
     },
@@ -84,8 +92,8 @@ export function runCrit(commandArguments: readonly string[]): CritOutput {
 
 /**
  * Read every golden case folder under evals/golden/cases/, sorted by name so the order does not
- * depend on the file system (CS-18). Each folder must hold a case.json with a description and a
- * list of string arguments.
+ * depend on the file system (CS-18). Each folder must hold a case.json with a description, a
+ * list of string arguments, and optionally a working_directory string.
  */
 export function readGoldenCases(): GoldenCase[] {
   const names = readdirSync(CASES_DIRECTORY, { withFileTypes: true })
@@ -127,7 +135,24 @@ function readCaseFile(
     }
     textArguments.push(argument);
   }
-  return { name, directory, description, arguments: textArguments };
+  const workingDirectoryKey: unknown = Reflect.get(
+    caseFile,
+    "working_directory",
+  );
+  let workingDirectory = GOLDEN_DIRECTORY;
+  if (workingDirectoryKey !== undefined) {
+    if (typeof workingDirectoryKey !== "string") {
+      throw new Error(`${name}/case.json: working_directory must be a string`);
+    }
+    workingDirectory = join(GOLDEN_DIRECTORY, workingDirectoryKey);
+  }
+  return {
+    name,
+    directory,
+    description,
+    arguments: textArguments,
+    workingDirectory,
+  };
 }
 
 /** Read the stored expected stdout, stderr, and exit code of one golden case (EV-1). */

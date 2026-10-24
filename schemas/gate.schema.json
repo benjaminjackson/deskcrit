@@ -1,0 +1,68 @@
+{
+  "title": "deskcrit gate",
+  "description": "The JSON document that crit gate --json writes (docs/PRD.md section 8.3, FR-40, FR-41). It is a report with mode gate and one more field, gate. Every report field is a $ref to schemas/report.schema.json, so the two shapes cannot drift apart; a validator must load report.schema.json under the id report.schema.json. Written for JSON Schema draft 2020-12; the $schema keyword is left out by project rule. Unknown fields are rejected, as in the report schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "mode",
+    "tool",
+    "image",
+    "context",
+    "packs",
+    "model",
+    "findings",
+    "skipped",
+    "usage",
+    "gate"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "report.schema.json#/properties/schema_version"
+    },
+    "mode": {
+      "description": "Always gate for this document (section 8.3).",
+      "const": "gate"
+    },
+    "tool": { "$ref": "report.schema.json#/properties/tool" },
+    "image": { "$ref": "report.schema.json#/properties/image" },
+    "context": { "$ref": "report.schema.json#/properties/context" },
+    "packs": { "$ref": "report.schema.json#/properties/packs" },
+    "model": { "$ref": "report.schema.json#/properties/model" },
+    "findings": { "$ref": "report.schema.json#/properties/findings" },
+    "skipped": { "$ref": "report.schema.json#/properties/skipped" },
+    "usage": { "$ref": "report.schema.json#/properties/usage" },
+    "gate": {
+      "description": "The gate decision (section 8.3). The exit code agrees with passed: 0 when true, 1 when false.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "policy", "blocking"],
+      "properties": {
+        "passed": {
+          "description": "True when no finding blocks the gate (FR-40).",
+          "type": "boolean"
+        },
+        "policy": {
+          "description": "The gate policy as it was applied, including when the default was used (FR-41).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["warn_fails_gate"],
+          "properties": {
+            "warn_fails_gate": {
+              "description": "True when warn verdicts fail the gate as well as fail verdicts (FR-41).",
+              "type": "boolean"
+            }
+          }
+        },
+        "blocking": {
+          "description": "The criterion ids whose findings caused the failure, in finding order. Empty when passed is true.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "report.schema.json#/$defs/finding/properties/criterion"
+          }
+        }
+      }
+    }
+  }
+}

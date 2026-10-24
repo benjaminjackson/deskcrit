@@ -4,6 +4,7 @@
 // It prints only the text the pack author wrote and the numbers it was given, and adds no claim of
 // conformance or measurement (FR-34, NG-2).
 
+import type { GateReport } from "../compose/gate.js";
 import type { Finding, Report, ReportUsage } from "../compose/report.js";
 import type { Verdict } from "../compose/verdict.js";
 
@@ -141,7 +142,7 @@ function usageLine(usage: ReportUsage, modelId: string): string {
  * and then the usage line,
  * which prints even when there are no findings (FR-28, FR-32, FR-33, US-2, NFR-5).
  */
-export function renderReportText(report: Report): string {
+export function renderReportText(report: Report | GateReport): string {
   const lines: string[] = [];
   if (report.findings.length === 0) {
     lines.push("No findings: no criterion was asked.");
@@ -164,4 +165,19 @@ export function renderReportText(report: Report): string {
   lines.push(...skippedGroupLines(report.skipped));
   lines.push(usageLine(report.usage, report.model));
   return `${lines.join("\n")}\n`;
+}
+
+/**
+ * Turns the gate document into the readable gate output: the readable report, a blank line, and a
+ * last line that says whether the gate passed and, when it failed, lists the blocking criterion ids
+ * in report order (FR-40, FR-41, US-4, section 8.3).
+ */
+export function renderGateText(document: GateReport): string {
+  let gateLine: string;
+  if (document.gate.passed) {
+    gateLine = "Gate: pass";
+  } else {
+    gateLine = `Gate: fail. Blocking: ${document.gate.blocking.join(", ")}`;
+  }
+  return `${renderReportText(document)}\n${gateLine}\n`;
 }

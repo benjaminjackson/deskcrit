@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0.0",
+  "mode": "gate",
+  "tool": {
+    "name": "deskcrit",
+    "version": "0.0.0"
+  },
+  "image": {
+    "path": "images/page.png",
+    "width": 1280,
+    "height": 800
+  },
+  "context": {
+    "platform": "web"
+  },
+  "packs": [
+    {
+      "name": "golden",
+      "version": "1.0.0"
+    }
+  ],
+  "model": "jev-1.14.0",
+  "findings": [
+    {
+      "criterion": "golden/faint-body-text",
+      "title": "Body text is too faint to read",
+      "verdict": "fail",
+      "distribution": {
+        "true": 0.93,
+        "false": 0.07
+      },
+      "confidence": null,
+      "region": {
+        "x": 320,
+        "y": 200,
+        "width": 627,
+        "height": 80
+      },
+      "source": "W3C, WCAG 2.2, Success Criterion 1.4.3",
+      "link": "https://www.w3.org/TR/WCAG22/#contrast-minimum",
+      "fix": "Darken the body text or lighten its background until the text stands out.",
+      "model": "jev-1.14.0"
+    },
+    {
+      "criterion": "golden/faint-chart-labels",
+      "title": "Chart labels are faint",
+      "verdict": "warn",
+      "distribution": {
+        "true": 0.96,
+        "false": 0.04
+      },
+      "confidence": null,
+      "region": null,
+      "source": "W3C, WCAG 2.2, Success Criterion 1.4.3",
+      "link": "https://www.w3.org/TR/WCAG22/#contrast-minimum",
+      "fix": "Darken the chart labels until they stand out from the background.",
+      "model": "jev-1.14.0"
+    },
+    {
+      "criterion": "golden/competing-focal-points",
+      "title": "Several elements compete to be seen first",
+      "verdict": "uncertain",
+      "distribution": {
+        "0": 0.47,
+        "1": 0.32,
+        "2": 0.21
+      },
+      "confidence": 0,
+      "region": null,
+      "source": "Carl Dair, Design with Type",
+      "link": null,
+      "fix": "Make one element larger or stronger than the rest.",
+      "model": "jev-1.14.0"
+    },
+    {
+      "criterion": "golden/line-length",
+      "title": "Lines of body text are too long or too short",
+      "verdict": "pass",
+      "distribution": {
+        "short": 0.02,
+        "comfortable": 0.73,
+        "long": 0.25
+      },
+      "confidence": 0.59,
+      "region": null,
+      "source": "Robert Bringhurst, The Elements of Typographic Style",
+      "link": null,
+      "fix": "Set the text column width so lines hold 45 to 75 characters.",
+      "model": "jev-1.14.0"
+    },
+    {
+      "criterion": "golden/heading-larger-than-body",
+      "title": "The heading is not larger than the body text",
+      "verdict": "pass",
+      "distribution": {
+        "true": 0.03,
+        "false": 0.97
+      },
+      "confidence": null,
+      "region": null,
+      "source": "Carl Dair, Design with Type",
+      "link": null,
+      "fix": "Make the heading larger or bolder than the body text.",
+      "model": "jev-1.14.0"
+    }
+  ],
+  "skipped": [
+    {
+      "criterion": "golden/content-fills-viewport",
+      "reason": "requires facts.viewport_width, which the facts file does not have"
+    },
+    {
+      "criterion": "golden/slide-title-size",
+      "reason": "the criterion applies_to does not include platform web"
+    }
+  ],
+  "usage": {
+    "requests": 1,
+    "input_tokens": 3354,
+    "cost_usd": 0.000140868,
+    "latency_ms": 335.527125
+  },
+  "gate": {
+    "passed": false,
+    "policy": {
+      "warn_fails_gate": false
+    },
+    "blocking": [
+      "golden/faint-body-text"
+    ]
+  }
+}

@@ -1,10 +1,10 @@
-// Every file and environment read for `crit report` (CS-6): the image, `.crit.yaml`, the bundled
+// Every file and environment read for `crit report` and `crit gate` (CS-6): the image, `.crit.yaml`, the bundled
 // packs, each pack directory, the facts file, the --answers file, and the API key. Each failure throws CouldNotRunError that names the
 // input, so the run exits with code 2 (FR-4, US-5, US-7, NFR-14). The stages get the values.
 
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import { loadPack } from "../index.js";
+import { DEFAULT_GATE_POLICY, type GatePolicy, loadPack } from "../index.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
 import type { Pack } from "../shared/pack.js";
 import type { Context } from "../shared/state.js";
@@ -35,6 +35,8 @@ export type ReportInputs = {
   readonly json: boolean;
   /** The checked --answers file and the name it was given as, or undefined without --answers (FR-42). */
   readonly recordedAnswers: RecordedAnswers | undefined;
+  /** The gate policy from `.crit.yaml`, or the default when it sets no `warn_fails_gate`. Only `crit gate` acts on it (FR-41, FR-42). */
+  readonly gatePolicy: GatePolicy;
 };
 
 /** A checked answers file and the path the person gave, so later messages can name it (FR-4, FR-42). */
@@ -89,6 +91,10 @@ export async function readReportInputs(
     model: critYaml.model,
     json: reportArguments.json,
     recordedAnswers,
+    gatePolicy: {
+      warn_fails_gate:
+        critYaml.warn_fails_gate ?? DEFAULT_GATE_POLICY.warn_fails_gate,
+    },
   };
 }
 
