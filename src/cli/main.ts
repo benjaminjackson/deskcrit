@@ -8,7 +8,8 @@ import {
   type TypeSafeAdapterOptions,
 } from "../ask/typesafe/adapter.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
-import { parseReportArguments } from "./args.js";
+import { parseCommand } from "./args.js";
+import { runPacksValidate } from "./packs-validate-command.js";
 import {
   type ReportInputs,
   readApiKey,
@@ -19,6 +20,9 @@ import { type AnswerSource, runReport } from "./report-command.js";
 /** Exit code 0: the command ran (FR-43). */
 const EXIT_CODE_RAN = 0;
 
+/** Exit code 1: the command ran and found a fault, such as an invalid pack (FR-43, FR-49). */
+const EXIT_CODE_FAILED = 1;
+
 /** Exit code 2: the command could not run (FR-43). */
 const EXIT_CODE_COULD_NOT_RUN = 2;
 
@@ -28,7 +32,8 @@ export type CreateAdapter = (
 ) => TypeSafeAdapter;
 
 /**
- * Run `crit report`: parse argv, read the inputs, and run the stages. Without --answers it checks
+ * Run the command argv names. `crit packs validate <dir>` checks one pack, reads no key, and exits
+ * 0 for a valid pack and 1 for an invalid one (FR-49, FR-60, US-6). `crit report`: parse argv, read the inputs, and run the stages. Without --answers it checks
  * the API key and makes the adapter; with --answers it does neither and makes no network call. With
  * --save-answers it writes the answers file before stdout. On success it writes the report to stdout
  * once and sets exit code 0, whatever the verdicts. On any error it writes only to stderr, writes no
@@ -42,7 +47,18 @@ export async function main(
   workingDirectory: string = process.cwd(),
 ): Promise<void> {
   try {
-    const reportArguments = parseReportArguments(argv);
+    const command = parseCommand(argv);
+    if (command.command === "packs-validate") {
+      const output = await runPacksValidate(
+        command.directory,
+        workingDirectory,
+      );
+      process.stdout.write(output.stdoutText);
+      process.stderr.write(output.stderrText);
+      process.exitCode = output.valid ? EXIT_CODE_RAN : EXIT_CODE_FAILED;
+      return;
+    }
+    const reportArguments = command.args;
     const inputs = await readReportInputs(reportArguments, workingDirectory);
     const answerSource = chooseAnswerSource(inputs, environment, createAdapter);
     const output = await runReport(inputs, answerSource);

@@ -13,6 +13,10 @@ const forbiddenPatterns: RegExp[] = [
   /from\s+["']node:/,
   /require\(/,
   /\bprocess\./,
+  /console\./,
+  // Node's built-in modules without the node: prefix, and dynamic import().
+  /from\s+["'](fs|path|child_process|os)(\/[^"']*)?["']/,
+  /\bimport\(/,
   /from\s+["']\.\.\/(?!shared\/)/,
   /\bDate\b/,
   /Math\.random/,

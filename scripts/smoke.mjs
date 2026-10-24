@@ -42,6 +42,49 @@ function expectUsageRun(command, commandArguments, workingDirectory) {
 }
 
 /**
+ * Runs `packs validate` on each first-party pack with TYPESAFE_API_KEY unset, and throws unless
+ * each run exits 0, prints the valid line on stdout, and writes nothing to stderr (FR-49, FR-59,
+ * FR-60).
+ */
+function expectFirstPartyPacksValidate(
+  command,
+  commandPrefix,
+  workingDirectory,
+) {
+  const environment = { ...process.env };
+  delete environment.TYPESAFE_API_KEY;
+  for (const packName of ["basics", "layout", "typography"]) {
+    const packDirectory = resolve("packs", packName);
+    const commandArguments = [
+      ...commandPrefix,
+      "packs",
+      "validate",
+      packDirectory,
+    ];
+    const description = [command, ...commandArguments].join(" ");
+    const result = spawnSync(command, commandArguments, {
+      cwd: workingDirectory,
+      encoding: "utf8",
+      env: environment,
+    });
+    if (result.status !== 0) {
+      throw new Error(
+        `${description} exited with ${result.status}, expected 0\n${result.stderr}`,
+      );
+    }
+    if (
+      !result.stdout.includes(`pack ${packName} is valid`) ||
+      result.stderr !== ""
+    ) {
+      throw new Error(
+        `${description} printed ${JSON.stringify(result.stdout)} and ${JSON.stringify(result.stderr)}`,
+      );
+    }
+    console.log(`ok: ${description}`);
+  }
+}
+
+/**
  * Runs the bundle on a real image and a real pack with TYPESAFE_API_KEY unset. main checks the
  * key after it loads the pack, so exit code 2 with the key message proves the bundled yaml and
  * Ajv code runs (NFR-14, FR-11). The stderr check for "Dynamic require" catches the CommonJS
@@ -473,6 +516,7 @@ async function runSmokeChecks() {
 
   expectUsageRun("node", ["dist/crit.js"], process.cwd());
   expectPackLoadsInBundle();
+  expectFirstPartyPacksValidate("node", ["dist/crit.js"], process.cwd());
   expectBundledPacksLoad();
   expectOfflineRunWithAnswers();
   expectLibraryLeavesOutSdk();
@@ -498,6 +542,11 @@ async function runSmokeChecks() {
     const tarballPath = resolve(packDirectory, tarballName);
     for (const binName of ["crit", "deskcrit"]) {
       expectUsageRun(
+        "npx",
+        ["--yes", "--package", tarballPath, binName],
+        emptyDirectory,
+      );
+      expectFirstPartyPacksValidate(
         "npx",
         ["--yes", "--package", tarballPath, binName],
         emptyDirectory,

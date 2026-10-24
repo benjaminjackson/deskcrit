@@ -69,13 +69,21 @@ const validatePackSchema = new Ajv2020({
 }).compile(packSchema);
 
 /**
+ * The phase of checkPack that found the problems. "yaml" means the text never became data, so
+ * crit packs validate treats it as could not run (FR-49, FR-43).
+ */
+export type PackCheckPhase = "yaml" | "schema" | "rules";
+
+/**
  * Parses and checks one pack's YAML text, and returns the typed pack or every problem found. It
  * runs in three phases, YAML, schema, then the checks the schema cannot express, and stops after
- * the first phase that finds problems (FR-36, FR-44, FR-45, NFR-13, US-6, CS-4, CS-7, CS-18).
+ * the first phase that finds problems, and names that phase (FR-36, FR-44, FR-45, NFR-13, US-6, CS-4, CS-7, CS-18).
  */
 export function checkPack(
   yamlText: string,
-): { ok: true; pack: Pack } | { ok: false; problems: PackProblem[] } {
+):
+  | { ok: true; pack: Pack }
+  | { ok: false; phase: PackCheckPhase; problems: PackProblem[] } {
   const document = parseDocument(yamlText, {
     schema: "core",
     customTags: [],
@@ -86,20 +94,24 @@ export function checkPack(
   });
   const yamlProblems = findYamlProblems(document);
   if (yamlProblems.length > 0) {
-    return { ok: false, problems: yamlProblems };
+    return { ok: false, phase: "yaml", problems: yamlProblems };
   }
 
   const data: unknown = document.toJS();
   if (!validatePackSchema(data)) {
     const schemaErrors = validatePackSchema.errors ?? [];
-    return { ok: false, problems: convertSchemaErrors(schemaErrors, data) };
+    return {
+      ok: false,
+      phase: "schema",
+      problems: convertSchemaErrors(schemaErrors, data),
+    };
   }
 
   // The schema has accepted the data, so it has the PackYaml shape. This is the one cast (CS-7).
   const packYaml = data as PackYaml;
   const ruleProblems = findRuleProblems(packYaml);
   if (ruleProblems.length > 0) {
-    return { ok: false, problems: ruleProblems };
+    return { ok: false, phase: "rules", problems: ruleProblems };
   }
   return { ok: true, pack: buildPack(packYaml) };
 }
