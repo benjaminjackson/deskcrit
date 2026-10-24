@@ -6,15 +6,22 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-// node:test gives `test`, which registers one named test case.
-import { test } from "node:test";
+// node:test gives `test`, which registers one named test case, and
+// `afterEach`, which runs after every test case.
+import { afterEach, test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { formatCsv, parseCsv } from "./sheet.ts";
+import { ANSWER_COLUMN, formatCsv, parseCsv } from "./csv.ts";
 
 const SCRIPT_PATH = fileURLToPath(new URL("sheet.ts", import.meta.url));
+
+/** The prefix of every temporary folder that a test makes. */
+const TEMPORARY_FOLDER_PREFIX = join(tmpdir(), "answer-sheet-test-");
+
+/** The temporary folders made by the current test, deleted after it. */
+const temporaryFolders: string[] = [];
 
 /** Three questions, one of each type, in the same shape as spike/questions.yaml (M-1). */
 const FIXTURE_QUESTIONS = `
@@ -48,12 +55,40 @@ const FIXTURE_QUESTIONS = `
       "cramped, sparse": Cramped beside sparse, with a "quote".
 `;
 
-/** Makes a temporary folder with the fixture questions and a blank sheet written by the blank step, and returns both paths (M-1). */
-function makeFixture(): { sheetPath: string; questionsPath: string } {
-  const folder = mkdtempSync(join(tmpdir(), "answer-sheet-test-"));
+/** One choice question whose labels are made of digits, listed out of number order (M-1). */
+const DIGIT_LABEL_QUESTIONS = `
+- id: column-count
+  domain: layout
+  title: Column count
+  question:
+    type: choice
+    instructions: How many columns?
+    criteria:
+      "2": Two columns.
+      "1": One column.
+`;
+
+/** Deletes the temporary folders of the test that just ran (M-1). It deletes only folders with the test prefix, so a wrong path cannot delete anything else. */
+afterEach(() => {
+  for (const folder of temporaryFolders) {
+    if (folder.startsWith(TEMPORARY_FOLDER_PREFIX)) {
+      rmSync(folder, { recursive: true, force: true });
+    }
+  }
+  // Setting length to 0 empties the list.
+  temporaryFolders.length = 0;
+});
+
+/** Makes a temporary folder with the questions file and a blank sheet written by the blank step, and returns both paths (M-1). */
+function makeFixture(questionsText = FIXTURE_QUESTIONS): {
+  sheetPath: string;
+  questionsPath: string;
+} {
+  const folder = mkdtempSync(TEMPORARY_FOLDER_PREFIX);
+  temporaryFolders.push(folder);
   const questionsPath = join(folder, "questions.yaml");
   const sheetPath = join(folder, "human_answers.csv");
-  writeFileSync(questionsPath, FIXTURE_QUESTIONS);
+  writeFileSync(questionsPath, questionsText);
   const result = runSheet("blank", sheetPath, questionsPath);
   assert.equal(result.status, 0, result.stderr);
   return { sheetPath, questionsPath };
@@ -92,9 +127,19 @@ function editSheet(
 function fillAnswers(sheetPath: string, answers: string[]): void {
   editSheet(sheetPath, (rows) => {
     for (let index = 0; index < answers.length; index++) {
-      rows[index + 1][6] = answers[index];
+      rows[index + 1][ANSWER_COLUMN] = answers[index];
     }
   });
+}
+
+/** Reads the answer column of every row after the header (M-1). */
+function readAnswers(sheetPath: string): string[] {
+  const rows = parseCsv(readFileSync(sheetPath, "utf8"));
+  const answers: string[] = [];
+  for (const row of rows.slice(1)) {
+    answers.push(row[ANSWER_COLUMN]);
+  }
+  return answers;
 }
 
 test("blank writes one row per question with empty answers and numbered options", () => {
@@ -124,7 +169,7 @@ test("blank writes one row per question with empty answers and numbered options"
 test("blank refuses to overwrite a sheet that exists", () => {
   const fixture = makeFixture();
   const result = runSheet("blank", fixture.sheetPath, fixture.questionsPath);
-  assert.equal(result.status, 1);
+  assert.equal(result.status, 2);
   assert.match(result.stderr, /exists/);
 });
 
@@ -136,7 +181,7 @@ test("check rejects an empty answer", () => {
   assert.match(result.stderr, /row 3 \(long-lines\): human_answer is empty/);
 });
 
-test("check rejects an answer that matches no option", () => {
+test("check rejects an answer that matches no option and leaves the file unchanged", () => {
   const fixture = makeFixture();
   fillAnswers(fixture.sheetPath, ["3", "maybe", "Even."]);
   const before = readFileSync(fixture.sheetPath, "utf8");
@@ -183,6 +228,33 @@ test("check rejects too few rows and too many rows", () => {
   );
 });
 
+test("check rejects a wrong header and leaves the file unchanged", () => {
+  const fixture = makeFixture();
+  fillAnswers(fixture.sheetPath, ["1", "1", "1"]);
+  editSheet(fixture.sheetPath, (rows) => {
+    rows[0][ANSWER_COLUMN] = "answer";
+  });
+  const before = readFileSync(fixture.sheetPath, "utf8");
+  const result = runSheet("check", fixture.sheetPath, fixture.questionsPath);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /header must be/);
+  assert.equal(readFileSync(fixture.sheetPath, "utf8"), before);
+});
+
+test("check rejects a row with the wrong column count", () => {
+  const fixture = makeFixture();
+  fillAnswers(fixture.sheetPath, ["1", "1", "1"]);
+  editSheet(fixture.sheetPath, (rows) => {
+    rows[2].pop();
+  });
+  const result = runSheet("check", fixture.sheetPath, fixture.questionsPath);
+  assert.equal(result.status, 1);
+  assert.match(
+    result.stderr,
+    /row 3 \(long-lines\): has 7 columns, expected 8/,
+  );
+});
+
 test("check rejects an id or wording that differs from the questions file", () => {
   const fixture = makeFixture();
   fillAnswers(fixture.sheetPath, ["1", "1", "1"]);
@@ -198,27 +270,29 @@ test("check rejects an id or wording that differs from the questions file", () =
   assert.match(result.stderr, /row 4 \(density\): options differs/);
 });
 
-test("check rewrites numbers into option text and accepts exact option text", () => {
+test("check rewrites numbers into option text and accepts option text in any case", () => {
   const fixture = makeFixture();
-  fillAnswers(fixture.sheetPath, ["2", " 0 ", "cramped, sparse"]);
+  fillAnswers(fixture.sheetPath, ["2", " 0 ", "Cramped, Sparse"]);
   const result = runSheet("check", fixture.sheetPath, fixture.questionsPath);
   assert.equal(result.status, 0, result.stderr);
-  const rows = parseCsv(readFileSync(fixture.sheetPath, "utf8"));
-  assert.equal(rows[1][6], "false");
-  assert.equal(rows[2][6], "cannot tell");
-  assert.equal(rows[3][6], "cramped, sparse");
+  assert.deepEqual(readAnswers(fixture.sheetPath), [
+    "false",
+    "cannot tell",
+    "cramped, sparse",
+  ]);
 
-  fillAnswers(fixture.sheetPath, ["true", "3", "1"]);
+  fillAnswers(fixture.sheetPath, ["TRUE", "3", "1"]);
   const secondResult = runSheet(
     "check",
     fixture.sheetPath,
     fixture.questionsPath,
   );
   assert.equal(secondResult.status, 0, secondResult.stderr);
-  const secondRows = parseCsv(readFileSync(fixture.sheetPath, "utf8"));
-  assert.equal(secondRows[1][6], "true");
-  assert.equal(secondRows[2][6], "Too long.");
-  assert.equal(secondRows[3][6], "even");
+  assert.deepEqual(readAnswers(fixture.sheetPath), [
+    "true",
+    "Too long.",
+    "even",
+  ]);
 
   const passedText = readFileSync(fixture.sheetPath, "utf8");
   const thirdResult = runSheet(
@@ -230,14 +304,75 @@ test("check rewrites numbers into option text and accepts exact option text", ()
   assert.equal(readFileSync(fixture.sheetPath, "utf8"), passedText);
 });
 
-test("check reads a sheet saved by a spreadsheet app with Windows line endings", () => {
-  const fixture = makeFixture();
-  fillAnswers(fixture.sheetPath, ["1", "1", "1"]);
-  const unixText = readFileSync(fixture.sheetPath, "utf8");
-  writeFileSync(
-    fixture.sheetPath,
-    `\uFEFF${unixText.replaceAll("\n", "\r\n")}`,
+test("check keeps a choice label made of digits when it runs again", () => {
+  const fixture = makeFixture(DIGIT_LABEL_QUESTIONS);
+  const rows = parseCsv(readFileSync(fixture.sheetPath, "utf8"));
+  assert.equal(
+    rows[1][5],
+    "1 = 2: Two columns. | 2 = 1: One column. | 0 = cannot tell",
   );
+  fillAnswers(fixture.sheetPath, ["2"]);
+  const firstResult = runSheet(
+    "check",
+    fixture.sheetPath,
+    fixture.questionsPath,
+  );
+  assert.equal(firstResult.status, 0, firstResult.stderr);
+  assert.deepEqual(readAnswers(fixture.sheetPath), ["2"]);
+  const secondResult = runSheet(
+    "check",
+    fixture.sheetPath,
+    fixture.questionsPath,
+  );
+  assert.equal(secondResult.status, 0, secondResult.stderr);
+  assert.deepEqual(readAnswers(fixture.sheetPath), ["2"]);
+});
+
+test("check reads a sheet saved with Windows line endings, including inside a quoted field", () => {
+  const fixture = makeFixture();
+  const notesColumn = ANSWER_COLUMN + 1;
+  fillAnswers(fixture.sheetPath, ["1", "1", "1"]);
+  editSheet(fixture.sheetPath, (rows) => {
+    rows[1][notesColumn] = "first line\nsecond line";
+  });
+  const unixText = readFileSync(fixture.sheetPath, "utf8");
+  writeFileSync(fixture.sheetPath, `﻿${unixText.replaceAll("\n", "\r\n")}`);
   const result = runSheet("check", fixture.sheetPath, fixture.questionsPath);
   assert.equal(result.status, 0, result.stderr);
+  const rows = parseCsv(readFileSync(fixture.sheetPath, "utf8"));
+  assert.equal(rows[1][notesColumn], "first line\nsecond line");
+});
+
+test("check exits with code 2 and a short message when it cannot run", () => {
+  const fixture = makeFixture();
+  const missingSheetPath = `${fixture.sheetPath}.missing`;
+  const missingResult = runSheet(
+    "check",
+    missingSheetPath,
+    fixture.questionsPath,
+  );
+  assert.equal(missingResult.status, 2);
+  assert.match(missingResult.stderr, /^could not run: .*no such file/);
+  assert.doesNotMatch(missingResult.stderr, /\n\s+at /);
+
+  writeFileSync(fixture.questionsPath, "- id: [broken\n");
+  const brokenResult = runSheet(
+    "check",
+    fixture.sheetPath,
+    fixture.questionsPath,
+  );
+  assert.equal(brokenResult.status, 2);
+  assert.match(brokenResult.stderr, /^could not run: /);
+
+  writeFileSync(
+    fixture.questionsPath,
+    FIXTURE_QUESTIONS.replace("type: score", "type: ranking"),
+  );
+  const unknownResult = runSheet(
+    "check",
+    fixture.sheetPath,
+    fixture.questionsPath,
+  );
+  assert.equal(unknownResult.status, 2);
+  assert.match(unknownResult.stderr, /unknown type: ranking/);
 });

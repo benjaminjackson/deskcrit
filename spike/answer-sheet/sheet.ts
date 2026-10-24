@@ -16,6 +16,11 @@
  *     the sheet back to the same file. If any row fails, it prints every
  *     problem, changes nothing, and exits with code 1.
  *
+ * When a step cannot run, for example because a file is missing, the YAML
+ * is broken, or a question has an unknown type, it prints a short message
+ * and exits with code 2. The blank step also exits with code 2 when the
+ * sheet already exists.
+ *
  * The sheet path defaults to spike/human_answers.csv and the questions path
  * to spike/questions.yaml.
  *
@@ -42,8 +47,12 @@
  *   choice  the option label, for example "even". The options cell shows
  *           the criterion after a colon.
  *
- * An answer may be the number or the exact option text. Spaces around the
+ * An answer may be the option text, in any case, or the option number. The
+ * check tries the text first and the number second, so a choice label made
+ * of digits stays the same when the check runs again. Spaces around the
  * answer are ignored.
+ *
+ * Run `npm ci --prefix spike/answer-sheet` once first, to install `yaml`.
  */
 
 // Node's built-in modules for files and paths. The "node:" prefix names a
@@ -51,45 +60,25 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
-
-/** The columns of the sheet, in order. */
-const COLUMN_NAMES = [
-  "question_id",
-  "domain",
-  "type",
-  "question_text",
-  "instructions",
-  "options",
-  "human_answer",
-  "human_notes",
-];
-
-/** The number of columns that must match spike/questions.yaml word for word. */
-const FIXED_COLUMN_COUNT = 6;
-
-/** The position of the human_answer column. */
-const ANSWER_COLUMN = 6;
+import { ANSWER_COLUMN, COLUMN_NAMES, formatCsv, parseCsv } from "./csv.ts";
 
 /** The text and number of the answer that means "cannot tell". */
 const CANNOT_TELL_TEXT = "cannot tell";
 const CANNOT_TELL_NUMBER = 0;
 
 // A `type` names the shape of an object. It is erased when Node runs the
-// file and is there only for the reader. A `?` after a field name means the
-// field can be missing.
-/** One question as it is written in spike/questions.yaml. */
+// file and is there only for the reader.
+/** One question from spike/questions.yaml, with the fields the sheet uses. */
 type SpikeQuestion = {
   id: string;
   domain: string;
   title: string;
-  question: {
-    type: string;
-    instructions: string;
-    // Record<string, string> is an object whose keys and values are all
-    // strings, like a Ruby Hash of String to String.
-    criteria?: Record<string, string>;
-    levels?: string[];
-  };
+  type: string;
+  instructions: string;
+  // `[string, string][]` is a list of pairs: each pair is a label and its
+  // criterion text, in the order the YAML file lists them.
+  criteria: [string, string][];
+  levels: string[];
 };
 
 /** One numbered answer option. `text` is what the check step writes back. */
@@ -99,36 +88,94 @@ type AnswerOption = {
   description: string;
 };
 
+/** Reads one text field from a YAML mapping, and stops the run with a clear message when it is missing (M-1). */
+function readTextField(
+  mapping: Map<unknown, unknown>,
+  fieldName: string,
+  place: string,
+): string {
+  const value = mapping.get(fieldName);
+  if (typeof value !== "string") {
+    throw new Error(`${place}: field "${fieldName}" is missing or not text`);
+  }
+  return value;
+}
+
+/** Turns one parsed YAML entry into a SpikeQuestion (M-1). It keeps criteria as a list of pairs so a label made of digits keeps its YAML position. */
+function readQuestion(entry: unknown, place: string): SpikeQuestion {
+  // `instanceof Map` checks that the YAML entry is a mapping of keys to
+  // values.
+  if (!(entry instanceof Map)) {
+    throw new Error(`${place}: is not a mapping`);
+  }
+  const id = readTextField(entry, "id", place);
+  const questionPlace = `${place} (${id})`;
+  const questionMapping = entry.get("question");
+  if (!(questionMapping instanceof Map)) {
+    throw new Error(`${questionPlace}: field "question" is missing`);
+  }
+  const criteria: [string, string][] = [];
+  const criteriaMapping = questionMapping.get("criteria");
+  if (criteriaMapping instanceof Map) {
+    for (const [label, description] of criteriaMapping) {
+      criteria.push([String(label), String(description)]);
+    }
+  }
+  const levels: string[] = [];
+  const levelList = questionMapping.get("levels");
+  if (Array.isArray(levelList)) {
+    for (const levelText of levelList) {
+      levels.push(String(levelText));
+    }
+  }
+  return {
+    id,
+    domain: readTextField(entry, "domain", questionPlace),
+    title: readTextField(entry, "title", questionPlace),
+    type: readTextField(questionMapping, "type", questionPlace),
+    instructions: readTextField(questionMapping, "instructions", questionPlace),
+    criteria,
+    levels,
+  };
+}
+
 /** Reads and parses the questions file, so each sheet row can be built from it (M-1). */
 function readQuestions(questionsPath: string): SpikeQuestion[] {
   const fileText = readFileSync(questionsPath, "utf8");
-  // `as SpikeQuestion[]` tells the reader the shape to expect. It checks
-  // nothing when the script runs.
-  return parseYaml(fileText) as SpikeQuestion[];
+  // mapAsMap makes the YAML library return each mapping as a Map. A Map keeps
+  // keys in file order. A plain object would move keys made of digits, such
+  // as "2", to the front.
+  const parsed = parseYaml(fileText, { mapAsMap: true });
+  if (!Array.isArray(parsed)) {
+    throw new Error(`${questionsPath} is not a list of questions`);
+  }
+  const questions: SpikeQuestion[] = [];
+  for (let index = 0; index < parsed.length; index++) {
+    const place = `${questionsPath} entry ${index + 1}`;
+    questions.push(readQuestion(parsed[index], place));
+  }
+  return questions;
 }
 
 /** Lists the answer options of one question, numbered from 1 in YAML order, with "cannot tell" as 0 at the end (M-1). */
 function listAnswerOptions(question: SpikeQuestion): AnswerOption[] {
   const options: AnswerOption[] = [];
-  const questionType = question.question.type;
-  if (questionType === "noul" || questionType === "choice") {
-    const criteria = question.question.criteria;
-    if (criteria === undefined) {
+  if (question.type === "noul" || question.type === "choice") {
+    if (question.criteria.length === 0) {
       throw new Error(`question ${question.id} has no criteria`);
     }
-    // Object.entries gives the [key, value] pairs in the order the YAML file
-    // lists them.
-    // `description` alone, inside the object below, is short for
-    // `description: description`.
-    for (const [label, description] of Object.entries(criteria)) {
-      options.push({ number: options.length + 1, text: label, description });
+    for (const [label, description] of question.criteria) {
+      options.push({
+        number: options.length + 1,
+        text: label,
+        description: description,
+      });
     }
-  } else if (questionType === "score") {
-    const levels = question.question.levels;
-    if (levels === undefined) {
+  } else if (question.type === "score") {
+    if (question.levels.length === 0) {
       throw new Error(`question ${question.id} has no levels`);
     }
-    for (const levelText of levels) {
+    for (const levelText of question.levels) {
       options.push({
         number: options.length + 1,
         text: levelText,
@@ -137,7 +184,7 @@ function listAnswerOptions(question: SpikeQuestion): AnswerOption[] {
     }
   } else {
     throw new Error(
-      `question ${question.id} has an unknown type: ${questionType}`,
+      `question ${question.id} has an unknown type: ${question.type}`,
     );
   }
   options.push({
@@ -161,106 +208,38 @@ function formatOptionsCell(options: AnswerOption[]): string {
   return parts.join(" | ");
 }
 
-/** Builds the blank sheet row of one question: the six fixed columns, then an empty answer and empty notes (M-1). */
+/** Builds the blank sheet row of one question: the fixed columns, then an empty answer and empty notes (M-1). */
 function buildBlankRow(question: SpikeQuestion): string[] {
   const options = listAnswerOptions(question);
   return [
     question.id,
     question.domain,
-    question.question.type,
+    question.type,
     question.title,
-    question.question.instructions,
+    question.instructions,
     formatOptionsCell(options),
     "",
     "",
   ];
 }
 
-/** Turns rows into CSV text for the answer sheet (M-1). Every field is put in double quotes, and a double quote inside a field is doubled. */
-export function formatCsv(rows: string[][]): string {
-  const lines: string[] = [];
-  for (const row of rows) {
-    const quotedFields: string[] = [];
-    for (const field of row) {
-      // replaceAll with a plain string replaces each `"` with `""`.
-      quotedFields.push(`"${field.replaceAll('"', '""')}"`);
-    }
-    lines.push(quotedFields.join(","));
-  }
-  return `${lines.join("\n")}\n`;
-}
-
-/** Parses the answer sheet CSV into rows, and drops empty lines (M-1). It reads quoted fields with commas, quotes or line breaks, Windows line endings, and the byte order mark that spreadsheet apps add. */
-export function parseCsv(csvText: string): string[][] {
-  let text = csvText;
-  if (text.startsWith("\uFEFF")) {
-    text = text.slice(1);
-  }
-  const rows: string[][] = [];
-  let currentRow: string[] = [];
-  let currentField = "";
-  let insideQuotes = false;
-  let position = 0;
-  while (position < text.length) {
-    const character = text[position];
-    if (insideQuotes) {
-      if (character === '"' && text[position + 1] === '"') {
-        currentField += '"';
-        position += 2;
-        continue;
-      }
-      if (character === '"') {
-        insideQuotes = false;
-      } else {
-        currentField += character;
-      }
-      position += 1;
-      continue;
-    }
-    if (character === '"') {
-      insideQuotes = true;
-    } else if (character === ",") {
-      currentRow.push(currentField);
-      currentField = "";
-    } else if (character === "\n" || character === "\r") {
-      currentRow.push(currentField);
-      rows.push(currentRow);
-      currentRow = [];
-      currentField = "";
-      if (character === "\r" && text[position + 1] === "\n") {
-        position += 1;
-      }
-    } else {
-      currentField += character;
-    }
-    position += 1;
-  }
-  if (currentField !== "" || currentRow.length > 0) {
-    currentRow.push(currentField);
-    rows.push(currentRow);
-  }
-  const nonEmptyRows: string[][] = [];
-  for (const row of rows) {
-    const isEmptyLine = row.length === 1 && row[0] === "";
-    if (!isEmptyLine) {
-      nonEmptyRows.push(row);
-    }
-  }
-  return nonEmptyRows;
-}
-
-/** Finds the option that an answer names, by number or by exact option text (M-1). Returns undefined when no option matches. */
+/** Finds the option that an answer names, first by option text in any case and then by number (M-1). Returns undefined when no option matches. */
 function findAnswerOption(
   answer: string,
   options: AnswerOption[],
 ): AnswerOption | undefined {
-  // The regular expression /^\d+$/ matches a string made only of digits.
-  const isNumber = /^\d+$/.test(answer);
+  const lowerCaseAnswer = answer.toLowerCase();
   for (const option of options) {
-    if (isNumber && option.number === Number(answer)) {
+    if (option.text.toLowerCase() === lowerCaseAnswer) {
       return option;
     }
-    if (!isNumber && option.text === answer) {
+  }
+  // The regular expression /^\d+$/ matches a string made only of digits.
+  if (!/^\d+$/.test(answer)) {
+    return undefined;
+  }
+  for (const option of options) {
+    if (option.number === Number(answer)) {
       return option;
     }
   }
@@ -299,7 +278,7 @@ function checkSheet(
       continue;
     }
     const expectedRow = buildBlankRow(question);
-    for (let column = 0; column < FIXED_COLUMN_COUNT; column++) {
+    for (let column = 0; column < ANSWER_COLUMN; column++) {
       if (row[column] !== expectedRow[column]) {
         problems.push(
           `${rowLabel}: ${COLUMN_NAMES[column]} differs from spike/questions.yaml; expected "${expectedRow[column]}", found "${row[column]}"`,
@@ -317,7 +296,7 @@ function checkSheet(
       const option = findAnswerOption(answer, options);
       if (option === undefined) {
         problems.push(
-          `${rowLabel}: human_answer "${answer}" matches no option; use a number from the options column or its exact text`,
+          `${rowLabel}: human_answer "${answer}" matches no option; use a number from the options column or its text`,
         );
       } else {
         canonicalRow[ANSWER_COLUMN] = option.text;
@@ -328,13 +307,13 @@ function checkSheet(
   return { problems, canonicalRows };
 }
 
-/** Writes the blank sheet and returns the exit code (M-1). It refuses when the sheet file exists, so it never erases answers. */
+/** Writes the blank sheet and returns the exit code (M-1). It refuses with code 2 when the sheet file exists, so it never erases answers. */
 function writeBlankSheet(sheetPath: string, questionsPath: string): number {
   if (existsSync(sheetPath)) {
     console.error(
       `${sheetPath} exists; delete it first if you really want a blank sheet`,
     );
-    return 1;
+    return 2;
   }
   const questions = readQuestions(questionsPath);
   const rows: string[][] = [COLUMN_NAMES];
@@ -367,7 +346,7 @@ function runCheck(sheetPath: string, questionsPath: string): number {
   return 0;
 }
 
-/** Reads the command line and runs the blank or check step (M-1). */
+/** Reads the command line and runs the blank or check step (M-1). An error that stops a step prints a short message and gives exit code 2. */
 function main(): void {
   // process.argv holds [node path, script path, ...arguments].
   const commandName = process.argv[2];
@@ -381,20 +360,27 @@ function main(): void {
   );
   const sheetPath = process.argv[3] ?? defaultSheetPath;
   const questionsPath = process.argv[4] ?? defaultQuestionsPath;
-  if (commandName === "blank") {
-    process.exitCode = writeBlankSheet(sheetPath, questionsPath);
-  } else if (commandName === "check") {
-    process.exitCode = runCheck(sheetPath, questionsPath);
-  } else {
-    console.error(
-      "usage: node spike/answer-sheet/sheet.ts blank|check [sheet.csv] [questions.yaml]",
-    );
+  try {
+    if (commandName === "blank") {
+      process.exitCode = writeBlankSheet(sheetPath, questionsPath);
+    } else if (commandName === "check") {
+      process.exitCode = runCheck(sheetPath, questionsPath);
+    } else {
+      console.error(
+        "usage: node spike/answer-sheet/sheet.ts blank|check [sheet.csv] [questions.yaml]",
+      );
+      process.exitCode = 2;
+    }
+  } catch (error) {
+    // `error instanceof Error` checks that the thrown value has a message.
+    // Printing only the message keeps the stack trace out of the output.
+    if (error instanceof Error) {
+      console.error(`could not run: ${error.message}`);
+    } else {
+      console.error(`could not run: ${String(error)}`);
+    }
     process.exitCode = 2;
   }
 }
 
-// import.meta.main is true only when this file is the one Node was asked to
-// run, so the test file can import the functions above without running main.
-if (import.meta.main) {
-  main();
-}
+main();

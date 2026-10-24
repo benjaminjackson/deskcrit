@@ -29,7 +29,7 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `src/cli/bin.ts` is the bundle entry file.
 - `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
 - `spike/` holds the M-1 spike inputs: the prepared screenshot, the twenty questions, the page purpose, and its attribution.
-- `spike/answer-sheet/` holds the disposable M-1 script that writes and checks `spike/human_answers.csv`, the sheet where Benjamin Jackson answers the twenty questions before he sees any Jev answer. It has its own `package.json`, and it runs with `node spike/answer-sheet/sheet.ts blank` or `check`.
+- `spike/answer-sheet/` holds the disposable M-1 script that writes and checks `spike/human_answers.csv`, the sheet where Benjamin Jackson answers the twenty questions before he sees any Jev answer. It has its own `package.json`. Run `npm ci --prefix spike/answer-sheet` once first, then `node spike/answer-sheet/sheet.ts blank` or `check`.
 
 ## How we build: the Phoenix rules
 
