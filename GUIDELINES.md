@@ -28,7 +28,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 
 ### Heading lines hold together
 - **Rule:** A heading of two or more lines needs tighter line spacing than text, so that it reads as one unit. With text spacing it falls apart into separate lines; set too tight, its lines collide.
-- **Source:** Lupton, *Thinking with Type* (2nd ed. 2010), "Text" chapter, "Line spacing"; Hochuli, *Detail in Typography*, chapter "Linespacing, the column".
+- **Source:** UNVERIFIED: not found in the 1st edition (2004); the 2nd edition was not checked. Lupton, *Thinking with Type* (1st ed. 2004), pp. 82-83 on line spacing, say nothing about headings. Hochuli, *Detail in Typography*, chapter "Linespacing, the column".
 - **Judged by:** askable, as two criteria. First question: "Do the lines of a multi-line heading touch or overlap each other?" Second question: "Is the gap between the lines of a heading as large as the gap between the heading and the text below it?"
 
 ### Typefaces in concord or in clear contrast, never in conflict
@@ -55,7 +55,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 
 ### One change at a time for emphasis
 - **Rule:** Emphasis inside text changes one thing: italic, or bold, or small capitals. A phrase that is bold, italic, underlined, and coloured at once shouts, and considered work never stacks them.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.5.1 "Change one parameter at a time"; Hochuli, *Detail in Typography*, chapter "Emphasis".
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.5.1 "Change one parameter at a time"; Lupton, *Thinking with Type* (1st ed. 2004), p. 94: "Emphasizing a word or phrase within a body of text usually requires only one signal." The same page shows "bold, italic, underlined caps!" as a type crime; Hochuli, *Detail in Typography*, chapter "Emphasis".
 - **Judged by:** askable. Question: "Is a word or phrase emphasized in several ways at once, for example bold and italic and underlined, or bold capitals in a colour?"
 
 ### Even word spacing in justified text
@@ -85,7 +85,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 
 ### Headings sit with the text they introduce
 - **Rule:** A heading sits closer to the text it introduces than to the text before it. Equal space above and below makes the heading float between sections.
-- **Source:** UNVERIFIED: the point was not found in the text of either book. Bringhurst, *The Elements of Typographic Style*, section 2.2.2 (add and delete vertical space in measured intervals); Lupton, *Thinking with Type*, "Text" chapter, "Hierarchy".
+- **Source:** UNVERIFIED: the point was not found in the text of either book, and not found in the 1st edition (2004) of Lupton; the 2nd edition was not checked. Bringhurst, *The Elements of Typographic Style*, section 2.2.2 (add and delete vertical space in measured intervals); Lupton, *Thinking with Type*, "Text" chapter, "Hierarchy".
 - **Judged by:** askable. Question: "Does a heading sit as close to the text above it as to the text below it, or closer?"
 
 ### Lines of text align across columns
@@ -101,7 +101,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 
 ### Display type is spaced tighter than text
 - **Rule:** As type gets larger, the space between its letters and words looks wider, so headlines need tighter letter and word spacing than text. A large heading set with the spacing of text looks loose.
-- **Source:** Lupton, *Thinking with Type*, "Text" chapter, "Kerning" (with large type, normal word spacing often looks too wide) and "Tracking" (designers reduce the spacing of large text).
+- **Source:** Lupton, *Thinking with Type* (1st ed. 2004), p. 80: "Because the space between characters expands as the type size increases, designers often fine-tune letterspacing when working with large letters." Lupton supports adjusting large type but not tightening it as a rule: on p. 81 she says negative tracking "is rarely desirable" and "should be used sparingly".
 - **Judged by:** askable. Question: "Does a heading set at display size, several times larger than the body text, have gaps between its letters or words that are wide enough to see as gaps?" A difference of a pixel or two between letters will likely be missed.
 
 ### Weight and stroke thickness at small sizes
@@ -117,13 +117,13 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 
 ### Letterspace capitals and small caps
 - **Rule:** Strings of capitals and small capitals are letterspaced, and lower case is not.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.6 "Letterspace all strings of capitals and small caps"; Lupton, *Thinking with Type*, "Text" chapter, "Tracking".
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.6 "Letterspace all strings of capitals and small caps"; Lupton, *Thinking with Type* (1st ed. 2004), p. 81: "It is common practice to letterspace capitals and small capitals, which appear more regal when standing apart."
 - **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large heading or label set in capitals, do neighbouring capitals touch, with no visible space between them?"
 - **Not encoded (NG-10), body text:** the defect grows with type size. In capitals at text size, differences in tracking are too fine to see.
 
 ### Kerning
 - **Rule:** At display sizes, the space between letter pairs looks even: no gaps in pairs such as "AV", "To", and "Wa", and no collisions.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.8 "Kern consistently and modestly or not at all"; Lupton, *Thinking with Type*, "Text" chapter, "Kerning".
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 2.1.8 "Kern consistently and modestly or not at all" (this wording is Bringhurst's alone). Lupton, *Thinking with Type* (1st ed. 2004), p. 80, supports only that large type needs fine-tuning: "Because the space between characters expands as the type size increases, designers often fine-tune letterspacing when working with large letters."
 - **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large headline, is there a pair of letters, such as AV, To, or Wa, with a gap between them that is visibly wider than the gaps between the other letters?"
 - **Not encoded (NG-10), body text:** the defect grows with type size. At text size, the space between two letters is too fine to see.
 
@@ -252,7 +252,7 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 
 ### Body text is not too small to read
 - **Rule:** Paragraph text is set at a reading size. Lupton gives 9 to 11 pt as the common range for printed text. No WCAG success criterion sets a minimum text size, and the reading list gives no figure for screens, so the figure is not checked.
-- **Source:** Lupton, *Thinking with Type* (2nd ed. 2010), "Letter" chapter, "Size".
+- **Source:** Lupton, *Thinking with Type* (1st ed. 2004), p. 37, caption: "Sizes between 9 and 11 pts are common for printed text."
 - **Judged by:** askable. Question: "Is the paragraph text so small that its letters cannot be told apart at the size of the image?"
 
 ### Paragraphs are not set in a decorative face
