@@ -2,6 +2,8 @@
 // the network, or Playwright, so the unit tests run without a browser
 // (OQ-17, CS-22). render.ts does all the input and output.
 
+import type { DefectEvidence } from "./defect.js";
+
 /** Which side of a fixture pair to render: "on" draws the defect, "off" does not (OQ-17). */
 export type DefectSwitch = "on" | "off";
 
@@ -27,6 +29,8 @@ export type RenderRecord = {
   viewport: Viewport;
   device_scale_factor: number;
   browser_version: string;
+  /** The computed-style comparison and measurements that verify checks against the defect declaration (FR-54 rules 2 and 3). */
+  defect_evidence?: DefectEvidence;
 };
 
 /**

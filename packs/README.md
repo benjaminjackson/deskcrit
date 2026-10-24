@@ -13,7 +13,8 @@ npm --prefix packs ci
 npm --prefix packs run setup
 npm --prefix packs run render -- <pack>   # writes the PNGs and fixtures/rendered.json, prints ATTRIBUTION.md entries
 npm --prefix packs run check -- <pack>    # renders again and compares bytes with the committed PNGs
-npm --prefix packs run verify -- <pack>   # no browser: checks the PNG and source hashes in rendered.json
+npm --prefix packs run verify -- <pack>   # no browser: checks the hashes in rendered.json and each criterion's .defect.json
+npm --prefix packs run sheets -- <pack>   # writes one contact sheet per criterion to packs/<pack>/sheets/ (not committed)
 ```
 
 `check` is valid only on the browser build that `rendered.json` records, because another machine draws slightly different pixels. CI never renders. The fixture tests read the committed PNGs.
@@ -44,10 +45,31 @@ Charts use inline SVG in the same template, and the same switch reaches SVG elem
 
 ```css
 .chart-label { fill: var(--color-text); }
-[data-defect="on"] .chart-label { fill: #c4c9cf; }
+[data-defect="on"] .chart-label { fill: #8a9099; }
 ```
 
 `_example/templates/example-contrast.html` shows the whole pattern.
+
+## Blind fixtures and the defect declaration
+
+`docs/PRD.md` FR-54 rules 1 to 4 and EV-4 rule 5 say how fixtures stay blind to Jev's scores. Do not change a fixture because of a score. Commit the fixtures before any scored run, and get the realism check of rule 4 first.
+
+Each criterion has one declaration, `packs/<pack>/templates/<criterion-id>.defect.json`, that all its numbered templates (`<criterion-id>--2.html` and so on) share:
+
+```json
+{
+  "properties": ["color"],
+  "range": { "measure": "contrast-ratio", "from": 2.5, "to": 4.4, "clean_side": "above" }
+}
+```
+
+- `properties` lists the CSS properties that the `[data-defect="on"]` rules change. Each name must be a property that the pinned Chromium reports (`_renderer/css-properties.json`), a custom property, or one of the shorthands in `_renderer/defect.ts` (`margin`, `padding`, `border`, `border-radius`, `font`, and others). A shorthand covers its longhands, and a name covers the logical name of the same side (`margin-left` covers `margin-inline-start`). A declared `color` covers a property that follows `currentColor` only where its value equals `color`. A change in a pseudo-element is named with the pseudo-element first, such as `::first-line color` or `::marker display`, and only a name in that form covers it. A declaration with a `font-size` or `contrast-ratio` range may not name a pseudo-element, because the renderer measures only an element's own text, so draw a measured defect on the element itself. With a `font-size` or `contrast-ratio` range, a declaration may not list `opacity`, `filter`, `transform`, `zoom`, or `mix-blend-mode`, because they change how text looks without changing what is measured.
+- `range` is the realistic range of the defect, or `null` when the renderer cannot measure it. `clean_side` is `above` or `below`, the side of the range that is free of the defect. A negative fixture must sit on that side, at or past the first value one step beyond the range at the precision it is written in: 4.5 or more for a range that ends at 4.4, 9 px or more for one that ends at 8 px. The measures are `font-size` (px, on text whose size the defect changes), `contrast-ratio` (WCAG, on text whose contrast the defect changes), and `edge-distance` (px, from the nearest line of text to an edge of the page).
+- GUIDELINES.md states the same range in the criterion's `Defect range` line, and `packs/_renderer/guideline-ranges.test.ts` fails when the two differ.
+
+`render` reads every element's computed values, and those of its `::before`, `::after`, `::first-line`, `::first-letter`, `::marker`, and `::placeholder`, on both sides of a pair and records in `rendered.json` which properties differ and what it measured. `verify` then fails when the two sides have different elements, when they differ in a property that the declaration does not list, when a positive fixture is outside the range, or when a negative fixture is not on the clean side. `check` renders again and fails when the recorded evidence has changed. `evals/fixture-declarations.test.ts` runs the same check as `verify` in `npm run ci`.
+
+`sheets` puts each pair side by side at full size, one row per template, and shows no score. An agent can look through a copy of the `sheets/` folder for obvious extremes first; then Benjamin Jackson checks every sheet (FR-54 rule 4).
 
 Rules for every template:
 
