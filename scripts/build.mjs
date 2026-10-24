@@ -1,5 +1,7 @@
 import { spawnSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { rm } from "node:fs/promises";
+import { join } from "node:path";
 import { build } from "esbuild";
 
 // This script makes three outputs in dist/: the CLI bundle dist/crit.js, the library bundle
@@ -14,6 +16,65 @@ import { build } from "esbuild";
  */
 const requireBanner =
   'import { createRequire as __critCreateRequire } from "node:module";\nconst require = __critCreateRequire(import.meta.url);';
+
+/**
+ * Reads the text of every packs/<name>/pack.yaml, sorted by name with a plain comparator (CS-18).
+ * A folder whose name starts with `_` is not a pack, and a folder with no pack.yaml is skipped.
+ * These are the same rules as src/cli/bundled-pack-texts.ts. Only pack.yaml is read, so fixtures
+ * and ATTRIBUTION.md never reach the bundle (FR-44, FR-53). It throws when it finds no pack.
+ */
+function readBundledPackTexts() {
+  const names = [];
+  for (const entry of readdirSync("packs", { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name.startsWith("_")) {
+      continue;
+    }
+    if (!existsSync(join("packs", entry.name, "pack.yaml"))) {
+      continue;
+    }
+    names.push(entry.name);
+  }
+  names.sort((left, right) => {
+    if (left < right) {
+      return -1;
+    }
+    if (left > right) {
+      return 1;
+    }
+    return 0;
+  });
+  if (names.length === 0) {
+    throw new Error("the build found no packs/*/pack.yaml to bundle");
+  }
+  const sources = [];
+  for (const name of names) {
+    const yamlText = readFileSync(join("packs", name, "pack.yaml"), "utf8");
+    sources.push({ name, yamlText });
+  }
+  return sources;
+}
+
+/**
+ * An esbuild plugin that replaces the whole of src/cli/bundled-pack-texts.ts with one line that
+ * holds every pack text as a string, so dist/crit.js carries the first-party packs and reads no
+ * pack file at run time (FR-11, FR-53, NFR-2). onLoad gives esbuild the module text in place of
+ * the file on disk, and the filter is a regular expression on the file path.
+ */
+const bundledPacksPlugin = {
+  name: "bundled-packs",
+  setup(pluginBuild) {
+    pluginBuild.onLoad(
+      { filter: /src[\\/]cli[\\/]bundled-pack-texts\.ts$/ },
+      () => {
+        const sources = readBundledPackTexts();
+        return {
+          contents: `export const BUNDLED_PACK_TEXTS = ${JSON.stringify(sources)};\n`,
+          loader: "js",
+        };
+      },
+    );
+  },
+};
 
 await rm("dist", { recursive: true, force: true });
 
@@ -38,6 +99,7 @@ await build({
   banner: {
     js: `#!/usr/bin/env node\n${requireBanner}`,
   },
+  plugins: [bundledPacksPlugin],
   logLevel: "info",
 });
 
