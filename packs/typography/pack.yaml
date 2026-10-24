@@ -12,14 +12,13 @@
 # EV-4 on 2026-10-24 (jev-1.14.0): heading-lines-collide and headings-differ-only-in-size were
 # decided by the first run and ship with fail.
 # heading-indistinct agreed on every fixture after one rewording (a482a92) and ships with fail.
-# display-caps-tight is reworded once under R-4 and is not yet scored in its new form: later runs on
-# unchanged fixtures left one and then two positives quiet (see 87d2a2a).
-# Fifteen criteria still left positives quiet after one rewording and were removed under R-4:
+# Three criteria ship with fail: heading-lines-collide, headings-differ-only-in-size, and heading-indistinct.
+# Sixteen criteria left positives quiet after one rewording and were removed under R-4:
 # measure-too-long, body-leading-too-tight, body-leading-too-loose, too-many-typefaces,
 # near-identical-sizes, stacked-emphasis, rivers-of-white, rag-staircase, paragraph-runt,
 # first-paragraph-indented, baselines-misaligned, faux-italic-display, display-ligature-missing
-# (a482a92), display-kerning-gap, and justified-word-gaps (87d2a2a). GUIDELINES.md records the
-# result for each one.
+# (a482a92), display-kerning-gap, justified-word-gaps (87d2a2a), and display-caps-tight (2 of 5
+# positives quiet, db29d61). GUIDELINES.md records the result for each one.
 # Every question is a noul in the defect form: true means the defect is
 # there (JC-5). Each question names a feature that can be seen, not a degree,
 # and none asks Jev to count, measure, or name a colour (NFR-9, JC-2).
@@ -117,32 +116,3 @@ criteria:
         - fixtures/headings-differ-only-in-size--3.negative.png
         - fixtures/headings-differ-only-in-size--4.negative.png
         - fixtures/headings-differ-only-in-size--5.negative.png
-
-  # GUIDELINES.md: Letterspace capitals and small caps
-  - id: display-caps-tight
-    title: "Capitals in a large heading touch each other"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.1.6 \"Letterspace all strings of capitals and small caps\", p. 30; Hochuli, Detail in Typography (Hyphen Press, 2008), p. 30."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: In a heading or label set in capital letters, do the letters look crammed together, so that the word reads as a tight dark block instead of a row of separate letters? Judge only what is visible."
-      criteria:
-        "true": "In a heading or label set in capital letters, the letters look crammed together, and the word reads as a tight dark block instead of a row of separate letters."
-        "false": "Every heading or label set in capital letters shows clear space between its letters, or the page has no text set in capital letters."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Letterspace every string of capitals, so a clear space separates each capital from the next (Bringhurst, The Elements of Typographic Style, 2.1.6, p. 30; Lupton, Thinking with Type, p. 81; Hochuli, Detail in Typography, p. 30)."
-    fixtures:
-      positive:
-        - fixtures/display-caps-tight.positive.png
-        - fixtures/display-caps-tight--2.positive.png
-        - fixtures/display-caps-tight--3.positive.png
-        - fixtures/display-caps-tight--4.positive.png
-        - fixtures/display-caps-tight--5.positive.png
-      negative:
-        - fixtures/display-caps-tight.negative.png
-        - fixtures/display-caps-tight--2.negative.png
-        - fixtures/display-caps-tight--3.negative.png
-        - fixtures/display-caps-tight--4.negative.png
-        - fixtures/display-caps-tight--5.negative.png
