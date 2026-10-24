@@ -1,0 +1,204 @@
+# The basics pack (crit-cy8.35, FR-53). It encodes the askable entries in the "Basics: checks for
+# common mistakes" section of GUIDELINES.md: plain mistakes that coding agents often make, which Jev
+# judged most reliably in EV-4. Benjamin Jackson chose on 2026-10-24 to keep them in their own pack,
+# so a caller who wants only the high bar of the typography and layout packs can switch them off.
+# Each source and question is the GUIDELINES.md Source line and Question for the entry, with the
+# Markdown emphasis marks removed (FR-45). For every noul question, true means the defect is there
+# (JC-5). Every fix hint is a draft until Benjamin Jackson approves it (G-4).
+# "Boxes do not split or join groups" is left out: in EV-4 on 2026-10-24 its fixtures agreed at
+# 0.7, under the 0.8 floor, after two fixture reworks. Reconsider with new fixtures or a new model.
+# "Body text is not too small to read" and "Captions and labels are not too small to read" are
+# left out: at realistic sizes (11 px body text, 9 px captions) EV-4 agreed at 0.5, because Jev
+# does not see that text as too small to tell the letters apart. A check that fires only on text
+# too small to be real is worse than no check. Reconsider when the question or the model changes.
+name: basics
+version: 0.1.0
+title: Basics, checks for common mistakes
+license: MIT
+criteria:
+  - id: decorative-face-for-paragraphs
+    title: 'Paragraphs are set in a decorative face'
+    source: 'Bringhurst, The Elements of Typographic Style (1992), chapter 6 "Choosing and combining type", section 6.2.1 (choose faces that suit the task).'
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Are paragraphs of text set in a script, blackletter, or other decorative typeface?'
+      criteria:
+        "true": 'Paragraphs of text are set in a script, blackletter, or other decorative typeface.'
+        "false": 'Paragraphs of text are set in a plain typeface made for reading.'
+    fail_when: { probability_at_least: 0.7 }
+    pass_when: { probability_at_most: 0.3 }
+    fix: 'Set paragraphs in a face made for reading, and keep script, blackletter, and other decorative faces for a few words of display (Bringhurst, The Elements of Typographic Style, 6.2.1). [draft until Benjamin Jackson approves (G-4)]'
+    fixtures:
+      positive:
+        - fixtures/decorative-face-for-paragraphs.positive.png
+        - fixtures/decorative-face-for-paragraphs--2.positive.png
+        - fixtures/decorative-face-for-paragraphs--3.positive.png
+        - fixtures/decorative-face-for-paragraphs--4.positive.png
+        - fixtures/decorative-face-for-paragraphs--5.positive.png
+      negative:
+        - fixtures/decorative-face-for-paragraphs.negative.png
+        - fixtures/decorative-face-for-paragraphs--2.negative.png
+        - fixtures/decorative-face-for-paragraphs--3.negative.png
+        - fixtures/decorative-face-for-paragraphs--4.negative.png
+        - fixtures/decorative-face-for-paragraphs--5.negative.png
+
+  - id: text-reads-faint
+    title: 'Text reads as faint'
+    source: 'W3C, WCAG 2.2, SC 1.4.3 Contrast (Minimum).'
+    link: https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Is there text that is pale against its background, such as light grey text on white?'
+      criteria:
+        "true": 'Some text is pale against its background, such as light grey text on white.'
+        "false": 'All text stands out clearly from its background.'
+    fail_when: { probability_at_least: 0.7 }
+    pass_when: { probability_at_most: 0.3 }
+    fix: 'Darken the text or change its background until the text has a contrast ratio of at least 4.5:1, or 3:1 for large text (WCAG 2.2, SC 1.4.3 Contrast (Minimum)). [draft until Benjamin Jackson approves (G-4)]'
+    fixtures:
+      positive:
+        - fixtures/text-reads-faint.positive.png
+        - fixtures/text-reads-faint--2.positive.png
+        - fixtures/text-reads-faint--3.positive.png
+        - fixtures/text-reads-faint--4.positive.png
+        - fixtures/text-reads-faint--5.positive.png
+      negative:
+        - fixtures/text-reads-faint.negative.png
+        - fixtures/text-reads-faint--2.negative.png
+        - fixtures/text-reads-faint--3.negative.png
+        - fixtures/text-reads-faint--4.negative.png
+        - fixtures/text-reads-faint--5.negative.png
+
+  - id: centred-or-right-paragraphs
+    title: 'A paragraph is centred or right-aligned'
+    source: 'Tschichold, The New Typography (1928), chapter "The principles of the new typography"; Bringhurst, The Elements of Typographic Style, section 2.1.3 "Set ragged if ragged setting suits the text and the page".'
+    link: https://www.neugraphic.com/tschichold/tschichold-text5.html
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Is a paragraph of four or more lines centred or right-aligned?'
+      criteria:
+        "true": 'A paragraph of four or more lines is centred or right-aligned.'
+        "false": 'Every paragraph of four or more lines is set flush left.'
+    fail_when: { probability_at_least: 0.7 }
+    pass_when: { probability_at_most: 0.3 }
+    fix: 'Set paragraphs of several lines flush left, and keep centring for a few short lines (Tschichold, The New Typography; Bringhurst, The Elements of Typographic Style, 2.1.3). [draft until Benjamin Jackson approves (G-4)]'
+    fixtures:
+      positive:
+        - fixtures/centred-or-right-paragraphs.positive.png
+        - fixtures/centred-or-right-paragraphs--2.positive.png
+        - fixtures/centred-or-right-paragraphs--3.positive.png
+        - fixtures/centred-or-right-paragraphs--4.positive.png
+        - fixtures/centred-or-right-paragraphs--5.positive.png
+      negative:
+        - fixtures/centred-or-right-paragraphs.negative.png
+        - fixtures/centred-or-right-paragraphs--2.negative.png
+        - fixtures/centred-or-right-paragraphs--3.negative.png
+        - fixtures/centred-or-right-paragraphs--4.negative.png
+        - fixtures/centred-or-right-paragraphs--5.negative.png
+
+  - id: content-touches-page-edge
+    title: 'Content touches the page edge'
+    source: 'Müller-Brockmann, Grid Systems in Graphic Design (1981), sections "Margin proportions" and "Construction of the type area".'
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Does any text or box touch the edge of the page or sit within a few pixels of it?'
+      criteria:
+        "true": 'Some text or a box touches the edge of the page or sits within a few pixels of it.'
+        "false": 'All text and boxes sit inside a clear margin from every edge of the page.'
+    fail_when: { probability_at_least: 0.7 }
+    pass_when: { probability_at_most: 0.3 }
+    fix: 'Keep text and boxes inside the type area, with a margin between them and every edge of the page (Müller-Brockmann, Grid Systems in Graphic Design, "Margin proportions"). [draft until Benjamin Jackson approves (G-4)]'
+    fixtures:
+      positive:
+        - fixtures/content-touches-page-edge.positive.png
+        - fixtures/content-touches-page-edge--2.positive.png
+        - fixtures/content-touches-page-edge--3.positive.png
+        - fixtures/content-touches-page-edge--4.positive.png
+        - fixtures/content-touches-page-edge--5.positive.png
+      negative:
+        - fixtures/content-touches-page-edge.negative.png
+        - fixtures/content-touches-page-edge--2.negative.png
+        - fixtures/content-touches-page-edge--3.negative.png
+        - fixtures/content-touches-page-edge--4.negative.png
+        - fixtures/content-touches-page-edge--5.negative.png
+
+  - id: all-caps-long-text
+    title: 'Long text is set in all capitals'
+    source: 'Butterick, Practical Typography, "All caps" ("Caps are suitable for headings shorter than one line"; "Don''t capitalize whole paragraphs").'
+    link: https://practicaltypography.com/all-caps.html
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Is a sentence or paragraph that runs to more than one line set entirely in capital letters?'
+      criteria:
+        "true": 'A sentence or paragraph that runs to more than one line is set entirely in capital letters.'
+        "false": 'No sentence or paragraph that runs to more than one line is set entirely in capital letters.'
+    fail_when: { probability_at_least: 0.7 }
+    pass_when: { probability_at_most: 0.3 }
+    fix: 'Set sentences and paragraphs in upper and lower case, and keep capitals for headings shorter than one line, labels, and captions (Butterick, Practical Typography, "All caps"). [draft until Benjamin Jackson approves (G-4)]'
+    fixtures:
+      positive:
+        - fixtures/all-caps-long-text.positive.png
+        - fixtures/all-caps-long-text--2.positive.png
+        - fixtures/all-caps-long-text--3.positive.png
+        - fixtures/all-caps-long-text--4.positive.png
+        - fixtures/all-caps-long-text--5.positive.png
+      negative:
+        - fixtures/all-caps-long-text.negative.png
+        - fixtures/all-caps-long-text--2.negative.png
+        - fixtures/all-caps-long-text--3.negative.png
+        - fixtures/all-caps-long-text--4.negative.png
+        - fixtures/all-caps-long-text--5.negative.png
+
+  - id: wall-of-text
+    title: 'Text is not broken into chunks'
+    source: 'Nielsen, "How Users Read on the Web" (Nielsen Norman Group, 1997).'
+    link: https://www.nngroup.com/articles/how-users-read-on-the-web/
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Is there a block of text many lines long with no heading, list, or paragraph break inside it?'
+      criteria:
+        "true": 'There is a block of text many lines long with no heading, list, or paragraph break inside it.'
+        "false": 'Every long run of text is broken up by headings, lists, or paragraph breaks.'
+    fail_when: { probability_at_least: 0.7 }
+    pass_when: { probability_at_most: 0.3 }
+    fix: 'Break long text into chunks with headings, short paragraphs, and lists, so people can skim it (Nielsen, "How Users Read on the Web"). [draft until Benjamin Jackson approves (G-4)]'
+    fixtures:
+      positive:
+        - fixtures/wall-of-text.positive.png
+        - fixtures/wall-of-text--2.positive.png
+        - fixtures/wall-of-text--3.positive.png
+        - fixtures/wall-of-text--4.positive.png
+        - fixtures/wall-of-text--5.positive.png
+      negative:
+        - fixtures/wall-of-text.negative.png
+        - fixtures/wall-of-text--2.negative.png
+        - fixtures/wall-of-text--3.negative.png
+        - fixtures/wall-of-text--4.negative.png
+        - fixtures/wall-of-text--5.negative.png
+
+  - id: competing-primary-buttons
+    title: 'Secondary actions are styled as strongly as the primary one'
+    source: 'Material Design 3, "Buttons" guidelines: "Use visually-prominent filled buttons for the most important actions", and "Buttons with primary actions should have a higher visual emphasis through size, color, or shape." Checked on the rendered page on 2026-10-24.'
+    link: https://m3.material.io/components/buttons/guidelines
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Are two or more buttons in one view styled as the same filled, high-emphasis button?'
+      criteria:
+        "true": 'Two or more buttons in one view are styled as the same filled, high-emphasis button.'
+        "false": 'At most one button in each view is a filled, high-emphasis button, and the others use lower-emphasis styles.'
+    fail_when: { probability_at_least: 0.7 }
+    pass_when: { probability_at_most: 0.3 }
+    fix: 'Give the view one high-emphasis action, and style the other actions with lower-emphasis styles, such as outlined or text buttons (Material Design 3, "Buttons"). [draft until Benjamin Jackson approves (G-4)]'
+    fixtures:
+      positive:
+        - fixtures/competing-primary-buttons.positive.png
+        - fixtures/competing-primary-buttons--2.positive.png
+        - fixtures/competing-primary-buttons--3.positive.png
+        - fixtures/competing-primary-buttons--4.positive.png
+        - fixtures/competing-primary-buttons--5.positive.png
+      negative:
+        - fixtures/competing-primary-buttons.negative.png
+        - fixtures/competing-primary-buttons--2.negative.png
+        - fixtures/competing-primary-buttons--3.negative.png
+        - fixtures/competing-primary-buttons--4.negative.png
+        - fixtures/competing-primary-buttons--5.negative.png

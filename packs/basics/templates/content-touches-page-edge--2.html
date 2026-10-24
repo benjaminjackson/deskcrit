@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Basics fixture: content-touches-page-edge (2)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* Three plan cards centred with 100 px margins. The defect removes the left margin, so the heading and
+         the first card touch the left edge of the page (OQ-17). */
+      body { background: #eef3ee; }
+      main { margin: 56px 100px 0; }
+      h1 { font-size: 34px; margin-bottom: 8px; }
+      .lede { color: var(--color-muted); margin-bottom: 32px; }
+      .row { display: flex; justify-content: space-between; }
+      .plan { width: 320px; height: 400px; background: #fff; border-radius: 10px; border: 1px solid #cfd9cf; padding: 28px; }
+      .plan h2 { font-size: 22px; } .plan .price { font-size: 40px; font-weight: 700; margin: 14px 0; }
+      .plan p { color: var(--color-muted); }
+      [data-defect="on"] main { margin: 56px 0 0 0; }
+      [data-defect="on"] .row { width: 1080px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Garden club membership</h1>
+      <p class="lede">Pick the plan that suits how often you visit the shared plots.</p>
+      <div class="row">
+        <div class="plan"><h2>Visitor</h2><div class="price">$4</div><p>Day pass for the herb garden and the tool shed.</p></div>
+        <div class="plan"><h2>Grower</h2><div class="price">$18</div><p>A raised bed of your own for the whole season.</p></div>
+        <div class="plan"><h2>Family</h2><div class="price">$30</div><p>Two beds, a compost share, and the seed swap.</p></div>
+      </div>
+    </main>
+  </body>
+</html>
