@@ -192,7 +192,7 @@ Priorities use MoSCoW for v1: Must, Should, Could, Won't. The source column says
 | FR-13 | Build drops every criterion whose `requires` paths are absent from the facts file, and records each one in `skipped` with the missing path. | Must | US-7 | Brief, A pack |
 | FR-14 | Build turns each remaining criterion into exactly one TypeSafe question of the type the pack declares. | Must | US-1 | Brief, Principles |
 | FR-15 | Build places each image in the state once, and every question refers to it by its path in the state, never by a second copy. | Must | US-1 | JC-6 |
-| FR-16 | Build adds a Box question for each criterion that sets `locate: true`. The Box question sends the criterion's `locate_instructions`, which the pack schema requires when `locate` is true. It never falls back to `question.instructions`. Changed 2026-10-24 by Benjamin Jackson: before, the row did not say what the Box question asks. Reason: yes or no and score wording does not name a thing to mark, so a fallback would guess with no warning. Review trigger: TypeSafe adds a way to get a region from the main question. | Must | US-1 | Brief, How it works |
+| FR-16 | Build adds a Box question for each criterion that sets `locate: true`. The Box question sends the criterion's `locate_instructions`, which the pack schema requires when `locate` is true. It never falls back to `question.instructions`. Changed 2026-10-23 by Benjamin Jackson: before, the row did not say what the Box question asks. Reason: yes or no and score wording does not name a thing to mark, so a fallback would guess with no warning. Review trigger: TypeSafe adds a way to get a region from the main question. | Must | US-1 | Brief, How it works |
 | FR-17 | Build puts the context and the facts file in the state next to the image. It never adds page HTML, a DOM dump, or source code to the state. | Must | US-7, US-8 | JC-4 |
 | FR-18 | Removed 2026-10-23. The `view` field chose between crops and the whole page, and v1 has no crops. See OQ-1. | Removed | | |
 
@@ -325,7 +325,7 @@ Pack schema:
 | `fail_when`, `warn_when`, `pass_when` | criterion | at least one | Each holds one predicate, such as `probability_at_least` or `level_at_most`. See the verdict rule under FR-25. |
 | `min_confidence` | criterion | no | Below this, the verdict is `uncertain`. Applies to choice and score answers; OQ-21 holds what it means for `noul`. |
 | `locate` | criterion | no | When true, ask a Box question for the region. |
-| `locate_instructions` | criterion | when `locate` is true | What the Box question asks to mark, for example "the block of body text that is faint". Added 2026-10-24 (FR-16, an optional field under AC-2). |
+| `locate_instructions` | criterion | when `locate` is true | What the Box question asks to mark, for example "the block of body text that is faint". Added 2026-10-23 (FR-16, an optional field under AC-2). |
 | `requires` | criterion | no | List of facts paths the criterion needs, for example `facts.viewport_width`. |
 | `fix` | criterion | yes | Fix hint written by a person. |
 | `fixtures.positive` | criterion | for `crit packs validate` | List of image paths, relative to the pack directory, that the criterion must flag. |

@@ -16,8 +16,9 @@ const schema: unknown = JSON.parse(schemaText);
 
 /** Builds the validator the way the loader will: strict, and reporting every error, not only the first (CS-3). */
 function createAjv(): Ajv2020 {
-  // strictRequired is off because the anyOf and if blocks list required fields
-  // that the criterion's own properties define, one level up, where that check does not look.
+  // strictRequired is off because the anyOf, then and not blocks list required fields
+  // that are defined in the criterion's properties or in the shared question definition,
+  // and Ajv's strictRequired check does not look there.
   return new Ajv2020({ strict: true, strictRequired: false, allErrors: true });
 }
 
