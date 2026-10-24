@@ -129,8 +129,8 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 
 ### Ligatures
 - **Rule:** In a face whose f reaches into the next letter, the f joins the following i or l as a ligature. A large headline that sets "fi" or "fl" as two separate letters shows the hook of the f striking the dot of the i or the top of the l.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.3 "Ligatures". UNVERIFIED: the section number and its point were not checked in the text of the book.
-- **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large headline, does the top of a letter f touch or run into the dot of a following i or the top of a following l?"
+- **Source:** Butterick, *Practical Typography*, "Ligatures": "The only time ligatures are mandatory is when you have an actual overlap between the letters f and i." Checked on the page on 2026-10-24. This is the one typography entry with a source outside the reading list: Benjamin Jackson asked for a checkable citation on 2026-10-24, and no text of a book on the list could be checked. Reconsider when a book on the list can be checked for the same point.
+- **Judged by:** askable at display and headline sizes only (large headlines, pull quotes, display text). Question: "In a large headline, does the top of a letter f touch or run into the dot of a following i?" The source makes a ligature mandatory only for an f that overlaps an i, so the question names only that pair.
 - **Not encoded (NG-10), body text:** the defect grows with type size. At text size, the collision is a pixel or two and too fine to see.
 
 ### Real italics, bold, and small caps (no faux styles)
@@ -279,7 +279,7 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 
 ### Captions and labels are not too small to read
 - **Rule:** Captions, labels, and legal text stay large enough to read. Apple gives 11 pt as the smallest text size on iOS. The figure is not checked.
-- **Source:** Apple, *Human Interface Guidelines*, "Typography". UNVERIFIED: the 11 pt minimum was not checked on the page, which needs a browser to render.
+- **Source:** Apple, *Human Interface Guidelines*, "Typography", table of default and minimum sizes: iOS and iPadOS, default 17 pt, minimum 11 pt. Checked on the rendered page on 2026-10-24.
 - **Link:** https://developer.apple.com/design/human-interface-guidelines/typography
 - **Judged by:** askable as a visual judgment. Question: "Are captions or labels so small that their letters cannot be told apart at the size of the image?"
 
@@ -303,7 +303,7 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 
 ### Secondary actions are not styled as strongly as the primary one
 - **Rule:** A view has one high-emphasis action. Other actions use lower-emphasis styles, such as outlined or text buttons.
-- **Source:** Material Design 3, "Buttons" guidelines, on emphasis levels. UNVERIFIED: the page needs a browser to render, and the point was not checked on it.
+- **Source:** Material Design 3, "Buttons" guidelines: "Use visually-prominent filled buttons for the most important actions", and "Buttons with primary actions should have a higher visual emphasis through size, color, or shape." Checked on the rendered page on 2026-10-24.
 - **Link:** https://m3.material.io/components/buttons/guidelines
 - **Judged by:** askable. Question: "Are two or more buttons in one view styled as the same filled, high-emphasis button?"
 
