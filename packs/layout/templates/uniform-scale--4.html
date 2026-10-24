@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: uniform-scale--4</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A festival diary of five events. The clean page sets the first date as a huge numeral and block against small
+         rows. The defect gives every event the same date block and the same heading size, and the page heading is row-sized (OQ-17). */
+      body { font-family: var(--font-sans); }
+      .page { margin: 36px 80px 0; width: 1120px; }
+      h1 { font-size: 40px; font-weight: 700; margin-bottom: 20px; }
+      .list { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, 80px); gap: 12px 24px; grid-auto-flow: row; }
+      .row { display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--color-border); }
+      .date { width: 56px; height: 56px; color: #fff; font-weight: 700; font-size: 24px; display: flex; align-items: center; justify-content: center; flex: none; }
+      .c1 { }
+      .date.c1 { background: #c8553d; } .date.c2 { background: #588157; } .date.c3 { background: #3a7ca5; } .date.c4 { background: #8a6f3d; } .date.c5 { background: #6a4c93; }
+      .row h2 { font-size: 18px; font-weight: 700; }
+      .row p { font-size: 14px; color: var(--color-muted); }
+      .row:first-child { grid-row: 1 / 5; flex-direction: column; align-items: flex-start; justify-content: flex-start; border-bottom: 0; gap: 16px; }
+      .row:first-child .date { width: 560px; height: 420px; font-size: 300px; font-weight: 700; }
+      .row:first-child h2 { font-size: 36px; }
+      .row:first-child p { font-size: 18px; }
+      [data-defect="on"] .list { grid-template-columns: 1fr; grid-template-rows: repeat(5, 100px); gap: 8px; }
+      [data-defect="on"] h1 { font-size: 24px; }
+      [data-defect="on"] .row:first-child { grid-row: auto; flex-direction: row; align-items: center; border-bottom: 1px solid var(--color-border); gap: 16px; }
+      [data-defect="on"] .row:first-child .date { width: 72px; height: 72px; font-size: 28px; }
+      [data-defect="on"] .row:first-child h2 { font-size: 20px; }
+      [data-defect="on"] .row:first-child p { font-size: 15px; }
+      [data-defect="on"] .date { width: 72px; height: 72px; font-size: 28px; }
+      [data-defect="on"] .row h2 { font-size: 20px; }
+      [data-defect="on"] .row p { font-size: 15px; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <h1>Town festival diary</h1>
+      <div class="list">
+        <article class="row"><div class="date c1">14</div><div class="txt"><h2>Harvest supper</h2><p>Village hall, long tables, seven o'clock.</p></div></article>
+        <article class="row"><div class="date c2">21</div><div class="txt"><h2>Lantern walk</h2><p>Meet at the river bridge at dusk.</p></div></article>
+        <article class="row"><div class="date c3">28</div><div class="txt"><h2>Book swap</h2><p>Bring two books and take two home.</p></div></article>
+        <article class="row"><div class="date c4">05</div><div class="txt"><h2>Pumpkin judging</h2><p>Heaviest and best carved, on the green.</p></div></article>
+        <article class="row"><div class="date c5">12</div><div class="txt"><h2>Carol evening</h2><p>Mulled apple juice after the singing.</p></div></article>
+      </div>
+    </main>
+  </body>
+</html>

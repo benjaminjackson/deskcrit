@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: heavy rules and boxes, variant 2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion heavy-rules-and-boxes. Six bakery cards sit in a grid of three by two. The defect only draws a dark 3 px
+ * border on every cell, card, or section, so the lines are as strong as the
+ * text. Without it the same content is separated by space and a pale tone or
+ * a pale hairline. Nothing else changes (OQ-17).
+ */
+
+body { font-family: var(--font-serif); background: #fbf8f2; }
+main { margin: 60px 90px 0; }
+h1 { font-size: 46px; font-weight: 700; margin-bottom: 4px; }
+.sub { font-size: 22px; color: var(--color-muted); margin-bottom: 36px; }
+.grid { display: grid; grid-template-columns: repeat(3, 350px); gap: 40px; }
+.card { height: 190px; padding: 26px; background: #f0e9db; border: 3px solid transparent; }
+.card h2 { font-size: 28px; font-weight: 700; margin-bottom: 10px; }
+.card p { font-size: 20px; line-height: 1.45; }
+
+[data-defect="on"] .card { border-color: #111; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Millbrook Bakery</h1>
+      <p class="sub">What we bake each week</p>
+      <div class="grid">
+      <div class="card"><h2>Bread and rolls</h2><p>Loaves baked each morning from stone-ground flour.</p></div>
+      <div class="card"><h2>Cakes</h2><p>Lemon, carrot, and plain sponge, baked to order.</p></div>
+      <div class="card"><h2>Pies</h2><p>Apple, plum, and a savoury leek pie on Fridays.</p></div>
+      <div class="card"><h2>Biscuits</h2><p>Oat, ginger, and shortbread by the bag.</p></div>
+      <div class="card"><h2>Pastries</h2><p>Buns, twists, and almond croissants.</p></div>
+      <div class="card"><h2>Special orders</h2><p>Ask a week ahead for large cakes and party trays.</p></div>
+      </div>
+    </main>
+  </body>
+</html>

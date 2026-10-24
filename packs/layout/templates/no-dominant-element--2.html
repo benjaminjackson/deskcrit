@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: no-dominant-element-2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A sign-up page for a library card. The off side has one large filled primary button and two small
+         plain text links. The on side makes all three actions identical large bright buttons of the same
+         size and weight (OQ-17). */
+      main { margin: 110px 0 0 120px; width: 1000px; }
+      h1 { font-size: 40px; font-weight: 700; margin-bottom: 14px; }
+      .lead { font-size: 20px; color: var(--color-muted); margin-bottom: 56px; width: 640px; }
+      .actions { display: flex; gap: 32px; align-items: center; }
+      .btn { font-size: 16px; font-weight: 400; color: var(--color-accent); text-decoration: underline; }
+      .btn.a { display: inline-block; font-size: 30px; font-weight: 700; color: #fff; background: var(--color-accent); text-decoration: none; padding: 28px 64px; border-radius: 10px; }
+      [data-defect="on"] .actions { gap: 32px; }
+      [data-defect="on"] .btn, [data-defect="on"] .btn.a { width: 300px; text-align: center; font-size: 26px; font-weight: 700; color: #fff; text-decoration: none; padding: 34px 0; border-radius: 10px; }
+      [data-defect="on"] .a { background: #0b5cad; }
+      [data-defect="on"] .b { background: #d9480f; }
+      [data-defect="on"] .c { background: #2b8a3e; }
+
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Get a card for Elm Street Library</h1>
+      <p class="lead">Borrow books, films, and garden tools. Pick how you would like to begin.</p>
+      <div class="actions">
+        <span class="btn a">Join online</span>
+        <span class="btn b">Visit the desk</span>
+        <span class="btn c">Ask by phone</span>
+      </div>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: uniform-scale--3</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A newspaper front page with four stories. The clean page sets one lead story with a very large picture and headline
+         against three small stories. The defect gives all four stories the same picture size and headline size (OQ-17). */
+      body { font-family: var(--font-serif); }
+      .img { position: relative; overflow: hidden; }
+      .img::after { content: ""; position: absolute; width: 40%; aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,0.35); left: 30%; top: 25%; }
+      .c1 .img { background: #c8553d; }
+      .c2 .img { background: #588157; }
+      .c3 .img { background: #3a7ca5; }
+      .c4 .img { background: #8a6f3d; }
+      .c5 .img { background: #d4a017; }
+      .c6 .img { background: #6a4c93; }
+      .page { margin: 32px 56px 0; width: 1168px; }
+      header { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: 14px; font-weight: 700; color: var(--color-muted); border-bottom: 2px solid var(--color-text); padding-bottom: 8px; margin-bottom: 20px; }
+      .grid { display: grid; grid-template-columns: 2.6fr 1fr; grid-template-rows: repeat(3, 190px); gap: 18px 24px; }
+      .story { display: flex; flex-direction: column; }
+      .story .img { flex: 1; min-height: 0; }
+      .story h2 { font-size: 18px; font-weight: 700; line-height: 1.2; margin-top: 8px; }
+      .story p { font-size: 14px; color: var(--color-muted); }
+      .c1 { grid-row: 1 / 4; }
+      .c1 h2 { font-size: 46px; line-height: 1.08; margin-top: 14px; }
+      .c1 p { font-size: 20px; }
+      .story:not(.c1) p { display: none; }
+      [data-defect="on"] .grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 300px); gap: 24px; }
+      [data-defect="on"] .c1 { grid-row: auto; }
+      [data-defect="on"] .story h2, [data-defect="on"] .c1 h2 { font-size: 26px; line-height: 1.2; margin-top: 8px; }
+      [data-defect="on"] .c1 p { font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header><span>The Harbour Courier</span><span>Saturday edition</span></header>
+      <div class="grid">
+        <article class="story c1"><div class="img"></div><h2>Lighthouse reopens after two years of repairs</h2><p>Visitors can climb the tower again from Monday.</p></article>
+        <article class="story c2"><div class="img"></div><h2>Fish market moves to the new pier</h2><p>Stalls open at dawn.</p></article>
+        <article class="story c3"><div class="img"></div><h2>Rowing club wins regatta</h2><p>Three golds on the river.</p></article>
+        <article class="story c4"><div class="img"></div><h2>Library adds late hours</h2><p>Open until nine on weekdays.</p></article>
+      </div>
+    </main>
+  </body>
+</html>

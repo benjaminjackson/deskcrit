@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: no-dominant-element-4</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A help centre page with three plans. The off side makes the middle plan a large dark card with a big
+         price and the two others small light cards. The on side makes all three cards the same size, border,
+         price size, and bright button (OQ-17). */
+      body { background: #f6f8fa; }
+      main { margin: 56px 0 0 100px; width: 1080px; }
+      h1 { font-size: 30px; margin-bottom: 36px; }
+      .cards { display: flex; gap: 30px; align-items: center; }
+      .card { width: 300px; border: 2px solid var(--color-border); border-radius: 12px; background: #fff; padding: 20px 24px; }
+      .card h2 { font-size: 18px; margin-bottom: 6px; }
+      .price { font-size: 30px; font-weight: 400; margin-bottom: 8px; }
+      .card p { font-size: 15px; color: var(--color-muted); margin-bottom: 14px; }
+      .go { display: inline-block; font-size: 15px; color: var(--color-accent); font-weight: 400; }
+      .card.mid { width: 440px; padding: 44px 40px; background: #14213d; border-color: #14213d; color: #fff; }
+      .mid h2 { font-size: 28px; }
+      .mid .price { font-size: 84px; font-weight: 700; line-height: 1.05; }
+      .mid p { color: #dbe3f3; font-size: 20px; }
+      .mid .go { color: #fff; background: var(--color-accent); font-weight: 700; font-size: 20px; padding: 14px 30px; border-radius: 8px; }
+      [data-defect="on"] .card, [data-defect="on"] .card.mid { width: 330px; height: 470px; padding: 36px 32px; background: #fff; border: 4px solid #0b5cad; color: var(--color-text); }
+      [data-defect="on"] .card h2, [data-defect="on"] .mid h2 { font-size: 30px; margin-bottom: 14px; }
+      [data-defect="on"] .cards { align-items: flex-start; }
+      [data-defect="on"] .price, [data-defect="on"] .mid .price { line-height: 1.5; font-size: 64px; font-weight: 700; margin-bottom: 18px; }
+      [data-defect="on"] .card p, [data-defect="on"] .mid p { font-size: 20px; color: var(--color-text); margin-bottom: 28px; }
+      [data-defect="on"] .go, [data-defect="on"] .mid .go { background: #0b5cad; color: #fff; font-weight: 700; font-size: 20px; padding: 14px 30px; border-radius: 8px; }
+
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Choose a plan for the tool library</h1>
+      <div class="cards">
+        <div class="card"><h2>Casual</h2><div class="price">£3</div><p>Four loans a month.</p><span class="go">Choose</span></div>
+        <div class="card mid"><h2>Household</h2><div class="price">£8</div><p>Unlimited loans for everyone at one address.</p><span class="go">Choose</span></div>
+        <div class="card"><h2>Group</h2><div class="price">£20</div><p>Shared by a club or school.</p><span class="go">Choose</span></div>
+      </div>
+    </main>
+  </body>
+</html>

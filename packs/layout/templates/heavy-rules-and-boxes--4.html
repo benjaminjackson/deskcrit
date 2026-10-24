@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: heavy rules and boxes, variant 4</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion heavy-rules-and-boxes. A plan comparison is a grid of four columns and five rows. The defect only draws a dark 3 px
+ * border on every cell, card, or section, so the lines are as strong as the
+ * text. Without it the same content is separated by space and a pale tone or
+ * a pale hairline. Nothing else changes (OQ-17).
+ */
+
+main { margin: 52px 100px 0; }
+h1 { font-size: 36px; font-weight: 700; margin-bottom: 28px; }
+.plans { display: grid; grid-template-columns: 240px repeat(3, 280px); width: 1080px; }
+.cell { padding: 20px 22px; font-size: 20px; border: 3px solid transparent; }
+.cell.head { background: #eef4ee; }
+.cell.label { font-weight: 700; }
+.cell:nth-child(n+5) { background: #f8faf8; }
+.cell:nth-child(n+5):nth-child(8n+1), .cell:nth-child(n+5):nth-child(8n+2), .cell:nth-child(n+5):nth-child(8n+3), .cell:nth-child(n+5):nth-child(8n+4) { background: #fff; }
+.cell h2 { font-size: 24px; font-weight: 700; }
+.price { font-size: 40px; font-weight: 300; margin-top: 4px; }
+
+[data-defect="on"] .cell { border-color: #111; margin: 0 -3px -3px 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Choose a garden plan</h1>
+      <div class="plans">
+        <div class="cell head"></div>
+        <div class="cell head"><h2>Seedling</h2><p class="price">8</p></div>
+        <div class="cell head"><h2>Grower</h2><p class="price">18</p></div>
+        <div class="cell head"><h2>Orchard</h2><p class="price">32</p></div>
+        <div class="cell label">Plot size</div><div class="cell">2 m by 2 m</div><div class="cell">4 m by 2 m</div><div class="cell">8 m by 4 m</div>
+        <div class="cell label">Water barrel</div><div class="cell">Shared</div><div class="cell">Shared</div><div class="cell">Own barrel</div>
+        <div class="cell label">Tool shed key</div><div class="cell">No</div><div class="cell">Yes</div><div class="cell">Yes</div>
+        <div class="cell label">Seed swaps</div><div class="cell">Yes</div><div class="cell">Yes</div><div class="cell">Yes</div>
+      </div>
+    </main>
+  </body>
+</html>
