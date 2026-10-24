@@ -168,3 +168,32 @@ test("writes the template's own viewport in the attribution entry", () => {
     "- Viewport: 390x844\n",
   );
 });
+
+test("ignores a crit-viewport tag inside an HTML comment", () => {
+  const viewport = parseTemplateViewport(
+    templateWithHead('<!-- <meta name="crit-viewport" content="390x844"> -->'),
+    PHONE_TEMPLATE_PATH,
+  );
+  expect(viewport).toEqual({ width: 1280, height: 800 });
+});
+
+test("does not read data-name or data-content as the crit-viewport attributes", () => {
+  const dataNameHead = '<meta data-name="crit-viewport" content="390x844">';
+  expect(() =>
+    parseTemplateViewport(templateWithHead(dataNameHead), PHONE_TEMPLATE_PATH),
+  ).toThrow(/pack\/templates\/phone-rule\.html/);
+  const dataContentHead = '<meta name="crit-viewport" data-content="390x844">';
+  expect(() =>
+    parseTemplateViewport(
+      templateWithHead(dataContentHead),
+      PHONE_TEMPLATE_PATH,
+    ),
+  ).toThrow(/pack\/templates\/phone-rule\.html/);
+});
+
+test("refuses a crit-viewport mention that is not a well-formed tag and names the template", () => {
+  const unquotedHead = '<meta name=crit-viewport content="390x844">';
+  expect(() =>
+    parseTemplateViewport(templateWithHead(unquotedHead), PHONE_TEMPLATE_PATH),
+  ).toThrow(/pack\/templates\/phone-rule\.html/);
+});

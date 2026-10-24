@@ -281,7 +281,7 @@ async function renderFixture(
 }
 
 /**
- * Fails when the page's html element is not the size of the job's viewport.
+ * Fails when the page's html or body element is not the size of the job's viewport.
  * base.css sets html and body to 1280x800, so a template that asks for another
  * viewport but forgets to set html and body to the same size in its own
  * stylesheet would draw a desktop page cut to a phone screen.
@@ -290,18 +290,25 @@ async function checkPageFillsViewport(
   page: Page,
   job: RenderJob,
 ): Promise<void> {
-  // This function runs inside the page, not in Node.
-  const pageSize = await page.evaluate(() => {
-    const box = document.documentElement.getBoundingClientRect();
-    return { width: box.width, height: box.height };
+  // This function runs inside the page, not in Node. It measures both html
+  // and body, because base.css sets both to 1280x800.
+  const boxSizes = await page.evaluate(() => {
+    const htmlBox = document.documentElement.getBoundingClientRect();
+    const bodyBox = document.body.getBoundingClientRect();
+    return [
+      { element: "html", width: htmlBox.width, height: htmlBox.height },
+      { element: "body", width: bodyBox.width, height: bodyBox.height },
+    ];
   });
-  if (
-    pageSize.width !== job.viewport.width ||
-    pageSize.height !== job.viewport.height
-  ) {
-    throw new Error(
-      `${job.templatePath}: the html element is ${pageSize.width}x${pageSize.height}, but the viewport is ${job.viewport.width}x${job.viewport.height}; set html, body to the viewport size in the template's own stylesheet`,
-    );
+  for (const boxSize of boxSizes) {
+    if (
+      boxSize.width !== job.viewport.width ||
+      boxSize.height !== job.viewport.height
+    ) {
+      throw new Error(
+        `${job.templatePath}: the ${boxSize.element} element is ${boxSize.width}x${boxSize.height}, but the viewport is ${job.viewport.width}x${job.viewport.height}; set html, body to the viewport size in the template's own stylesheet`,
+      );
+    }
   }
 }
 

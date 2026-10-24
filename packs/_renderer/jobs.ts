@@ -111,11 +111,25 @@ export function parseTemplateViewport(
   html: string,
   templatePath: string,
 ): Viewport {
+  // Comments are removed first, so a commented-out tag is not read.
+  const htmlWithoutComments = html.replace(/<!--[\s\S]*?-->/g, "");
   // The g flag makes matchAll find every tag, so a duplicate can be refused.
   // The pattern accepts the two attributes in either order and either quote.
+  // \s before "name" stops an attribute such as data-name= from matching.
   const metaTagPattern =
-    /<meta\b[^>]*\bname\s*=\s*["']crit-viewport["'][^>]*>/gi;
-  const metaTags = Array.from(html.matchAll(metaTagPattern));
+    /<meta\b[^>]*\sname\s*=\s*["']crit-viewport["'][^>]*>/gi;
+  const metaTags = Array.from(htmlWithoutComments.matchAll(metaTagPattern));
+  // Every mention of crit-viewport outside comments must be inside a tag the
+  // pattern read. A mention it did not read, such as name=crit-viewport with
+  // no quotes, is refused, because ignoring it would silently give 1280x800.
+  const mentionCount = Array.from(
+    htmlWithoutComments.matchAll(/crit-viewport/gi),
+  ).length;
+  if (mentionCount !== metaTags.length) {
+    throw new Error(
+      `${templatePath} mentions crit-viewport outside a well-formed <meta name="crit-viewport" content="<W>x<H>"> tag`,
+    );
+  }
   if (metaTags.length === 0) {
     return FIXTURE_VIEWPORT;
   }
@@ -125,7 +139,7 @@ export function parseTemplateViewport(
     );
   }
   const metaTag = metaTags[0]?.[0] ?? "";
-  const contentMatch = /\bcontent\s*=\s*["']([^"']*)["']/i.exec(metaTag);
+  const contentMatch = /\scontent\s*=\s*["']([^"']*)["']/i.exec(metaTag);
   const content = contentMatch?.[1] ?? "";
   const sizeMatch = /^([1-9][0-9]*)x([1-9][0-9]*)$/.exec(content.trim());
   if (sizeMatch === null) {
