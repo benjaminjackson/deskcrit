@@ -1,11 +1,17 @@
 /*
- * Criterion display-kerning-gap (variant 2). The serif headline has the pairs Ty, Va, and Wa. The defect turns kerning off and adds a gap after each first letter. Nothing else changes (OQ-17).
+ * Criterion display-kerning-gap, variant 2. A large headline in a face with
+ * kerning data. On the negative side the browser applies the font's kerning,
+ * as it does by default. The defect turns kerning off on the headline, as a
+ * canvas renderer or a "font-kerning: none" reset does, so the pairs the font
+ * kerns show their unkerned gaps. Nothing else changes (OQ-17).
  */
 
-body { background: #faf6ee; }
-.spread { margin: 140px 0 0 90px; width: 1120px; font-family: var(--font-serif); }
-.section { font-family: var(--font-sans); font-size: 14px; font-weight: 700; color: #a23b2a; margin-bottom: 28px; }
-h1 { font-size: 112px; font-weight: 700; line-height: 1.05; margin-bottom: 30px; white-space: nowrap; }
-.deck { font-size: 24px; font-style: italic; width: 640px; }
-[data-defect="on"] h1 { font-kerning: none; }
-[data-defect="on"] h1 .gap { margin-right: 0.16em; }
+.masthead { display: flex; justify-content: space-between; margin: 0 120px; padding: 28px 0 18px; border-bottom: 1px solid var(--color-border); }
+.paper { font-family: var(--font-serif); font-weight: 700; font-size: 24px; }
+.date { font-size: 15px; color: var(--color-muted); padding-top: 6px; }
+.story { margin: 80px 0 0 120px; width: 960px; }
+.section { font-size: 15px; font-weight: 700; color: #a3361f; margin-bottom: 18px; }
+.story h1 { font-family: var(--font-serif); font-size: 68px; font-weight: 700; line-height: 1.1; margin-bottom: 26px; }
+.standfirst { font-family: var(--font-serif); font-size: 23px; line-height: 1.45; width: 700px; margin-bottom: 26px; }
+.byline { font-size: 15px; font-weight: 700; }
+[data-defect="on"] .story h1 { font-kerning: none; }
