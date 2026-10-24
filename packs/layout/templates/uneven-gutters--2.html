@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: uneven-gutters--2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A shop page: two rows of four product cards. Columns are 24 px apart, so each gap is the same in both rows. The defect makes the third column gap 36 px (OQ-17). */
+      body { background: #fbf8f3; }
+      .top { height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 80px; border-bottom: 1px solid #e6dfd3; }
+      .brand { font-family: var(--font-serif); font-size: 26px; font-weight: 700; color: #5b3a1e; }
+      .menu { display: flex; gap: 28px; color: var(--color-muted); font-size: 15px; }
+      h1 { font-family: var(--font-serif); font-size: 32px; padding: 28px 80px 18px; }
+      .grid { --gap-third: 24px; padding: 0 80px; display: grid; grid-template-columns: 1fr 24px 1fr 24px 1fr var(--gap-third) 1fr; row-gap: 24px; }
+      [data-defect="on"] .grid { --gap-third: 36px; }
+      .item { background: #fff; border: 1px solid #e6dfd3; border-radius: 8px; overflow: hidden; height: 276px; }
+      .pic { height: 160px; position: relative; }
+      .pic b { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+      .mug b { width: 64px; height: 74px; background: #fff; border-radius: 6px 6px 18px 18px; box-shadow: 14px 8px 0 -6px #fff; }
+      .bowl b { width: 100px; height: 50px; background: #fff; border-radius: 0 0 50px 50px; }
+      .vase b { width: 52px; height: 100px; background: #fff; border-radius: 22px 22px 14px 14px; }
+      .plate b { width: 110px; height: 110px; background: #fff; border-radius: 50%; box-shadow: inset 0 0 0 12px rgba(0,0,0,0.06); }
+      .info { padding: 14px 16px; }
+      .info h2 { font-size: 16px; margin-bottom: 2px; }
+      .info p { color: var(--color-muted); font-size: 14px; margin-bottom: 8px; }
+      .info .price { font-weight: 700; font-size: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="top"><div class="brand">Kiln &amp; Clay</div><div class="menu"><span>Shop</span><span>Studio</span><span>Journal</span><span>Basket (0)</span></div></div>
+    <h1>Handmade tableware</h1>
+    <div class="grid">
+      <div class="item"><div class="pic mug" style="background:#c9835a"><b></b></div><div class="info"><h2>Morning mug</h2><p>Stoneware, 300 ml</p><div class="price">$28</div></div></div><i></i>
+      <div class="item"><div class="pic bowl" style="background:#6f8f86"><b></b></div><div class="info"><h2>Noodle bowl</h2><p>Stoneware, 650 ml</p><div class="price">$34</div></div></div><i></i>
+      <div class="item"><div class="pic vase" style="background:#c9a24a"><b></b></div><div class="info"><h2>Bud vase</h2><p>Glazed, 14 cm tall</p><div class="price">$42</div></div></div><i></i>
+      <div class="item"><div class="pic plate" style="background:#7d8bb0"><b></b></div><div class="info"><h2>Dinner plate</h2><p>Stoneware, 27 cm</p><div class="price">$32</div></div></div>
+      <div class="item"><div class="pic bowl" style="background:#b7694f"><b></b></div><div class="info"><h2>Soup bowl</h2><p>Stoneware, 450 ml</p><div class="price">$30</div></div></div><i></i>
+      <div class="item"><div class="pic mug" style="background:#4f7a68"><b></b></div><div class="info"><h2>Tall mug</h2><p>Stoneware, 400 ml</p><div class="price">$31</div></div></div><i></i>
+      <div class="item"><div class="pic plate" style="background:#a58a6a"><b></b></div><div class="info"><h2>Side plate</h2><p>Stoneware, 20 cm</p><div class="price">$24</div></div></div><i></i>
+      <div class="item"><div class="pic vase" style="background:#8a5a7a"><b></b></div><div class="info"><h2>Stem vase</h2><p>Glazed, 22 cm tall</p><div class="price">$54</div></div></div>
+    </div>
+  </body>
+</html>

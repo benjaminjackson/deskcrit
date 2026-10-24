@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: crowded-unrelated-elements</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion crowded-unrelated-elements. A sparse page: a heading, a bordered picture or chart, and a block that belongs to another section.
+ * Off: the block sits 64 px from the picture or chart. The defect leaves it 1 px from the edge, touching it, with the rest of the page left roomy. (OQ-17)
+ */
+body { background: #fbf6ec; color: #2b2118; }
+h1 { font-size: 32px; line-height: 40px; font-weight: 700; margin: 52px 0 0 120px; }
+.wrap { display: flex; flex-direction: column; align-items: flex-start; margin: 44px 0 0 120px; width: fit-content; --gap: 64px; }
+.box { display: block; flex: none; border: 3px solid #59636e; background: #d9e8f0; }
+.art svg { display: block; }
+.next { width: 380px; flex: none; }
+.next h2 { font-size: 22px; line-height: 28px; font-weight: 700; margin-bottom: 8px; }
+.next p { font-size: 18px; line-height: 27px; }
+.btn { display: inline-block; flex: none; background: #2f6f8f; color: #ffffff; font-size: 19px; font-weight: 700; padding: 14px 30px; border-radius: 6px; }
+.next, .btn { margin: 0; }
+.wrap { gap: var(--gap); }
+[data-defect="on"] .wrap { --gap: 1px; }
+    </style>
+  </head>
+  <body>
+    <h1>Harbour from the east pier</h1>
+    <main class="wrap">
+      <div class="box art"><svg width="520" height="320" viewBox="0 0 520 320" aria-hidden="true"><rect width="520" height="320" fill="#d9e8f0"/><rect y="200" width="520" height="120" fill="#2f6f8f"/><circle cx="380" cy="90" r="40" fill="#f2c14e"/><path d="M90 200 V120 H140 V200Z" fill="#f4efe6"/><path d="M80 120 L115 85 L150 120Z" fill="#c8453b"/></svg></div>
+      <a class="btn">Reserve a table</a>
+    </main>
+  </body>
+</html>

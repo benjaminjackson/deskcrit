@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: figure-merges-with-ground--3</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A street food festival landing hero: a white nav bar over a crowd of about 1,500 small muted-colour people shapes. A white headline and date sit on the crowd at the bottom left. The defect removes the dark band behind them (OQ-17). */
+      .nav { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 64px; }
+      .logo { font-size: 22px; font-weight: 700; color: #7a2e12; }
+      .links { display: flex; gap: 32px; color: var(--color-muted); font-size: 15px; }
+      .hero { position: relative; height: 728px; overflow: hidden; background: #8c6a55; }
+      .hero svg { position: absolute; left: 0; top: 0; }
+      .band { position: absolute; left: 0; right: 0; top: 380px; height: 340px; background: rgba(24, 16, 14, 0.8); }
+      [data-defect="on"] .band { display: none; }
+      .copy { position: absolute; left: 80px; top: 410px; width: 800px; color: #fff; }
+      .copy h1 { font-size: 72px; line-height: 1.05; font-weight: 700; margin-bottom: 16px; }
+      .copy p { font-size: 24px; }
+      .btn { position: absolute; left: 80px; top: 640px; padding: 14px 30px; background: #e0561f; color: #fff; font-weight: 700; font-size: 17px; }
+    </style>
+  </head>
+  <body>
+    <div class="nav"><div class="logo">Dock Street Eats</div><div class="links"><span>Vendors</span><span>Map</span><span>Tickets</span><span>FAQ</span></div></div>
+    <div class="hero">
+      <svg id="tex" width="1280" height="728" viewBox="0 0 1280 728"></svg>
+      <div class="band"></div>
+      <div class="copy"><h1>Forty kitchens, one long night</h1><p>Friday 12 September, from five in the evening.</p></div>
+      <div class="btn">Get tickets</div>
+    </div>
+    <script>
+      var seed = 23;
+      function random() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+      var markup = '';
+      for (var index = 0; index < 1500; index++) {
+        var x = random() * 1280, y = random() * 728, hue = random() * 360, sat = 28 + random() * 22, light = 40 + random() * 22;
+        var color = 'hsl(' + hue.toFixed(0) + ',' + sat.toFixed(0) + '%,' + light.toFixed(0) + '%)';
+        markup += '<ellipse cx="' + x.toFixed(0) + '" cy="' + (y + 12).toFixed(0) + '" rx="11" ry="15" fill="' + color + '"/>';
+        markup += '<circle cx="' + x.toFixed(0) + '" cy="' + (y - 6).toFixed(0) + '" r="7" fill="hsl(' + (20 + random() * 20).toFixed(0) + ',35%,' + (35 + random() * 30).toFixed(0) + '%)"/>';
+      }
+      document.getElementById('tex').innerHTML = markup;
+    </script>
+  </body>
+</html>

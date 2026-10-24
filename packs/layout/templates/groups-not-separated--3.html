@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <title>Layout fixture: groups-not-separated 3</title>
+    <style>
+      /* A notification settings page with three groups of three switch rows, Email, Mobile, and Digest, told apart only by a small grey group heading and by space. All rows are 14 px apart. The defect makes the gap between one group and the next the same 14 px as the gap between rows. The clean page puts 42 px between groups. (OQ-17) */
+      body { background: #fff; padding: 28px 0 0 0; display: flex; justify-content: center; }
+      .page { width: 640px; }
+      h1 { font-size: 28px; margin-bottom: 4px; } .lead { color: var(--color-muted); margin-bottom: 24px; }
+      h2 { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); font-weight: 700; margin-bottom: 14px; }
+      .group { margin-bottom: 42px; }
+      .row { display: flex; justify-content: space-between; align-items: center; height: 40px; margin-bottom: 14px; }
+      .row:last-child { margin-bottom: 0; }
+      .row b { display: block; font-size: 15px; font-weight: 700; } .row span { font-size: 13px; color: var(--color-muted); }
+      .sw { width: 40px; height: 22px; border-radius: 11px; background: #c9ced4; position: relative; } .sw.on { background: #3d6fb6; }
+      .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; } .sw.on::after { left: 21px; }
+      [data-defect="on"] .group { margin-bottom: 14px; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Notifications</h1><p class="lead">Choose what Fieldnote sends you and where.</p>
+      <div class="group"><h2>Email</h2>
+        <div class="row"><div><b>Comments on my pages</b><span>When someone replies to a thread you started</span></div><i class="sw on"></i></div>
+        <div class="row"><div><b>Mentions</b><span>When a teammate tags you</span></div><i class="sw on"></i></div>
+        <div class="row"><div><b>Product news</b><span>Occasional updates about new features</span></div><i class="sw"></i></div></div>
+      <div class="group"><h2>Mobile</h2>
+        <div class="row"><div><b>Push notifications</b><span>Alerts on your phone and tablet</span></div><i class="sw on"></i></div>
+        <div class="row"><div><b>Sound</b><span>Play a sound when an alert arrives</span></div><i class="sw"></i></div>
+        <div class="row"><div><b>Quiet hours</b><span>Pause alerts from 10 pm to 7 am</span></div><i class="sw on"></i></div></div>
+      <div class="group"><h2>Digest</h2>
+        <div class="row"><div><b>Weekly summary</b><span>A Monday email with what changed</span></div><i class="sw on"></i></div>
+        <div class="row"><div><b>Include archived pages</b><span>Show pages you archived in the summary</span></div><i class="sw"></i></div>
+        <div class="row"><div><b>Send to my team</b><span>Share the summary with everyone in the space</span></div><i class="sw"></i></div></div>
+    </div>
+  </body>
+</html>

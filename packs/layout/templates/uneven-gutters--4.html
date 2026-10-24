@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: uneven-gutters--4</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* An app landing page: a headline, then three feature cards in one row with 32 px gaps. The defect makes the second gap 46 px (OQ-17). */
+      body { background: #fffdf8; }
+      .nav { height: 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 80px; }
+      .logo { font-size: 22px; font-weight: 700; color: #b45309; }
+      .nav .cta { background: #b45309; color: #fff; padding: 9px 20px; border-radius: 6px; font-size: 15px; font-weight: 700; }
+      .intro { text-align: center; padding: 52px 200px 44px; }
+      .intro h1 { font-family: var(--font-serif); font-size: 50px; line-height: 1.1; margin-bottom: 16px; }
+      .intro p { font-size: 20px; color: var(--color-muted); }
+      .row { --gap-second: 32px; padding: 0 80px; display: grid; grid-template-columns: 1fr 32px 1fr var(--gap-second) 1fr; }
+      [data-defect="on"] .row { --gap-second: 46px; }
+      .feature { background: #fdf0dc; border-radius: 12px; padding: 28px; height: 300px; }
+      .icon { width: 44px; height: 44px; border-radius: 10px; background: #b45309; margin-bottom: 20px; }
+      .feature h2 { font-size: 22px; margin-bottom: 10px; }
+      .feature p { font-size: 16px; color: #4a4036; }
+    </style>
+  </head>
+  <body>
+    <div class="nav"><div class="logo">Fieldnote</div><div class="cta">Get the app</div></div>
+    <div class="intro"><h1>Notes for people who work outdoors</h1><p>Write on the trail, sync when you are back in range.</p></div>
+    <div class="row">
+      <div class="feature"><div class="icon"></div><h2>Works offline</h2><p>Every note, photo and map pin is saved on your phone first and uploaded later, so a weak signal never loses work.</p></div><i></i>
+      <div class="feature"><div class="icon" style="border-radius:50%"></div><h2>Pins on a map</h2><p>Drop a pin with a note and see every site you visited this season on one map, grouped by day.</p></div><i></i>
+      <div class="feature"><div class="icon" style="border-radius:4px"></div><h2>Share a report</h2><p>Turn a week of notes into one tidy report and send it to your team as a link or a PDF.</p></div>
+    </div>
+  </body>
+</html>

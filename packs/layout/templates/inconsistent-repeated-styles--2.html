@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: inconsistent-repeated-styles--2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* An "Our team" page with eight member cards in two rows of four. Each card is white with a 1 px grey border and 12 px corners, and shows a circle of initials, a name, a role, and a line about the person. The defect gives the sixth card a pale grey fill, no border, and square corners, as when one card comes from an older component. No card has a reason to stand out. (OQ-17) */
+      h1 { font-size: 30px; padding: 40px 56px 4px; }
+      .sub { padding: 0 56px 28px; color: var(--color-muted); font-size: 16px; }
+      .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 0 56px; }
+      .card { height: 290px; background: #fff; border: 1px solid #d5dbe2; border-radius: 12px; padding: 24px; }
+      .card i { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: #dbe6f3; color: #24466e; font-style: normal; font-weight: 700; font-size: 20px; margin-bottom: 18px; }
+      .card h2 { font-size: 18px; margin-bottom: 4px; }
+      .card .role { font-size: 14px; color: var(--color-accent); margin-bottom: 12px; }
+      .card p { font-size: 14px; line-height: 1.5; color: #4a525e; }
+      [data-defect="on"] .odd { background-color: #eef1f4; border: 0 solid #d5dbe2; border-radius: 0; padding: 25px; }
+    </style>
+  </head>
+  <body>
+    <h1>Our team</h1>
+    <p class="sub">Eight people in two offices, building tools for small charities.</p>
+    <div class="grid">
+      <div class="card"><i>MA</i><h2>Mira Aalto</h2><div class="role">Director</div><p>Ran a food bank for nine years before starting the company.</p></div>
+      <div class="card"><i>TB</i><h2>Tomas Brandt</h2><div class="role">Lead engineer</div><p>Looks after the donations service and the nightly exports.</p></div>
+      <div class="card"><i>RC</i><h2>Rhea Castell</h2><div class="role">Designer</div><p>Works on the volunteer rota and the sign-up forms.</p></div>
+      <div class="card"><i>JD</i><h2>Jonah Dale</h2><div class="role">Engineer</div><p>Builds the reports that trustees read each quarter.</p></div>
+      <div class="card"><i>PE</i><h2>Priya Esk</h2><div class="role">Support</div><p>Answers most of the questions that come in by email.</p></div>
+      <div class="card odd"><i>LF</i><h2>Lukas Fenn</h2><div class="role">Engineer</div><p>Keeps the payment links and receipts working.</p></div>
+      <div class="card"><i>AG</i><h2>Ada Gray</h2><div class="role">Researcher</div><p>Visits charities to watch how they use the tools.</p></div>
+      <div class="card"><i>OH</i><h2>Omar Hale</h2><div class="role">Finance</div><p>Handles invoices, grants, and the yearly audit.</p></div>
+    </div>
+  </body>
+</html>

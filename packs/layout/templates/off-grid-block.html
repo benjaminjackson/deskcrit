@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Layout fixture: off-grid-block</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* An account settings page: a left menu (x=64 to 264) and four stacked cards that all run from x=304 to x=1216. The defect nudges the Billing card 28 px to the right, so its left and right edges match no other block (OQ-17). */
+      body { background: #f4f5f7; }
+      .top { height: 60px; background: #fff; border-bottom: 1px solid var(--color-border); display: flex; align-items: center; justify-content: space-between; padding: 0 64px; }
+      .top b { font-size: 18px; }
+      .top span { color: var(--color-muted); font-size: 14px; }
+      .menu { position: absolute; left: 64px; top: 92px; width: 200px; }
+      .menu div { padding: 10px 14px; border-radius: 6px; color: var(--color-muted); font-size: 15px; margin-bottom: 4px; }
+      .menu .on { background: #e3ebf7; color: #0b4a8f; font-weight: 700; }
+      .col { position: absolute; left: 304px; top: 92px; width: 912px; }
+      h1 { font-size: 28px; margin-bottom: 20px; }
+      .card { background: #fff; border: 1px solid var(--color-border); border-radius: 8px; padding: 18px 24px; height: 128px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+      .card h2 { font-size: 17px; margin-bottom: 4px; }
+      .card p { color: var(--color-muted); font-size: 14px; max-width: 560px; }
+      .btn { border: 1px solid #0b5cad; color: #0b5cad; border-radius: 6px; padding: 8px 18px; font-size: 14px; font-weight: 700; }
+      [data-defect="on"] .odd { position: relative; left: 28px; }
+    </style>
+  </head>
+  <body>
+    <div class="top"><b>Tallis Cloud</b><span>Workspace: Harbour Studio</span></div>
+    <div class="menu"><div>Profile</div><div>Notifications</div><div class="on">Billing</div><div>Members</div><div>Integrations</div><div>Security</div></div>
+    <div class="col">
+      <h1>Account settings</h1>
+      <div class="card"><div><h2>Profile</h2><p>Your name and photo appear on comments and in the member list.</p></div><span class="btn">Edit</span></div>
+      <div class="card"><div><h2>Notifications</h2><p>Choose which updates reach your inbox and which stay inside the app.</p></div><span class="btn">Manage</span></div>
+      <div class="card odd"><div><h2>Billing</h2><p>Your plan renews on 1 March. The invoice goes to the address on file.</p></div><span class="btn">View invoices</span></div>
+      <div class="card"><div><h2>Sessions</h2><p>Sign out of devices you no longer use. You are signed in on three now.</p></div><span class="btn">Review</span></div>
+    </div>
+  </body>
+</html>

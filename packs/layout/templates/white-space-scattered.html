@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <title>Layout fixture: white-space-scattered</title>
+    <style>
+      /* A landing page for an invoicing app: top bar, a hero with a headline and a sample invoice card, and a row of three feature cards. The page is built to the same content in both states. The defect gives the page margin, the bar, the hero, and the cards one equal 24 px gap and puts the hero text in a panel, so no area is larger than any other gap. The clean page has a wide side margin, an open hero, and tight text groups. (OQ-17) */
+      body { display: flex; flex-direction: column; background: #f4f1ea; padding: 0 120px 48px; }
+      .bar { height: 72px; display: flex; align-items: center; justify-content: space-between; }
+      .bar b { font-size: 20px; } .bar span { color: var(--color-muted); font-size: 14px; margin-left: 28px; }
+      .hero { flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 24px 0 40px; }
+      .hero h1 { font-size: 54px; line-height: 1.08; max-width: 620px; margin-bottom: 10px; }
+      .hero p { font-size: 18px; color: var(--color-muted); max-width: 520px; margin-bottom: 14px; }
+      .btn { display: inline-block; background: #1d4d3f; color: #fff; padding: 12px 22px; border-radius: 8px; font-weight: 700; }
+      .sample { width: 340px; background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #ddd6c6; }
+      .sample h3 { font-size: 15px; margin-bottom: 6px; } .sample div { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; color: var(--color-muted); }
+      .sample .total { color: var(--color-text); font-weight: 700; border-top: 1px solid #ddd6c6; margin-top: 6px; padding-top: 8px; }
+      .cards { display: flex; gap: 16px; height: 150px; }
+      .card { flex: 1; background: #fff; border: 1px solid #ddd6c6; border-radius: 12px; padding: 18px; }
+      .card h3 { font-size: 17px; margin-bottom: 4px; } .card p { font-size: 14px; color: var(--color-muted); }
+      [data-defect="on"] body { padding: 24px; gap: 24px; }
+      [data-defect="on"] .bar { height: 56px; background: #fff; border-radius: 12px; padding: 0 24px; }
+      [data-defect="on"] .hero { background: #e4ece6; border-radius: 12px; padding: 24px; }
+      [data-defect="on"] .cards { gap: 24px; height: 220px; }
+      [data-defect="on"] .card { padding: 24px; }
+    </style>
+  </head>
+  <body>
+    <div class="bar"><div><b>Tallyfold</b><span>Product</span><span>Pricing</span><span>Guides</span></div><span>Sign in</span></div>
+    <div class="hero">
+      <div><h1>Send an invoice in the time it takes to pour coffee.</h1><p>Tallyfold fills in your clients, rates, and tax, then chases late payments for you.</p><span class="btn">Start free for 14 days</span></div>
+      <div class="sample"><h3>Invoice 0142 · Harbor Print Co.</h3><div><span>Poster run, 200 units</span><span>$640.00</span></div><div><span>Delivery</span><span>$45.00</span></div><div><span>Tax 8%</span><span>$54.80</span></div><div class="total"><span>Total due</span><span>$739.80</span></div></div>
+    </div>
+    <div class="cards">
+      <div class="card"><h3>Reminders that sound human</h3><p>Three gentle nudges before an invoice is overdue, written in your own words.</p></div>
+      <div class="card"><h3>Pay by card or transfer</h3><p>Clients pay from the email with two taps.</p></div>
+      <div class="card"><h3>Reports for tax time</h3><p>Export a clean year of income in one file.</p></div>
+    </div>
+  </body>
+</html>
