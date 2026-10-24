@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Compare pair: same, illustration fill</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * EV-9 same pair. The empty inbox screen of a support app, with an inline
+ * SVG drawing of a tray. The only change is the fill of the tray and its
+ * shadow, a pale blue on one side and a pale green on the other. No
+ * criterion covers it, so every verdict should stay the same.
+ */
+.layout { display: grid; grid-template-columns: 232px 1fr; height: 800px; }
+nav { background: #f5f6f8; border-right: 1px solid #e3e6ea; padding: 28px 20px; }
+nav p { font-size: 15px; padding: 8px 10px; color: #2d333b; }
+nav p.on { font-weight: 700; }
+.empty { display: flex; flex-direction: column; align-items: center; padding-top: 170px; }
+.empty h1 { font-size: 26px; font-weight: 700; margin: 26px 0 8px; }
+.empty p { font-size: 16px; color: #3d434b; width: 420px; text-align: center; margin-bottom: 20px; }
+.button { padding: 11px 22px; font-size: 15px; font-weight: 700; border: 1px solid #c5cad1; border-radius: 6px; color: #2d333b; }
+.tray { fill: #c9dbf2; }
+.tray-shadow { fill: #e3edf9; }
+
+[data-defect="on"] .tray { fill: #c7e6d4; }
+[data-defect="on"] .tray-shadow { fill: #e2f2e8; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <nav><p class="on">Inbox</p><p>Assigned to me</p><p>Waiting</p><p>Closed</p></nav>
+      <main class="empty">
+        <svg width="200" height="140" viewBox="0 0 200 140" aria-hidden="true">
+          <ellipse class="tray-shadow" cx="100" cy="124" rx="86" ry="12" />
+          <path class="tray" d="M30 60 L60 20 H140 L170 60 V108 a8 8 0 0 1 -8 8 H38 a8 8 0 0 1 -8 -8 Z" />
+          <path d="M30 60 H72 a28 18 0 0 0 56 0 H170" fill="none" stroke="#5b6b80" stroke-width="3" />
+          <path d="M30 60 L60 20 H140 L170 60 V108 a8 8 0 0 1 -8 8 H38 a8 8 0 0 1 -8 -8 Z" fill="none" stroke="#5b6b80" stroke-width="3" />
+        </svg>
+        <h1>No open conversations</h1>
+        <p>New messages from customers will appear here. You can also start a conversation from a customer's profile.</p>
+        <span class="button">Open customer list</span>
+      </main>
+    </div>
+  </body>
+</html>

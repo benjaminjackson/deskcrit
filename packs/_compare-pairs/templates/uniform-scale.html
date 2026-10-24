@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Compare pair: uniform scale</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * EV-9 pair, criterion uniform-scale. The front page of a local news site.
+ * The lead story takes two columns and two rows, with a 34 px headline. With
+ * the defect the grid becomes one row of five equal columns, the lead takes
+ * one cell like the other stories, and its headline is 20 px, so every story
+ * is the same size. Nothing else changes.
+ */
+header { height: 76px; padding: 0 64px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #1f2328; }
+header b { font-family: var(--font-serif); font-size: 30px; }
+header span { font-size: 14px; color: #4a5059; }
+main { margin: 28px 64px 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 300px 300px; gap: 24px; }
+.story .img { height: 150px; border-radius: 3px; margin-bottom: 10px; }
+.story h2 { font-family: var(--font-serif); font-size: 20px; font-weight: 700; line-height: 1.2; margin-bottom: 6px; }
+.story p { font-size: 14px; color: #4a5059; }
+.story.lead { grid-column-start: 1; grid-column-end: 3; grid-row-start: 1; grid-row-end: 3; }
+.story.lead .img { height: 430px; }
+.story.lead h2 { font-size: 34px; }
+
+[data-defect="on"] main { grid-template-columns: repeat(5, 1fr); grid-template-rows: 300px; }
+[data-defect="on"] .story.lead { grid-column-start: auto; grid-column-end: auto; grid-row-start: auto; grid-row-end: auto; }
+[data-defect="on"] .story.lead .img { height: 150px; }
+[data-defect="on"] .story.lead h2 { font-size: 20px; }
+    </style>
+  </head>
+  <body>
+    <header><b>The Ashby Courier</b><span>News · Sport · Business · Weather</span></header>
+    <main>
+      <article class="story lead"><div class="img" style="background:#8ea3b5"></div><h2>New footbridge over the Soar opens after two years of work</h2><p>Walkers can now cross from Quay Street to the meadows without the ring road.</p></article>
+      <article class="story"><div class="img" style="background:#c2b49a"></div><h2>Market hall stalls cut rents for winter</h2><p>Traders pay half rent until March.</p></article>
+      <article class="story"><div class="img" style="background:#a7b89a"></div><h2>Allotment waiting list falls below 100</h2><p>Forty plots added at Glebe Farm.</p></article>
+      <article class="story"><div class="img" style="background:#b7a2a8"></div><h2>Ashby Town win cup replay on penalties</h2><p>Keeper saves two in the shoot-out.</p></article>
+      <article class="story"><div class="img" style="background:#9fb1b0"></div><h2>Library extends Sunday hours</h2><p>Open from ten until four from November.</p></article>
+    </main>
+  </body>
+</html>
