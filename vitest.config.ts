@@ -13,6 +13,7 @@ export default defineConfig({
       "evals/*.test.ts",
       "evals/agreement/*.test.ts",
       "evals/wobble/*.test.ts",
+      "evals/adversarial/*.test.ts",
     ],
   },
 });

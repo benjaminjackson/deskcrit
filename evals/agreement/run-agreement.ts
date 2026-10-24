@@ -16,7 +16,6 @@
 // Without --pack it measures every first-party pack under packs/. Exit 0 when every fixture agrees,
 // 1 when any EV-4 fixture disagrees, and 2 when the harness could not run (FR-24).
 
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   existsSync,
@@ -43,6 +42,7 @@ import {
   compileReportValidator,
   readPinnedModel,
 } from "../support/pinned-model-and-schema.ts";
+import { type CritRun, runCritBundle } from "../support/run-crit-bundle.ts";
 import {
   formatScoredPngHashes,
   hashPngHashes,
@@ -80,7 +80,6 @@ import {
 
 const DEFAULT_HARNESS_DIRECTORY = import.meta.dirname;
 const REPOSITORY_DIRECTORY = resolve(DEFAULT_HARNESS_DIRECTORY, "..", "..");
-const CRIT_BUNDLE_PATH = join(REPOSITORY_DIRECTORY, "dist", "crit.js");
 const REPORT_SCHEMA_PATH = join(
   REPOSITORY_DIRECTORY,
   "schemas",
@@ -124,12 +123,8 @@ type PackResult = {
   readonly agreement: readonly CriterionAgreement[] | null;
 };
 
-/** What one run of crit gave back. */
-export type CritRun = {
-  readonly stdout: string;
-  readonly stderr: string;
-  readonly exitCode: number | null;
-};
+// The test reads CritRun from this file, so it is re-exported from the shared runner.
+export type { CritRun };
 
 /**
  * Runs `crit` with these arguments and environment, with the harness folder as its working
@@ -844,40 +839,6 @@ async function runCritOnFixture(
     );
   }
   return document;
-}
-
-/**
- * Run the built crit bundle as a child process in the working directory given, so crit reads that
- * folder's .crit.yaml. This is the only function that starts a process (AC-6).
- */
-async function runCritBundle(
-  critArguments: readonly string[],
-  environment: NodeJS.ProcessEnv,
-  workingDirectory: string,
-): Promise<CritRun> {
-  if (!existsSync(CRIT_BUNDLE_PATH)) {
-    throw new Error(
-      `${CRIT_BUNDLE_PATH} does not exist; run npm run build first`,
-    );
-  }
-  const result = spawnSync(
-    process.execPath,
-    [CRIT_BUNDLE_PATH, ...critArguments],
-    {
-      cwd: workingDirectory,
-      env: environment,
-      encoding: "utf8",
-      maxBuffer: 64 * 1024 * 1024,
-    },
-  );
-  if (result.error !== undefined) {
-    throw new Error(`crit could not start: ${result.error.message}`);
-  }
-  return {
-    stdout: result.stdout,
-    stderr: result.stderr,
-    exitCode: result.status,
-  };
 }
 
 /** Add one report's usage to the totals; a null token count or cost makes that total null (FR-33). */
