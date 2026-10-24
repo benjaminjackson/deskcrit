@@ -6,6 +6,10 @@ import { defineConfig } from "vitest/config";
 // evals/ run the built bundle and are wired up by a later ticket (CS-21, CS-22).
 export default defineConfig({
   test: {
-    include: ["src/**/*.test.ts", "schemas/**/*.test.ts", "packs/_renderer/*.test.ts"],
+    include: [
+      "src/**/*.test.ts",
+      "schemas/**/*.test.ts",
+      "packs/_renderer/*.test.ts",
+    ],
   },
 });
