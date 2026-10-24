@@ -317,3 +317,118 @@ describe("determinism (FR-10, NFR-5)", () => {
     expect(Buffer.compare(input, copy)).toBe(0);
   });
 });
+
+describe("slicing a tall page (FR-70, OQ-22)", () => {
+  test("cuts a 1440 by 5000 PNG into 4 slices of 1440 by 1250 and keeps a whole page", async () => {
+    const prepared = await prepareImage(await makeFlatPng(1440, 5000));
+    expect(prepared.slices).toHaveLength(4);
+    const expectedTops = [0, 1250, 2500, 3750];
+    for (let index = 0; index < 4; index++) {
+      const slice = prepared.slices[index];
+      expect(slice?.index).toBe(index);
+      expect(slice?.originalTop).toBe(expectedTops[index]);
+      expect(slice?.originalHeight).toBe(1250);
+      expect(slice?.width).toBe(1440);
+      expect(slice?.height).toBe(1250);
+      expect(slice?.scaleFactor).toBe(1);
+      expect(slice?.padded).toBe(false);
+      const metadata = await sharp(slice?.bytes).metadata();
+      expect(metadata.width).toBe(1440);
+      expect(metadata.height).toBe(1250);
+      expect(metadata.format).toBe("png");
+    }
+    expect(Math.max(prepared.width, prepared.height)).toBe(MAX_SIDE_PIXELS);
+    const pageMetadata = await sharp(prepared.bytes).metadata();
+    expect(pageMetadata.height).toBe(MAX_SIDE_PIXELS);
+  });
+
+  // The ticket asked for 1440 px and 0.5 here, but FR-7 and FR-70 scale the
+  // width to at most 1568 px, so a 2880 px width becomes 1568 px.
+  test("cuts a 2880 by 10000 PNG into slices 1568 wide, scaled by 1568 / 2880", async () => {
+    const prepared = await prepareImage(await makeFlatPng(2880, 10000));
+    expect(prepared.slices).toHaveLength(4);
+    for (const slice of prepared.slices) {
+      expect(slice.width).toBe(MAX_SIDE_PIXELS);
+      expect(slice.height).toBe(1361);
+      expect(slice.originalHeight).toBe(2500);
+      expect(slice.scaleFactor).toBe(1568 / 2880);
+    }
+    expect(prepared.slices.map((slice) => slice.originalTop)).toEqual([
+      0, 2500, 5000, 7500,
+    ]);
+  });
+
+  test("gives one image and no cut for a 1440 by 900 PNG", async () => {
+    const prepared = await prepareImage(await makeFlatPng(1440, 900));
+    expect(prepared.slices).toHaveLength(1);
+    const slice = prepared.slices[0];
+    expect(slice?.index).toBe(0);
+    expect(slice?.originalTop).toBe(0);
+    expect(slice?.originalHeight).toBe(900);
+    expect(slice?.width).toBe(1440);
+    expect(slice?.height).toBe(900);
+    expect(slice?.scaleFactor).toBe(1);
+    expect(
+      Buffer.compare(slice?.bytes ?? new Uint8Array(), prepared.bytes),
+    ).toBe(0);
+  });
+
+  test("gives the last slice the remainder when the height does not divide evenly", async () => {
+    const prepared = await prepareImage(await makeFlatPng(1000, 3137));
+    expect(prepared.slices.map((slice) => slice.originalHeight)).toEqual([
+      1046, 1046, 1045,
+    ]);
+    for (const slice of prepared.slices) {
+      expect(slice.height).toBeLessThanOrEqual(MAX_SIDE_PIXELS);
+    }
+  });
+
+  test("pads a slice narrower than 280 with the page's top-left colour", async () => {
+    const prepared = await prepareImage(await makePngWithRedCorner(100, 2000));
+    expect(prepared.slices).toHaveLength(2);
+    const secondSlice = prepared.slices[1];
+    expect(secondSlice?.width).toBe(MIN_SIDE_PIXELS);
+    expect(secondSlice?.padded).toBe(true);
+    expect(
+      await readPixel(secondSlice?.bytes ?? new Uint8Array(), 50, 50),
+    ).toEqual([128, 128, 128]);
+    expect(
+      await readPixel(secondSlice?.bytes ?? new Uint8Array(), 200, 50),
+    ).toEqual([200, 10, 20]);
+  });
+
+  test("slices of every cut stay within 280 to 1568 on each side (JC-1)", async () => {
+    const sizes = [
+      [1440, 5000],
+      [10, 5000],
+      [3000, 3200],
+      [1568, 1569],
+    ];
+    for (const [width = 0, height = 0] of sizes) {
+      const prepared = await prepareImage(await makeFlatPng(width, height));
+      expect(prepared.slices.length).toBeGreaterThan(1);
+      for (const slice of prepared.slices) {
+        const metadata = await sharp(slice.bytes).metadata();
+        expect(metadata.width).toBe(slice.width);
+        expect(metadata.height).toBe(slice.height);
+        for (const side of [slice.width, slice.height]) {
+          expect(side).toBeGreaterThanOrEqual(MIN_SIDE_PIXELS);
+          expect(side).toBeLessThanOrEqual(MAX_SIDE_PIXELS);
+        }
+      }
+    }
+  });
+
+  test("preparing the same tall PNG twice gives byte-identical slices (FR-10)", async () => {
+    const input = await makePngWithRedCorner(1440, 5000);
+    const first = await prepareImage(input);
+    const second = await prepareImage(input);
+    expect(first.slices).toHaveLength(second.slices.length);
+    for (let index = 0; index < first.slices.length; index++) {
+      const firstBytes = first.slices[index]?.bytes ?? new Uint8Array();
+      const secondBytes = second.slices[index]?.bytes ?? new Uint8Array([1]);
+      expect(Buffer.compare(firstBytes, secondBytes)).toBe(0);
+    }
+    expect(first).toEqual(second);
+  });
+});
