@@ -165,14 +165,14 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 ### One grid governs the page
 - **Rule:** Every block takes its edges from one underlying grid of columns, margins, and intervals, so the same column lines recur from the top of the page to the bottom. A block whose edges match no other block shows that it was placed by eye.
 - **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981), sections "Grid and design philosophy" and "Construction of the grid"; Samara, *Making and Breaking the Grid* (3rd ed. 2023), part "Making the Grid".
-- **Judged by:** askable. Question: "Does one block look out of line with the rest of the page, as if it were placed by eye and not on the same columns as the blocks around it?" This question is the second rewording, written blind in general terms on 2026-10-24.
-- **Defect range:** `off-grid-block`: not measured. One block moved 24 to 36 px off the column line that the other blocks share.
+- **Judged by:** not encoded. Question tried: "Does one block look out of line with the rest of the page, as if it were placed by eye and not on the same columns as the blocks around it?"
+- **Not encoded (R-4):** `off-grid-block` was removed under R-4: 4 of 5 positives quiet after two rewordings, 2026-10-24.
 
 ### Equal intervals between columns
 - **Rule:** The space between columns, cards, or grid fields is one fixed interval across the page.
 - **Source:** Müller-Brockmann, *Grid Systems in Graphic Design*, section "Construction of the grid" (the fields are separated by a fixed space, such as one empty line).
-- **Judged by:** askable. Question: "Does a row of columns or cards have an uneven rhythm, so that the row looks irregular instead of a steady, evenly spaced set?" This question is the second rewording, written blind in general terms on 2026-10-24.
-- **Defect range:** `uneven-gutters`: not measured. One gap in a row of equal gaps made 12 to 18 px wider than the others, such as 36 px among 24 px gaps.
+- **Judged by:** not encoded. Question tried: "Does a row of columns or cards have an uneven rhythm, so that the row looks irregular instead of a steady, evenly spaced set?"
+- **Not encoded (R-4):** `uneven-gutters` was removed under R-4: 5 of 5 positives quiet after two rewordings, 2026-10-24.
 
 ### Pictures fit the grid
 - **Rule:** An image takes its width from the columns and its top and bottom from the lines of text, so pictures and text share the same edges.
@@ -188,32 +188,32 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Rule:** The gap between items in one group is clearly smaller than the gap between groups, and a label sits nearer its own field than the one before it. Equal gaps everywhere erase the groups.
 - **Source:** Arnheim, *Art and Visual Perception*, chapter II "Shape", on grouping by similarity, where similarity of location is Wertheimer's rule of proximity; Wertheimer, "Untersuchungen zur Lehre von der Gestalt II" (1923).
 - **Link:** https://www.gestalttheory.net/download/Wertheimer1923_Lehre_von_der_Gestalt.pdf
-- **Judged by:** askable, as two criteria. First question: "Does a run of content that holds several groups, such as sections under their own headings, flow on with no break in the spacing, so that the eye cannot tell where one group ends and the next begins?" That question is the second rewording, written blind in general terms on 2026-10-24. Second question: "Does a form label sit as close to the field above it as to its own field, or closer?"
-- **Defect range:** `groups-not-separated`: not measured. The gap between groups set equal to the gap between the items inside a group, at 12 to 18 px.
+- **Judged by:** not encoded. Two criteria were tried; the first question was: "Does a run of content that holds several groups, such as sections under their own headings, flow on with no break in the spacing, so that the eye cannot tell where one group ends and the next begins?"
+- **Not encoded (R-4):** `groups-not-separated` was removed under R-4: 4 of 5 positives quiet after two rewordings, 2026-10-24.
 
 ### Unrelated elements do not crowd each other
 - **Rule:** Elements that do not belong together keep clear space between them. A caption or paragraph below a diagram has a visible gap above it, not a few pixels.
 - **Source:** Arnheim, *Art and Visual Perception*, chapter II "Shape", on grouping by similarity of location (elements that sit close are seen as one group).
-- **Judged by:** askable. Question: "Is a piece of text or a control jammed up against an image, diagram, or box that it does not belong to, with no breathing room between them, so that the two look stuck together?" This question is the second rewording, written blind in general terms on 2026-10-24. Evidence: in M-1, Benjamin Jackson saw the text below a diagram sit too close to it (spike/human_answers.csv, on `edges-misaligned`), and no other entry covered it (PRD OQ-18).
-- **Defect range:** `crowded-unrelated-elements`: not measured. A caption, paragraph, or control left about 1 px from an image, diagram, or box that it does not belong to.
+- **Judged by:** not encoded. Question tried: "Is a piece of text or a control jammed up against an image, diagram, or box that it does not belong to, with no breathing room between them, so that the two look stuck together?"
+- **Not encoded (R-4):** `crowded-unrelated-elements` was removed under R-4: 1 of 5 positives quiet after two rewordings, 2026-10-24.
 
 ### White space is gathered, not scattered
 - **Rule:** Ruder holds that the printed and the unprinted areas must stand in tension, and that the tension comes from contrast. Considered work gathers empty space into a few large, shaped areas set against dense ones. Average work spreads the same small gap between everything, so no space does any work, and it runs content up to the edges of the page.
 - **Source:** Ruder, *Typography: A Manual of Design* (1967), chapters "Contrasts" and "Form and counter-form"; Kunz, *Typography: Macro- and Microaesthetics* (1998), part two, on space and on form and counterform.
-- **Judged by:** askable. Question: "Does the page look evenly filled, with its empty space spread thin between everything and no open area large enough to give the eye a place to rest?" This question is the second rewording, written blind in general terms on 2026-10-24. Content that runs up to the edge of the page is a basics check, under "Content keeps clear of the page edge".
-- **Defect range:** `white-space-scattered`: not measured. Every gap and inset on the page set to one small step, such as 24 px, with no larger open area anywhere.
+- **Judged by:** not encoded. Question tried: "Does the page look evenly filled, with its empty space spread thin between everything and no open area large enough to give the eye a place to rest?"
+- **Not encoded (R-4):** `white-space-scattered` was removed under R-4: 5 of 5 positives quiet after two rewordings, 2026-10-24.
 
 ### Figure and ground are unambiguous
 - **Rule:** Text and key shapes separate clearly from what lies behind them. Text on a photo or texture needs a calm area, a panel, or a scrim behind it.
 - **Source:** Arnheim, *Art and Visual Perception*, chapter V "Space", section "Figure and ground"; Ruder, *Typography: A Manual of Design*, chapter "Form and counter-form".
-- **Judged by:** askable. Question: "Does text or a key shape sit straight on a busy photo or pattern, so that parts of it get lost in the picture and it is hard to pick out from what lies behind it?" This question is the second rewording, written blind in general terms on 2026-10-24.
-- **Defect range:** `figure-merges-with-ground`: not measured. Text or a key shape set straight on a busy photo or pattern, with the panel, scrim, or shadow behind it taken away.
+- **Judged by:** not encoded. Question tried: "Does text or a key shape sit straight on a busy photo or pattern, so that parts of it get lost in the picture and it is hard to pick out from what lies behind it?"
+- **Not encoded (R-4):** `figure-merges-with-ground` was removed under R-4: 3 of 5 positives quiet after two rewordings, 2026-10-24.
 
 ### Balance
 - **Rule:** Visual weight comes from size, darkness, colour, and isolation, and where an element sits changes its weight. A layout may be symmetrical or not, but a heavy side needs a counterweight.
 - **Source:** Arnheim, *Art and Visual Perception*, chapter I "Balance", sections "Weight" and "Psychological and physical balance".
-- **Judged by:** askable. Question: "Does one side of the page carry much more visual weight than the other, with nothing on the lighter side strong enough to balance it?" The first wording asked whether the other side was empty. On 2026-10-24 it stayed quiet on a fixture whose lighter side held a few lines of text, so the question now asks about balance of visual weight, not about empty space.
-- **Defect range:** `lopsided-balance`: not measured. The large or dark elements of a page placed on its left or right side, with the other side empty and nothing to counter them.
+- **Judged by:** not encoded. Question tried: "Does one side of the page carry much more visual weight than the other, with nothing on the lighter side strong enough to balance it?"
+- **Not encoded (R-4):** `lopsided-balance` was removed under R-4: 1 of 5 positives quiet (--4) after one rewording, 2026-10-24.
 
 ### One element dominates
 - **Rule:** The order of importance is plain: one element is seen first and the rest follow. Tschichold asks that logical order be shown by differences of size, and Hofmann builds compositions from contrasts such as much against little.
@@ -238,8 +238,8 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 ### Repeated elements follow one programme
 - **Rule:** Gerstner treats design as a programme: a set of rules from which each solution is chosen. Elements of one kind (cards, buttons, section headings) therefore share one style and one spacing, and a variant appears only where the rules call for it.
 - **Source:** Gerstner, *Designing Programmes* (1964), the introduction ("instead of solutions for problems, programmes for solutions"); Müller-Brockmann, *Grid Systems in Graphic Design*, section "Grid and design philosophy" (the grid as the will to systematize).
-- **Judged by:** askable. Question: "Among elements that are meant to match, such as a row of cards, a set of buttons, or the section headings, does one look as if it came from a different design, breaking the pattern the others set?" This question is the second rewording, written blind in general terms on 2026-10-24.
-- **Defect range:** `inconsistent-repeated-styles`: not measured. One element in a set of the same kind, such as cards, buttons, or section headings, styled differently from the others in a way that shows at the size of the page.
+- **Judged by:** not encoded. Question tried: "Among elements that are meant to match, such as a row of cards, a set of buttons, or the section headings, does one look as if it came from a different design, breaking the pattern the others set?"
+- **Not encoded (R-4):** `inconsistent-repeated-styles` was removed under R-4: 2 of 5 positives quiet after two rewordings, 2026-10-24.
 
 ### No rules, boxes, or ornament where space would do
 - **Rule:** Lines, borders, and decoration that carry no information compete with the content. Tufte calls it non-data ink and chartjunk; Lupton shows that tables are often over-ruled and are clearer with the rules removed or replaced by a pale tone; Tschichold rejects ornament.
