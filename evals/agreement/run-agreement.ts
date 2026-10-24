@@ -11,8 +11,9 @@
 // criteria that file answers, needs no key, and makes no network call (EV-4 rule 5, FR-42).
 //
 // Usage: node evals/agreement/run-agreement.ts [--live] [--rerun-same-set] [--pack <dir>]...
-// A live run with no pair left to ask is refused, unless a person passes --rerun-same-set, which
-// asks every pair again and replaces the saved answers. Only a person passes it, never an agent.
+// A live run with no pair left to ask is refused, unless --rerun-same-set is passed, which asks
+// every pair again and replaces the saved answers. Pass it only to repeat a run that broke for a
+// technical reason, never to score a decided criterion again.
 // Without --pack it measures every first-party pack under packs/. Exit 0 when every fixture agrees,
 // 1 when any EV-4 fixture disagrees, and 2 when the harness could not run (FR-24).
 
@@ -337,8 +338,8 @@ async function runHarnessWithContext(
 
 /**
  * Plan a live run on one pack from its fixtures, their saved answers, and the guard files, or
- * throw when EV-4 rule 5 refuses it. The message says that no request was sent and that only a
- * person may pass --rerun-same-set.
+ * throw when EV-4 rule 5 refuses it. The message says that no request was sent and when to pass
+ * --rerun-same-set.
  */
 function planPackLiveRun(
   context: HarnessContext,
@@ -384,7 +385,7 @@ function planPackLiveRun(
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(
-      `${message} (${join(context.options.runsDirectory, pack.name, context.pinnedModel)}). EV-4 rule 5 allows no second run on a pair already scored; no request was sent. A person may pass --rerun-same-set to run it again.`,
+      `${message} (${join(context.options.runsDirectory, pack.name, context.pinnedModel)}). EV-4 rule 5 allows no second run on a pair already scored; no request was sent. Pass --rerun-same-set only to repeat a run that broke, and record why.`,
     );
   }
 }

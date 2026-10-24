@@ -116,7 +116,7 @@ function imageFileNameOf(fixture: string): string {
 /**
  * Plan a live run on one pack (EV-4 rule 5). Return the fixtures to ask, each with only the
  * criteria it has no saved answer for, or throw an Error that says why the run is refused before
- * any request is sent. With rerunSameSet, which only a person passes, every criterion is asked
+ * any request is sent. With rerunSameSet, which is only for repeating a run that broke, every criterion is asked
  * about every fixture again and the fixture's saved files are replaced.
  */
 export function planLiveRun(input: LivePlanInput): LiveFixturePlan[] {
