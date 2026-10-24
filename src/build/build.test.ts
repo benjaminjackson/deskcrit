@@ -136,6 +136,50 @@ describe("FR-12, US-8: platform skips", () => {
   });
 });
 
+describe("OQ-24 b: a blank required fact stops the run", () => {
+  const packs = [
+    makePack("layout", [
+      makeNoulCriterion("reflow-at-320", {
+        requires: ["facts.viewport_width"],
+      }),
+      makeNoulCriterion("kept"),
+    ]),
+  ];
+
+  for (const blankValue of [null, "", "   "]) {
+    it(`throws CouldNotRunError naming the key and the criterion for ${JSON.stringify(blankValue)}`, () => {
+      const input = makeInput(packs, { facts: { viewport_width: blankValue } });
+      expect(() => buildQuestions(input)).toThrow(CouldNotRunError);
+      expect(() => buildQuestions(input)).toThrow(/viewport_width/);
+      expect(() => buildQuestions(input)).toThrow(/layout\/reflow-at-320/);
+      expect(() => buildQuestions(input)).toThrow(
+        /give it a value or remove the key/,
+      );
+    });
+  }
+
+  it("skips the criterion with the usual reason when the facts do not have the key", () => {
+    const result = buildQuestions(makeInput(packs, { facts: { other: 1 } }));
+    expect(result.skipped).toEqual([
+      {
+        criterion: "layout/reflow-at-320",
+        reason:
+          "requires facts.viewport_width, which the facts file does not have",
+      },
+    ]);
+  });
+
+  it("does not throw for a blank key that no criterion requires", () => {
+    const result = buildQuestions(
+      makeInput(packs, { facts: { viewport_width: 320, unused: null } }),
+    );
+    expect(listIds(result.questions)).toEqual([
+      "layout/reflow-at-320",
+      "layout/kept",
+    ]);
+  });
+});
+
 describe("FR-13, US-7: requires skips", () => {
   const packs = [
     makePack("layout", [
@@ -146,22 +190,22 @@ describe("FR-13, US-7: requires skips", () => {
       makeNoulCriterion("two-paths", {
         requires: ["facts.viewport_width", "facts.missing_one"],
       }),
-      makeNoulCriterion("null-value", { requires: ["facts.nothing"] }),
+      makeNoulCriterion("zero-value", { requires: ["facts.nothing"] }),
       makeNoulCriterion("inherited", { requires: ["facts.constructor"] }),
     ]),
   ];
 
-  it("asks a criterion whose paths are present, including nested paths and null values", () => {
+  it("asks a criterion whose paths are present, including nested paths", () => {
     const facts = {
       viewport_width: 320,
       viewport: { height: 640 },
-      nothing: null,
+      nothing: 0,
     };
     const result = buildQuestions(makeInput(packs, { facts }));
     expect(listIds(result.questions)).toEqual([
       "layout/reflow-at-320",
       "layout/nested",
-      "layout/null-value",
+      "layout/zero-value",
     ]);
     expect(result.skipped).toEqual([
       {
@@ -209,7 +253,7 @@ describe("FR-13, US-7: requires skips", () => {
         "  layout/reflow-at-320: requires facts.viewport_width, which the facts file does not have",
         "  layout/nested: requires facts.viewport.height, which the facts file does not have",
         "  layout/two-paths: requires facts.viewport_width, which the facts file does not have",
-        "  layout/null-value: requires facts.nothing, which the facts file does not have",
+        "  layout/zero-value: requires facts.nothing, which the facts file does not have",
         "  layout/inherited: requires facts.constructor, which the facts file does not have",
       ].join("\n"),
     );

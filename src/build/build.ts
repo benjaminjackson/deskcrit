@@ -150,8 +150,10 @@ function findPlatformExclusion(
 
 /**
  * Return the first `requires` path, in the order listed, that the facts do not have, or undefined
- * when all are there (FR-13, US-7). A key whose value is null or empty counts as present. When no
- * facts file was given, every path is missing. A path that does not start with "facts." throws a
+ * when all are there (FR-13, US-7). A key that is there with a blank value (null, an empty string,
+ * or only spaces) throws CouldNotRunError, because the person wrote the key and gave it no value
+ * (OQ-24 b). A blank key that no criterion requires is never looked at. When no facts file was
+ * given, every path is missing. A path that does not start with "facts." throws a
  * plain Error, because that is a broken invariant: the pack schema rejects such a path when the
  * pack loads (OQ-24 d), and every pack reaches build through the loader.
  */
@@ -169,36 +171,60 @@ function findMissingFactsPath(
         `pack ${packName}, criterion ${criterion.id}: the requires path ${path} does not start with facts.`,
       );
     }
-    if (!hasFactsPath(facts, path)) {
+    const lookup = lookUpFactsPath(facts, path);
+    if (!lookup.found) {
       return path;
+    }
+    if (isBlankFactsValue(lookup.value)) {
+      throw new CouldNotRunError(
+        `facts file: ${path} has a blank value, and criterion ${packName}/${criterion.id} requires it; give it a value or remove the key`,
+      );
     }
   }
   return undefined;
 }
 
 /**
- * Return true when the facts hold the key at a path such as "facts.viewport.width" (FR-13). The
- * first segment "facts" names the facts file itself, so the walk starts below it. The caller has
- * already checked that the path starts with "facts.".
+ * Look up the key at a path such as "facts.viewport.width" (FR-13). Return found as true and the
+ * value when the facts hold the key, and found as false otherwise. The first segment "facts" names
+ * the facts file itself, so the walk starts below it. The caller has already checked that the path
+ * starts with "facts.".
  */
-function hasFactsPath(facts: unknown, path: string): boolean {
+function lookUpFactsPath(
+  facts: unknown,
+  path: string,
+): { found: boolean; value: unknown } {
   if (facts === undefined) {
-    return false;
+    return { found: false, value: undefined };
   }
   const segments = path.split(".");
   let current: unknown = facts;
   for (const segment of segments.slice(1)) {
     if (typeof current !== "object" || current === null) {
-      return false;
+      return { found: false, value: undefined };
     }
     // Object.hasOwn checks the object's own keys only, so "facts.constructor" does not count as
     // present because every object inherits a constructor.
     if (!Object.hasOwn(current, segment)) {
-      return false;
+      return { found: false, value: undefined };
     }
     current = Reflect.get(current, segment);
   }
-  return true;
+  return { found: true, value: current };
+}
+
+/**
+ * Return true when a facts value is null, an empty string, or a string of only spaces (OQ-24 b).
+ * A zero, false, or empty list is a value the person chose, so it is not blank.
+ */
+function isBlankFactsValue(value: unknown): boolean {
+  if (value === null) {
+    return true;
+  }
+  if (typeof value === "string" && value.trim() === "") {
+    return true;
+  }
+  return false;
 }
 
 /**
