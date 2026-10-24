@@ -75,7 +75,6 @@ export function compose(input: ComposeInput): Report {
   const answersByQuestionId = indexAnswersByQuestionId(input.asked.answers);
   const frame: PreparedFrame = {
     scaleFactor: input.prepared.scaleFactor,
-    originalTop: 0,
   };
   const original: OriginalSize = {
     width: input.prepared.originalWidth,

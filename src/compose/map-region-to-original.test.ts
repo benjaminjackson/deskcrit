@@ -3,7 +3,7 @@ import { mapRegionToOriginal } from "./map-region-to-original.js";
 
 // Disposable unit tests (CS-22) for the region map (FR-8, US-1, US-11).
 
-const wholeImage = { scaleFactor: 1, originalTop: 0 };
+const wholeImage = { scaleFactor: 1 };
 
 describe("mapRegionToOriginal", () => {
   test("keeps the region as it is at scale factor 1", () => {
@@ -19,7 +19,7 @@ describe("mapRegionToOriginal", () => {
     expect(
       mapRegionToOriginal(
         region,
-        { scaleFactor: 0.5, originalTop: 0 },
+        { scaleFactor: 0.5 },
         { width: 3136, height: 2000 },
       ),
     ).toEqual({ x: 200, y: 100, width: 400, height: 200 });
@@ -45,21 +45,10 @@ describe("mapRegionToOriginal", () => {
     const scaleFactor = 1568 / 3000;
     const result = mapRegionToOriginal(
       { x: 0.4, y: 0.4, width: 1567.9, height: 1000 },
-      { scaleFactor, originalTop: 0 },
+      { scaleFactor },
       { width: 3000, height: 1900 },
     );
     expect(result).toEqual({ x: 1, y: 1, width: 2999, height: 1899 });
-  });
-
-  test("adds the top offset of a slice after dividing", () => {
-    const region = { x: 10, y: 20, width: 30, height: 40 };
-    expect(
-      mapRegionToOriginal(
-        region,
-        { scaleFactor: 0.5, originalTop: 1000 },
-        { width: 3136, height: 5000 },
-      ),
-    ).toEqual({ x: 20, y: 1040, width: 60, height: 80 });
   });
 
   test("gives null for a region that rounds to no width", () => {

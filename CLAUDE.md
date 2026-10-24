@@ -28,7 +28,7 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `src/cli/main.ts` holds the placeholder command and sets the exit code.
 - `src/cli/bin.ts` is the bundle entry file.
 - `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
-- `src/prepare/prepare.ts` holds `prepareImage`, which checks, turns upright, strips, resizes, and pads one image and records its scale factor.
+- `src/prepare/prepare.ts` holds `prepareImage`, which checks, turns upright, strips, resizes, and pads one image, records its scale factor, and refuses an image it would shrink below half size.
 - `src/shared/state.ts`, `src/shared/question.ts`, `src/shared/answer.ts`, and `src/shared/usage.ts` hold the State, Question, Answer, and Usage types that pass between the stages, and nothing else defines them.
 - `src/shared/pack.ts` holds the Pack, Criterion, PackQuestion, Predicate, and PackProblem types that the pack loader returns and build and compose read.
 - `src/packs/load-pack.ts` holds `checkPack` and `loadPack`, which parse one pack's YAML text and check it against `schemas/pack.schema.json` and the rules the schema cannot express. It reads no files.
