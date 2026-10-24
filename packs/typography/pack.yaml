@@ -1,7 +1,14 @@
 # The typography pack (crit-cy8.17). It encodes entries from the Typography
-# section of GUIDELINES.md (FR-55). Each source is the Source line of the
-# entry named in the comment above the criterion, with the Markdown emphasis
-# marks removed (FR-45).
+# section of GUIDELINES.md (FR-55). Each source is a short citation of the
+# part of the Source line of the entry named in the comment above the
+# criterion that states the rule. The quotations and the notes on what was
+# checked stay in GUIDELINES.md. A criterion is in the pack only if its rule
+# was found in the source it cites (FR-45). On 2026-10-24 Benjamin Jackson
+# removed eight criteria because no checked source states their rule:
+# heading-lines-loose, heading-at-column-foot, paragraph-indent-and-space,
+# heading-floats, list-wrap-under-bullet, display-quote-not-hung,
+# thin-small-text, and display-straight-quotes. Add one back when someone
+# finds a source that states its rule.
 # Every question is a noul in the defect form: true means the defect is
 # there (JC-5). Each question names a feature that can be seen, not a degree,
 # and none asks Jev to count, measure, or name a colour (NFR-9, JC-2).
@@ -16,13 +23,13 @@ criteria:
   # GUIDELINES.md: Line length (measure)
   - id: measure-too-long
     title: "Lines of paragraph text run nearly the full page width"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.1.2 \"Choose a comfortable measure\", p. 26 (from the scan's OCR text): \"Anything from 45 to 75 characters is widely regarded as a satisfactory length of line for a single-column page\"."
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.1.2 \"Choose a comfortable measure\", p. 26."
     question:
       type: noul
-      instructions: "In the image at screenshot: Do the lines of paragraph text run across nearly the full width of the page? Judge only what is visible."
+      instructions: "In the image at screenshot: Does a paragraph of body text stretch in one column from the left margin of the page to the right margin, with no sidebar, image, or second column beside it, so that its lines are as wide as the page's content area? Judge only what is visible."
       criteria:
-        "true": "The lines of paragraph text run across nearly the full width of the page."
-        "false": "The lines of paragraph text stop well short of the full width of the page."
+        "true": "A paragraph of body text stretches in one column from the left margin to the right margin, with nothing beside it, and its lines are as wide as the content area."
+        "false": "Every paragraph of body text is set in a column narrower than the content area, with empty space, an image, or another column beside it."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -45,13 +52,13 @@ criteria:
   # GUIDELINES.md: Leading suits the measure
   - id: body-leading-too-tight
     title: "Lines of a paragraph touch or overlap"
-    source: "Bringhurst, The Elements of Typographic Style, section 2.2.1 \"Choose a basic leading that suits the typeface, text and measure\", p. 37 (read from the page image): \"Longer measures need more lead than short ones.\"; Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"Linespacing, the column\", p. 47: \"The longer the line, the more linespacing it needs, for a given typeface and type size.\""
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.2.1 \"Choose a basic leading that suits the typeface, text and measure\", p. 37; Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"Linespacing, the column\", p. 47."
     question:
       type: noul
-      instructions: "In the image at screenshot: Do the lines of a paragraph touch or overlap, so that the descenders of one line run into the next line? Judge only what is visible."
+      instructions: "In the image at screenshot: In a paragraph, do the tails of letters such as g, p, and y in one line touch the tall letters such as h, l, and d in the line below, so that the lines run together into one dark mass? Judge only what is visible."
       criteria:
-        "true": "The lines of a paragraph touch or overlap, and the descenders of one line run into the next line."
-        "false": "Every line of every paragraph stands clear of the lines above and below it."
+        "true": "In a paragraph, the tails of letters such as g, p, and y touch the tall letters of the line below, and the lines run together into one dark mass."
+        "false": "In every paragraph, a thin strip of blank space separates each line from the next."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -74,13 +81,13 @@ criteria:
   # GUIDELINES.md: Leading suits the measure
   - id: body-leading-too-loose
     title: "Lines of a paragraph sit so far apart they read as separate lines"
-    source: "Bringhurst, The Elements of Typographic Style, section 2.2.1 \"Choose a basic leading that suits the typeface, text and measure\", p. 37 (read from the page image): \"Longer measures need more lead than short ones.\"; Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"Linespacing, the column\", p. 47: \"The longer the line, the more linespacing it needs, for a given typeface and type size.\""
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.2.1 \"Choose a basic leading that suits the typeface, text and measure\", p. 37; Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"Linespacing, the column\", p. 47."
     question:
       type: noul
-      instructions: "In the image at screenshot: Is the blank space between the lines of a paragraph as tall as the letters themselves or taller, so that each line looks like a separate line and not part of one block? Judge only what is visible."
+      instructions: "In the image at screenshot: Do the lines of a paragraph read as separate stripes of text with an empty band under each one, so the paragraph does not hold together as one even grey block? Judge only what is visible."
       criteria:
-        "true": "The blank space between the lines of a paragraph is as tall as the letters or taller, and each line looks like a separate line."
-        "false": "The lines of every paragraph sit close enough to read as one block."
+        "true": "The lines of a paragraph read as separate stripes with an empty band under each one, and the paragraph does not hold together as one block."
+        "false": "Every paragraph holds together as one even grey block, with its lines close enough that no empty band shows between them."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -103,7 +110,7 @@ criteria:
   # GUIDELINES.md: Heading lines hold together
   - id: heading-lines-collide
     title: "Lines of a multi-line heading touch or overlap"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), p. 37 (read from the page image), supports the \"lines collide\" half: \"A short burst of advertising copy or a title might be set with negative leading (18/15, for example), so long as the ascenders and descenders don't collide.\" Section 2.1.6, p. 30 (from the scan's OCR text), adds that a multi-line heading in letterspaced capitals needs extra space between its lines. UNVERIFIED: the first half, that heading lines need tighter spacing than text, was not found in the 1st edition (2004) of Lupton (the 2nd edition was not checked). Lupton, Thinking with Type (1st ed. 2004), pp. 82-83 on line spacing, say nothing about headings. Hochuli, Detail in Typography (2008): UNVERIFIED: not found in Hochuli for the first half of the rule (the book leaves heading hierarchy to macrotypography, p. 7). For the \"lines collide\" half only, p. 28 faults a two-line capitals heading because \"the lines in capitals are too tightly set, not optically spaced, and have too little interlinear space.\""
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), p. 37; Hochuli, Detail in Typography (Hyphen Press, 2008), p. 28."
     question:
       type: noul
       instructions: "In the image at screenshot: Do the lines of a multi-line heading touch or overlap each other? Judge only what is visible."
@@ -129,45 +136,16 @@ criteria:
         - fixtures/heading-lines-collide--4.negative.png
         - fixtures/heading-lines-collide--5.negative.png
 
-  # GUIDELINES.md: Heading lines hold together
-  - id: heading-lines-loose
-    title: "A heading's lines are as far apart as the heading is from its text"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), p. 37 (read from the page image), supports the \"lines collide\" half: \"A short burst of advertising copy or a title might be set with negative leading (18/15, for example), so long as the ascenders and descenders don't collide.\" Section 2.1.6, p. 30 (from the scan's OCR text), adds that a multi-line heading in letterspaced capitals needs extra space between its lines. UNVERIFIED: the first half, that heading lines need tighter spacing than text, was not found in the 1st edition (2004) of Lupton (the 2nd edition was not checked). Lupton, Thinking with Type (1st ed. 2004), pp. 82-83 on line spacing, say nothing about headings. Hochuli, Detail in Typography (2008): UNVERIFIED: not found in Hochuli for the first half of the rule (the book leaves heading hierarchy to macrotypography, p. 7). For the \"lines collide\" half only, p. 28 faults a two-line capitals heading because \"the lines in capitals are too tightly set, not optically spaced, and have too little interlinear space.\""
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Is the gap between the lines of a heading as large as the gap between the heading and the text below it? Judge only what is visible."
-      criteria:
-        "true": "The gap between the lines of a heading is as large as, or larger than, the gap between the heading and the text below it."
-        "false": "The lines of every heading sit closer together than the heading sits to the text below it."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Tighten the line spacing of a multi-line heading below that of the text, so its lines hold together as one unit and the space below it is clearly larger (Bringhurst, The Elements of Typographic Style, p. 37). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/heading-lines-loose.positive.png
-        - fixtures/heading-lines-loose--2.positive.png
-        - fixtures/heading-lines-loose--3.positive.png
-        - fixtures/heading-lines-loose--4.positive.png
-        - fixtures/heading-lines-loose--5.positive.png
-      negative:
-        - fixtures/heading-lines-loose.negative.png
-        - fixtures/heading-lines-loose--2.negative.png
-        - fixtures/heading-lines-loose--3.negative.png
-        - fixtures/heading-lines-loose--4.negative.png
-        - fixtures/heading-lines-loose--5.negative.png
-
   # GUIDELINES.md: Typefaces in concord or in clear contrast, never in conflict
   - id: too-many-typefaces
     title: "The page mixes three or more unrelated typefaces"
-    source: "Dair, Design with Type (1967), chapter 7 \"Relationships\" and chapter 8 \"Relationships of concord and contrast\". UNVERIFIED: not found in Lupton, Thinking with Type (1st ed. 2004), which has no section on mixing typefaces, so the rule rests on Dair."
+    source: "Dair, Design with Type (1967), chapter 7 \"Relationships\" and chapter 8 \"Relationships of concord and contrast\"."
     question:
       type: noul
-      instructions: "In the image at screenshot: Does the page use three or more typefaces of clearly different styles, such as a script, a serif, and a sans serif? Judge only what is visible."
+      instructions: "In the image at screenshot: Do different blocks of text on the page each have letter shapes from a different kind of typeface, so that one block is in a serif, another in a sans serif, and another in a third kind such as a script, a slab serif, or a decorative face? Judge only what is visible."
       criteria:
-        "true": "The page uses three or more typefaces of clearly different styles."
-        "false": "The page uses one typeface family, or two that clearly belong together."
+        "true": "Blocks of text on the page use letter shapes from at least three different kinds of typeface, such as a serif, a sans serif, and a script or slab serif."
+        "false": "All the text on the page uses one typeface, or one serif and one sans serif."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -190,14 +168,14 @@ criteria:
   # GUIDELINES.md: Weak contrast is worse than none
   - id: heading-indistinct
     title: "A heading or label looks the same as the text around it"
-    source: "Dair, Design with Type, chapter 8 \"Relationships of concord and contrast\" and chapters 8a to 8g, one for each kind of contrast. Dair's point that a contrast must be obvious is confirmed in his booklet A Typographic Quest No. 5: Typographic Contrast (Westvaco, 1967), through John D. Berry's account of it. Arnheim, Art and Visual Perception (1954, rev. 1974), chapter I \"Balance\", makes the same point about perception: small differences leave the eye unsure whether two things are equal or unequal."
+    source: "Dair, Design with Type (1967), chapter 8 \"Relationships of concord and contrast\"; Arnheim, Art and Visual Perception (rev. 1974), chapter I \"Balance\"."
     link: https://creativepro.com/dot-font-seven-principles-of-typographic-contrast/
     question:
       type: noul
-      instructions: "In the image at screenshot: Is there a heading or label that looks the same as the text around it, so that it cannot be picked out as a heading? Judge only what is visible."
+      instructions: "In the image at screenshot: Is there a short line standing on its own above a paragraph, where a heading would go, that is set in the same size, weight, and colour as the paragraph text under it? Judge only what is visible."
       criteria:
-        "true": "A heading or label looks the same as the text around it and cannot be picked out as a heading."
-        "false": "Every heading and label stands out plainly from the text around it."
+        "true": "A short line stands on its own above a paragraph, where a heading would go, in the same size, weight, and colour as the paragraph text."
+        "false": "Every short line that stands on its own above a paragraph is larger, bolder, or a different colour from the paragraph text."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -220,7 +198,7 @@ criteria:
   # GUIDELINES.md: Contrast from more than size
   - id: headings-differ-only-in-size
     title: "Headings differ from the body text only in size"
-    source: "Dair, Design with Type, chapters 8a to 8g and chapter 9 \"Multiplying the contrasts\"."
+    source: "Dair, Design with Type (1967), chapters 8a to 8g and chapter 9 \"Multiplying the contrasts\"."
     question:
       type: noul
       instructions: "In the image at screenshot: Are the headings set in the same weight, style, and colour as the body text, so that they differ from it only in size? Judge only what is visible."
@@ -249,13 +227,13 @@ criteria:
   # GUIDELINES.md: Sizes come from a scale
   - id: near-identical-sizes
     title: "Two text sizes on the page are almost the same"
-    source: "Bringhurst, The Elements of Typographic Style, section 3.1.1 \"Don't compose without a scale\", p. 45 (from the scan's OCR text): \"limit yourself, at first, to a modest set of distinct and related intervals.\""
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 3.1.1 \"Don't compose without a scale\", p. 45."
     question:
       type: noul
-      instructions: "In the image at screenshot: Are there two or more text sizes on the page that are almost the same, such as two body sizes side by side? Judge only what is visible."
+      instructions: "In the image at screenshot: Are there two blocks of ordinary paragraph text, in the same typeface and weight and with no heading role, where the letters of one block are a little larger than the letters of the other, so that the two blocks do not match when seen side by side or one after the other? Judge only what is visible."
       criteria:
-        "true": "The page has two or more text sizes that are almost the same."
-        "false": "Every text size on the page is either the same as another or clearly different from it."
+        "true": "Two blocks of ordinary paragraph text in the same typeface and weight have letters of slightly different sizes, so the two blocks do not match."
+        "false": "All ordinary paragraph text on the page has letters of one size, and any other text size is plainly a heading, a caption, or a label."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -278,13 +256,13 @@ criteria:
   # GUIDELINES.md: One change at a time for emphasis
   - id: stacked-emphasis
     title: "A phrase is emphasized in several ways at once"
-    source: "Bringhurst, The Elements of Typographic Style, section 3.5.1 \"Change one parameter at a time\" (partly supported: p. 60 (from the scan's OCR text) is about headings, not stacked emphasis inside text); Lupton, Thinking with Type (1st ed. 2004), p. 94: \"Emphasizing a word or phrase within a body of text usually requires only one signal.\" The same page shows \"bold, italic, underlined caps!\" as a type crime; Hochuli, Detail in Typography (2008), p. 44: \"Other forms of emphasis – text set in capitals, the semi-bold or bold versions of the text type, underlining, a larger size of type, a different typeface, the use of a second colour or tones – produce a restless effect, and hinder linear reading.\" Hochuli supports this in part only: the book does not discuss stacking several signals."
+    source: "Lupton, Thinking with Type (1st ed. 2004), p. 94."
     question:
       type: noul
-      instructions: "In the image at screenshot: Is a word or phrase emphasized in several ways at once, for example bold and italic and underlined, or bold capitals in a colour? Judge only what is visible."
+      instructions: "In the image at screenshot: Inside a paragraph, is there a word or phrase that is both bold and underlined, both bold and italic, both italic and underlined, or bold or underlined and also in a different colour from the text around it? Judge only what is visible."
       criteria:
-        "true": "A word or phrase is emphasized in several ways at once."
-        "false": "Every emphasized word or phrase changes in one way only, such as italic alone or bold alone."
+        "true": "Inside a paragraph, a word or phrase combines two or more of bold, italic, underline, and a different colour."
+        "false": "Every word or phrase that stands out inside a paragraph uses only one of bold, italic, underline, or colour, or no word stands out."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -307,7 +285,7 @@ criteria:
   # GUIDELINES.md: Even word spacing in justified text
   - id: justified-word-gaps
     title: "Justified lines have holes between words"
-    source: "Bringhurst, The Elements of Typographic Style, sections 2.1.1 and 2.1.2, pp. 26-27 (from the scan's OCR text): \"A reasonable maximum in justified text is M/2\", and short justified lines \"will lead to white acne or pig bristles\"; Hochuli, Detail in Typography (2008), chapter \"The line\", p. 34: \"If the measure is too narrow – with less than around 50 characters per line – even wordspacing becomes difficult, if not impossible. The wordspaces become obviously uneven and large 'holes' appear.\""
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), sections 2.1.1 and 2.1.2, pp. 26-27; Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"The line\", p. 34."
     question:
       type: noul
       instructions: "In the image at screenshot: In justified text, do some lines have gaps between words that are much wider than the gaps in the lines around them? Judge only what is visible."
@@ -336,13 +314,13 @@ criteria:
   # GUIDELINES.md: Rivers of white space
   - id: rivers-of-white
     title: "Channels of white run down through a text block"
-    source: "Bringhurst, The Elements of Typographic Style, supports the rule only in part; the nearest passage is the \"white acne\" one in sections 2.1.1 and 2.1.2, pp. 26-27 (from the scan's OCR text), on short justified lines, and the book does not use the word \"rivers\" as a rule; Hochuli, Detail in Typography (2008), chapter \"Linespacing, the column\", p. 47: \"Vertical 'rivers' of white space occur on a page when the wordspaces in several lines fall exactly, or almost exactly, under one another.\""
+    source: "Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"Linespacing, the column\", p. 47."
     question:
       type: noul
-      instructions: "In the image at screenshot: Do channels of white space run down through several lines of a text block? Judge only what is visible."
+      instructions: "In the image at screenshot: In a block of text, do the spaces between words in several lines in a row fall under one another, so that they join into a crooked white streak running down through the grey of the text? Judge only what is visible."
       criteria:
-        "true": "Channels of white space run down through several lines of a text block."
-        "false": "No channel of white space runs down through the lines of any text block."
+        "true": "In a block of text, the spaces between words in several lines in a row fall under one another and join into a crooked white streak running down through the text."
+        "false": "The spaces between words fall in different places from line to line, and no white streak runs down through any block of text."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -365,13 +343,13 @@ criteria:
   # GUIDELINES.md: Rag quality in ragged-right text
   - id: rag-staircase
     title: "The ragged right edge forms a staircase or a wedge"
-    source: "Bringhurst, The Elements of Typographic Style, section 2.1.3 \"Set ragged if ragged setting suits the text and the page\", p. 28 (from the scan's OCR text), partly supported: software rag can look like \"a neatly pinched piecrust\"; Hochuli, Detail in Typography (2008), chapter \"The line\", p. 35 (from OCR, not checked against the page image): \"Wherever possible, irregular rhythms, 'staircases' 'holes' and single words standing at the end of lines should be avoided.\""
+    source: "Hochuli, Detail in Typography (Hyphen Press, 2008), chapter \"The line\", p. 35."
     question:
       type: noul
-      instructions: "In the image at screenshot: Does the ragged right edge of a paragraph form a staircase or a wedge, with lines getting steadily shorter or longer, or alternating long and short? Judge only what is visible."
+      instructions: "In the image at screenshot: Trace the right ends of the lines of a left-aligned paragraph. Do they form a regular shape, either a straight diagonal slope where each line is shorter or longer than the one above, or a regular zigzag of long, short, long, short? Judge only what is visible."
       criteria:
-        "true": "The ragged right edge of a paragraph forms a staircase or a wedge, or alternates long and short lines."
-        "false": "The ragged right edge of every paragraph is gently and irregularly uneven."
+        "true": "The right ends of the lines of a paragraph form a straight diagonal slope or a regular long-short zigzag."
+        "false": "The right ends of the lines of every paragraph form an irregular edge with no slope and no repeating pattern."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -394,13 +372,13 @@ criteria:
   # GUIDELINES.md: Widows, orphans, and runts
   - id: paragraph-runt
     title: "A paragraph ends with one short word alone on its last line"
-    source: "Bringhurst, The Elements of Typographic Style, sections 2.4.2 (no short last-line word) and 2.4.8 (never begin a page with the last line of a paragraph). Both are supported. UNVERIFIED: a heading at the foot of a column was not found in Bringhurst."
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.4.2."
     question:
       type: noul
-      instructions: "In the image at screenshot: Does a paragraph end with a single short word alone on its last line? Judge only what is visible."
+      instructions: "In the image at screenshot: Look at the last line of each paragraph. Is there a last line that holds only one short word, with the rest of that line left empty? Judge only what is visible."
       criteria:
-        "true": "A paragraph ends with a single short word alone on its last line."
-        "false": "No paragraph ends with a single short word alone on its last line."
+        "true": "The last line of a paragraph holds only one short word, and the rest of that line is empty."
+        "false": "The last line of every paragraph holds several words."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -420,74 +398,16 @@ criteria:
         - fixtures/paragraph-runt--4.negative.png
         - fixtures/paragraph-runt--5.negative.png
 
-  # GUIDELINES.md: Widows, orphans, and runts
-  - id: heading-at-column-foot
-    title: "A heading sits at the foot of a column with its text in the next"
-    source: "UNVERIFIED: a heading at the foot of a column was not found in Bringhurst, The Elements of Typographic Style. The same entry supports only sections 2.4.2 (no short last-line word) and 2.4.8 (never begin a page with the last line of a paragraph), which are about paragraphs, not headings."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Is a heading the last thing at the bottom of a column, with its text starting in the next column? Judge only what is visible."
-      criteria:
-        "true": "A heading is the last thing at the bottom of a column, and its text starts in the next column."
-        "false": "Every heading sits in the same column as the start of its text."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Move the heading to the top of the next column so it stays with the text it introduces. [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/heading-at-column-foot.positive.png
-        - fixtures/heading-at-column-foot--2.positive.png
-        - fixtures/heading-at-column-foot--3.positive.png
-        - fixtures/heading-at-column-foot--4.positive.png
-        - fixtures/heading-at-column-foot--5.positive.png
-      negative:
-        - fixtures/heading-at-column-foot.negative.png
-        - fixtures/heading-at-column-foot--2.negative.png
-        - fixtures/heading-at-column-foot--3.negative.png
-        - fixtures/heading-at-column-foot--4.negative.png
-        - fixtures/heading-at-column-foot--5.negative.png
-
-  # GUIDELINES.md: Paragraph marks: indent or space, not both
-  - id: paragraph-indent-and-space
-    title: "Paragraphs are marked with both an indent and a space"
-    source: "Bringhurst, The Elements of Typographic Style, sections 2.3.1 \"Set opening paragraphs flush left\" and 2.3.2 (mark the paragraphs after the first with an indent of at least one en). P. 39 (from the scan's OCR text) supports the first-paragraph rule: \"If a paragraph is preceded by a title or subhead, the indent is superfluous and can therefore be omitted.\" UNVERIFIED: the rule \"never both indent and space\" is not stated."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Are paragraphs marked both with a first-line indent and with a blank space between them? Judge only what is visible."
-      criteria:
-        "true": "Paragraphs are marked both with a first-line indent and with a blank space between them."
-        "false": "Paragraphs are marked in one way only: a first-line indent or a blank space between them."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Mark paragraphs one way only: a first-line indent of at least one en with no space between, or space between with no indent (Bringhurst, The Elements of Typographic Style, 2.3.2). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/paragraph-indent-and-space.positive.png
-        - fixtures/paragraph-indent-and-space--2.positive.png
-        - fixtures/paragraph-indent-and-space--3.positive.png
-        - fixtures/paragraph-indent-and-space--4.positive.png
-        - fixtures/paragraph-indent-and-space--5.positive.png
-      negative:
-        - fixtures/paragraph-indent-and-space.negative.png
-        - fixtures/paragraph-indent-and-space--2.negative.png
-        - fixtures/paragraph-indent-and-space--3.negative.png
-        - fixtures/paragraph-indent-and-space--4.negative.png
-        - fixtures/paragraph-indent-and-space--5.negative.png
-
   # GUIDELINES.md: Paragraph marks: indent or space, not both
   - id: first-paragraph-indented
     title: "The first paragraph after a heading is indented"
-    source: "Bringhurst, The Elements of Typographic Style, sections 2.3.1 \"Set opening paragraphs flush left\" and 2.3.2 (mark the paragraphs after the first with an indent of at least one en). P. 39 (from the scan's OCR text) supports the first-paragraph rule: \"If a paragraph is preceded by a title or subhead, the indent is superfluous and can therefore be omitted.\" UNVERIFIED: the rule \"never both indent and space\" is not stated."
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.3.1 \"Set opening paragraphs flush left\", p. 39."
     question:
       type: noul
-      instructions: "In the image at screenshot: Is the first paragraph after a heading indented? Judge only what is visible."
+      instructions: "In the image at screenshot: Directly under a heading, does the first line of the paragraph start to the right of the heading's left edge and of the left edge of that paragraph's other lines? Judge only what is visible."
       criteria:
-        "true": "The first paragraph after a heading starts with a first-line indent."
-        "false": "The first paragraph after every heading starts flush left."
+        "true": "Directly under a heading, the first line of the paragraph starts to the right of the heading's left edge and of the paragraph's other lines."
+        "false": "Directly under every heading, the first line of the paragraph starts on the same left edge as the heading and the paragraph's other lines."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -507,45 +427,16 @@ criteria:
         - fixtures/first-paragraph-indented--4.negative.png
         - fixtures/first-paragraph-indented--5.negative.png
 
-  # GUIDELINES.md: Headings sit with the text they introduce
-  - id: heading-floats
-    title: "A heading sits as close to the text above as to its own text"
-    source: "Partly supported by Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.2.2, p. 38 (from the scan's OCR text): subheads may be \"leaded asymmetrically, with more space above than below\", and every worked example puts more space above the heading than below. This is a permitted choice, not a requirement. UNVERIFIED: not found in the 1st edition (2004) of Lupton (the 2nd edition was not checked) or in Hochuli, Detail in Typography (2008). Lupton, Thinking with Type, \"Text\" chapter, \"Hierarchy\"."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Does a heading sit as close to the text above it as to the text below it, or closer? Judge only what is visible."
-      criteria:
-        "true": "A heading sits as close to the text above it as to the text below it, or closer."
-        "false": "Every heading sits clearly closer to the text below it than to the text above it."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Put more space above each heading than below it, so the heading sits with the text it introduces (Bringhurst, The Elements of Typographic Style, 2.2.2, p. 38). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/heading-floats.positive.png
-        - fixtures/heading-floats--2.positive.png
-        - fixtures/heading-floats--3.positive.png
-        - fixtures/heading-floats--4.positive.png
-        - fixtures/heading-floats--5.positive.png
-      negative:
-        - fixtures/heading-floats.negative.png
-        - fixtures/heading-floats--2.negative.png
-        - fixtures/heading-floats--3.negative.png
-        - fixtures/heading-floats--4.negative.png
-        - fixtures/heading-floats--5.negative.png
-
   # GUIDELINES.md: Lines of text align across columns
   - id: baselines-misaligned
     title: "Lines in side-by-side columns sit at different heights"
-    source: "Müller-Brockmann, Grid Systems in Graphic Design (1981), section \"Construction of the grid\" (each grid field holds a set number of lines; the first line stands at the top of the field and the last on its bottom; picture edges align with the ascenders and descenders of the text)."
+    source: "Müller-Brockmann, Grid Systems in Graphic Design (1981), section \"Construction of the grid\"."
     question:
       type: noul
-      instructions: "In the image at screenshot: Do two side-by-side columns of text have lines at different heights, so that the lines of one column fall between the lines of the other? Judge only what is visible."
+      instructions: "In the image at screenshot: Look across the gap between two columns of text that sit side by side. Is a line of text in one column level with the blank space between two lines in the other column, so that the lines of the two columns do not form straight rows across the gap? Judge only what is visible."
       criteria:
-        "true": "Two side-by-side columns of text have lines at different heights, and the lines of one fall between the lines of the other."
-        "false": "The lines of side-by-side columns sit at the same heights across the gutter."
+        "true": "Across the gap between two side-by-side text columns, a line in one column is level with the blank space between two lines in the other column, so the lines do not form straight rows."
+        "false": "Each line in one column is level with a line in the column beside it, so the lines form straight rows across the gap, or the page has no side-by-side text columns."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -565,68 +456,10 @@ criteria:
         - fixtures/baselines-misaligned--4.negative.png
         - fixtures/baselines-misaligned--5.negative.png
 
-  # GUIDELINES.md: Hanging bullets and punctuation
-  - id: list-wrap-under-bullet
-    title: "Wrapped list lines start under the bullet"
-    source: "UNVERIFIED: not found in Lupton, Thinking with Type (1st ed. 2004) for the quote-hang point or for the rule that wrapped list lines align with the first word. P. 85 covers punctuation only at the right edge of flush-right text. P. 102 shows hanging indentation as a paragraph style: \"Outdent, or hanging indentation\". Partly supported by Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 4.4.2, p. 71 (from the scan's OCR text): a list \"should be clarified as much as possible through spatial positioning and pointing, usually done with bullets, dashes or numerals\", and numbers can be made visible \"by hanging them in the margin\". It does not state that wrapped lines align with the first word."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: In a bulleted or numbered list, do the wrapped lines of an item start under the bullet or number instead of under the first word of the item? Judge only what is visible."
-      criteria:
-        "true": "In a list, the wrapped lines of an item start under the bullet or number."
-        "false": "In every list, the wrapped lines of an item start under the first word of the item."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Hang the bullets and numbers in the margin, so the wrapped lines of each item align with its first word (Bringhurst, The Elements of Typographic Style, 4.4.2, p. 71). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/list-wrap-under-bullet.positive.png
-        - fixtures/list-wrap-under-bullet--2.positive.png
-        - fixtures/list-wrap-under-bullet--3.positive.png
-        - fixtures/list-wrap-under-bullet--4.positive.png
-        - fixtures/list-wrap-under-bullet--5.positive.png
-      negative:
-        - fixtures/list-wrap-under-bullet.negative.png
-        - fixtures/list-wrap-under-bullet--2.negative.png
-        - fixtures/list-wrap-under-bullet--3.negative.png
-        - fixtures/list-wrap-under-bullet--4.negative.png
-        - fixtures/list-wrap-under-bullet--5.negative.png
-
-  # GUIDELINES.md: Hanging bullets and punctuation
-  - id: display-quote-not-hung
-    title: "The opening quotation mark of a large pull quote is not hung"
-    source: "UNVERIFIED: not found in Lupton, Thinking with Type (1st ed. 2004) for the quote-hang point or for the rule that wrapped list lines align with the first word. P. 85 covers punctuation only at the right edge of flush-right text. P. 102 shows hanging indentation as a paragraph style: \"Outdent, or hanging indentation\". Partly supported by Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 4.4.2, p. 71 (from the scan's OCR text): a list \"should be clarified as much as possible through spatial positioning and pointing, usually done with bullets, dashes or numerals\", and numbers can be made visible \"by hanging them in the margin\". It does not state that wrapped lines align with the first word."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: In a large pull quote, does the opening quotation mark sit inside the left edge of the text, so that the first letter of the first line starts to the right of the lines below it? Judge only what is visible."
-      criteria:
-        "true": "In a large pull quote, the opening quotation mark sits inside the left edge, and the first letter of the first line starts to the right of the lines below it."
-        "false": "No large pull quote has an opening quotation mark inside its left edge; the letters of every line start on one edge."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Hang the opening quotation mark of a large quote in the margin, so the letters of every line start on one crisp edge. [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/display-quote-not-hung.positive.png
-        - fixtures/display-quote-not-hung--2.positive.png
-        - fixtures/display-quote-not-hung--3.positive.png
-        - fixtures/display-quote-not-hung--4.positive.png
-        - fixtures/display-quote-not-hung--5.positive.png
-      negative:
-        - fixtures/display-quote-not-hung.negative.png
-        - fixtures/display-quote-not-hung--2.negative.png
-        - fixtures/display-quote-not-hung--3.negative.png
-        - fixtures/display-quote-not-hung--4.negative.png
-        - fixtures/display-quote-not-hung--5.negative.png
-
   # GUIDELINES.md: Display type is spaced tighter than text
   - id: display-type-loose
     title: "A display heading has visible gaps between its letters or words"
-    source: "Lupton, Thinking with Type (1st ed. 2004), p. 80: \"Because the space between characters expands as the type size increases, designers often fine-tune letterspacing when working with large letters.\" Lupton supports adjusting large type but not tightening it as a rule: on p. 81 she says negative tracking \"is rarely desirable\" and \"should be used sparingly\". Bringhurst, section 2.1.1, p. 26 (from the scan's OCR text): \"At larger sizes, when letterfit is tightened, the spacing of words can be tightened as well.\" Hochuli, Detail in Typography (2008), p. 34, paraphrased: smaller type sizes need proportionally more word space and larger sizes proportionally less, so a large headline needs tighter word spaces than text."
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.1.1, p. 26; Hochuli, Detail in Typography (Hyphen Press, 2008), p. 34."
     question:
       type: noul
       instructions: "In the image at screenshot: Does a heading set at display size, several times larger than the body text, have gaps between its letters or words that are wide enough to see as gaps? Judge only what is visible."
@@ -652,39 +485,10 @@ criteria:
         - fixtures/display-type-loose--4.negative.png
         - fixtures/display-type-loose--5.negative.png
 
-  # GUIDELINES.md: Weight and stroke thickness at small sizes
-  - id: thin-small-text
-    title: "Small text is set in a hairline weight"
-    source: "Bringhurst, The Elements of Typographic Style, section 6.2.3 (very light weights of Helvetica \"reduce coarseness but do little to increase readability\"). Partly supported: the page cited, p. 97 (from the scan's OCR text), holds only that remark about Helvetica, not a rule about small sizes."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: Is small text, such as captions or labels, set in a hairline or very thin weight? Judge only what is visible."
-      criteria:
-        "true": "Small text, such as captions or labels, is set in a hairline or very thin weight."
-        "false": "Small text, such as captions or labels, is set in a regular or heavier weight."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Set captions, labels, and other small text in a regular weight or heavier, and keep hairline weights for large sizes (Bringhurst, The Elements of Typographic Style, 6.2.3, p. 97). [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/thin-small-text.positive.png
-        - fixtures/thin-small-text--2.positive.png
-        - fixtures/thin-small-text--3.positive.png
-        - fixtures/thin-small-text--4.positive.png
-        - fixtures/thin-small-text--5.positive.png
-      negative:
-        - fixtures/thin-small-text.negative.png
-        - fixtures/thin-small-text--2.negative.png
-        - fixtures/thin-small-text--3.negative.png
-        - fixtures/thin-small-text--4.negative.png
-        - fixtures/thin-small-text--5.negative.png
-
   # GUIDELINES.md: Kerning
   - id: display-kerning-gap
     title: "A letter pair in a large headline has a visible gap"
-    source: "Bringhurst, The Elements of Typographic Style, section 2.1.8, p. 32 (from the scan's OCR text): \"Kern consistently and modestly or not at all.\" P. 33 (from the scan's OCR text) adds: \"Especially at larger sizes, it is common to kern combinations involving commas and periods.\" Lupton, Thinking with Type (1st ed. 2004), p. 80, supports only that large type needs fine-tuning: \"Because the space between characters expands as the type size increases, designers often fine-tune letterspacing when working with large letters.\" Hochuli, Detail in Typography (2008), p. 30: \"individual letters should not touch. A small 'hole' between two letters is less bad than letters that collide with each other.\""
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.1.8, pp. 32-33."
     question:
       type: noul
       instructions: "In the image at screenshot: In a large headline, is there a pair of letters, such as AV, To, or Wa, with a gap between them that is visibly wider than the gaps between the other letters? Judge only what is visible."
@@ -713,7 +517,7 @@ criteria:
   # GUIDELINES.md: Letterspace capitals and small caps
   - id: display-caps-tight
     title: "Capitals in a large heading touch each other"
-    source: "Bringhurst, The Elements of Typographic Style, section 2.1.6 \"Letterspace all strings of capitals and small caps\", p. 30 (from the scan's OCR text): \"The normal value for letterspacing these sequences of small or full caps is 5% to 10% of the type size.\"; Lupton, Thinking with Type (1st ed. 2004), p. 81: \"It is common practice to letterspace capitals and small capitals, which appear more regal when standing apart.\" Hochuli, Detail in Typography (2008), p. 25: \"Widely spaced capitals require a great deal of space around them, and particularly above and below.\" P. 30 supports the question about capitals that touch: \"individual letters should not touch.\""
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 2.1.6 \"Letterspace all strings of capitals and small caps\", p. 30; Hochuli, Detail in Typography (Hyphen Press, 2008), p. 30."
     question:
       type: noul
       instructions: "In the image at screenshot: In a large heading or label set in capitals, do neighbouring capitals touch, with no visible space between them? Judge only what is visible."
@@ -742,13 +546,13 @@ criteria:
   # GUIDELINES.md: Real italics, bold, and small caps (no faux styles)
   - id: faux-italic-display
     title: "A large italic heading is a slanted roman"
-    source: "Bringhurst, The Elements of Typographic Style, section 3.4.3, p. 56 (from the scan's OCR text): \"Use sloped romans sparingly and artificially sloped romans more sparingly still.\"; section 3.2.2 (faked small caps)."
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 3.4.3, p. 56."
     question:
       type: noul
-      instructions: "In the image at screenshot: Is a large italic heading made of upright letters that are only slanted, with the same letter shapes as the upright face? Judge only what is visible."
+      instructions: "In the image at screenshot: In a large slanted heading, do the letters look like ordinary upright letters tipped to the right, for example a two-storey a with a hook over its bowl and round letters that look stretched on a slant, and not the flowing, pen-like shapes of a true italic? Judge only what is visible."
       criteria:
-        "true": "A large italic heading is made of upright letters that are only slanted, with the same shapes as the upright face."
-        "false": "No large heading is a slanted upright face; any italic heading uses true italic letter shapes."
+        "true": "A large slanted heading uses upright letter shapes tipped to the right, such as a two-storey a, and not true italic shapes."
+        "false": "Every large slanted heading uses flowing true italic shapes, such as a one-storey a, or the page has no large slanted heading."
     fail_when:
       probability_at_least: 0.7
     pass_when:
@@ -768,45 +572,16 @@ criteria:
         - fixtures/faux-italic-display--4.negative.png
         - fixtures/faux-italic-display--5.negative.png
 
-  # GUIDELINES.md: Typographic details: quotes, dashes, and spaces
-  - id: display-straight-quotes
-    title: "A large heading uses straight quotes or a hyphen for a dash"
-    source: "Bringhurst, The Elements of Typographic Style, sections 2.1.4 (single word space between sentences; supported) and 5.2.1 (dashes; supported, p. 80 (from the scan's OCR text)). UNVERIFIED: section 5.2.7 contradicts the ellipsis-character point, and section 5.4.1 has nothing on straight versus curly quotation marks, so the curly-quotes point rests on no checked source."
-    question:
-      type: noul
-      instructions: "In the image at screenshot: In a large heading or pull quote, is there a straight quotation mark or apostrophe instead of a curly one, or a short hyphen where a dash belongs? Judge only what is visible."
-      criteria:
-        "true": "A large heading or pull quote has a straight quotation mark or apostrophe, or a short hyphen where a dash belongs."
-        "false": "Every large heading and pull quote uses curly quotation marks and apostrophes, and true dashes."
-    fail_when:
-      probability_at_least: 0.7
-    pass_when:
-      probability_at_most: 0.3
-    fix: "Use curly quotation marks and apostrophes, and true en or em dashes, in place of straight marks and hyphens. [draft until Benjamin Jackson approves (G-4)]"
-    fixtures:
-      positive:
-        - fixtures/display-straight-quotes.positive.png
-        - fixtures/display-straight-quotes--2.positive.png
-        - fixtures/display-straight-quotes--3.positive.png
-        - fixtures/display-straight-quotes--4.positive.png
-        - fixtures/display-straight-quotes--5.positive.png
-      negative:
-        - fixtures/display-straight-quotes.negative.png
-        - fixtures/display-straight-quotes--2.negative.png
-        - fixtures/display-straight-quotes--3.negative.png
-        - fixtures/display-straight-quotes--4.negative.png
-        - fixtures/display-straight-quotes--5.negative.png
-
   # GUIDELINES.md: Ligatures
   - id: display-ligature-missing
     title: "In a large headline, the f strikes the dot of the following i"
-    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 3.3.1, p. 50 (read from the page image): \"Reaching into the space in front of it, the arm of the f will collide with certain letters\" and \"in display work, such ligatures can be crucial.\" Second source: Butterick, Practical Typography, \"Ligatures\": \"The only time ligatures are mandatory is when you have an actual overlap between the letters f and i.\" Checked on the page on 2026-10-24. Second source: Hochuli, Detail in Typography (2008), p. 30, says letters should not collide (\"individual letters should not touch\"), which supports the rule."
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), section 3.3.1, p. 50; Butterick, Practical Typography, \"Ligatures\"."
     question:
       type: noul
-      instructions: "In the image at screenshot: In a large headline, does the top of a letter f touch or run into the dot of a following i? Judge only what is visible."
+      instructions: "In the image at screenshot: In a large headline, where a letter f is followed by a letter i, do the two letters merge at the top, so that the curved top of the f and the dot of the i run together into one dark blob with no gap between them? Judge only what is visible."
       criteria:
-        "true": "In a large headline, the top of a letter f touches or runs into the dot of a following i."
-        "false": "In every large headline, each f stands clear of a following i or joins it in a ligature."
+        "true": "In a large headline, the curved top of an f and the dot of the following i run together into one dark blob with no gap between them."
+        "false": "In every large headline, the top of each f and the dot of a following i are separate with a gap between them, or they are joined in one designed fi letter with no separate dot, or no headline has an f followed by an i."
     fail_when:
       probability_at_least: 0.7
     pass_when:
