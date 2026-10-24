@@ -1,6 +1,6 @@
-# Attribution for the M-1 spike screenshot
+# Attribution for the M-1 spike images
 
-This file records where `spike/screenshot.png` comes from and why the repository may hold it. The PRD rules for fixture images (FR-54) apply here by analogy, because the repository is public and MIT licensed.
+This file records where `spike/screenshot.png` and `spike/slice.png` come from and why the repository may hold them. The PRD rules for fixture images (FR-54) apply here by analogy, because the repository is public and MIT licensed.
 
 ## spike/screenshot.png
 
@@ -19,3 +19,20 @@ This file records where `spike/screenshot.png` comes from and why the repository
 - Rights basis: public domain, with the source named above. The page is a work of the U.S. federal government and is not subject to copyright under 17 U.S.C. 105. EIA states on its reuse page that its publications are in the public domain and that its data, reports, graphs, and charts may be used and distributed: https://www.eia.gov/about/copyrights_reuse.php
 - Third-party content: the page shows no third-party licensed images. Its charts and its infographic are EIA work. The small X and Facebook share icons are trademarks shown as part of the page, not licensed images.
 - People and data: the page shows no face of a real person, no personal data, and no logged-in state. No cookie banner was shown.
+
+## spike/slice.png
+
+This slice shows part of the same page at full size. In the whole-page screenshot, body text is about 6 px high, which is too small to judge, because TypeSafe limits each side to 1568 px (decided 2026-10-24 by Benjamin Jackson, crit-oj5.6).
+
+- Source URL: https://www.eia.gov/energyexplained/electricity/electricity-in-the-us.php (the same page as `spike/screenshot.png`).
+- Capture date: 2026-10-24T04:18:42Z (UTC), from the modification time of the raw capture file.
+- Viewport: 1280 x 720 CSS px, full page. The full page is 1280 x 3899 CSS px.
+- Device scale factor: 1. No device profile was used.
+- Browser: Playwright 1.55.0, Chromium build 1187. The capture waited 8 seconds after load so that the two JavaScript charts could render.
+- Raw capture: 1280 x 3899 px PNG.
+- Crop rectangle: x 0, y 520, width 1280, height 1520 CSS px. At scale 1 these are also pixels, so the slice holds page rows 520 to 2040. It shows article text with links, the infographic, one section heading, the 1950 to 2025 chart, and the sidebar.
+- Prepared file: 1280 x 1520 px PNG, 377445 bytes, sha256 52706f8e83dfae39541f9bffea11ff765849ff8ade6f297d39e6b40d3f6c63c8.
+- Resized: no. The long side is 1520 px, which is not over 1568 px (FR-8).
+- Padded: no. The short side is 1280 px, which is not under 280 px.
+- Preparation: ImageMagick 7 (`magick`) cropped the raw capture, removed the alpha channel, and removed all metadata (`-alpha off -strip`). A short Python script then copied the file keeping only the IHDR, IDAT, and IEND chunks. The pixels did not change after the crop.
+- Rights basis, third-party content, people and data: the same as for `spike/screenshot.png` above. The page is a work of the U.S. federal government and is in the public domain under 17 U.S.C. 105.

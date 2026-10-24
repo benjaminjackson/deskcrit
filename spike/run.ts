@@ -1,15 +1,20 @@
-// The M-1 spike runner (crit-oj5.2). It asks Jev the twenty questions in spike/questions.yaml
-// about spike/screenshot.png, with and without the purpose line, and writes every run to
-// spike/results/. Disposable spike code: it does its own file and network I/O, because CS-5 and
-// CS-6 govern src/, which the spike does not create.
+// The M-1 spike runner (crit-oj5.2, image choice added in crit-oj5.6). It asks Jev the twenty
+// questions in spike/questions.yaml about one image (spike/screenshot.png unless --image names
+// another), with and without the purpose line, and writes every run to spike/results/.
+// Disposable spike code: it does its own file and network I/O, because CS-5 and CS-6 govern src/,
+// which the spike does not create.
 //
 // Usage, from the repository root:
-//   node spike/run.ts --dry-run      checks inputs and both requests; needs no key, sends nothing
-//   node spike/run.ts --runs 5       live and paid; needs TYPESAFE_API_KEY
+//   node spike/run.ts --dry-run                  checks inputs and all requests; needs no key, sends nothing
+//   node spike/run.ts --runs 5                   live and paid; needs TYPESAFE_API_KEY
+//   node spike/run.ts --image spike/slice.png    use another image; its file name goes into the results names
+//   node spike/run.ts --skip-baseline            do not send the text-only baseline request
 
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { performance } from "node:perf_hooks";
+import { fileURLToPath } from "node:url";
 import {
   APIError,
   image,
@@ -84,19 +89,45 @@ type SpikeInputs = {
   questionsInfo: { path: string; sha256: string; count: number };
   questions: SpikeQuestion[];
   purpose: string;
+  /** The part of the results file names that says which image was used; see imageLabel. */
+  fileLabel: string;
+  /** The ticket written into the results: crit-oj5.2 for the screenshot, crit-oj5.6 for another image. */
+  ticket: string;
 };
 
-/** The parsed command-line flags. */
-type Flags = { dryRun: boolean; runs: number };
+/** The image the spike uses when --image is not given, relative to the repository root. */
+const DEFAULT_IMAGE_PATH = "spike/screenshot.png";
 
-/** Read --dry-run and --runs N from argv, or throw on anything else. */
+/** The repository root, so the image path in the results reads the same from any folder. */
+const REPOSITORY_ROOT = fileURLToPath(new URL("..", import.meta.url));
+
+/** The parsed command-line flags. */
+type Flags = {
+  dryRun: boolean;
+  runs: number;
+  imagePath: string;
+  skipBaseline: boolean;
+};
+
+/** Read --dry-run, --runs N, --image PATH and --skip-baseline from argv, or throw on anything else. */
 function readFlags(argv: string[]): Flags {
   let dryRun = false;
   let runs = DEFAULT_RUNS;
+  let imagePath = DEFAULT_IMAGE_PATH;
+  let skipBaseline = false;
   for (let index = 0; index < argv.length; index++) {
     const flag = argv[index];
     if (flag === "--dry-run") {
       dryRun = true;
+    } else if (flag === "--skip-baseline") {
+      skipBaseline = true;
+    } else if (flag === "--image") {
+      const value = argv[index + 1];
+      index++;
+      if (value === undefined || value === "" || value.startsWith("--")) {
+        throw new Error("--image must be followed by a path to a PNG file");
+      }
+      imagePath = value;
     } else if (flag === "--runs") {
       runs = Number(argv[index + 1]);
       index++;
@@ -107,11 +138,23 @@ function readFlags(argv: string[]): Flags {
       }
     } else {
       throw new Error(
-        `unknown flag ${String(flag)}; use --dry-run or --runs N`,
+        `unknown flag ${String(flag)}; use --dry-run, --runs N, --image PATH or --skip-baseline`,
       );
     }
   }
-  return { dryRun, runs };
+  return { dryRun, runs, imagePath, skipBaseline };
+}
+
+/**
+ * Return the part that goes into the results file names for this image: empty for the default
+ * screenshot, so the whole-page names stay as crit-oj5.2 wrote them, and "-slice" for
+ * spike/slice.png, so each image's results stay apart.
+ */
+function imageLabel(repositoryImagePath: string): string {
+  if (repositoryImagePath === DEFAULT_IMAGE_PATH) {
+    return "";
+  }
+  return `-${path.basename(repositoryImagePath, path.extname(repositoryImagePath))}`;
 }
 
 /** Return the sha256 of some bytes as hex, so a reviewer can see the inputs match crit-oj5.1. */
@@ -119,11 +162,17 @@ function hashBytes(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-/** Read and check the screenshot, the questions, and the purpose line. No request is built yet. */
-async function readInputs(): Promise<SpikeInputs> {
-  const imageBytes = new Uint8Array(
-    await readFile(new URL("./screenshot.png", import.meta.url)),
-  );
+/**
+ * Read and check the image, the questions, and the purpose line. No request is built yet. The
+ * image path is read relative to the repository root, and recorded that way.
+ */
+async function readInputs(imagePath: string): Promise<SpikeInputs> {
+  const absoluteImagePath = path.resolve(REPOSITORY_ROOT, imagePath);
+  const repositoryImagePath = path
+    .relative(REPOSITORY_ROOT, absoluteImagePath)
+    .split(path.sep)
+    .join("/");
+  const imageBytes = new Uint8Array(await readFile(absoluteImagePath));
   const size = readPngSize(imageBytes);
   checkImageSize(size.width, size.height);
   const questionBytes = new Uint8Array(
@@ -141,10 +190,16 @@ async function readInputs(): Promise<SpikeInputs> {
   if (purpose === "" || purpose.includes("\n")) {
     throw new Error("spike/purpose.txt must hold exactly one line");
   }
+  let ticket = "crit-oj5.6";
+  if (repositoryImagePath === DEFAULT_IMAGE_PATH) {
+    ticket = "crit-oj5.2";
+  }
   return {
     imageBytes,
+    fileLabel: imageLabel(repositoryImagePath),
+    ticket,
     imageInfo: {
-      path: "spike/screenshot.png",
+      path: repositoryImagePath,
       sha256: hashBytes(imageBytes),
       width: size.width,
       height: size.height,
@@ -269,6 +324,7 @@ function buildResultsFile(
   createdAt: string,
   runs: RunRecord[],
   baseline: RunRecord | null,
+  skippedBaseline: boolean,
 ): unknown {
   const latencies: number[] = [];
   const inputTokens: (number | null)[] = [];
@@ -301,6 +357,11 @@ function buildResultsFile(
       "; in this condition it also holds the tokens of the purpose line, so the without_purpose file gives the cleaner figure";
   }
   let baselineSummary: unknown = null;
+  if (baseline === null && skippedBaseline) {
+    baselineSummary = {
+      note: "not sent in this run (--skip-baseline); the text-only baseline holds no image, so the one in the whole-page results of crit-oj5.2 measures the same question tokens",
+    };
+  }
   if (baseline !== null) {
     baselineSummary = {
       note: "one request with the same twenty questions, the string (no image) in place of the image, no purpose, and no danger-zone header; compare its input_tokens with a without_purpose run to estimate the tokens the image costs",
@@ -316,7 +377,7 @@ function buildResultsFile(
     purpose = inputs.purpose;
   }
   return {
-    ticket: "crit-oj5.2",
+    ticket: inputs.ticket,
     condition,
     created_at: createdAt,
     model_requested: PINNED_MODEL,
@@ -354,6 +415,7 @@ async function writeResults(
   createdAt: string,
   runsByCondition: Record<Condition, RunRecord[]>,
   baseline: RunRecord | null,
+  skippedBaseline: boolean,
 ): Promise<string[]> {
   const folder = new URL("./results/", import.meta.url);
   await mkdir(folder, { recursive: true });
@@ -364,13 +426,14 @@ async function writeResults(
     ["without_purpose", "without-purpose"],
   ];
   for (const [condition, slug] of conditions) {
-    const fileName = `${stamp}-${slug}.json`;
+    const fileName = `${stamp}${inputs.fileLabel}-${slug}.json`;
     const contents = buildResultsFile(
       condition,
       inputs,
       createdAt,
       runsByCondition[condition],
       baseline,
+      skippedBaseline,
     );
     await writeFile(
       new URL(fileName, folder),
@@ -458,13 +521,14 @@ async function runDry(inputs: SpikeInputs): Promise<void> {
 
 /**
  * Live run: interleave the two conditions, alternating which goes first by run number, so server
- * warm-up and drift fall evenly on both, then send the one text-only baseline. Results are
- * rewritten after every request.
+ * warm-up and drift fall evenly on both, then send the one text-only baseline unless skipped.
+ * Results are rewritten after every request.
  */
 async function runLive(
   inputs: SpikeInputs,
   runs: number,
   apiKey: string,
+  skipBaseline: boolean,
 ): Promise<void> {
   const client = makeClient(apiKey, undefined);
   const screenshot = image(inputs.imageBytes);
@@ -497,28 +561,44 @@ async function runLive(
         inputs.questions,
         runNumber,
         isFirstRequest,
-        `${stamp}-${condition}-run-${runNumber}.json`,
+        `${stamp}${inputs.fileLabel}-${condition}-run-${runNumber}.json`,
       );
       isFirstRequest = false;
       runsByCondition[condition].push(record);
-      written = await writeResults(inputs, createdAt, runsByCondition, null);
+      written = await writeResults(
+        inputs,
+        createdAt,
+        runsByCondition,
+        null,
+        skipBaseline,
+      );
       console.log(
         `${condition} run ${runNumber}: ${record.latency_ms} ms, ${String(record.input_tokens)} input tokens`,
       );
     }
   }
-  const baseline = await sendRequest(
-    client,
-    buildTextOnlyRequest(inputs.questions),
-    inputs.questions,
-    1,
-    false,
-    `${stamp}-baseline_text_only.json`,
-  );
-  written = await writeResults(inputs, createdAt, runsByCondition, baseline);
-  console.log(
-    `baseline_text_only: ${baseline.latency_ms} ms, ${String(baseline.input_tokens)} input tokens`,
-  );
+  if (skipBaseline) {
+    console.log("baseline_text_only: skipped (--skip-baseline)");
+  } else {
+    const baseline = await sendRequest(
+      client,
+      buildTextOnlyRequest(inputs.questions),
+      inputs.questions,
+      1,
+      false,
+      `${stamp}${inputs.fileLabel}-baseline_text_only.json`,
+    );
+    written = await writeResults(
+      inputs,
+      createdAt,
+      runsByCondition,
+      baseline,
+      false,
+    );
+    console.log(
+      `baseline_text_only: ${baseline.latency_ms} ms, ${String(baseline.input_tokens)} input tokens`,
+    );
+  }
   console.log(`wrote ${written.join(" and ")}`);
 }
 
@@ -526,7 +606,7 @@ async function runLive(
 async function main(): Promise<void> {
   try {
     const flags = readFlags(process.argv.slice(2));
-    const inputs = await readInputs();
+    const inputs = await readInputs(flags.imagePath);
     if (flags.dryRun) {
       await runDry(inputs);
       return;
@@ -537,7 +617,7 @@ async function main(): Promise<void> {
       process.exitCode = 2;
       return;
     }
-    await runLive(inputs, flags.runs, apiKey);
+    await runLive(inputs, flags.runs, apiKey, flags.skipBaseline);
   } catch (error) {
     console.error(describeFailure(error));
     process.exitCode = 2;
