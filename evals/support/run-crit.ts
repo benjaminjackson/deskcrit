@@ -14,13 +14,13 @@ export const REPOSITORY_ROOT = fileURLToPath(
 );
 
 /** The built bundle the tests run. `npm test` builds it first through the pretest script. */
-export const BUNDLE_PATH = join(REPOSITORY_ROOT, "dist", "crit.js");
+const BUNDLE_PATH = join(REPOSITORY_ROOT, "dist", "crit.js");
 
 /** The folder every golden case runs from, so the relative paths in case.json and in the output stay fixed. */
 export const GOLDEN_DIRECTORY = join(REPOSITORY_ROOT, "evals", "golden");
 
 /** The folder that holds one sub-folder for each golden case (EV-1). */
-export const CASES_DIRECTORY = join(GOLDEN_DIRECTORY, "cases");
+const CASES_DIRECTORY = join(GOLDEN_DIRECTORY, "cases");
 
 /** The report fields that EV-1 leaves out of the comparison, and only these. */
 const VOLATILE_FIELD_PATHS: readonly (readonly [string, string])[] = [
@@ -28,8 +28,8 @@ const VOLATILE_FIELD_PATHS: readonly (readonly [string, string])[] = [
   ["tool", "version"],
 ];
 
-/** What one run of the bundle wrote and the exit code it set. */
-export type CritResult = {
+/** What one run of the bundle wrote and the exit code it set, or what a golden case stores as expected (EV-1). */
+type CritOutput = {
   readonly stdout: string;
   readonly stderr: string;
   readonly exitCode: number;
@@ -43,23 +43,13 @@ export type GoldenCase = {
   readonly arguments: readonly string[];
 };
 
-/** The expected outputs of one golden case, as stored in its folder (EV-1). */
-export type ExpectedOutput = {
-  readonly stdout: string;
-  readonly stderr: string;
-  readonly exitCode: number;
-};
-
 /**
  * Run the built crit bundle with these arguments and return its stdout, stderr, and exit code
  * (CS-21). The child environment holds only PATH, so a TYPESAFE_API_KEY on the developer machine
  * cannot reach the child and cause a network call (FR-42). A missing bundle throws an error that
  * says to build it, so no test passes or skips without it.
  */
-export function runCrit(
-  commandArguments: readonly string[],
-  options: { readonly cwd?: string } = {},
-): CritResult {
+export function runCrit(commandArguments: readonly string[]): CritOutput {
   if (!existsSync(BUNDLE_PATH)) {
     throw new Error(
       `The bundle ${BUNDLE_PATH} does not exist. Run "npm run build" first; "npm test" does this for you.`,
@@ -74,7 +64,7 @@ export function runCrit(
     process.execPath,
     [BUNDLE_PATH, ...commandArguments],
     {
-      cwd: options.cwd ?? GOLDEN_DIRECTORY,
+      cwd: GOLDEN_DIRECTORY,
       env: childEnvironment,
       encoding: "utf8",
     },
@@ -141,7 +131,7 @@ function readCaseFile(
 }
 
 /** Read the stored expected stdout, stderr, and exit code of one golden case (EV-1). */
-export function readExpectedOutput(goldenCase: GoldenCase): ExpectedOutput {
+export function readExpectedOutput(goldenCase: GoldenCase): CritOutput {
   const stdout = readFileSync(
     join(goldenCase.directory, "expected.stdout"),
     "utf8",

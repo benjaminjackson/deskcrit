@@ -2,9 +2,9 @@ import { readFileSync } from "node:fs";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 
-// A disposable unit test (CS-22) for schemas/report.schema.json. It sits in
-// src/ because Vitest only runs src/**/*.test.ts. The durable EV-2 check that
-// validates real CLI output against this schema belongs to crit-cy8.14.
+// The disposable schema unit test (CS-22) for schemas/report.schema.json. It
+// checks the schema against hand-written documents. The durable EV-2 check,
+// which validates real CLI output against this schema, is evals/schema.test.ts.
 
 const schemaText = readFileSync(
   new URL("../../schemas/report.schema.json", import.meta.url),
