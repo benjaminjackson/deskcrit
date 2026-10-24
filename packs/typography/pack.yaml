@@ -1,0 +1,119 @@
+# The typography pack (crit-cy8.17). It encodes entries from the Typography
+# section of GUIDELINES.md (FR-55). Each source is a short citation of the
+# part of the Source line of the entry named in the comment above the
+# criterion that states the rule. The quotations and the notes on what was
+# checked stay in GUIDELINES.md. A criterion is in the pack only if its rule
+# was found in the source it cites (FR-45). On 2026-10-24 Benjamin Jackson
+# removed nine criteria because no checked source states their rule:
+# heading-lines-loose, heading-at-column-foot, paragraph-indent-and-space,
+# heading-floats, list-wrap-under-bullet, display-quote-not-hung,
+# display-type-loose, thin-small-text, and display-straight-quotes. Add one back when someone
+# finds a source that states its rule.
+# EV-4 on 2026-10-24 (jev-1.14.0): heading-lines-collide and headings-differ-only-in-size were
+# decided by the first run.
+# heading-indistinct agreed on every fixture after one rewording (a482a92).
+# Two criteria ship with fail: heading-lines-collide and heading-indistinct. headings-differ-only-in-size
+# has only warn_when, so warn is its most severe verdict (GUIDELINES.md: askable, as a warning only).
+# Sixteen criteria left positives quiet after one rewording and were removed under R-4:
+# measure-too-long, body-leading-too-tight, body-leading-too-loose, too-many-typefaces,
+# near-identical-sizes, stacked-emphasis, rivers-of-white, rag-staircase, paragraph-runt,
+# first-paragraph-indented, baselines-misaligned, faux-italic-display, display-ligature-missing
+# (a482a92), display-kerning-gap, justified-word-gaps (87d2a2a), and display-caps-tight (2 of 5
+# positives quiet, db29d61). GUIDELINES.md records the result for each one.
+# Every question is a noul in the defect form: true means the defect is
+# there (JC-5). Each question names a feature that can be seen, not a degree,
+# and none asks Jev to count, measure, or name a colour (NFR-9, JC-2).
+# Benjamin Jackson approved every fix hint on 2026-10-24 (G-4).
+# Each criterion lists five positive and five negative fixtures (FR-54).
+name: typography
+version: 0.1.0
+title: Typography, legibility, and readability
+license: MIT
+criteria:
+  # GUIDELINES.md: Heading lines hold together
+  - id: heading-lines-collide
+    title: "Lines of a multi-line heading touch or overlap"
+    source: "Bringhurst, The Elements of Typographic Style (Version 3.0, 2004), p. 37; Hochuli, Detail in Typography (Hyphen Press, 2008), p. 28."
+    question:
+      type: noul
+      instructions: "In the image at screenshot: Do the lines of a multi-line heading touch or overlap each other? Judge only what is visible."
+      criteria:
+        "true": "The lines of a multi-line heading touch or overlap each other."
+        "false": "No heading has lines that touch or overlap each other."
+    fail_when:
+      probability_at_least: 0.7
+    pass_when:
+      probability_at_most: 0.3
+    fix: "Open the heading's line spacing until no letter of one line touches a letter of the next. A heading may be set tighter than the text, but only while its ascenders and descenders stay clear of each other (Bringhurst, The Elements of Typographic Style, p. 37; Hochuli, Detail in Typography, p. 28)."
+    fixtures:
+      positive:
+        - fixtures/heading-lines-collide.positive.png
+        - fixtures/heading-lines-collide--2.positive.png
+        - fixtures/heading-lines-collide--3.positive.png
+        - fixtures/heading-lines-collide--4.positive.png
+        - fixtures/heading-lines-collide--5.positive.png
+      negative:
+        - fixtures/heading-lines-collide.negative.png
+        - fixtures/heading-lines-collide--2.negative.png
+        - fixtures/heading-lines-collide--3.negative.png
+        - fixtures/heading-lines-collide--4.negative.png
+        - fixtures/heading-lines-collide--5.negative.png
+
+  # GUIDELINES.md: Weak contrast is worse than none
+  - id: heading-indistinct
+    title: "A heading or label looks the same as the text around it"
+    source: "Dair, Design with Type (1967), chapter 8 \"Relationships of concord and contrast\"; Arnheim, Art and Visual Perception (rev. 1974), chapter I \"Balance\"."
+    link: https://creativepro.com/dot-font-seven-principles-of-typographic-contrast/
+    question:
+      type: noul
+      instructions: "In the image at screenshot: Is there a short line standing on its own above a paragraph, where a heading would go, that is set in the same size, weight, and colour as the paragraph text under it? Judge only what is visible."
+      criteria:
+        "true": "A short line stands on its own above a paragraph, where a heading would go, in the same size, weight, and colour as the paragraph text."
+        "false": "Every short line that stands on its own above a paragraph is larger, bolder, or a different colour from the paragraph text."
+    fail_when:
+      probability_at_least: 0.7
+    pass_when:
+      probability_at_most: 0.3
+    fix: "Make each heading differ from its text in a way that is obvious at a glance, in size, weight, structure, form, or colour, not by one step (Dair, Design with Type, chapters 8 and 8a to 8g)."
+    fixtures:
+      positive:
+        - fixtures/heading-indistinct.positive.png
+        - fixtures/heading-indistinct--2.positive.png
+        - fixtures/heading-indistinct--3.positive.png
+        - fixtures/heading-indistinct--4.positive.png
+        - fixtures/heading-indistinct--5.positive.png
+      negative:
+        - fixtures/heading-indistinct.negative.png
+        - fixtures/heading-indistinct--2.negative.png
+        - fixtures/heading-indistinct--3.negative.png
+        - fixtures/heading-indistinct--4.negative.png
+        - fixtures/heading-indistinct--5.negative.png
+
+  # GUIDELINES.md: Contrast from more than size
+  - id: headings-differ-only-in-size
+    title: "Headings differ from the body text only in size"
+    source: "Dair, Design with Type (1967), chapters 8a to 8g and chapter 9 \"Multiplying the contrasts\"."
+    question:
+      type: noul
+      instructions: "In the image at screenshot: Are the headings set in the same weight, style, and colour as the body text, so that they differ from it only in size? Judge only what is visible."
+      criteria:
+        "true": "The headings have the same weight, style, and colour as the body text and differ from it only in size."
+        "false": "The headings differ from the body text in weight, style, typeface, or colour as well as in size."
+    warn_when:
+      probability_at_least: 0.7
+    pass_when:
+      probability_at_most: 0.3
+    fix: "Pair a smaller step in heading size with a change of weight, of form such as capitals or italic, of structure such as serif against sans serif, or of colour (Dair, Design with Type, chapters 8a to 8g and 9)."
+    fixtures:
+      positive:
+        - fixtures/headings-differ-only-in-size.positive.png
+        - fixtures/headings-differ-only-in-size--2.positive.png
+        - fixtures/headings-differ-only-in-size--3.positive.png
+        - fixtures/headings-differ-only-in-size--4.positive.png
+        - fixtures/headings-differ-only-in-size--5.positive.png
+      negative:
+        - fixtures/headings-differ-only-in-size.negative.png
+        - fixtures/headings-differ-only-in-size--2.negative.png
+        - fixtures/headings-differ-only-in-size--3.negative.png
+        - fixtures/headings-differ-only-in-size--4.negative.png
+        - fixtures/headings-differ-only-in-size--5.negative.png
