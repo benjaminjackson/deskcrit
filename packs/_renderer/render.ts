@@ -37,6 +37,7 @@ import {
   formatAttributionEntry,
   listCriterionIds,
   listSourcePaths,
+  parseTemplateViewport,
   type RenderJob,
   type RenderRecord,
   stylesheetPathFor,
@@ -262,6 +263,7 @@ async function renderFixture(
       `${job.templatePath}: a declared font did not load from the repository (${String(fontError)})`,
     );
   }
+  await checkPageFillsViewport(page, job);
   await checkOnlyRepositoryFontsDrawn(page, job);
   const snapshot = await takePageSnapshot(page);
   const pngBytes = await page.screenshot({
@@ -276,6 +278,31 @@ async function renderFixture(
     );
   }
   return { pngBytes, snapshot };
+}
+
+/**
+ * Fails when the page's html element is not the size of the job's viewport.
+ * base.css sets html and body to 1280x800, so a template that asks for another
+ * viewport but forgets to set html and body to the same size in its own
+ * stylesheet would draw a desktop page cut to a phone screen.
+ */
+async function checkPageFillsViewport(
+  page: Page,
+  job: RenderJob,
+): Promise<void> {
+  // This function runs inside the page, not in Node.
+  const pageSize = await page.evaluate(() => {
+    const box = document.documentElement.getBoundingClientRect();
+    return { width: box.width, height: box.height };
+  });
+  if (
+    pageSize.width !== job.viewport.width ||
+    pageSize.height !== job.viewport.height
+  ) {
+    throw new Error(
+      `${job.templatePath}: the html element is ${pageSize.width}x${pageSize.height}, but the viewport is ${job.viewport.width}x${job.viewport.height}; set html, body to the viewport size in the template's own stylesheet`,
+    );
+  }
 }
 
 /**
@@ -412,7 +439,11 @@ function readPackJobs(packFolder: string): RenderJob[] {
   if (criterionIds.length === 0) {
     throw new Error(`${packFolder}/templates has no .html templates`);
   }
-  return buildRenderJobs(packFolder, criterionIds);
+  return buildRenderJobs(packFolder, criterionIds, (criterionId) => {
+    const templatePath = `${packFolder}/templates/${criterionId}.html`;
+    const templateHtml = readFileSync(join(PACKS_FOLDER, templatePath), "utf8");
+    return parseTemplateViewport(templateHtml, templatePath);
+  });
 }
 
 /**
@@ -671,8 +702,21 @@ async function writeContactSheets(packFolder: string): Promise<void> {
     for (const [criterionId, pairs] of pairsByCriterion) {
       const declaration = readDefectDeclaration(packFolder, criterionId);
       const html = buildContactSheetHtml(criterionId, declaration, pairs);
+      let widestPngWidth = 0;
+      let tallestPngHeight = 0;
+      for (const [positiveJob] of pairs) {
+        widestPngWidth = Math.max(widestPngWidth, positiveJob.viewport.width);
+        tallestPngHeight = Math.max(
+          tallestPngHeight,
+          positiveJob.viewport.height,
+        );
+      }
+      // Two images side by side, with a 24 px gap on each side and between them.
       const context = await browser.newContext({
-        viewport: { width: 2 * 1280 + 3 * 24, height: 800 },
+        viewport: {
+          width: 2 * widestPngWidth + 3 * 24,
+          height: tallestPngHeight,
+        },
         deviceScaleFactor: 1,
       });
       const page = await context.newPage();
@@ -716,7 +760,7 @@ function buildContactSheetHtml(
         job.outputPath.lastIndexOf("/") + 1,
       );
       cells.push(
-        `<figure><figcaption>${fileName} (${label})</figcaption><img src="data:image/png;base64,${pngBase64}" width="1280" height="800"></figure>`,
+        `<figure><figcaption>${fileName} (${label})</figcaption><img src="data:image/png;base64,${pngBase64}" width="${job.viewport.width}" height="${job.viewport.height}"></figure>`,
       );
     }
     rows.push(`<div class="row">${cells.join("")}</div>`);
