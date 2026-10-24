@@ -18,13 +18,13 @@ import {
 } from "./request.js";
 
 /** The TypeSafe API address. Set here so the SDK never falls back to TYPESAFE_BASE_URL (CS-6). */
-export const TYPESAFE_BASE_URL = "https://api.typesafe.ai";
+const TYPESAFE_BASE_URL = "https://api.typesafe.ai";
 
 /**
  * How long one request may take before the run stops, in milliseconds (FR-24). Provisional: the
  * PRD sets no timeout. M-1 measured at most 905 ms for an image request with twenty questions (JC-10).
  */
-export const TYPESAFE_TIMEOUT_MS = 10_000;
+const TYPESAFE_TIMEOUT_MS = 10_000;
 
 /** What the CLI passes in: the key from TYPESAFE_API_KEY, and the model pinned in `.crit.yaml` if any (FR-22, CS-19). */
 export type TypeSafeAdapterOptions = {

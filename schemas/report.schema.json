@@ -172,14 +172,18 @@
       }
     },
     "usage": {
-      "description": "What the run cost (FR-33). The model id is in the top-level model field and on each finding, never here.",
+      "description": "What the run cost (FR-33). The model id is in the top-level model field and on each finding, never here. input_tokens and cost_usd are null when TypeSafe returned no token count, so the cost is unknown (FR-23).",
       "type": "object",
       "additionalProperties": false,
       "required": ["requests", "input_tokens", "cost_usd", "latency_ms"],
       "properties": {
         "requests": { "type": "integer", "minimum": 0 },
-        "input_tokens": { "type": "integer", "minimum": 0 },
-        "cost_usd": { "type": "number", "minimum": 0 },
+        "input_tokens": {
+          "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }]
+        },
+        "cost_usd": {
+          "anyOf": [{ "type": "number", "minimum": 0 }, { "type": "null" }]
+        },
         "latency_ms": { "type": "number", "minimum": 0 }
       }
     }

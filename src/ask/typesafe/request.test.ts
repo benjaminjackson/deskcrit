@@ -10,7 +10,6 @@ import {
   buildTypeSafeRequest,
   chooseModelId,
   DEFAULT_MODEL_ID,
-  PRICE_USD_PER_MILLION_INPUT_TOKENS,
   readTypeSafeResponse,
 } from "./request.js";
 
@@ -260,10 +259,8 @@ test("the recorded response becomes typed answers with the response's model id a
   }
   expect(checked.usage.input_tokens).toBe(5402);
   expect(checked.usage.model).toBe("jev-1.14.0");
-  expect(checked.usage.cost_usd).toBeCloseTo(
-    (5402 * PRICE_USD_PER_MILLION_INPUT_TOKENS) / 1_000_000,
-    12,
-  );
+  // 5402 tokens at $0.042 per million (JC-10).
+  expect(checked.usage.cost_usd).toBeCloseTo(0.000226884, 15);
 });
 
 test("the model id comes from the response, not the request", () => {
@@ -291,6 +288,21 @@ test("a box answer with no confidence keeps null", () => {
     height: 500,
   });
   expect(checked.answers[3]?.confidence).toBeNull();
+});
+
+test("a null input token count keeps the answers and makes the tokens and the cost null", () => {
+  const response = buildRecordedResponse();
+  response.usage = { input_tokens: null, output_tokens: null };
+  const checked = readTypeSafeResponse(response, questions, {
+    width: 1000,
+    height: 500,
+  });
+  expect(checked.answers).toHaveLength(4);
+  expect(checked.usage).toEqual({
+    input_tokens: null,
+    cost_usd: null,
+    model: "jev-1.14.0",
+  });
 });
 
 /** Each case breaks one part of the recorded response; every one must throw CouldNotRunError (CS-7, FR-24). */
@@ -380,9 +392,9 @@ const brokenResponses: Array<{
     },
   },
   {
-    name: "a null input token count",
+    name: "an input token count that is not a whole number",
     breakIt: (response) => {
-      response.usage = { input_tokens: null, output_tokens: null };
+      response.usage = { input_tokens: 12.5, output_tokens: 3 };
     },
   },
 ];

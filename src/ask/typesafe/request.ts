@@ -23,15 +23,15 @@ import type { Usage } from "../../shared/usage.js";
 export const DEFAULT_MODEL_ID = "jev-1.14.0";
 
 /** The alias that must never be sent, because its answers change when TypeSafe ships a model (FR-22, NFR-6, JC-8). */
-export const FORBIDDEN_MODEL_ID = "jev-latest";
+const FORBIDDEN_MODEL_ID = "jev-latest";
 
 /** The opt-in header every request with an image or a Box question must carry (FR-19, NFR-8, JC-7). */
-export const DANGER_ZONE_HEADERS: Readonly<Record<string, string>> = {
+const DANGER_ZONE_HEADERS: Readonly<Record<string, string>> = {
   "TypeSafe-Danger-Zone-Images": "true",
 };
 
 /** TypeSafe's price in US dollars per million input tokens; output is free. The SDK reports no cost (JC-10, FR-23). */
-export const PRICE_USD_PER_MILLION_INPUT_TOKENS = 0.042;
+const PRICE_USD_PER_MILLION_INPUT_TOKENS = 0.042;
 
 /** The request body and the per-call options, ready for `client.systemOne(body, options)` (FR-19). */
 export type TypeSafeRequest = {
@@ -40,13 +40,13 @@ export type TypeSafeRequest = {
 };
 
 /** The pixel size of the prepared image, used to turn Box fractions into a pixel Region (FR-8). */
-export type ImageSize = {
+type ImageSize = {
   readonly width: number;
   readonly height: number;
 };
 
 /** What the response check returns: one answer per question, and usage without latency (FR-20, FR-23). */
-export type CheckedResponse = {
+type CheckedResponse = {
   readonly answers: Answer[];
   readonly usage: Omit<Usage, "latency_ms">;
 };
@@ -389,17 +389,17 @@ function readAnswer(
 }
 
 /**
- * Read the input token count. TypeSafe may report none (the SDK types it as a number or null),
- * and the PRD has no rule for that yet, so a missing count stops the run instead of recording a
- * made-up cost (FR-23, FR-24, CS-7).
+ * Read the input token count. TypeSafe may report none (the SDK types it as a number or null).
+ * Then this returns null and the cost is unknown, so answers already paid for are kept (FR-23,
+ * CS-7). A count that is there but is not a whole number still stops the run (FR-24).
  */
-function readInputTokens(usage: unknown): number {
+function readInputTokens(usage: unknown): number | null {
   if (!isRecord(usage)) {
     throw new CouldNotRunError("TypeSafe returned no usage");
   }
   const inputTokens = usage.input_tokens;
   if (inputTokens === null || inputTokens === undefined) {
-    throw new CouldNotRunError("TypeSafe returned no input token count");
+    return null;
   }
   if (
     typeof inputTokens !== "number" ||
@@ -413,11 +413,20 @@ function readInputTokens(usage: unknown): number {
   return inputTokens;
 }
 
+/** Compute the cost in US dollars at the JC-10 price, or null when the token count is unknown (FR-23). */
+function computeCostUsd(inputTokens: number | null): number | null {
+  if (inputTokens === null) {
+    return null;
+  }
+  return (inputTokens * PRICE_USD_PER_MILLION_INPUT_TOKENS) / 1_000_000;
+}
+
 /**
  * Check the SDK response, which enters as unknown, and return one typed answer per question in
  * question order plus usage without latency. This is the one checking function for TypeSafe
  * responses (CS-7, FR-20, FR-23, US-10). Any missing or malformed part throws CouldNotRunError,
- * so no partial answer list is ever returned (FR-24).
+ * so no partial answer list is ever returned (FR-24). A missing token count is not a failure:
+ * usage then holds null for input_tokens and cost_usd (FR-23).
  */
 export function readTypeSafeResponse(
   response: unknown,
@@ -459,7 +468,7 @@ export function readTypeSafeResponse(
     answers,
     usage: {
       input_tokens: inputTokens,
-      cost_usd: (inputTokens * PRICE_USD_PER_MILLION_INPUT_TOKENS) / 1_000_000,
+      cost_usd: computeCostUsd(inputTokens),
       model,
     },
   };
