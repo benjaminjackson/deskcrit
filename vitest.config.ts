@@ -16,5 +16,9 @@ export default defineConfig({
       "evals/adversarial/*.test.ts",
       "evals/packs-test/*.test.ts",
     ],
+    // Many tests run the built bundle or sharp as a child process. When the machine is busy,
+    // such as several test runs at once, they take longer than the Vitest default of 5 seconds.
+    // A longer limit changes nothing that a test checks.
+    testTimeout: 30_000,
   },
 });
