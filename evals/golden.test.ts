@@ -64,6 +64,10 @@ function sortedKeysOf(value: object): string[] {
   return keys;
 }
 
+// Each case runs the bundle twice as a child process. Under load, such as several test runs at once,
+// that takes longer than the Vitest default of 5 seconds, so the case gets more time. Nothing it checks changes.
+const CRIT_TWICE_TIMEOUT_MS = 30_000;
+
 describe("EV-1: golden outputs of crit report", () => {
   it("has golden cases to run", () => {
     expect(goldenCases.length).toBeGreaterThan(0);
@@ -92,7 +96,7 @@ describe("EV-1: golden outputs of crit report", () => {
       } else {
         expect(firstRun.stdout).toBe(expected.stdout);
       }
-    });
+    }, CRIT_TWICE_TIMEOUT_MS);
   }
 });
 
