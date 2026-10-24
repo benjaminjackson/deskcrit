@@ -98,6 +98,36 @@ describe("schemas/gate.schema.json", () => {
     expect(validate(document)).toBe(false);
   });
 
+  it("rejects a gate that passed with a blocking criterion", () => {
+    const document = makeGateDocument();
+    document.gate = {
+      passed: true,
+      policy: { warn_fails_gate: false },
+      blocking: ["typography/faint-body-text"],
+    };
+    expect(validate(document)).toBe(false);
+  });
+
+  it("rejects a gate that failed with no blocking criterion", () => {
+    const document = makeGateDocument();
+    document.gate = {
+      passed: false,
+      policy: { warn_fails_gate: false },
+      blocking: [],
+    };
+    expect(validate(document)).toBe(false);
+  });
+
+  it("accepts a gate that passed with nothing blocking", () => {
+    const document = makeGateDocument();
+    document.gate = {
+      passed: true,
+      policy: { warn_fails_gate: true },
+      blocking: [],
+    };
+    expect(validate(document)).toBe(true);
+  });
+
   it("checks the report fields through the report schema: a finding without a verdict fails", () => {
     const document = makeGateDocument();
     document.findings = [{ criterion: "typography/faint-body-text" }];

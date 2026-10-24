@@ -24,14 +24,30 @@
       "description": "Always gate for this document (section 8.3).",
       "const": "gate"
     },
-    "tool": { "$ref": "report.schema.json#/properties/tool" },
-    "image": { "$ref": "report.schema.json#/properties/image" },
-    "context": { "$ref": "report.schema.json#/properties/context" },
-    "packs": { "$ref": "report.schema.json#/properties/packs" },
-    "model": { "$ref": "report.schema.json#/properties/model" },
-    "findings": { "$ref": "report.schema.json#/properties/findings" },
-    "skipped": { "$ref": "report.schema.json#/properties/skipped" },
-    "usage": { "$ref": "report.schema.json#/properties/usage" },
+    "tool": {
+      "$ref": "report.schema.json#/properties/tool"
+    },
+    "image": {
+      "$ref": "report.schema.json#/properties/image"
+    },
+    "context": {
+      "$ref": "report.schema.json#/properties/context"
+    },
+    "packs": {
+      "$ref": "report.schema.json#/properties/packs"
+    },
+    "model": {
+      "$ref": "report.schema.json#/properties/model"
+    },
+    "findings": {
+      "$ref": "report.schema.json#/properties/findings"
+    },
+    "skipped": {
+      "$ref": "report.schema.json#/properties/skipped"
+    },
+    "usage": {
+      "$ref": "report.schema.json#/properties/usage"
+    },
     "gate": {
       "description": "The gate decision (section 8.3). The exit code agrees with passed: 0 when true, 1 when false.",
       "type": "object",
@@ -60,6 +76,29 @@
           "uniqueItems": true,
           "items": {
             "$ref": "report.schema.json#/$defs/finding/properties/criterion"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "passed": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "description": "A gate that passed has nothing blocking it.",
+        "properties": {
+          "blocking": {
+            "maxItems": 0
+          }
+        }
+      },
+      "else": {
+        "description": "A gate that failed names at least one blocking criterion.",
+        "properties": {
+          "blocking": {
+            "minItems": 1
           }
         }
       }

@@ -105,7 +105,8 @@ function parsePacksArguments(argv: readonly string[]): PacksArguments {
     }).positionals;
   } catch (error) {
     if (isParseArgsError(error)) {
-      throw new CouldNotRunError(`${error.message}\n${subcommandUsage}`);
+      const text = describeParseArgsError(error, argv, []);
+      throw new CouldNotRunError(`${text}\n${subcommandUsage}`);
     }
     throw error;
   }
@@ -149,7 +150,12 @@ export function parseReportArguments(
     parsed = parseWithNode(argv, commandName);
   } catch (error) {
     if (isParseArgsError(error)) {
-      throw new CouldNotRunError(`${error.message}\n${usage}`);
+      let knownOptionNames = Object.keys(REPORT_OPTIONS);
+      if (commandName === "gate") {
+        knownOptionNames = Object.keys(SHARED_REPORT_OPTIONS);
+      }
+      const text = describeParseArgsError(error, argv, knownOptionNames);
+      throw new CouldNotRunError(`${text}\n${usage}`);
     }
     throw error;
   }
@@ -309,6 +315,40 @@ function isParseArgsError(error: unknown): error is Error {
   }
   const code: unknown = Reflect.get(error, "code");
   return typeof code === "string" && code.startsWith("ERR_PARSE_ARGS");
+}
+
+/**
+ * Return crit's own text for a parseArgs error. For an unknown option it names the first flag in
+ * argv that is not one of the command's options, as in "unknown option --colour", so stderr does
+ * not carry Node's wording, which can change between Node releases (FR-4, FR-60, NFR-1). Any other
+ * parseArgs error, or an unknown option that cannot be found in argv, keeps Node's message.
+ */
+function describeParseArgsError(
+  error: Error,
+  argv: readonly string[],
+  knownOptionNames: readonly string[],
+): string {
+  if (Reflect.get(error, "code") !== "ERR_PARSE_ARGS_UNKNOWN_OPTION") {
+    return error.message;
+  }
+  for (const argument of argv) {
+    if (argument === "--") {
+      break;
+    }
+    if (argument.startsWith("--")) {
+      // A long flag may carry its value after "=", as in --pack=dir.
+      const flag = argument.split("=")[0] ?? argument;
+      if (!knownOptionNames.includes(flag.slice(2))) {
+        return `unknown option ${flag}`;
+      }
+      continue;
+    }
+    if (argument.startsWith("-") && argument.length > 1) {
+      // No command has a one-letter flag, so any short flag is unknown.
+      return `unknown option -${argument[1]}`;
+    }
+  }
+  return error.message;
 }
 
 /**

@@ -85,6 +85,16 @@ describe("parseReportArguments", () => {
       message: "--colour",
     },
     {
+      name: "an unknown flag, in crit's own words (NFR-1)",
+      argv: ["report", "x.png", "--colour=red"],
+      message: "unknown option --colour\nusage: crit report <image>",
+    },
+    {
+      name: "an unknown short flag",
+      argv: ["report", "x.png", "-x"],
+      message: "unknown option -x\nusage: crit report <image>",
+    },
+    {
       name: "a flag with no value",
       argv: ["report", "x.png", "--pack"],
       message: "--pack",
@@ -151,6 +161,27 @@ describe("parseCommand", () => {
       command: "packs-test",
       directory: "packs/basics",
     });
+  });
+
+  it("returns the report arguments for crit gate, with no --save-answers (FR-60)", () => {
+    const command = parseCommand(["gate", "home.png", "--answers", "a.json"]);
+    expect(command.command).toBe("gate");
+    if (command.command === "gate") {
+      expect(command.args.answersPath).toBe("a.json");
+      expect(command.args.saveAnswersPath).toBeUndefined();
+    }
+  });
+
+  it("rejects --save-answers for crit gate in crit's own words (FR-60)", () => {
+    expect(() =>
+      parseCommand(["gate", "home.png", "--save-answers", "a.json"]),
+    ).toThrow("unknown option --save-answers\nusage: crit gate <image>");
+  });
+
+  it("names an unknown flag of crit packs validate in crit's own words", () => {
+    expect(() =>
+      parseCommand(["packs", "validate", "packs/basics", "--json"]),
+    ).toThrow("unknown option --json\nusage: crit packs validate <dir>");
   });
 
   it("lists every usage line when no command is given", () => {
