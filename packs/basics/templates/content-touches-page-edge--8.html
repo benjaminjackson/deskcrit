@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Basics fixture: content-touches-page-edge (8)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A blog post with a dark footer along the bottom of the page. The footer has 32 px and 96 px of padding on the off
+         side. The defect cuts the padding to 2 px, so the footer links and the copyright line sit 2 px from the left and
+         bottom edges of the page (OQ-17). */
+      .post { margin: 56px auto 0; width: 700px; }
+      .post .meta { font-size: 14px; color: var(--color-muted); margin-bottom: 10px; }
+      .post h1 { font-size: 38px; line-height: 1.2; margin-bottom: 20px; }
+      .post p { font-family: var(--font-serif); font-size: 19px; line-height: 1.6; margin-bottom: 18px; }
+      .footer { position: absolute; left: 0; bottom: 0; width: 1280px; padding: 28px 96px 32px; background-color: #1f2328; color: #e6e9ec; }
+      .footer .links span { margin-right: 28px; font-size: 15px; }
+      .footer .small { font-size: 13px; color: #b8c0c8; margin-top: 12px; }
+      [data-defect="on"] .footer { padding: 16px 2px 2px; }
+    </style>
+  </head>
+  <body>
+    <main class="post">
+      <div class="meta">Engineering blog · 12 March · 6 minute read</div>
+      <h1>How we moved our nightly backups</h1>
+      <p>For three years our nightly backups ran on a single server in the office cupboard. It copied every database to a pair of external disks, and someone took one of the disks home each Friday.</p>
+      <p>This spring we moved the backups to object storage in two regions. Each database is now copied every night, checked against the previous copy, and kept for ninety days.</p>
+    </main>
+    <div class="footer">
+      <div class="links"><span>Blog</span><span>Careers</span><span>Status</span><span>Contact</span></div>
+      <div class="small">© 2026 Ledgerline Ltd. Registered in England, company number 09876543.</div>
+    </div>
+  </body>
+</html>

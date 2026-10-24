@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Basics fixture: content-touches-page-edge (6)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+      /* A documentation page with a tinted menu down the left side. The menu has 32 px of padding on the off side. The
+         defect cuts its left padding to 4 px, so the menu text sits 4 px from the left edge of the page (OQ-17). */
+      .layout { display: flex; height: 800px; }
+      .menu { width: 260px; padding: 32px 24px 32px 32px; background-color: #f4f6f8; border-right: 1px solid var(--color-border); }
+      .menu .group { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-muted); margin: 20px 0 10px; }
+      .menu div { font-size: 15px; margin-bottom: 9px; }
+      .menu .current { color: var(--color-accent); font-weight: 700; }
+      .doc { width: 760px; margin: 48px 0 0 72px; }
+      .doc h1 { font-size: 34px; line-height: 1.2; margin-bottom: 18px; }
+      .doc p { font-size: 17px; line-height: 1.65; margin-bottom: 16px; }
+      .doc .tip { font-size: 15px; padding: 16px 20px; border-radius: 6px; background-color: #f4f6f8; margin-bottom: 16px; }
+      [data-defect="on"] .menu { padding-left: 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <div class="menu">
+        <div class="group">Getting started</div>
+        <div>Install the command</div>
+        <div>Your first map</div>
+        <div class="group">Guides</div>
+        <div class="current">Importing GPX files</div>
+        <div>Drawing a route</div>
+        <div>Sharing a map</div>
+        <div class="group">Reference</div>
+        <div>Command options</div>
+        <div>File formats</div>
+      </div>
+      <div class="doc">
+        <h1>Importing GPX files</h1>
+        <p>Trailmap can read routes and waypoints from any GPX file, such as one exported from a running watch or a bike computer. Each track in the file becomes one layer on the map.</p>
+        <div class="tip">Tip: name each layer when you import it, so you can tell the tracks apart later.</div>
+        <p>Waypoints keep their names and are drawn as small markers. If the file has no track, only the waypoints are imported.</p>
+      </div>
+    </div>
+  </body>
+</html>
