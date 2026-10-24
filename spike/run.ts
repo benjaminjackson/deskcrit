@@ -48,6 +48,8 @@ type RunRecord = {
   cold_start: boolean;
   started_at: string;
   model: string;
+  model_matches_pinned: boolean;
+  raw_response_file: string | null;
   input_tokens: number | null;
   output_tokens: number | null;
   cost_usd: number | null;
@@ -165,30 +167,68 @@ function makeClient(
 }
 
 /**
- * Send one request, time it on the wall clock, and check the response. It throws if the server
- * answers with a different model than the pinned one (FR-22).
+ * Turn an ISO timestamp into a string that is safe in a file name, for example
+ * 2026-10-23T14-05-09-123Z. Each live run gets its own files, so a second run never overwrites
+ * the paid runs of the first.
+ */
+function toFileStamp(isoTimestamp: string): string {
+  return isoTimestamp.replaceAll(":", "-").replaceAll(".", "-");
+}
+
+/**
+ * Write one raw response body to spike/results/raw/ before it is parsed, so a parse failure keeps
+ * the paid data. The body is the parsed JSON the server returned: it holds no key and no headers.
+ * The "wx" flag makes the write fail if the file already exists, so nothing is overwritten.
+ */
+async function writeRawResponse(
+  fileName: string,
+  raw: unknown,
+): Promise<string> {
+  const folder = new URL("./results/raw/", import.meta.url);
+  await mkdir(folder, { recursive: true });
+  await writeFile(
+    new URL(fileName, folder),
+    `${JSON.stringify(raw, null, 2)}\n`,
+    { flag: "wx" },
+  );
+  return `spike/results/raw/${fileName}`;
+}
+
+/**
+ * Send one request, time it on the wall clock, keep the raw response, and check it. A model that
+ * differs from the pinned one is recorded and flagged, not thrown, so the paid answer is kept
+ * (FR-22, FR-26). With a null rawFileName (the dry run) nothing is written.
  */
 async function sendRequest(
   client: TypeSafeClient,
   request: BuiltRequest,
   questions: SpikeQuestion[],
   runNumber: number,
+  coldStart: boolean,
+  rawFileName: string | null,
 ): Promise<RunRecord> {
   const startedAt = new Date().toISOString();
   const before = performance.now();
   const raw: unknown = await client.systemOne(request.body, request.options);
   const after = performance.now();
+  let rawResponseFile: string | null = null;
+  if (rawFileName !== null) {
+    rawResponseFile = await writeRawResponse(rawFileName, raw);
+  }
   const parsed = parseResponse(raw, questions);
-  if (parsed.model !== PINNED_MODEL) {
-    throw new Error(
-      `server answered with model ${parsed.model}, not ${PINNED_MODEL}`,
+  const modelMatchesPinned = parsed.model === PINNED_MODEL;
+  if (!modelMatchesPinned) {
+    console.error(
+      `warning: server answered with model ${parsed.model}, not ${PINNED_MODEL}; flagged in the results`,
     );
   }
   return {
     run: runNumber,
-    cold_start: runNumber === 1,
+    cold_start: coldStart,
     started_at: startedAt,
     model: parsed.model,
+    model_matches_pinned: modelMatchesPinned,
+    raw_response_file: rawResponseFile,
     input_tokens: parsed.input_tokens,
     output_tokens: parsed.output_tokens,
     cost_usd: computeCostUsd(parsed.input_tokens),
@@ -219,10 +259,28 @@ function buildResultsFile(
   const latencies: number[] = [];
   const inputTokens: (number | null)[] = [];
   const costs: (number | null)[] = [];
+  const imageTokenEstimates: number[] = [];
+  let modelMismatchRuns = 0;
   for (const run of runs) {
     latencies.push(run.latency_ms);
     inputTokens.push(run.input_tokens);
     costs.push(run.cost_usd);
+    if (!run.model_matches_pinned) {
+      modelMismatchRuns++;
+    }
+    if (
+      run.input_tokens !== null &&
+      baseline !== null &&
+      baseline.input_tokens !== null
+    ) {
+      imageTokenEstimates.push(run.input_tokens - baseline.input_tokens);
+    }
+  }
+  let imageTokenNote =
+    "request input_tokens minus the text-only baseline input_tokens, per run; the baseline has the string (no image) where the image is, so the difference is the image's tokens less the few tokens of that string";
+  if (condition === "with_purpose") {
+    imageTokenNote +=
+      "; in this condition it also holds the tokens of the purpose line, so the without_purpose file gives the cleaner figure";
   }
   let baselineSummary: unknown = null;
   if (baseline !== null) {
@@ -258,7 +316,10 @@ function buildResultsFile(
     summary: {
       runs: runs.length,
       latency_ms: summarizeNumbers(latencies),
-      input_tokens_per_image: summarizeNumbers(keepNumbers(inputTokens)),
+      model_mismatch_runs: modelMismatchRuns,
+      request_input_tokens: summarizeNumbers(keepNumbers(inputTokens)),
+      image_input_tokens_estimate: summarizeNumbers(imageTokenEstimates),
+      image_input_tokens_estimate_note: imageTokenNote,
       cost_usd_per_image: summarizeNumbers(keepNumbers(costs)),
       baseline_text_only: baselineSummary,
     },
@@ -274,14 +335,14 @@ async function writeResults(
 ): Promise<string[]> {
   const folder = new URL("./results/", import.meta.url);
   await mkdir(folder, { recursive: true });
-  const date = createdAt.slice(0, 10);
+  const stamp = toFileStamp(createdAt);
   const written: string[] = [];
   const conditions: [Condition, string][] = [
     ["with_purpose", "with-purpose"],
     ["without_purpose", "without-purpose"],
   ];
   for (const [condition, slug] of conditions) {
-    const fileName = `${date}-${slug}.json`;
+    const fileName = `${stamp}-${slug}.json`;
     const contents = buildResultsFile(
       condition,
       inputs,
@@ -345,7 +406,7 @@ async function runDry(inputs: SpikeInputs): Promise<void> {
     ["baseline_text_only", buildTextOnlyRequest(inputs.questions)],
   ];
   for (const [label, request] of requests) {
-    await sendRequest(client, request, inputs.questions, 1);
+    await sendRequest(client, request, inputs.questions, 1, false, null);
     const wire = captured[captured.length - 1];
     if (wire === undefined) {
       throw new Error(`no request was captured for ${label}`);
@@ -389,6 +450,8 @@ async function runLive(
   );
   const withoutPurpose = buildRequest(screenshot, null, inputs.questions);
   const createdAt = new Date().toISOString();
+  const stamp = toFileStamp(createdAt);
+  let isFirstRequest = true;
   const runsByCondition: Record<Condition, RunRecord[]> = {
     with_purpose: [],
     without_purpose: [],
@@ -405,7 +468,10 @@ async function runLive(
         request,
         inputs.questions,
         runNumber,
+        isFirstRequest,
+        `${stamp}-${condition}-run-${runNumber}.json`,
       );
+      isFirstRequest = false;
       runsByCondition[condition].push(record);
       written = await writeResults(inputs, createdAt, runsByCondition, null);
       console.log(
@@ -418,6 +484,8 @@ async function runLive(
     buildTextOnlyRequest(inputs.questions),
     inputs.questions,
     1,
+    false,
+    `${stamp}-baseline_text_only.json`,
   );
   written = await writeResults(inputs, createdAt, runsByCondition, baseline);
   console.log(
