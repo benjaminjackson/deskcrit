@@ -11,8 +11,6 @@
 # left out: at realistic sizes (11 px body text, 9 px captions) EV-4 agreed at 0.5, because Jev
 # does not see that text as too small to tell the letters apart. A check that fires only on text
 # too small to be real is worse than no check. Reconsider when the question or the model changes.
-# The body text check came back under its one R-4 rewording as body-text-smaller-than-interface-text
-# (crit-cy8.42), which compares paragraph text with the menu and button text on the same page.
 name: basics
 version: 0.1.0
 title: Basics, checks for common mistakes
@@ -207,30 +205,3 @@ criteria:
         - fixtures/competing-primary-buttons--8.negative.png
         - fixtures/competing-primary-buttons--9.negative.png
         - fixtures/competing-primary-buttons--10.negative.png
-
-  - id: body-text-smaller-than-interface-text
-    title: 'Body text is smaller than the menu and button text'
-    source: 'Google, Material Design 3, type scale, in the Flutter API docs for TextTheme labelLarge ("Label styles are smaller, utilitarian styles, used for areas of the UI such as text inside of components or very small supporting text in the content body, like captions"; "Used for text on ElevatedButton, TextButton and OutlinedButton") and bodyLarge ("Body styles are used for longer passages of text"), with the default sizes Body Large 16sp and Label Large 14sp in Material Components for Android, docs/theming/Typography.md. Checked on 2026-10-24.'
-    link: https://api.flutter.dev/flutter/material/TextTheme/labelLarge.html
-    question:
-      type: noul
-      instructions: 'In the image at screenshot: Is the paragraph text set noticeably smaller than the menu links and button labels on the same page?'
-      criteria:
-        "true": 'The paragraph text is set noticeably smaller than the menu links and button labels on the same page.'
-        "false": 'The paragraph text is set at least as large as the menu links and button labels on the same page.'
-    fail_when: { probability_at_least: 0.7 }
-    pass_when: { probability_at_most: 0.3 }
-    fix: 'Set paragraph text at least as large as the menu links and button labels. Material 3 sets body text at 16 and button labels at 14 (Material 3 type scale).'
-    fixtures:
-      positive:
-        - fixtures/body-text-smaller-than-interface-text.positive.png
-        - fixtures/body-text-smaller-than-interface-text--2.positive.png
-        - fixtures/body-text-smaller-than-interface-text--3.positive.png
-        - fixtures/body-text-smaller-than-interface-text--4.positive.png
-        - fixtures/body-text-smaller-than-interface-text--5.positive.png
-      negative:
-        - fixtures/body-text-smaller-than-interface-text.negative.png
-        - fixtures/body-text-smaller-than-interface-text--2.negative.png
-        - fixtures/body-text-smaller-than-interface-text--3.negative.png
-        - fixtures/body-text-smaller-than-interface-text--4.negative.png
-        - fixtures/body-text-smaller-than-interface-text--5.negative.png
