@@ -5,184 +5,27 @@
 # as close to the field above as to its own) are left out because Jev did not reach the EV-4
 # floor on them. Every question is noul, and true is the defect (JC-5). Every fix hint is a draft
 # until Benjamin Jackson approves it (G-4).
+# EV-4 on 2026-10-24 (jev-1.14.0, the deciding run on the frozen set): everything-centred,
+# heavy-rules-and-boxes, no-dominant-element, and uniform-scale agreed on 10 of 10 fixtures.
+# lopsided-balance agreed on 9 of 10 (one positive quiet), so its question was reworded once
+# under R-4 and is not yet scored in its new form. Seven criteria failed again after their one
+# rewording and were removed under R-4: crowded-unrelated-elements, figure-merges-with-ground,
+# groups-not-separated, inconsistent-repeated-styles, off-grid-block, uneven-gutters, and
+# white-space-scattered. GUIDELINES.md records the result for each one.
 name: layout
 version: 0.2.0
 title: Layout, spacing, grids, alignment, and visual hierarchy
 license: MIT
 criteria:
-  - id: off-grid-block
-    title: 'A block lines up with no other block'
-    source: 'Josef Müller-Brockmann, *Grid Systems in Graphic Design* (1981), "Grid and design philosophy" and "Construction of the grid"; Timothy Samara, *Making and Breaking the Grid* (3rd ed. 2023), "Making the Grid".'
-    question:
-      type: noul
-      instructions: 'In the image at screenshot, do the blocks above and below each other share a left or right edge, except for one block that sticks out past that edge or stops short of it, so that the edge has a step in it?'
-      criteria:
-        "true": 'Blocks above and below each other share a left or right edge, and one block sticks out past it or stops short of it, leaving a step in the edge.'
-        "false": 'Where blocks sit above and below each other, their left and right edges form straight vertical lines with no step.'
-    pass_when: { probability_at_most: 0.3 }
-    fail_when: { probability_at_least: 0.7 }
-    locate: true
-    locate_instructions: 'Mark the block whose left or right edge lines up with no other block.'
-    fix: 'Move or resize the block so that its left and right edges sit on the column lines the other blocks use, so that one grid governs the page (Müller-Brockmann, *Grid Systems in Graphic Design*). Draft until Benjamin Jackson approves (G-4).'
-    fixtures:
-      positive:
-        - fixtures/off-grid-block.positive.png
-        - fixtures/off-grid-block--2.positive.png
-        - fixtures/off-grid-block--3.positive.png
-        - fixtures/off-grid-block--4.positive.png
-        - fixtures/off-grid-block--5.positive.png
-      negative:
-        - fixtures/off-grid-block.negative.png
-        - fixtures/off-grid-block--2.negative.png
-        - fixtures/off-grid-block--3.negative.png
-        - fixtures/off-grid-block--4.negative.png
-        - fixtures/off-grid-block--5.negative.png
-
-  - id: uneven-gutters
-    title: 'One gap between columns or cards differs from the others'
-    source: 'Josef Müller-Brockmann, *Grid Systems in Graphic Design* (1981), "Construction of the grid".'
-    question:
-      type: noul
-      instructions: 'In the image at screenshot, in a row of columns or cards, are the items spaced unevenly, so that two neighbouring items look paired together or one item looks pushed away from the others?'
-      criteria:
-        "true": 'In a row of columns or cards, the spacing is uneven, and two neighbouring items look paired together or one looks pushed away from the others.'
-        "false": 'In each row of columns or cards, the items are spaced evenly and none looks paired or pushed away, or the page has no row of columns or cards.'
-    pass_when: { probability_at_most: 0.3 }
-    fail_when: { probability_at_least: 0.7 }
-    locate: true
-    locate_instructions: 'Mark the gap that is wider or narrower than the other gaps in its row.'
-    fix: 'Use one fixed interval for every gap between columns, cards, or grid fields across the page (Müller-Brockmann, *Grid Systems in Graphic Design*). Draft until Benjamin Jackson approves (G-4).'
-    fixtures:
-      positive:
-        - fixtures/uneven-gutters.positive.png
-        - fixtures/uneven-gutters--2.positive.png
-        - fixtures/uneven-gutters--3.positive.png
-        - fixtures/uneven-gutters--4.positive.png
-        - fixtures/uneven-gutters--5.positive.png
-      negative:
-        - fixtures/uneven-gutters.negative.png
-        - fixtures/uneven-gutters--2.negative.png
-        - fixtures/uneven-gutters--3.negative.png
-        - fixtures/uneven-gutters--4.negative.png
-        - fixtures/uneven-gutters--5.negative.png
-
-  - id: groups-not-separated
-    title: 'Gaps between groups equal the gaps inside them'
-    source: 'Rudolf Arnheim, *Art and Visual Perception* (1954, rev. 1974), chapter II "Shape", on grouping by similarity of location.'
-    question:
-      type: noul
-      instructions: 'In the image at screenshot, is there a stack or row of items spaced at one even interval from end to end, even though partway along the items change to a different kind or a new heading begins, with no wider gap where one group ends and the next starts?'
-      criteria:
-        "true": 'A stack or row of items keeps one even spacing from end to end, and there is no wider gap where the items change kind or a new heading begins.'
-        "false": 'Wherever the items change kind or a new heading begins, a wider gap marks the end of one group and the start of the next.'
-    pass_when: { probability_at_most: 0.3 }
-    fail_when: { probability_at_least: 0.7 }
-    fix: 'Make the gap between groups clearly larger than the gap between the items in one group, so that the space shows the groups (Arnheim, *Art and Visual Perception*). Draft until Benjamin Jackson approves (G-4).'
-    fixtures:
-      positive:
-        - fixtures/groups-not-separated.positive.png
-        - fixtures/groups-not-separated--2.positive.png
-        - fixtures/groups-not-separated--3.positive.png
-        - fixtures/groups-not-separated--4.positive.png
-        - fixtures/groups-not-separated--5.positive.png
-      negative:
-        - fixtures/groups-not-separated.negative.png
-        - fixtures/groups-not-separated--2.negative.png
-        - fixtures/groups-not-separated--3.negative.png
-        - fixtures/groups-not-separated--4.negative.png
-        - fixtures/groups-not-separated--5.negative.png
-
-  - id: crowded-unrelated-elements
-    title: 'Text or a control nearly touches something it does not belong to'
-    source: 'Rudolf Arnheim, *Art and Visual Perception* (1954, rev. 1974), chapter II "Shape", on grouping by similarity of location.'
-    question:
-      type: noul
-      instructions: 'In the image at screenshot, next to an image, diagram, or box, is there a paragraph or a button that is not a caption for it and that sits closer to it than the lines of that paragraph sit to each other?'
-      criteria:
-        "true": 'A paragraph or button that is not a caption sits closer to an image, diagram, or box than the lines of that paragraph sit to each other.'
-        "false": 'Every paragraph and button that is not a caption has a gap from the nearby image, diagram, or box that is wider than the space between lines of text.'
-    pass_when: { probability_at_most: 0.3 }
-    fail_when: { probability_at_least: 0.7 }
-    locate: true
-    locate_instructions: 'Mark the caption, paragraph, or control that nearly touches an element it does not belong to.'
-    fix: 'Keep clear space between elements that do not belong together, such as a visible gap above a paragraph that follows a diagram (Arnheim, *Art and Visual Perception*). Draft until Benjamin Jackson approves (G-4).'
-    fixtures:
-      positive:
-        - fixtures/crowded-unrelated-elements.positive.png
-        - fixtures/crowded-unrelated-elements--2.positive.png
-        - fixtures/crowded-unrelated-elements--3.positive.png
-        - fixtures/crowded-unrelated-elements--4.positive.png
-        - fixtures/crowded-unrelated-elements--5.positive.png
-      negative:
-        - fixtures/crowded-unrelated-elements.negative.png
-        - fixtures/crowded-unrelated-elements--2.negative.png
-        - fixtures/crowded-unrelated-elements--3.negative.png
-        - fixtures/crowded-unrelated-elements--4.negative.png
-        - fixtures/crowded-unrelated-elements--5.negative.png
-
-  - id: white-space-scattered
-    title: 'Empty space is spread as equal small gaps'
-    source: 'Emil Ruder, *Typography: A Manual of Design* (1967), "Contrasts" and "Form and counter-form"; Willi Kunz, *Typography: Macro- and Microaesthetics* (1998), part two.'
-    question:
-      type: noul
-      instructions: 'In the image at screenshot, leaving out the page margins, is the content packed evenly over the whole page from top to bottom, with the same small gap between all elements and no empty area anywhere that is bigger than those gaps?'
-      criteria:
-        "true": 'Leaving out the page margins, the content is packed evenly over the whole page with the same small gap everywhere, and no empty area is bigger than those gaps.'
-        "false": 'Apart from the page margins, at least one empty area is clearly bigger than the gaps between elements and stands against denser parts of the page.'
-    pass_when: { probability_at_most: 0.3 }
-    fail_when: { probability_at_least: 0.7 }
-    fix: 'Gather the empty space into a few large, shaped areas set against dense ones, instead of one small gap between everything (Ruder, *Typography: A Manual of Design*). Draft until Benjamin Jackson approves (G-4).'
-    fixtures:
-      positive:
-        - fixtures/white-space-scattered.positive.png
-        - fixtures/white-space-scattered--2.positive.png
-        - fixtures/white-space-scattered--3.positive.png
-        - fixtures/white-space-scattered--4.positive.png
-        - fixtures/white-space-scattered--5.positive.png
-      negative:
-        - fixtures/white-space-scattered.negative.png
-        - fixtures/white-space-scattered--2.negative.png
-        - fixtures/white-space-scattered--3.negative.png
-        - fixtures/white-space-scattered--4.negative.png
-        - fixtures/white-space-scattered--5.negative.png
-
-  - id: figure-merges-with-ground
-    title: 'Text or a key shape sits on a busy background with nothing behind it'
-    source: 'Rudolf Arnheim, *Art and Visual Perception* (1954, rev. 1974), chapter V "Space", "Figure and ground"; Emil Ruder, *Typography: A Manual of Design* (1967), "Form and counter-form".'
-    question:
-      type: noul
-      instructions: 'In the image at screenshot, does a line of text or a key shape sit directly on a photo or pattern whose light and dark parts both pass behind it, so that some of its letters or edges are on light areas of the picture and others on dark areas?'
-      criteria:
-        "true": 'A line of text or a key shape sits directly on a photo or pattern, and some of its letters or edges are on light areas of the picture while others are on dark areas.'
-        "false": 'Every line of text and key shape sits on an area of one even tone, either a plain background, a panel, a scrim, or a calm part of a picture.'
-    pass_when: { probability_at_most: 0.3 }
-    fail_when: { probability_at_least: 0.7 }
-    locate: true
-    locate_instructions: 'Mark the text or shape that sits on a busy background with nothing behind it.'
-    fix: 'Put a calm area, a panel, or a scrim behind text and key shapes that sit on a photo or texture, so that figure and ground separate clearly (Arnheim, *Art and Visual Perception*). Draft until Benjamin Jackson approves (G-4).'
-    fixtures:
-      positive:
-        - fixtures/figure-merges-with-ground.positive.png
-        - fixtures/figure-merges-with-ground--2.positive.png
-        - fixtures/figure-merges-with-ground--3.positive.png
-        - fixtures/figure-merges-with-ground--4.positive.png
-        - fixtures/figure-merges-with-ground--5.positive.png
-      negative:
-        - fixtures/figure-merges-with-ground.negative.png
-        - fixtures/figure-merges-with-ground--2.negative.png
-        - fixtures/figure-merges-with-ground--3.negative.png
-        - fixtures/figure-merges-with-ground--4.negative.png
-        - fixtures/figure-merges-with-ground--5.negative.png
-
   - id: lopsided-balance
     title: 'One side is heavy and the other side is empty'
     source: 'Rudolf Arnheim, *Art and Visual Perception* (1954, rev. 1974), chapter I "Balance", "Weight" and "Psychological and physical balance".'
     question:
       type: noul
-      instructions: 'In the image at screenshot, is one side of the page heavy with large or dark elements while the other side is empty, with nothing to counter them?'
+      instructions: 'In the image at screenshot, do the large or dark elements all sit on one side of the page, while the other side holds only small, light text or empty space, with nothing large or dark there to counter them?'
       criteria:
-        "true": 'One side of the page is heavy with large or dark elements, and the other side is empty, with nothing to counter them.'
-        "false": 'The visual weight is balanced, either evenly or by a counterweight on the lighter side.'
+        "true": 'The large or dark elements all sit on one side of the page, and the other side holds only small, light text or empty space, with nothing large or dark there to counter them.'
+        "false": 'A large or dark element on one side is countered by a large, dark, or strongly coloured element on the other side, or the weight is spread evenly across the page.'
     pass_when: { probability_at_most: 0.3 }
     fail_when: { probability_at_least: 0.7 }
     fix: 'Give the heavy side a counterweight on the other side, through size, darkness, colour, or isolation, or spread the weight more evenly (Arnheim, *Art and Visual Perception*). Draft until Benjamin Jackson approves (G-4).'
@@ -277,32 +120,6 @@ criteria:
         - fixtures/everything-centred--3.negative.png
         - fixtures/everything-centred--4.negative.png
         - fixtures/everything-centred--5.negative.png
-
-  - id: inconsistent-repeated-styles
-    title: 'Elements of the same kind are styled differently'
-    source: 'Karl Gerstner, *Designing Programmes* (1964), introduction; Josef Müller-Brockmann, *Grid Systems in Graphic Design* (1981), "Grid and design philosophy".'
-    question:
-      type: noul
-      instructions: 'In the image at screenshot, in a set of repeated items of one kind, such as a row of cards, a group of buttons, or the section headings, does one item look different from the others, with a different colour, corner shape, border, shadow, font, or size?'
-      criteria:
-        "true": 'In a set of repeated items of one kind, one item has a different colour, corner shape, border, shadow, font, or size from the others.'
-        "false": 'Within each set of repeated items, every item has the same colour, corner shape, border, shadow, font, and size, or the page has no repeated items.'
-    pass_when: { probability_at_most: 0.3 }
-    fail_when: { probability_at_least: 0.7 }
-    fix: 'Give elements of one kind one style and one spacing, chosen from one set of rules, and use a variant only where the rules call for it (Gerstner, *Designing Programmes*). Draft until Benjamin Jackson approves (G-4).'
-    fixtures:
-      positive:
-        - fixtures/inconsistent-repeated-styles.positive.png
-        - fixtures/inconsistent-repeated-styles--2.positive.png
-        - fixtures/inconsistent-repeated-styles--3.positive.png
-        - fixtures/inconsistent-repeated-styles--4.positive.png
-        - fixtures/inconsistent-repeated-styles--5.positive.png
-      negative:
-        - fixtures/inconsistent-repeated-styles.negative.png
-        - fixtures/inconsistent-repeated-styles--2.negative.png
-        - fixtures/inconsistent-repeated-styles--3.negative.png
-        - fixtures/inconsistent-repeated-styles--4.negative.png
-        - fixtures/inconsistent-repeated-styles--5.negative.png
 
   - id: heavy-rules-and-boxes
     title: 'Every cell, card, or section has a heavy border'
