@@ -2,7 +2,7 @@
 
 The guidelines the seven first-party packs encode, one domain per section.
 
-Each guideline has four parts. **Rule** is the testable form a reviewer would apply. **Source** is the original book, standard, or paper, not a blog that repeats it. **Link** appears when the source is online or is not a well-known book. **Judged by** says how the rule becomes a Jev question. `askable` means the rule is asked as written. `askable as a visual judgment` means the rule carries a figure (a ratio, a pixel size, a count) that `deskcrit` does not check. Jev is asked only whether the defect is visible. An exact result needs a measuring tool such as axe-core.
+Each guideline has four parts. **Rule** is the testable form a reviewer would apply. **Source** is the original book, standard, or paper, not a blog that repeats it. **Link** appears when the source is online or is not a well-known book. **Judged by** says how the rule becomes a Jev question. `askable` means the rule is asked as written. `askable as a visual judgment` means the rule carries a figure (a ratio, a pixel size, a count) that `deskcrit` does not check. Jev is asked only whether the defect is visible. An exact result needs a measuring tool such as axe-core. An entry that a pack encodes also has a **Defect range** line for each criterion, which states the realistic range of the defect that the criterion's fixtures must sit inside (PRD FR-54 rule 2). The line has one of two fixed forms, so a test can compare it with the criterion's `.defect.json` file: "`<criterion-id>`: <font size, contrast ratio, or edge distance> from <a> to <b>[ px]." when the fixture renderer can measure it, or "`<criterion-id>`: not measured. <the range in words>" when it cannot.
 
 Scope: the design, not the writing. There is no content design section: reading level, sentence length, tone, and terminology belong to a content linter, so that research was dropped. Nielsen's heuristics are kept whole, including the ones that touch wording, because those are usability judgments about the screen rather than prose rules. `deskcrit` does no measurement of its own: it prepares the image, asks the questions, and reads the answers. Rules that are pure formulas, need the DOM, or need a running app are not in this catalog. An entry marked **Not encoded (NG-10)** stays in the catalog as research, but no pack encodes it, because it reads what the content says, needs detail too fine to see, or cannot be judged from one image (PRD NG-10). The mark says which.
 
@@ -259,23 +259,27 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 - **Rule:** Paragraphs are set in a face made for reading. Script, blackletter, and other decorative faces are for a few words of display.
 - **Source:** Bringhurst, *The Elements of Typographic Style* (Version 3.0, 2004), chapter 6 "Choosing and combining type", section 6.2.1 (choose faces that suit the task), p. 95 (from the scan's OCR text): a text face is "unlikely to be carrying excess ornament". This supports the rule in part: the passage is about faces for text, and says nothing of script or blackletter by name.
 - **Judged by:** askable. Question: "Are paragraphs of text set in a script, blackletter, or other decorative typeface?"
+- **Defect range:** `decorative-face-for-paragraphs`: not measured. Paragraphs of reading length set in a script, blackletter, or other display face, at the size the page sets its body text or a little larger.
 
 ### Text does not read as faint
 - **Rule:** Text has a contrast ratio of at least 4.5:1 against its background, or 3:1 for large text. The ratio is not checked; Jev is asked only whether text looks pale against its background.
 - **Source:** W3C, *WCAG 2.2*, SC 1.4.3 Contrast (Minimum).
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
 - **Judged by:** askable as a visual judgment. Question: "Is there text that is pale against its background, such as light grey text on white?"
+- **Defect range:** `text-reads-faint`: contrast ratio from 2.5 to 4.4.
 
 ### Paragraphs are not centred or right-aligned
 - **Rule:** Paragraphs of several lines are set flush left. Centring is for a few short lines. Tschichold rejects central-axis setting as rigid, and Bringhurst makes ragged setting conditional on the text and the page.
 - **Source:** Tschichold, *The New Typography* (1928), chapter "The principles of the new typography"; Bringhurst, *The Elements of Typographic Style*, section 2.1.3 "Set ragged if ragged setting suits the text and the page" (the rule is conditional, so flush left as a default is overstated).
 - **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
 - **Judged by:** askable. Question: "Is a paragraph of four or more lines centred or right-aligned?"
+- **Defect range:** `centred-or-right-paragraphs`: not measured. A paragraph of four or more lines set centred or flush right.
 
 ### Content keeps clear of the page edge
 - **Rule:** Text and boxes sit inside the type area, with a margin between them and the edge of the page.
 - **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981), sections "Margin proportions" and "Construction of the type area".
 - **Judged by:** askable. Question: "Does any text or box touch the edge of the page or sit within a few pixels of it?" In the wording test of 2026-10-24 this question moved a clear positive from 0.15 to 0.74.
+- **Defect range:** `content-touches-page-edge`: edge distance from 0 to 8 px.
 
 ### Captions and labels are not too small to read
 - **Rule:** Captions, labels, and legal text stay large enough to read. Apple gives 11 pt as the smallest text size on iOS. The figure is not checked.
@@ -288,12 +292,14 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 - **Source:** Butterick, *Practical Typography*, "All caps" ("Caps are suitable for headings shorter than one line"; "Don't capitalize whole paragraphs"); Hochuli, *Detail in Typography* (2008), p. 23 (from OCR, not checked against the page image): "Text in capitals is particularly difficult to read and needs a large amount of space."
 - **Link:** https://practicaltypography.com/all-caps.html
 - **Judged by:** askable. Question: "Is a sentence or paragraph that runs to more than one line set entirely in capital letters?"
+- **Defect range:** `all-caps-long-text`: not measured. A sentence or paragraph of two or more lines set entirely in capitals, at the size of the text around it.
 
 ### Text is broken into chunks
 - **Rule:** Text that people skim is broken up by headings, short paragraphs, and lists. A long unbroken block of text on a screen is a defect.
 - **Source:** Nielsen, "How Users Read on the Web" (Nielsen Norman Group, 1997).
 - **Link:** https://www.nngroup.com/articles/how-users-read-on-the-web/
 - **Judged by:** askable. Question: "Is there a block of text many lines long with no heading, list, or paragraph break inside it?"
+- **Defect range:** `wall-of-text`: not measured. One block of text many lines long, with no heading, list, or paragraph break inside it.
 
 ### Boxes do not split or join groups
 - **Rule:** Items inside one shared boundary, such as a card, a panel, a tint, or a border, read as a group. Unrelated items do not share a box, and related items are not split across boxes.
@@ -306,6 +312,7 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 - **Source:** Material Design 3, "Buttons" guidelines: "Use visually-prominent filled buttons for the most important actions", and "Buttons with primary actions should have a higher visual emphasis through size, color, or shape." Checked on the rendered page on 2026-10-24.
 - **Link:** https://m3.material.io/components/buttons/guidelines
 - **Judged by:** askable. Question: "Are two or more buttons in one view styled as the same filled, high-emphasis button?"
+- **Defect range:** `competing-primary-buttons`: not measured. Two or more buttons in one view with the same filled, high-emphasis style.
 
 ### Basics checks dropped for lack of a source
 These checks were in the earlier catalog, but no source this section may cite holds them, so no pack encodes them:

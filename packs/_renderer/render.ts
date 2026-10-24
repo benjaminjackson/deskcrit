@@ -7,13 +7,29 @@
 // Usage, from the repository root:
 //   npm --prefix packs run render -- _example   renders and writes the PNGs
 //   npm --prefix packs run check -- _example    renders and compares bytes with the committed PNGs
-//   npm --prefix packs run verify -- _example   checks hashes in rendered.json, with no browser
+//   npm --prefix packs run verify -- _example   checks hashes and the defect declarations, with no browser
+//   npm --prefix packs run sheets -- _example   writes one contact sheet per criterion for the realism review
 
 import { createHash } from "node:crypto";
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, isAbsolute, join, relative, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { type Browser, chromium, type Page } from "playwright";
+import {
+  buildPairEvidence,
+  type DefectDeclaration,
+  declarationPathFor,
+  findDeclarationProblems,
+  type PageSnapshot,
+  parseDefectDeclaration,
+  templateCriterionId,
+} from "./defect.ts";
 import {
   buildRenderJobs,
   checkFixtureSize,
@@ -227,7 +243,7 @@ async function checkOnlyRepositoryFontsDrawn(
 async function renderFixture(
   browser: Browser,
   job: RenderJob,
-): Promise<Uint8Array> {
+): Promise<{ pngBytes: Uint8Array; snapshot: PageSnapshot }> {
   const refusedUrls: string[] = [];
   const page = await openFixedPage(browser, job, refusedUrls);
   const templateUrl = pathToFileURL(join(PACKS_FOLDER, job.templatePath));
@@ -247,6 +263,7 @@ async function renderFixture(
     );
   }
   await checkOnlyRepositoryFontsDrawn(page, job);
+  const snapshot = await takePageSnapshot(page);
   const pngBytes = await page.screenshot({
     animations: "disabled",
     caret: "hide",
@@ -258,7 +275,92 @@ async function renderFixture(
       `${job.templatePath} asked for files outside the repository: ${refusedUrls.join(", ")}`,
     );
   }
-  return pngBytes;
+  return { pngBytes, snapshot };
+}
+
+/**
+ * Reads every element's computed style and the smallest distance from text to
+ * the page edge, so the pure code in defect.ts can compare the two sides of a
+ * pair and measure the defect (FR-54 rules 2 and 3).
+ */
+async function takePageSnapshot(page: Page): Promise<PageSnapshot> {
+  // This function runs inside the page, not in Node.
+  return page.evaluate(() => {
+    const allElements = Array.from(document.querySelectorAll("*"));
+    const indexByElement = new Map<Element, number>();
+    for (let index = 0; index < allElements.length; index++) {
+      const element = allElements[index];
+      if (element !== undefined) {
+        indexByElement.set(element, index);
+      }
+    }
+    const pathByElement = new Map<Element, string>();
+    const elements = allElements.map((element) => {
+      const parent = element.parentElement;
+      let path = element.tagName.toLowerCase();
+      if (parent !== null) {
+        const position = Array.from(parent.children).indexOf(element);
+        path = `${pathByElement.get(parent) ?? ""}/${path}[${position}]`;
+      }
+      pathByElement.set(element, path);
+      // computedStyleMap gives computed values, not the used values that
+      // getComputedStyle returns, so an "auto" width or margin stays "auto"
+      // and does not change whenever the layout moves.
+      const styles: Record<string, string> = {};
+      for (const [name, values] of element.computedStyleMap()) {
+        styles[name] = Array.from(values, (value) => value.toString()).join(
+          ", ",
+        );
+      }
+      let hasOwnText = false;
+      if (document.body.contains(element)) {
+        for (const childNode of Array.from(element.childNodes)) {
+          // nodeType 3 is a text node.
+          if (
+            childNode.nodeType === 3 &&
+            (childNode.textContent ?? "").trim() !== ""
+          ) {
+            hasOwnText = true;
+          }
+        }
+      }
+      return {
+        path,
+        parentIndex:
+          parent === null ? null : (indexByElement.get(parent) ?? null),
+        isSvg: element instanceof SVGElement,
+        hasOwnText,
+        styles,
+      };
+    });
+    let textEdgeDistance: number | null = null;
+    // A TreeWalker visits every text node under <body>; 4 is NodeFilter.SHOW_TEXT.
+    const walker = document.createTreeWalker(document.body, 4);
+    const range = document.createRange();
+    while (walker.nextNode() !== null) {
+      const textNode = walker.currentNode;
+      if ((textNode.textContent ?? "").trim() === "") {
+        continue;
+      }
+      range.selectNodeContents(textNode);
+      for (const rectangle of Array.from(range.getClientRects())) {
+        if (rectangle.width === 0 || rectangle.height === 0) {
+          continue;
+        }
+        const distance = Math.min(
+          rectangle.left,
+          rectangle.top,
+          window.innerWidth - rectangle.right,
+          window.innerHeight - rectangle.bottom,
+        );
+        const rounded = Math.round(distance * 100) / 100;
+        if (textEdgeDistance === null || rounded < textEdgeDistance) {
+          textEdgeDistance = rounded;
+        }
+      }
+    }
+    return { elements, textEdgeDistance };
+  });
 }
 
 /** Turns the command-line pack name into the jobs for every template in that pack, in sorted order (OQ-17, CS-18). */
@@ -274,6 +376,30 @@ function readPackJobs(packFolder: string): RenderJob[] {
 }
 
 /**
+ * Splits the job list into positive and negative pairs. buildRenderJobs
+ * writes each template's "on" job just before its "off" job, so the pairs are
+ * neighbours; anything else is a bug in the job list.
+ */
+function pairJobs(jobs: RenderJob[]): [RenderJob, RenderJob][] {
+  const pairs: [RenderJob, RenderJob][] = [];
+  for (let index = 0; index < jobs.length; index += 2) {
+    const positiveJob = jobs[index];
+    const negativeJob = jobs[index + 1];
+    if (
+      positiveJob === undefined ||
+      negativeJob === undefined ||
+      positiveJob.defect !== "on" ||
+      negativeJob.defect !== "off" ||
+      positiveJob.templatePath !== negativeJob.templatePath
+    ) {
+      throw new Error("render jobs are not in positive and negative pairs");
+    }
+    pairs.push([positiveJob, negativeJob]);
+  }
+  return pairs;
+}
+
+/**
  * Renders every template of a pack on both sides, writes the PNGs and
  * fixtures/rendered.json, and prints one ATTRIBUTION.md entry per PNG for the
  * person to paste and review (OQ-17, FR-54, AC-5).
@@ -284,20 +410,30 @@ async function renderPack(packFolder: string): Promise<void> {
   const browser = await launchBrowser();
   const records: RenderRecord[] = [];
   try {
-    for (const job of jobs) {
-      const pngBytes = await renderFixture(browser, job);
-      checkFixtureSize(job.outputPath, pngBytes.byteLength);
-      writeFileSync(join(PACKS_FOLDER, job.outputPath), pngBytes);
-      records.push({
-        fixture: job.outputPath.slice(job.outputPath.lastIndexOf("/") + 1),
-        template: job.templatePath,
-        defect: job.defect,
-        png_sha256: hashBytes(pngBytes),
-        source_sha256: hashSources(job),
-        viewport: job.viewport,
-        device_scale_factor: job.deviceScaleFactor,
-        browser_version: browser.version(),
-      });
+    for (const [positiveJob, negativeJob] of pairJobs(jobs)) {
+      const positive = await renderFixture(browser, positiveJob);
+      const negative = await renderFixture(browser, negativeJob);
+      const evidence = buildPairEvidence(positive.snapshot, negative.snapshot);
+      const sides: [RenderJob, Uint8Array, RenderRecord["defect_evidence"]][] =
+        [
+          [positiveJob, positive.pngBytes, evidence.positive],
+          [negativeJob, negative.pngBytes, evidence.negative],
+        ];
+      for (const [job, pngBytes, defectEvidence] of sides) {
+        checkFixtureSize(job.outputPath, pngBytes.byteLength);
+        writeFileSync(join(PACKS_FOLDER, job.outputPath), pngBytes);
+        records.push({
+          fixture: job.outputPath.slice(job.outputPath.lastIndexOf("/") + 1),
+          template: job.templatePath,
+          defect: job.defect,
+          png_sha256: hashBytes(pngBytes),
+          source_sha256: hashSources(job),
+          viewport: job.viewport,
+          device_scale_factor: job.deviceScaleFactor,
+          browser_version: browser.version(),
+          defect_evidence: defectEvidence,
+        });
+      }
     }
   } finally {
     await browser.close();
@@ -324,15 +460,41 @@ async function checkPack(packFolder: string): Promise<boolean> {
   const jobs = readPackJobs(packFolder);
   const browser = await launchBrowser();
   let allMatch = true;
+  const recordByFixture = new Map<string, RenderRecord>();
+  for (const record of readRenderRecords(packFolder)) {
+    recordByFixture.set(`${packFolder}/fixtures/${record.fixture}`, record);
+  }
   try {
-    for (const job of jobs) {
-      const pngBytes = await renderFixture(browser, job);
-      const committedBytes = readFileSync(join(PACKS_FOLDER, job.outputPath));
-      if (Buffer.compare(Buffer.from(pngBytes), committedBytes) === 0) {
-        process.stdout.write(`same bytes: ${job.outputPath}\n`);
-      } else {
-        process.stdout.write(`different bytes: ${job.outputPath}\n`);
-        allMatch = false;
+    for (const [positiveJob, negativeJob] of pairJobs(jobs)) {
+      const positive = await renderFixture(browser, positiveJob);
+      const negative = await renderFixture(browser, negativeJob);
+      const evidence = buildPairEvidence(positive.snapshot, negative.snapshot);
+      const sides: [RenderJob, Uint8Array, RenderRecord["defect_evidence"]][] =
+        [
+          [positiveJob, positive.pngBytes, evidence.positive],
+          [negativeJob, negative.pngBytes, evidence.negative],
+        ];
+      for (const [job, pngBytes, defectEvidence] of sides) {
+        const committedBytes = readFileSync(join(PACKS_FOLDER, job.outputPath));
+        if (Buffer.compare(Buffer.from(pngBytes), committedBytes) === 0) {
+          process.stdout.write(`same bytes: ${job.outputPath}\n`);
+        } else {
+          process.stdout.write(`different bytes: ${job.outputPath}\n`);
+          allMatch = false;
+        }
+        // A hand edit of the recorded evidence would let verify pass a pair
+        // that breaks rule 2 or 3, so check compares it with a fresh render.
+        const recordedEvidence = recordByFixture.get(
+          job.outputPath,
+        )?.defect_evidence;
+        if (
+          JSON.stringify(recordedEvidence) !== JSON.stringify(defectEvidence)
+        ) {
+          process.stdout.write(
+            `different defect evidence in rendered.json: ${job.outputPath}\n`,
+          );
+          allMatch = false;
+        }
       }
     }
   } finally {
@@ -390,12 +552,189 @@ function verifyPack(packFolder: string): boolean {
       }
     }
   }
+  if (!verifyDefectDeclarations(packFolder, records)) {
+    allMatch = false;
+  }
   if (allMatch) {
     process.stdout.write(
-      `all ${records.length} fixtures match rendered.json\n`,
+      `all ${records.length} fixtures match rendered.json and their defect declarations\n`,
     );
   }
   return allMatch;
+}
+
+/**
+ * Reads a criterion's .defect.json, or returns null when the file is missing,
+ * so verify can name the criterion that has no declaration (FR-54 rule 2).
+ */
+function readDefectDeclaration(
+  packFolder: string,
+  criterionId: string,
+): DefectDeclaration | null {
+  const declarationPath = declarationPathFor(packFolder, criterionId);
+  const absolutePath = join(PACKS_FOLDER, declarationPath);
+  if (!existsSync(absolutePath)) {
+    return null;
+  }
+  return parseDefectDeclaration(
+    readFileSync(absolutePath, "utf8"),
+    declarationPath,
+  );
+}
+
+/**
+ * Checks every pair in rendered.json against its criterion's declaration: the
+ * positive inside the declared range and the negative outside it (rule 2),
+ * and no difference in an undeclared property (rule 3). It prints each problem
+ * and returns false when there is one (FR-54).
+ */
+function verifyDefectDeclarations(
+  packFolder: string,
+  records: RenderRecord[],
+): boolean {
+  const recordsByTemplate = new Map<
+    string,
+    { positive?: RenderRecord; negative?: RenderRecord }
+  >();
+  for (const record of records) {
+    const pair = recordsByTemplate.get(record.template) ?? {};
+    if (record.defect === "on") {
+      pair.positive = record;
+    } else {
+      pair.negative = record;
+    }
+    recordsByTemplate.set(record.template, pair);
+  }
+  let allPass = true;
+  for (const [templatePath, pair] of recordsByTemplate) {
+    const templateId = templatePath.slice(
+      templatePath.lastIndexOf("/") + 1,
+      -".html".length,
+    );
+    const criterionId = templateCriterionId(templateId);
+    const problems: string[] = [];
+    const declaration = readDefectDeclaration(packFolder, criterionId);
+    if (pair.positive === undefined || pair.negative === undefined) {
+      problems.push(
+        `${templatePath}: rendered.json does not hold both a positive and a negative fixture`,
+      );
+    } else if (declaration === null) {
+      problems.push(
+        `${templatePath}: ${declarationPathFor(packFolder, criterionId)} is missing (FR-54 rule 2)`,
+      );
+    } else if (
+      pair.positive.defect_evidence === undefined ||
+      pair.negative.defect_evidence === undefined
+    ) {
+      problems.push(
+        `${templatePath}: rendered.json has no defect evidence; render the pack again (FR-54 rules 2 and 3)`,
+      );
+    } else {
+      problems.push(
+        ...findDeclarationProblems(
+          declaration,
+          pair.positive.fixture,
+          pair.positive.defect_evidence,
+          pair.negative.fixture,
+          pair.negative.defect_evidence,
+        ),
+      );
+    }
+    for (const problem of problems) {
+      process.stdout.write(`${problem}\n`);
+      allPass = false;
+    }
+  }
+  return allPass;
+}
+
+/**
+ * Writes one contact sheet per criterion to packs/<pack>/sheets/: each
+ * template's positive and negative PNG side by side at full size, one row per
+ * template. A reviewer checks the sheets for realism before any scored run
+ * (FR-54 rule 4). The sheets show no score. They are drawn at full size,
+ * because a sheet scaled down would make small text look smaller than it is.
+ */
+async function writeContactSheets(packFolder: string): Promise<void> {
+  const jobs = readPackJobs(packFolder);
+  const pairsByCriterion = new Map<string, [RenderJob, RenderJob][]>();
+  for (const pair of pairJobs(jobs)) {
+    const templatePath = pair[0].templatePath;
+    const templateId = templatePath.slice(
+      templatePath.lastIndexOf("/") + 1,
+      -".html".length,
+    );
+    const criterionId = templateCriterionId(templateId);
+    const pairs = pairsByCriterion.get(criterionId) ?? [];
+    pairs.push(pair);
+    pairsByCriterion.set(criterionId, pairs);
+  }
+  const sheetsFolder = join(PACKS_FOLDER, packFolder, "sheets");
+  mkdirSync(sheetsFolder, { recursive: true });
+  const browser = await launchBrowser();
+  try {
+    for (const [criterionId, pairs] of pairsByCriterion) {
+      const declaration = readDefectDeclaration(packFolder, criterionId);
+      const html = buildContactSheetHtml(criterionId, declaration, pairs);
+      const context = await browser.newContext({
+        viewport: { width: 2 * 1280 + 3 * 24, height: 800 },
+        deviceScaleFactor: 1,
+      });
+      const page = await context.newPage();
+      await page.setContent(html, { waitUntil: "load" });
+      const sheetPath = join(sheetsFolder, `${criterionId}.png`);
+      await page.screenshot({ path: sheetPath, fullPage: true });
+      await context.close();
+      process.stdout.write(`wrote ${relative(PACKS_FOLDER, sheetPath)}\n`);
+    }
+  } finally {
+    await browser.close();
+  }
+}
+
+/**
+ * Builds the HTML of one contact sheet. Each PNG is embedded as a data URL, so
+ * the sheet page loads nothing from the disk or the network.
+ */
+function buildContactSheetHtml(
+  criterionId: string,
+  declaration: DefectDeclaration | null,
+  pairs: [RenderJob, RenderJob][],
+): string {
+  let rangeText = "no .defect.json";
+  if (declaration !== null && declaration.range === null) {
+    rangeText = "range not measured; see GUIDELINES.md";
+  } else if (declaration !== null && declaration.range !== null) {
+    rangeText = `declared range: ${declaration.range.measure} ${declaration.range.from} to ${declaration.range.to}`;
+  }
+  const rows: string[] = [];
+  for (const [positiveJob, negativeJob] of pairs) {
+    const cells: string[] = [];
+    for (const [job, label] of [
+      [positiveJob, "positive, defect on"],
+      [negativeJob, "negative, defect off"],
+    ] as const) {
+      const pngBase64 = readFileSync(
+        join(PACKS_FOLDER, job.outputPath),
+      ).toString("base64");
+      const fileName = job.outputPath.slice(
+        job.outputPath.lastIndexOf("/") + 1,
+      );
+      cells.push(
+        `<figure><figcaption>${fileName} (${label})</figcaption><img src="data:image/png;base64,${pngBase64}" width="1280" height="800"></figure>`,
+      );
+    }
+    rows.push(`<div class="row">${cells.join("")}</div>`);
+  }
+  return `<!doctype html><html><head><style>
+body { margin: 0; padding: 24px; background: #ffffff; color: #111111; font: 20px sans-serif; }
+h1 { font-size: 28px; margin: 0 0 4px; }
+p { margin: 0 0 16px; }
+.row { display: flex; gap: 24px; margin-bottom: 24px; }
+figure { margin: 0; }
+figcaption { margin-bottom: 6px; }
+img { display: block; outline: 1px solid #888888; }
+</style></head><body><h1>${criterionId}</h1><p>${rangeText}</p>${rows.join("")}</body></html>`;
 }
 
 /** Reads the mode and the pack folder from the command line, runs the mode, and sets the exit code. */
@@ -404,7 +743,7 @@ async function runRenderer(argumentList: string[]): Promise<void> {
   const packFolder = argumentList[1];
   if (packFolder === undefined) {
     process.stderr.write(
-      "usage: render.ts render|check|verify <pack folder under packs/>\n",
+      "usage: render.ts render|check|verify|sheets <pack folder under packs/>\n",
     );
     process.exitCode = 2;
     return;
@@ -419,9 +758,11 @@ async function runRenderer(argumentList: string[]): Promise<void> {
     if (!verifyPack(packFolder)) {
       process.exitCode = 1;
     }
+  } else if (mode === "sheets") {
+    await writeContactSheets(packFolder);
   } else {
     process.stderr.write(
-      `unknown mode ${mode}; use render, check, or verify\n`,
+      `unknown mode ${mode}; use render, check, verify, or sheets\n`,
     );
     process.exitCode = 2;
   }

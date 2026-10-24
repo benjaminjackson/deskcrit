@@ -13,7 +13,8 @@ npm --prefix packs ci
 npm --prefix packs run setup
 npm --prefix packs run render -- <pack>   # writes the PNGs and fixtures/rendered.json, prints ATTRIBUTION.md entries
 npm --prefix packs run check -- <pack>    # renders again and compares bytes with the committed PNGs
-npm --prefix packs run verify -- <pack>   # no browser: checks the PNG and source hashes in rendered.json
+npm --prefix packs run verify -- <pack>   # no browser: checks the hashes in rendered.json and each criterion's .defect.json
+npm --prefix packs run sheets -- <pack>   # writes one contact sheet per criterion to packs/<pack>/sheets/ (not committed)
 ```
 
 `check` is valid only on the browser build that `rendered.json` records, because another machine draws slightly different pixels. CI never renders. The fixture tests read the committed PNGs.
@@ -42,10 +43,31 @@ Charts use inline SVG in the same template, and the same switch reaches SVG elem
 
 ```css
 .chart-label { fill: var(--color-text); }
-[data-defect="on"] .chart-label { fill: #c4c9cf; }
+[data-defect="on"] .chart-label { fill: #8a9099; }
 ```
 
 `_example/templates/example-contrast.html` shows the whole pattern.
+
+## Blind fixtures and the defect declaration
+
+`docs/PRD.md` FR-54 rules 1 to 4 and EV-4 rule 5 say how fixtures stay blind to Jev's scores. Do not change a fixture because of a score. Commit the fixtures before any scored run, and get the realism check of rule 4 first.
+
+Each criterion has one declaration, `packs/<pack>/templates/<criterion-id>.defect.json`, that all its numbered templates (`<criterion-id>--2.html` and so on) share:
+
+```json
+{
+  "properties": ["color"],
+  "range": { "measure": "contrast-ratio", "from": 2.5, "to": 4.4 }
+}
+```
+
+- `properties` lists the CSS properties that the `[data-defect="on"]` rules change. A name also covers the longer names that start with it (`margin` covers `margin-left`), the logical name of the same side (`margin-left` covers `margin-inline-start`), and, for `color`, the properties that follow `currentColor`.
+- `range` is the realistic range of the defect, or `null` when the renderer cannot measure it. The measures are `font-size` (px, on text whose size the defect changes), `contrast-ratio` (WCAG, on text whose contrast the defect changes), and `edge-distance` (px, from the nearest line of text to an edge of the page).
+- GUIDELINES.md states the same range in the criterion's `Defect range` line, and `packs/_renderer/guideline-ranges.test.ts` fails when the two differ.
+
+`render` reads every element's computed values on both sides of a pair and records in `rendered.json` which properties differ and what it measured. `verify` then fails when the two sides have different elements, when they differ in a property that the declaration does not list, when a positive fixture is outside the range, or when a negative fixture is inside it. `check` renders again and fails when the recorded evidence has changed.
+
+`sheets` puts each pair side by side at full size, one row per template, and shows no score. An agent can look through a copy of the `sheets/` folder for obvious extremes first; then Benjamin Jackson checks every sheet (FR-54 rule 4).
 
 Rules for every template:
 

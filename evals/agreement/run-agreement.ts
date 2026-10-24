@@ -12,7 +12,14 @@
 // 1 when any EV-4 fixture disagrees, and 2 when the harness could not run (FR-24).
 
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { parseDocument } from "yaml";
@@ -182,6 +189,9 @@ function runHarness(argv: readonly string[]): {
       verdictsByFixture.set(fixture, verdicts);
       addUsage(usageTotals, report.usage);
     }
+    if (live) {
+      recordFrozenSet(pack, pinnedModel);
+    }
     const fixtureRows = scoreFixtureTests(pack.criteria, verdictsByFixture);
     const labels = readPackLabels(pack);
     let agreement: CriterionAgreement[] | null = null;
@@ -214,6 +224,29 @@ function runHarness(argv: readonly string[]): {
   sections.push(formatCoverage(coverage));
   const exitCode = anyDisagreed ? EXIT_CODE_DISAGREED : EXIT_CODE_AGREED;
   return { text: `${sections.join("\n\n")}\n`, exitCode };
+}
+
+/**
+ * Write the SHA-256 of the pack's fixtures/rendered.json next to the answers of a live run, so a
+ * later reader can check which frozen fixture set the run scored (EV-4 rule 5). A pack with no
+ * rendered.json, such as one made of captured pages only, gets no file.
+ */
+function recordFrozenSet(pack: PackFixtures, pinnedModel: string): void {
+  const renderedJsonPath = join(pack.directory, "fixtures", "rendered.json");
+  if (!existsSync(renderedJsonPath)) {
+    return;
+  }
+  const hash = createHash("sha256")
+    .update(readFileSync(renderedJsonPath))
+    .digest("hex");
+  const hashPath = join(
+    RUNS_DIRECTORY,
+    pack.name,
+    pinnedModel,
+    "rendered.json.sha256",
+  );
+  mkdirSync(dirname(hashPath), { recursive: true });
+  writeFileSync(hashPath, `${hash}\n`);
 }
 
 /** Say whether TYPESAFE_API_KEY is set, without reading its value into any output (CS-19, NFR-14). */
