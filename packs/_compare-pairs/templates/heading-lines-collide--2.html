@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Compare pair: heading lines collide, pair 2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * EV-9 pair, criterion heading-lines-collide. The hero of a conference
+ * site. The sans headline runs to two lines at 68 px with a line height of
+ * 1.08. With the defect the line height is 0.8, so the lines touch; padding-top
+ * keeps the first line clear of the date above. Nothing else changes.
+ */
+body { background: #10233f; color: #f1f4f8; }
+header { height: 72px; padding: 0 96px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; color: #c8d3e3; }
+header b { font-size: 18px; color: #fff; }
+.hero { width: 900px; margin: 84px 0 0 96px; }
+.date { font-size: 16px; font-weight: 700; color: #ffc65c; margin-bottom: 18px; }
+h1 { font-size: 68px; font-weight: 700; line-height: 1.08; margin-bottom: 30px; color: #ffffff; }
+.lead { font-size: 20px; line-height: 1.55; color: #c8d3e3; width: 640px; margin-bottom: 34px; }
+.ticket { display: inline-block; padding: 14px 28px; background: #ffc65c; color: #10233f; font-size: 17px; font-weight: 700; border-radius: 6px; }
+
+[data-defect="on"] h1 { line-height: 0.8; padding-top: 14px; }
+    </style>
+  </head>
+  <body>
+    <header><b>Fieldwork 2027</b><span>Programme · Speakers · Venue · Tickets</span></header>
+    <section class="hero">
+      <p class="date">14 to 16 April · Leith Assembly Rooms</p>
+      <h1>Three days on building quieter, slower software</h1>
+      <p class="lead">Talks and workshops for people who design and build tools that others rely on every day.</p>
+      <span class="ticket">Get tickets</span>
+    </section>
+  </body>
+</html>

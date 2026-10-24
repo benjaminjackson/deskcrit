@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Compare pair: text reads faint</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * EV-9 pair, criterion text-reads-faint. A notification settings page. The
+ * help text under each setting is #56595f on white (contrast about 7.0), or
+ * #93969b with the defect (contrast about 3.0). Nothing else changes.
+ */
+.layout { display: grid; grid-template-columns: 240px 1fr; height: 800px; }
+aside { background: #f6f7f9; padding: 40px 28px; border-right: 1px solid #e3e6ea; }
+aside .item { font-size: 15px; padding: 8px 12px; margin-bottom: 4px; color: #2b2f36; border-radius: 4px; }
+aside .item.on { background: #e4e9f2; font-weight: 700; }
+main { padding: 48px 72px; }
+h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+.intro { font-size: 16px; margin-bottom: 32px; color: #2b2f36; }
+.row { display: flex; justify-content: space-between; align-items: flex-start; width: 760px; padding: 20px 0; border-top: 1px solid #e3e6ea; }
+.row h2 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.help { font-size: 15px; width: 560px; color: #56595f; }
+.toggle { width: 44px; height: 24px; border-radius: 12px; background: #2563eb; position: relative; margin-top: 4px; }
+.toggle.off { background: #c9ced6; }
+.toggle::after { content: ""; position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 9px; background: #fff; }
+.toggle.off::after { right: 23px; }
+
+[data-defect="on"] .help { color: #93969b; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside>
+        <div class="item">Profile</div>
+        <div class="item">Password</div>
+        <div class="item on">Notifications</div>
+        <div class="item">Billing</div>
+        <div class="item">Team</div>
+      </aside>
+      <main>
+        <h1>Notifications</h1>
+        <p class="intro">Choose which emails we send you. Account and security emails are always sent.</p>
+        <div class="row"><div><h2>Weekly summary</h2><p class="help">A short email every Monday with the tasks your team finished and the ones that are late.</p></div><div class="toggle"></div></div>
+        <div class="row"><div><h2>Mentions</h2><p class="help">An email when someone mentions you in a comment and you have not opened it within an hour.</p></div><div class="toggle"></div></div>
+        <div class="row"><div><h2>Due dates</h2><p class="help">A reminder the day before a task assigned to you is due, sent at 8 am in your time zone.</p></div><div class="toggle off"></div></div>
+        <div class="row"><div><h2>Product news</h2><p class="help">Occasional notes about new features. We send no more than one a month.</p></div><div class="toggle off"></div></div>
+      </main>
+    </div>
+  </body>
+</html>
