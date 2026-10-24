@@ -96,7 +96,7 @@ describe("the library chain", () => {
     expect(result.answers.map((answer) => answer.question_id)).toEqual(sentIds);
   });
 
-  test("ask runs with the stub and no API key, no network, and no environment (FR-20, FR-64)", async () => {
+  test("ask runs with the stub and TYPESAFE_API_KEY unset and no network (FR-20, FR-64)", async () => {
     vi.stubEnv("TYPESAFE_API_KEY", undefined);
     vi.stubGlobal("fetch", () => {
       throw new Error("the stub must not use the network");

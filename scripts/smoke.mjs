@@ -229,7 +229,7 @@ function expectLibraryImportIsQuiet() {
  * with the stub adapter, and writes the stub's answers to an answers file. Then it runs the built
  * CLI with --json and --answers on the same inputs, in a folder with only PATH in the environment.
  * The two reports must be deeply equal and both must fit schemas/report.schema.json (FR-65,
- * NFR-5, EV-2). latency_ms is the one field that may differ, because it is a measured time.
+ * NFR-5, EV-2).
  */
 async function expectLibraryMatchesCli() {
   const library = await import(pathToFileURL(resolve("dist/index.js")).href);
@@ -331,7 +331,6 @@ async function expectLibraryMatchesCli() {
         "the parity run made no findings, so it compares nothing",
       );
     }
-    cliReport.usage.latency_ms = libraryReportJson.usage.latency_ms;
     assert.deepStrictEqual(cliReport, libraryReportJson);
 
     const schema = JSON.parse(
