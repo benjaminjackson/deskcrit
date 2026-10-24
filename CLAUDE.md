@@ -31,6 +31,7 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `spike/` holds the M-1 spike inputs: the prepared screenshot, the twenty questions, the page purpose, and its attribution.
 - `spike/answer-sheet/` holds the disposable M-1 script that writes and checks `spike/human_answers.csv`, the sheet where Benjamin Jackson answers the twenty questions before he sees any Jev answer. It has its own `package.json`. Run `npm ci --prefix spike/answer-sheet` once first, then `node spike/answer-sheet/sheet.ts blank` or `check`.
 - `spike/run.ts`, `spike/request.ts`, `spike/request.test.ts`, `spike/package.json`, and `spike/results/` are the disposable M-1 runner that asks Jev the twenty questions and keeps every run; `spike/` has its own dependencies, so run `npm --prefix spike ci` first.
+- `spike/compare.ts` joins `spike/human_answers.csv` with the four results files (slice and whole page, with and without purpose) and writes `spike/comparison.csv`, `spike/agreement_summary.csv`, `spike/run_costs.csv`, and `spike/cost_summary.csv`; run `node spike/compare.ts` after `npm --prefix spike ci`, and do not edit the CSV files by hand.
 
 ## How we build: the Phoenix rules
 
