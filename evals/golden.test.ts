@@ -74,29 +74,33 @@ describe("EV-1: golden outputs of crit report", () => {
   });
 
   for (const goldenCase of goldenCases) {
-    it(`${goldenCase.name}: ${goldenCase.description}`, () => {
-      const expected = readExpectedOutput(goldenCase);
-      const firstRun = runCrit(goldenCase.arguments);
-      const secondRun = runCrit(goldenCase.arguments);
+    it(
+      `${goldenCase.name}: ${goldenCase.description}`,
+      () => {
+        const expected = readExpectedOutput(goldenCase);
+        const firstRun = runCrit(goldenCase.arguments);
+        const secondRun = runCrit(goldenCase.arguments);
 
-      // Two runs of the same case give the same bytes, so a hidden nondeterminism shows up (NFR-5).
-      expect(secondRun).toEqual(firstRun);
+        // Two runs of the same case give the same bytes, so a hidden nondeterminism shows up (NFR-5).
+        expect(secondRun).toEqual(firstRun);
 
-      expect(firstRun.exitCode).toBe(expected.exitCode);
-      expect(firstRun.stderr).toBe(expected.stderr);
-      if (firstRun.exitCode !== 0) {
-        // A run that could not run writes nothing to stdout (FR-24, FR-61).
-        expect(firstRun.stdout).toBe("");
-      }
-      if (isJsonCase(goldenCase) && expected.stdout !== "") {
-        // JSON.parse of the whole stdout fails unless it holds exactly one JSON document (FR-31, FR-61).
-        expect(normaliseReportJson(firstRun.stdout)).toBe(
-          normaliseReportJson(expected.stdout),
-        );
-      } else {
-        expect(firstRun.stdout).toBe(expected.stdout);
-      }
-    }, CRIT_TWICE_TIMEOUT_MS);
+        expect(firstRun.exitCode).toBe(expected.exitCode);
+        expect(firstRun.stderr).toBe(expected.stderr);
+        if (firstRun.exitCode !== 0) {
+          // A run that could not run writes nothing to stdout (FR-24, FR-61).
+          expect(firstRun.stdout).toBe("");
+        }
+        if (isJsonCase(goldenCase) && expected.stdout !== "") {
+          // JSON.parse of the whole stdout fails unless it holds exactly one JSON document (FR-31, FR-61).
+          expect(normaliseReportJson(firstRun.stdout)).toBe(
+            normaliseReportJson(expected.stdout),
+          );
+        } else {
+          expect(firstRun.stdout).toBe(expected.stdout);
+        }
+      },
+      CRIT_TWICE_TIMEOUT_MS,
+    );
   }
 });
 

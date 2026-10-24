@@ -123,7 +123,9 @@ async function readImage(
  * Read and check `.crit.yaml` in the working directory. A missing file means no settings; any
  * other read error, a YAML error, or a bad key stops the run (FR-4, OQ-25 a, OQ-25 b).
  */
-async function readCritYaml(workingDirectory: string): Promise<CritYaml> {
+export async function readCritYaml(
+  workingDirectory: string,
+): Promise<CritYaml> {
   let text: string;
   try {
     text = await readFile(join(workingDirectory, CRIT_YAML_FILE_NAME), "utf8");
