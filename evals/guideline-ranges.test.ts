@@ -14,13 +14,13 @@ import {
   parseDefectDeclaration,
   parseGuidelineRanges,
   templateCriterionId,
-} from "./defect.js";
+} from "../packs/_renderer/defect.js";
+
+/** The repository root, which holds GUIDELINES.md and packs/. */
+const REPOSITORY_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
 /** The packs/ folder, where every declaration path starts. */
-const PACKS_FOLDER = dirname(dirname(fileURLToPath(import.meta.url)));
-
-/** The repository root, which holds GUIDELINES.md. */
-const REPOSITORY_ROOT = dirname(PACKS_FOLDER);
+const PACKS_FOLDER = join(REPOSITORY_ROOT, "packs");
 
 /** Lists the criterion ids that have at least one template in a pack. */
 function listTemplateCriterionIds(packFolder: string): string[] {
