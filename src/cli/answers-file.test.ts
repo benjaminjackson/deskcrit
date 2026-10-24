@@ -14,12 +14,18 @@ import { CouldNotRunError } from "../shared/could-not-run-error.js";
 import type { Question } from "../shared/question.js";
 import {
   checkRecordedAnswers,
+  checkRecordedImage,
+  fingerprintImage,
   readAnswersFile,
   writeAnswersFile,
 } from "./answers-file.js";
 
 /** The file name every message must hold (FR-4). */
 const FILE_NAME = "recorded/answers.json";
+
+/** The SHA-256 of the three bytes "abc", a published test vector (FIPS 180-2). */
+const ABC_SHA256 =
+  "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 
 /** One question of each type, as build makes them. */
 const questions: Question[] = [
@@ -98,7 +104,7 @@ const asked: AskResult = {
 
 /** Return the file as a plain JSON value, so a test can break one part of it. */
 function writtenValue(): Record<string, unknown> {
-  return JSON.parse(writeAnswersFile(asked));
+  return JSON.parse(writeAnswersFile(asked, ABC_SHA256));
 }
 
 /** Return the error that reading this value as an answers file throws. */
@@ -113,18 +119,21 @@ function readError(value: unknown): unknown {
 
 describe("writeAnswersFile and readAnswersFile", () => {
   it("give back the same answers and usage after a round trip (FR-42)", () => {
-    const text = writeAnswersFile(asked);
+    const text = writeAnswersFile(asked, ABC_SHA256);
     const file = readAnswersFile(text, FILE_NAME);
     expect(file.answers_file_version).toBe(1);
+    expect(file.image_sha256).toBe(ABC_SHA256);
     expect(file.answers).toEqual(asked.answers);
     expect(file.usage).toEqual(asked.usage);
   });
 
   it("write a fixed key order with a two-space indent and a final newline (OQ-26)", () => {
-    const text = writeAnswersFile(asked);
+    const text = writeAnswersFile(asked, ABC_SHA256);
     expect(text.endsWith("}\n")).toBe(true);
     expect(
-      text.startsWith('{\n  "answers_file_version": 1,\n  "answers": ['),
+      text.startsWith(
+        `{\n  "answers_file_version": 1,\n  "image_sha256": "${ABC_SHA256}",\n  "answers": [`,
+      ),
     ).toBe(true);
     const reordered: AskResult = {
       answers: [
@@ -143,10 +152,11 @@ describe("writeAnswersFile and readAnswersFile", () => {
         input_tokens: null,
       },
     };
-    expect(writeAnswersFile(reordered)).toBe(
+    expect(writeAnswersFile(reordered, ABC_SHA256)).toBe(
       `${JSON.stringify(
         {
           answers_file_version: 1,
+          image_sha256: ABC_SHA256,
           answers: [
             {
               type: "noul",
@@ -210,6 +220,34 @@ const shapeCases: ShapeCase[] = [
     name: "the version is missing",
     breakFile: (file) => ({ answers: file.answers, usage: file.usage }),
     message: /the top level has no answers_file_version/,
+  },
+  {
+    name: "the version is 2 and the layout has no image_sha256",
+    breakFile: (file) => ({
+      answers_file_version: 2,
+      answers: file.answers,
+      usage: file.usage,
+    }),
+    message: /answers_file_version must be 1/,
+  },
+  {
+    name: "image_sha256 is missing",
+    breakFile: (file) => ({
+      answers_file_version: file.answers_file_version,
+      answers: file.answers,
+      usage: file.usage,
+    }),
+    message: /the top level has no image_sha256/,
+  },
+  {
+    name: "image_sha256 is upper case",
+    breakFile: (file) => ({ ...file, image_sha256: ABC_SHA256.toUpperCase() }),
+    message: /image_sha256 must be 64 lowercase hexadecimal characters/,
+  },
+  {
+    name: "image_sha256 is too short",
+    breakFile: (file) => ({ ...file, image_sha256: "ba7816bf" }),
+    message: /image_sha256 must be 64 lowercase hexadecimal characters/,
   },
   {
     name: "the top level has an extra key",
@@ -331,9 +369,44 @@ describe("readAnswersFile stops on a wrong shape with CouldNotRunError that name
   }
 });
 
+describe("fingerprintImage and checkRecordedImage (FR-42, OQ-26 e)", () => {
+  it("gives the SHA-256 of the bytes as 64 lowercase hexadecimal characters", () => {
+    const bytes = new TextEncoder().encode("abc");
+    expect(fingerprintImage(bytes)).toBe(ABC_SHA256);
+  });
+
+  it("returns when the file was saved from this image", () => {
+    const file = readAnswersFile(
+      writeAnswersFile(asked, ABC_SHA256),
+      FILE_NAME,
+    );
+    expect(() =>
+      checkRecordedImage(file, ABC_SHA256, FILE_NAME, "page.png"),
+    ).not.toThrow();
+  });
+
+  it("stops with CouldNotRunError that names the file and the image when the file belongs to another image", () => {
+    const file = readAnswersFile(
+      writeAnswersFile(asked, ABC_SHA256),
+      FILE_NAME,
+    );
+    const otherSha256 = fingerprintImage(new TextEncoder().encode("abd"));
+    expect(() =>
+      checkRecordedImage(file, otherSha256, FILE_NAME, "other.png"),
+    ).toThrow(
+      new CouldNotRunError(
+        `answers file ${FILE_NAME} belongs to another image, not other.png; record answers for this image with --save-answers`,
+      ),
+    );
+  });
+});
+
 describe("checkRecordedAnswers (FR-42, OQ-26)", () => {
   it("returns the answers and usage as ask would when they fit the questions", () => {
-    const file = readAnswersFile(writeAnswersFile(asked), FILE_NAME);
+    const file = readAnswersFile(
+      writeAnswersFile(asked, ABC_SHA256),
+      FILE_NAME,
+    );
     expect(checkRecordedAnswers(file, questions, FILE_NAME)).toEqual(asked);
   });
 
@@ -378,10 +451,13 @@ describe("checkRecordedAnswers (FR-42, OQ-26)", () => {
   ];
   for (const mismatchCase of mismatchCases) {
     it(`stops with CouldNotRunError that names the file when ${mismatchCase.name}`, () => {
-      const text = writeAnswersFile({
-        answers: mismatchCase.answers,
-        usage: asked.usage,
-      });
+      const text = writeAnswersFile(
+        {
+          answers: mismatchCase.answers,
+          usage: asked.usage,
+        },
+        ABC_SHA256,
+      );
       const file = readAnswersFile(text, FILE_NAME);
       let caught: unknown;
       try {

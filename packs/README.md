@@ -18,6 +18,10 @@ npm --prefix packs run verify -- <pack>   # no browser: checks the PNG and sourc
 
 `check` is valid only on the browser build that `rendered.json` records, because another machine draws slightly different pixels. CI never renders. The fixture tests read the committed PNGs.
 
+## Writing a noul question
+
+A `noul` question asks whether the defect is present, so `true` always means the defect is there and `false` means it is not. Write "Is the heading not clearly larger than the body text?" and not "Is the heading clearly larger than the body text?". Then `distribution.true` in the JSON and "Defect probability" in the readable report read the same way for every criterion, with no lookup of the question. Set `fail_when` and `warn_when` to a high probability of `true`, and `pass_when` to a low one. Reason: a reader or agent should not have to open the pack to know which way 0.97 points. Reconsider when a criterion cannot be phrased as a defect. The rule is in `docs/PRD.md` section 7.8 (`question.criteria`).
+
 ## Templates
 
 Each criterion has one template, `packs/<pack>/templates/<criterion-id>.html`, with an optional stylesheet `<criterion-id>.css` next to it. The renderer opens it twice, with `?defect=on` and with `?defect=off`, and writes:

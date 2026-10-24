@@ -220,6 +220,21 @@ test("choice option names that look like whole numbers are refused, not reordere
   ).toThrow(CouldNotRunError);
 });
 
+test("a noul probability of false has no float noise", () => {
+  const response = buildRecordedResponse();
+  response.answers = {
+    ...response.answers,
+    "typography/heading-visible": { type: "noul", noul: 0.92 },
+  };
+  const checked = readTypeSafeResponse(response, questions, {
+    width: 1000,
+    height: 500,
+  });
+  expect(checked.answers[0]).toMatchObject({
+    distribution: { true: 0.92, false: 0.08 },
+  });
+});
+
 test("the recorded response becomes typed answers with the response's model id and usage", () => {
   const checked = readTypeSafeResponse(buildRecordedResponse(), questions, {
     width: 1000,

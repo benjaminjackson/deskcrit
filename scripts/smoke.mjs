@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   copyFileSync,
   mkdirSync,
@@ -98,6 +99,14 @@ function expectPackLoadsInBundle() {
 }
 
 /**
+ * Returns the SHA-256 of a file's bytes as lowercase hexadecimal, the image fingerprint an answers
+ * file records (FR-42, OQ-26 e).
+ */
+function fingerprintFile(path) {
+  return createHash("sha256").update(readFileSync(path)).digest("hex");
+}
+
+/**
  * Runs the bundle offline with --answers and an environment that holds only PATH, so there is no
  * TYPESAFE_API_KEY and no other setting (FR-42, CS-21). It checks exit code 0, empty stderr, JSON
  * stdout whose model is the file's usage model, the same stdout on a second run (NFR-5), and exit
@@ -113,6 +122,9 @@ function expectOfflineRunWithAnswers() {
     );
     const answersFile = {
       answers_file_version: 1,
+      image_sha256: fingerprintFile(
+        "packs/_example/fixtures/example-contrast.positive.png",
+      ),
       answers: [
         {
           type: "noul",
@@ -274,6 +286,7 @@ async function expectLibraryMatchesCli() {
     );
     const answersFile = {
       answers_file_version: 1,
+      image_sha256: fingerprintFile(join(workingDirectory, imageName)),
       answers: asked.answers,
       usage: asked.usage,
     };
