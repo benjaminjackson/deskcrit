@@ -491,7 +491,7 @@ Disposable: the implementation of every module, including prepare, build, ask, c
 | ID | Rule |
 | --- | --- |
 | AC-1 | Each pipeline stage, prepare, build, ask, and compose, is a separate component that can be rewritten without changing the others. Stages talk only through the typed values the library API exports. |
-| AC-2 | The CLI surface and the JSON output change only by adding optional fields and flags. |
+| AC-2 | The CLI surface and the JSON output change only by adding optional fields and flags. The package exports (`src/index.ts` and the `exports` map in `package.json`) may change before version 1.0, and each change is noted in this PRD. At version 1.0 they join the slow layer and change only by adding. Changed 2026-10-24 by Benjamin Jackson: before, this rule named only the CLI surface and the JSON output, and the package exports were not covered. Reason: the package is at version 0.0.0, and `compare` and `gate` will still change the types that pass between the stages. Reconsider when: the version reaches 1.0, or an outside project depends on the library. |
 | AC-3 | A person or an agent can understand each component's purpose and rules in about ten minutes. A component that grows past that is split. |
 | AC-4 | Each component can be verified at its own boundary without the others. Prepare is tested with image files, build with packs and a prepared image, ask with a stub adapter, and compose with recorded answers. |
 | AC-5 | Each piece of state has one owner that writes it. `.crit.yaml` is written only by the person. The fixture set is written only by people, through review. |
