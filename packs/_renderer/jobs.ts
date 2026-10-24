@@ -156,7 +156,7 @@ export function stylesheetPathFor(templatePath: string): string {
 
 /**
  * Writes the fixtures/ATTRIBUTION.md entry for one rendered PNG, in the format
- * that packs/_renderer/README.md defines and crit-q25.4 parses (FR-54).
+ * that packs/README.md defines and crit-q25.4 parses (FR-54).
  */
 export function formatAttributionEntry(
   record: RenderRecord,

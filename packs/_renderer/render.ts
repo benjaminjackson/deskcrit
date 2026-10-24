@@ -11,7 +11,7 @@
 
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join, relative, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { type Browser, chromium, type Page } from "playwright";
 import {
@@ -114,6 +114,26 @@ async function launchBrowser(): Promise<Browser> {
 }
 
 /**
+ * Says whether a request URL is a file inside the packs/ folder of the
+ * repository. Every other URL, including a file elsewhere on the disk such as
+ * a system font, is refused, so a fixture depends only on files in the
+ * repository (OQ-17, FR-54).
+ */
+function isFileInRepository(requestUrl: string): boolean {
+  if (!requestUrl.startsWith("file://")) {
+    return false;
+  }
+  const requestPath = fileURLToPath(requestUrl);
+  const pathFromPacksFolder = relative(PACKS_FOLDER, requestPath);
+  const leavesPacksFolder =
+    pathFromPacksFolder === ".." || pathFromPacksFolder.startsWith(`..${sep}`);
+  if (leavesPacksFolder || isAbsolute(pathFromPacksFolder)) {
+    return false;
+  }
+  return true;
+}
+
+/**
  * Opens a page with every setting that can change the pixels fixed, and with
  * every request that is not a file in the repository refused. A refused request
  * is recorded so the render fails and names it (OQ-17, FR-54).
@@ -133,14 +153,69 @@ async function openFixedPage(
   });
   await context.route("**/*", async (route) => {
     const requestUrl = route.request().url();
-    if (requestUrl.startsWith("file://")) {
+    if (isFileInRepository(requestUrl)) {
       await route.continue();
     } else {
       refusedUrls.push(requestUrl);
       await route.abort();
     }
   });
+  // context.route does not see WebSockets, so they need their own handler.
+  // Closing the socket without connecting to the server sends nothing out.
+  await context.routeWebSocket(/.*/, async (webSocketRoute) => {
+    refusedUrls.push(webSocketRoute.url());
+    await webSocketRoute.close();
+  });
   return context.newPage();
+}
+
+/**
+ * Fails when any element was drawn with a font installed on this machine
+ * instead of a font file from the repository. A family name such as Arial
+ * reaches a system font without any request, so the request guard cannot
+ * catch it; Chromium's DevTools protocol reports the fonts each element
+ * actually used (OQ-17, FR-54).
+ */
+async function checkOnlyRepositoryFontsDrawn(
+  page: Page,
+  job: RenderJob,
+): Promise<void> {
+  const session = await page.context().newCDPSession(page);
+  await session.send("DOM.enable");
+  await session.send("CSS.enable");
+  const documentResult = await session.send("DOM.getDocument", {
+    depth: -1,
+    pierce: true,
+  });
+  const systemFontNames = new Set<string>();
+  const nodesToVisit = [documentResult.root];
+  while (nodesToVisit.length > 0) {
+    const node = nodesToVisit.pop();
+    if (node === undefined) {
+      break;
+    }
+    // nodeType 1 is an element. Only elements can be asked which fonts they used.
+    if (node.nodeType === 1) {
+      const fontResult = await session.send("CSS.getPlatformFontsForNode", {
+        nodeId: node.nodeId,
+      });
+      for (const fontUsage of fontResult.fonts) {
+        if (!fontUsage.isCustomFont) {
+          systemFontNames.add(fontUsage.familyName);
+        }
+      }
+    }
+    for (const childNode of node.children ?? []) {
+      nodesToVisit.push(childNode);
+    }
+  }
+  await session.detach();
+  if (systemFontNames.size > 0) {
+    const sortedNames = Array.from(systemFontNames).sort(compareCodeUnits);
+    throw new Error(
+      `${job.templatePath} drew text with fonts installed on this machine, not from the repository: ${sortedNames.join(", ")}`,
+    );
+  }
 }
 
 /**
@@ -171,6 +246,7 @@ async function renderFixture(
       `${job.templatePath}: a declared font did not load from the repository (${String(fontError)})`,
     );
   }
+  await checkOnlyRepositoryFontsDrawn(page, job);
   const pngBytes = await page.screenshot({
     animations: "disabled",
     caret: "hide",
