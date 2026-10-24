@@ -10,6 +10,7 @@ export default defineConfig({
       "src/**/*.test.ts",
       "schemas/**/*.test.ts",
       "packs/_renderer/*.test.ts",
+      "evals/agreement/*.test.ts",
     ],
   },
 });
