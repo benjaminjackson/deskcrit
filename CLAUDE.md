@@ -28,6 +28,7 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-5 holds the full
 - `src/cli/main.ts` holds the placeholder command and sets the exit code.
 - `src/cli/bin.ts` is the bundle entry file.
 - `src/shared/could-not-run-error.ts` holds `CouldNotRunError`.
+- `src/prepare/prepare.ts` holds `prepareImage`, which checks, turns upright, strips, resizes, and pads one image and records its scale factor.
 - `src/shared/state.ts`, `src/shared/question.ts`, `src/shared/answer.ts`, and `src/shared/usage.ts` hold the State, Question, Answer, and Usage types that pass between the stages, and nothing else defines them.
 - `src/ask/adapter.ts` holds the `TypeSafeAdapter` type from FR-20, `src/ask/ask.ts` holds `ask`, and `src/ask/stub.ts` holds the stub adapter. `src/ask/no-io.test.ts` checks that no file in `src/ask/` outside `src/ask/typesafe/` imports the SDK or does I/O.
 - `schemas/pack.schema.json` is the pack JSON Schema (JSON Schema 2020-12), the checked form of the pack schema table in PRD section 7.8.
