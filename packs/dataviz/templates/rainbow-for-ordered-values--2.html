@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: rainbow for ordered values, district map</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion rainbow-for-ordered-values. A county housing report with a map of invented districts drawn as
+ * polygons and coloured by households per hectare. The clean side uses six steps of one teal that grows
+ * darker. The defect switch only changes the fill of each step class (.s1 to .s6), on the map and in the
+ * legend, to a rainbow of blue, cyan, green, yellow, orange, and red. Nothing else changes (OQ-17).
+ */
+header { padding: 26px 56px 18px; border-bottom: 1px solid #e6e2da; display: flex; justify-content: space-between; align-items: baseline; }
+.series { font-family: var(--font-serif); font-size: 20px; font-weight: 700; }
+.issue { font-size: 14px; color: var(--color-muted); }
+main { display: flex; gap: 44px; padding: 26px 56px 0; }
+.map svg polygon { stroke: #ffffff; stroke-width: 1.5; }
+.text { width: 420px; }
+h1 { font-family: var(--font-serif); font-size: 30px; line-height: 1.2; font-weight: 700; margin-bottom: 12px; }
+p { font-family: var(--font-serif); font-size: 17px; line-height: 1.55; margin-bottom: 14px; }
+.legend-title { font-size: 14px; font-weight: 700; margin: 18px 0 8px; }
+.key { display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 4px; }
+.caption { font-size: 13px; color: var(--color-muted); margin-top: 6px; width: 640px; }
+.s1 { fill: #e8f5f4; }
+.s2 { fill: #c2e6e2; }
+.s3 { fill: #8ccdc6; }
+.s4 { fill: #52aba3; }
+.s5 { fill: #2a8580; }
+.s6 { fill: #135e5c; }
+
+[data-defect="on"] .s1 { fill: #2f6cc0; }
+[data-defect="on"] .s2 { fill: #26a9c4; }
+[data-defect="on"] .s3 { fill: #45ad52; }
+[data-defect="on"] .s4 { fill: #efd23c; }
+[data-defect="on"] .s5 { fill: #ef8a27; }
+[data-defect="on"] .s6 { fill: #d33a2c; }
+    </style>
+  </head>
+  <body>
+<header><span class="series">Harrowmere County Housing Survey</span><span class="issue">Part 2 of 4 · Where people live</span></header>
+    <main>
+      <div class="map">
+        <svg width="660" height="520" viewBox="0 0 660 520">
+<polygon class="s2" points="101.0,8.2 158.7,22.8 194.6,35.9 199.9,69.6 211.0,96.1 158.0,108.3 123.3,118.6 102.0,65.6"/>
+<polygon class="s2" points="194.6,35.9 239.9,32.8 285.8,26.9 296.4,67.8 294.5,108.9 252.0,96.4 211.0,96.1 199.9,69.6"/>
+<polygon class="s4" points="285.8,26.9 334.8,8.7 385.8,0.7 373.3,45.7 356.2,93.9 334.1,103.9 294.5,108.9 296.4,67.8"/>
+<polygon class="s3" points="385.8,0.7 420.2,14.0 448.3,5.4 457.1,64.5 469.2,110.6 403.5,98.5 356.2,93.9 373.3,45.7"/>
+<polygon class="s2" points="13.0,114.5 68.7,121.2 123.3,118.6 118.0,160.8 103.7,195.8 64.3,189.9 15.8,185.8 14.1,145.2"/>
+<polygon class="s3" points="123.3,118.6 158.0,108.3 211.0,96.1 197.8,152.2 185.1,196.9 148.9,192.6 103.7,195.8 118.0,160.8"/>
+<polygon class="s5" points="211.0,96.1 252.0,96.4 294.5,108.9 288.3,156.4 283.1,188.9 238.9,199.8 185.1,196.9 197.8,152.2"/>
+<polygon class="s4" points="294.5,108.9 334.1,103.9 356.2,93.9 352.0,153.0 356.1,201.3 314.8,197.8 283.1,188.9 288.3,156.4"/>
+<polygon class="s4" points="356.2,93.9 403.5,98.5 469.2,110.6 466.9,154.7 446.2,215.9 392.8,215.2 356.1,201.3 352.0,153.0"/>
+<polygon class="s3" points="469.2,110.6 514.7,108.8 538.9,102.5 538.5,135.3 556.8,185.5 497.6,192.4 446.2,215.9 466.9,154.7"/>
+<polygon class="s3" points="538.9,102.5 596.6,105.5 652.7,96.4 628.3,151.5 624.7,205.1 589.7,188.7 556.8,185.5 538.5,135.3"/>
+<polygon class="s2" points="15.8,185.8 64.3,189.9 103.7,195.8 91.3,242.6 100.0,292.7 59.0,301.9 14.4,309.1 17.9,239.9"/>
+<polygon class="s3" points="103.7,195.8 148.9,192.6 185.1,196.9 199.8,235.0 206.8,294.2 151.2,293.8 100.0,292.7 91.3,242.6"/>
+<polygon class="s4" points="185.1,196.9 238.9,199.8 283.1,188.9 284.2,231.7 303.9,292.8 263.6,287.9 206.8,294.2 199.8,235.0"/>
+<polygon class="s5" points="283.1,188.9 314.8,197.8 356.1,201.3 365.4,247.7 363.8,287.0 332.5,297.8 303.9,292.8 284.2,231.7"/>
+<polygon class="s6" points="356.1,201.3 392.8,215.2 446.2,215.9 462.2,249.4 461.1,304.8 404.2,304.8 363.8,287.0 365.4,247.7"/>
+<polygon class="s4" points="446.2,215.9 497.6,192.4 556.8,185.5 565.6,233.3 553.0,300.2 497.9,292.8 461.1,304.8 462.2,249.4"/>
+<polygon class="s4" points="556.8,185.5 589.7,188.7 624.7,205.1 649.0,238.1 655.2,280.9 609.7,296.9 553.0,300.2 565.6,233.3"/>
+<polygon class="s4" points="100.0,292.7 151.2,293.8 206.8,294.2 205.9,351.2 193.9,399.5 139.9,388.8 96.4,370.0 93.2,340.4"/>
+<polygon class="s4" points="206.8,294.2 263.6,287.9 303.9,292.8 300.3,351.3 287.2,403.1 245.9,404.0 193.9,399.5 205.9,351.2"/>
+<polygon class="s4" points="303.9,292.8 332.5,297.8 363.8,287.0 364.0,327.0 372.0,372.9 332.0,393.1 287.2,403.1 300.3,351.3"/>
+<polygon class="s5" points="363.8,287.0 404.2,304.8 461.1,304.8 457.3,350.3 444.3,392.6 416.9,373.3 372.0,372.9 364.0,327.0"/>
+<polygon class="s4" points="461.1,304.8 497.9,292.8 553.0,300.2 561.8,341.8 554.4,382.5 495.6,390.8 444.3,392.6 457.3,350.3"/>
+<polygon class="s3" points="553.0,300.2 609.7,296.9 655.2,280.9 639.0,321.5 635.8,379.9 591.5,372.5 554.4,382.5 561.8,341.8"/>
+<polygon class="s1" points="96.4,370.0 139.9,388.8 193.9,399.5 178.9,447.5 185.8,498.2 144.8,484.8 99.1,479.5 90.2,427.7"/>
+<polygon class="s3" points="193.9,399.5 245.9,404.0 287.2,403.1 292.4,446.0 282.7,482.5 239.3,492.4 185.8,498.2 178.9,447.5"/>
+<polygon class="s4" points="287.2,403.1 332.0,393.1 372.0,372.9 372.1,419.2 391.8,472.4 342.0,473.2 282.7,482.5 292.4,446.0"/>
+<polygon class="s4" points="372.0,372.9 416.9,373.3 444.3,392.6 461.8,434.5 472.3,476.2 422.5,472.6 391.8,472.4 372.1,419.2"/>
+<polygon class="s3" points="444.3,392.6 495.6,390.8 554.4,382.5 545.0,415.7 554.3,469.6 514.4,476.4 472.3,476.2 461.8,434.5"/>
+
+        </svg>
+        <p class="caption">Households per hectare in each of the county's 29 districts. Source: Harrowmere County Planning Office, household register, March.</p>
+      </div>
+      <div class="text">
+        <h1>Homes cluster around the old ferry crossing</h1>
+        <p>The districts nearest the river crossing hold the most households per hectare, and the count falls steadily toward the hill farms at the county edge.</p>
+        <p>Three districts on the east bank passed 36 households per hectare for the first time this year, after the Millrace flats opened in the spring.</p>
+        <div class="legend-title">Households per hectare</div>
+        <div class="key"><svg width="30" height="18"><rect class="s1" width="30" height="18"/></svg><span>under 8</span></div><div class="key"><svg width="30" height="18"><rect class="s2" width="30" height="18"/></svg><span>8–14</span></div><div class="key"><svg width="30" height="18"><rect class="s3" width="30" height="18"/></svg><span>15–21</span></div><div class="key"><svg width="30" height="18"><rect class="s4" width="30" height="18"/></svg><span>22–28</span></div><div class="key"><svg width="30" height="18"><rect class="s5" width="30" height="18"/></svg><span>29–35</span></div><div class="key"><svg width="30" height="18"><rect class="s6" width="30" height="18"/></svg><span>36+</span></div>
+      </div>
+    </main>
+  </body>
+</html>

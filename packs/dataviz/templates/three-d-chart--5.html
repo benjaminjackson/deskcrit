@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: three-d chart (extruded horizontal bars)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion three-d-chart. A quarterly review slide with horizontal bars of
+ * support tickets resolved by team. The defect only shows a lighter top face
+ * and a darker end face on every bar, about 12 px deep, as an office 3D bar
+ * preset draws them. The faces are in the page on both sides and hidden on
+ * the clean side. Nothing else changes (OQ-17).
+ */
+body { background: #e9e8ee; }
+.slide { position: absolute; left: 40px; top: 30px; width: 1200px; height: 740px; background: #ffffff; border-radius: 4px; padding: 44px 64px 0; }
+.tag { font-size: 14px; font-weight: 700; color: #6d4bb3; letter-spacing: 0.06em; text-transform: uppercase; }
+h1 { font-size: 36px; font-weight: 700; margin: 6px 0 6px; }
+.sub { font-size: 18px; color: #59636e; margin-bottom: 26px; }
+.body { display: flex; gap: 24px; }
+.side { width: 200px; padding-top: 30px; }
+.side .n { font-size: 40px; font-weight: 700; }
+.side .l { font-size: 15px; color: #59636e; margin-bottom: 4px; }
+.side .c { font-size: 15px; color: #15803d; margin-bottom: 22px; }
+.foot { position: absolute; left: 64px; right: 64px; bottom: 26px; display: flex; justify-content: space-between; font-size: 13px; color: #6b7280; }
+.grid { stroke: #eceff3; stroke-width: 1; }
+.baseline { stroke: #9aa3ad; stroke-width: 1; }
+.tick { font-size: 14px; fill: #6b7280; }
+.cat { font-size: 17px; fill: #1f2328; }
+.value { font-size: 16px; font-weight: 700; fill: #1f2328; }
+.bar { fill: #6d4bb3; }
+.depth { display: none; }
+
+[data-defect="on"] .depth { display: inline; }
+    </style>
+  </head>
+  <body>
+<div class="slide">
+      <p class="tag">Customer support · Q3 2026 review</p>
+      <h1>Billing resolved the most tickets again</h1>
+      <p class="sub">Tickets closed as resolved, by team, July to September 2026</p>
+      <div class="body">
+        <svg width="960" height="364" viewBox="0 0 960 364">
+<line class="baseline" x1="180" y1="10" x2="180" y2="330" />
+<text class="tick" x="180" y="352" text-anchor="middle">0</text>
+<line class="grid" x1="350" y1="10" x2="350" y2="330" />
+<text class="tick" x="350" y="352" text-anchor="middle">500</text>
+<line class="grid" x1="520" y1="10" x2="520" y2="330" />
+<text class="tick" x="520" y="352" text-anchor="middle">1,000</text>
+<line class="grid" x1="690" y1="10" x2="690" y2="330" />
+<text class="tick" x="690" y="352" text-anchor="middle">1,500</text>
+<line class="grid" x1="860" y1="10" x2="860" y2="330" />
+<text class="tick" x="860" y="352" text-anchor="middle">2,000</text>
+<text class="cat" x="166" y="61" text-anchor="end">Billing</text>
+<rect class="bar" x="180" y="38" width="625.6" height="34" />
+<text class="value" x="827.6" y="61">1,840</text>
+<text class="cat" x="166" y="123" text-anchor="end">Accounts</text>
+<rect class="bar" x="180" y="100" width="515.1" height="34" />
+<text class="value" x="717.1" y="123">1,515</text>
+<text class="cat" x="166" y="185" text-anchor="end">Technical</text>
+<rect class="bar" x="180" y="162" width="438.6" height="34" />
+<text class="value" x="640.6" y="185">1,290</text>
+<text class="cat" x="166" y="247" text-anchor="end">Orders</text>
+<rect class="bar" x="180" y="224" width="326.4" height="34" />
+<text class="value" x="528.4" y="247">960</text>
+<text class="cat" x="166" y="309" text-anchor="end">Returns</text>
+<rect class="bar" x="180" y="286" width="207.4" height="34" />
+<text class="value" x="409.4" y="309">610</text>
+<polygon class="depth" points="180,38 192,29 817.6,29 805.6,38" fill="#9c85cb" />
+<polygon class="depth" points="805.6,38 817.6,29 817.6,63 805.6,72" fill="#4e3681" />
+<polygon class="depth" points="180,100 192,91 707.1,91 695.1,100" fill="#9c85cb" />
+<polygon class="depth" points="695.1,100 707.1,91 707.1,125 695.1,134" fill="#4e3681" />
+<polygon class="depth" points="180,162 192,153 630.6,153 618.6,162" fill="#9c85cb" />
+<polygon class="depth" points="618.6,162 630.6,153 630.6,187 618.6,196" fill="#4e3681" />
+<polygon class="depth" points="180,224 192,215 518.4,215 506.4,224" fill="#9c85cb" />
+<polygon class="depth" points="506.4,224 518.4,215 518.4,249 506.4,258" fill="#4e3681" />
+<polygon class="depth" points="180,286 192,277 399.4,277 387.4,286" fill="#9c85cb" />
+<polygon class="depth" points="387.4,286 399.4,277 399.4,311 387.4,320" fill="#4e3681" />
+</svg>
+        <div class="side">
+          <div class="n">6,215</div><div class="l">Tickets resolved, Q3 2026</div><div class="c">Up 8% on Q2 2026</div>
+          <div class="n">4.2 h</div><div class="l">Median time to resolve, Q3 2026</div><div class="c">Down 0.6 h on Q2 2026</div>
+        </div>
+      </div>
+      <div class="foot"><span>Source: Quillmark help desk records, 1 July to 30 September 2026.</span><span>Quillmark Support · 7</span></div>
+    </div>
+  </body>
+</html>

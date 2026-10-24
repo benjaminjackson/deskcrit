@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: three KPI tiles</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion bare-kpi-number. A storefront dashboard with a row of three KPI tiles above a
+ * bar chart of orders by delivery day.
+ * The defect switch only changes display: on hides the unit, the time
+ * period, and the comparison of each headline number, so only the metric
+ * name and the bare figure stay. Any chart on the page is the same on both
+ * sides (OQ-17).
+ */
+
+body { background: #f6f7f9; }
+.top { display: flex; align-items: center; gap: 40px; height: 60px; padding: 0 48px; background: #ffffff; border-bottom: 1px solid #e4e7eb; font-size: 15px; }
+.brand { font-weight: 700; font-size: 19px; color: #b4541f; }
+nav { display: flex; gap: 26px; color: #5d6670; }
+nav .on { color: #1f2328; font-weight: 700; }
+main { padding: 28px 48px 0; }
+h1 { font-size: 26px; font-weight: 700; }
+.tiles { display: flex; gap: 24px; margin-top: 18px; }
+.tile { flex: 1; background: #ffffff; border-radius: 10px; padding: 22px 26px; }
+.name { font-size: 15px; color: #4b535c; }
+.value { font-size: 48px; font-weight: 700; line-height: 1.15; margin-top: 4px; color: #1f2328; }
+.value .unit { font-size: 30px; font-weight: 400; color: #4b535c; }
+.line { font-size: 14px; line-height: 1.7; color: #5d6670; }
+.delta { color: #1e7a46; font-weight: 700; }
+.delta .vs { color: #5d6670; font-weight: 400; }
+.arrow { fill: #1e7a46; margin-right: 4px; }
+.card { margin-top: 24px; background: #ffffff; border-radius: 10px; padding: 20px 26px; }
+.card h2 { font-size: 17px; font-weight: 700; }
+.card .src { font-size: 12px; color: #737b84; margin-top: 4px; }
+
+.grid { stroke: #eceff2; stroke-width: 1; }
+.base { stroke: #b9c0c8; stroke-width: 1; }
+.axis { font-size: 12px; fill: #6b737c; }
+
+/* The defect switch: on hides every unit, period, and comparison span next to
+   the headline numbers. Each is an inline span inside its own line, so a
+   hidden line leaves an empty block with no height. */
+[data-defect="on"] .unit { display: none; }
+[data-defect="on"] .period { display: none; }
+[data-defect="on"] .delta { display: none; }
+    </style>
+  </head>
+  <body>
+    <header class="top"><span class="brand">Crumbwell Bakes</span><nav><span class="on">Overview</span><span>Orders</span><span>Subscribers</span><span>Products</span></nav></header>
+    <main>
+      <h1>Shop overview</h1>
+      <div class="tiles">
+        <section class="tile">
+          <p class="name">Checkout conversion rate</p>
+          <p class="value">3.8<span class="unit">%</span></p>
+          <div class="line"><span class="period">Last 30 days</span></div>
+          <div class="line"><span class="delta"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M5 1 L9 8 L1 8 Z"/></svg>+0.4 pts <span class="vs">vs previous 30 days</span></span></div>
+        </section>
+        <section class="tile">
+          <p class="name">Average order value</p>
+          <p class="value"><span class="unit">€</span>64.20</p>
+          <div class="line"><span class="period">Last 30 days</span></div>
+          <div class="line"><span class="delta"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M5 1 L9 8 L1 8 Z"/></svg>+€2.10 <span class="vs">vs previous 30 days</span></span></div>
+        </section>
+        <section class="tile">
+          <p class="name">Active subscribers</p>
+          <p class="value">12.4<span class="unit">k</span></p>
+          <div class="line"><span class="period">As of 30 September 2026</span></div>
+          <div class="line"><span class="delta"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M5 1 L9 8 L1 8 Z"/></svg>+6.3% <span class="vs">vs 31 August</span></span></div>
+        </section>
+      </div>
+      <section class="card">
+        <h2>Orders by delivery day</h2>
+        <svg width="1120" height="330" viewBox="0 0 1120 330"><line class="grid" x1="56" y1="296" x2="1104" y2="296"/><text class="axis" x="48" y="300" text-anchor="end">0</text><line class="grid" x1="56" y1="225.5" x2="1104" y2="225.5"/><text class="axis" x="48" y="229.5" text-anchor="end">300</text><line class="grid" x1="56" y1="155" x2="1104" y2="155"/><text class="axis" x="48" y="159" text-anchor="end">600</text><line class="grid" x1="56" y1="84.5" x2="1104" y2="84.5"/><text class="axis" x="48" y="88.5" text-anchor="end">900</text><line class="grid" x1="56" y1="14" x2="1104" y2="14"/><text class="axis" x="48" y="18" text-anchor="end">1,200</text><rect class="bar" x="86" y="146" width="90" height="150" fill="#c8692f"/><text class="axis" x="131" y="316" text-anchor="middle">Monday</text><rect class="bar" x="236" y="129" width="90" height="167" fill="#c8692f"/><text class="axis" x="281" y="316" text-anchor="middle">Tuesday</text><rect class="bar" x="385" y="117" width="90" height="179" fill="#c8692f"/><text class="axis" x="430" y="316" text-anchor="middle">Wednesday</text><rect class="bar" x="535" y="103" width="90" height="193" fill="#c8692f"/><text class="axis" x="580" y="316" text-anchor="middle">Thursday</text><rect class="bar" x="685" y="52" width="90" height="244" fill="#c8692f"/><text class="axis" x="730" y="316" text-anchor="middle">Friday</text><rect class="bar" x="834" y="30" width="90" height="266" fill="#c8692f"/><text class="axis" x="879" y="316" text-anchor="middle">Saturday</text><rect class="bar" x="984" y="207" width="90" height="89" fill="#c8692f"/><text class="axis" x="1029" y="316" text-anchor="middle">Sunday</text><line class="base" x1="56" y1="296" x2="1104" y2="296"/></svg>
+        <p class="src">Source: Crumbwell order system, orders delivered in September 2026.</p>
+      </section>
+    </main>
+  </body>
+</html>

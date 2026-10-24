@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: chartjunk decoration (hatched bars)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion chartjunk-decoration. A credit union's member report with a bar
+ * chart of monthly deposits into savings accounts. The defect only swaps the
+ * plain blue bar fill for a hatched pattern fill (the pattern sits in <defs>
+ * on both sides). Nothing else changes (OQ-17).
+ */
+body { background: #f7f8fa; }
+header { height: 64px; background: #ffffff; border-bottom: 1px solid #e6e9ee; display: flex; align-items: center; padding: 0 48px; gap: 40px; }
+.brand { font-family: var(--font-serif); font-weight: 700; font-size: 22px; color: #1c3d63; }
+nav { display: flex; gap: 28px; font-size: 15px; color: #59636e; }
+nav .current { color: #1c3d63; font-weight: 700; }
+main { padding: 32px 48px 0; }
+.eyebrow { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #59636e; }
+h1 { font-family: var(--font-serif); font-size: 32px; font-weight: 700; margin: 4px 0 4px; }
+.lede { color: #59636e; font-size: 16px; margin-bottom: 22px; }
+.row { display: flex; gap: 32px; }
+.card { background: #ffffff; border-radius: 8px; padding: 20px 20px 10px; }
+.card h2 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+aside { width: 360px; display: flex; flex-direction: column; gap: 16px; }
+.kpi { background: #ffffff; border-radius: 8px; padding: 18px 20px; }
+.kpi .label { font-size: 14px; color: #59636e; }
+.kpi .num { font-size: 30px; font-weight: 700; color: #1f2328; }
+.kpi .cmp { font-size: 14px; color: #2b7a3d; }
+.source { font-size: 13px; color: #6b7280; margin-top: 14px; }
+.grid { stroke: #eceff3; stroke-width: 1; }
+.baseline { stroke: #9aa3ad; stroke-width: 1; }
+.tick, .cat { font-size: 13px; fill: #6b7280; }
+.value { font-size: 13px; font-weight: 700; fill: #1f2328; }
+.bar { fill: #2f6fb3; }
+
+[data-defect="on"] .bar { fill: url(#hatch); }
+    </style>
+  </head>
+  <body>
+<header><div class="brand">Brookhollow Credit Union</div><nav><span>Accounts</span><span class="current">Member report</span><span>Rates</span><span>Branches</span></nav></header>
+    <main>
+      <p class="eyebrow">Member report, first half 2026</p>
+      <h1>Savings deposits rose every month</h1>
+      <p class="lede">New money paid into member savings accounts, by month, January to June 2026.</p>
+      <div class="row">
+        <div class="card">
+          <h2>Deposits into savings accounts, US dollars per month</h2>
+          <svg width="760" height="410" viewBox="0 0 760 410">
+<defs>
+  <pattern id="hatch" patternUnits="userSpaceOnUse" width="9" height="9" patternTransform="rotate(45)">
+    <rect width="9" height="9" fill="#d6e4f5" />
+    <rect width="4" height="9" fill="#2f6fb3" />
+  </pattern>
+</defs>
+<line class="baseline" x1="70" y1="370" x2="740" y2="370" />
+<text class="tick" x="60" y="375" text-anchor="end">$0k</text>
+<line class="grid" x1="70" y1="285" x2="740" y2="285" />
+<text class="tick" x="60" y="290" text-anchor="end">$300k</text>
+<line class="grid" x1="70" y1="200" x2="740" y2="200" />
+<text class="tick" x="60" y="205" text-anchor="end">$600k</text>
+<line class="grid" x1="70" y1="115" x2="740" y2="115" />
+<text class="tick" x="60" y="120" text-anchor="end">$900k</text>
+<line class="grid" x1="70" y1="30" x2="740" y2="30" />
+<text class="tick" x="60" y="35" text-anchor="end">$1200k</text>
+<rect class="bar" x="94.8" y="196.6" width="62" height="173.4" />
+<text class="value" x="125.8" y="186.6" text-anchor="middle">$612k</text>
+<text class="cat" x="125.8" y="396" text-anchor="middle">Jan</text>
+<rect class="bar" x="206.5" y="184.4" width="62" height="185.6" />
+<text class="value" x="237.5" y="174.4" text-anchor="middle">$655k</text>
+<text class="cat" x="237.5" y="396" text-anchor="middle">Feb</text>
+<rect class="bar" x="318.2" y="162" width="62" height="208" />
+<text class="value" x="349.2" y="152" text-anchor="middle">$734k</text>
+<text class="cat" x="349.2" y="396" text-anchor="middle">Mar</text>
+<rect class="bar" x="429.8" y="143.1" width="62" height="226.9" />
+<text class="value" x="460.8" y="133.1" text-anchor="middle">$801k</text>
+<text class="cat" x="460.8" y="396" text-anchor="middle">Apr</text>
+<rect class="bar" x="541.5" y="124.1" width="62" height="245.9" />
+<text class="value" x="572.5" y="114.1" text-anchor="middle">$868k</text>
+<text class="cat" x="572.5" y="396" text-anchor="middle">May</text>
+<rect class="bar" x="653.2" y="44.2" width="62" height="325.8" />
+<text class="value" x="684.2" y="34.2" text-anchor="middle">$1150k</text>
+<text class="cat" x="684.2" y="396" text-anchor="middle">Jun</text>
+</svg>
+        </div>
+        <aside>
+          <div class="kpi"><div class="label">Total deposited, Jan to Jun 2026</div><div class="num">$4.82M</div><div class="cmp">Up 6.1% on Jan to Jun 2025</div></div>
+          <div class="kpi"><div class="label">Average deposit, Jun 2026</div><div class="num">$214</div><div class="cmp">Up $11 on Jun 2025</div></div>
+          <div class="kpi"><div class="label">Accounts that made a deposit, Jun 2026</div><div class="num">5,374</div><div class="cmp">Up 402 on Jun 2025</div></div>
+        </aside>
+      </div>
+      <p class="source">Source: Brookhollow Credit Union ledger, deposits posted by 30 June 2026. June includes the mid-year bonus payroll.</p>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: three-d chart (tilted pie)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion three-d-chart. A regional rail survey report with a five-slice
+ * pie of how riders reach the station. The defect only squashes the pie into
+ * a tilted ellipse (transform: scaleY) and shows an 18 px side wall under its
+ * front edge, as an office 3D pie preset draws it. The wall is in the page on
+ * both sides and hidden on the clean side. Nothing else changes (OQ-17).
+ */
+body { background: #faf8f4; }
+.top { display: flex; justify-content: space-between; align-items: baseline; padding: 26px 90px 16px; border-bottom: 1px solid #e6e1d8; }
+.top .org { font-family: var(--font-serif); font-size: 22px; font-weight: 700; }
+.top .doc { font-size: 14px; color: #6b6458; }
+main { display: flex; gap: 60px; padding: 30px 90px 0; }
+.left { width: 470px; }
+h1 { font-family: var(--font-serif); font-size: 30px; line-height: 1.2; margin-bottom: 8px; }
+.sub { font-size: 15px; color: #5f5a50; margin-bottom: 8px; }
+.right { width: 520px; padding-top: 70px; }
+.right h2 { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+ul { list-style: none; }
+li { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid #ebe6dc; font-size: 17px; }
+.sw { width: 16px; height: 16px; border-radius: 3px; }
+.nm { flex: 1; }
+.pc { font-weight: 700; }
+.right p { font-size: 15px; color: #3b3a36; margin-top: 18px; }
+.source { font-size: 13px; color: #6b6458; margin-top: 14px; }
+.pie path { stroke: #faf8f4; stroke-width: 2; }
+.pie { transform-origin: 230px 210px; }
+.wall { display: none; }
+
+[data-defect="on"] .pie { transform: scaleY(0.58); }
+[data-defect="on"] .wall { display: inline; }
+    </style>
+  </head>
+  <body>
+<div class="top"><div class="org">Kestrel Valley Rail Partnership</div><div class="doc">Station access survey 2026 · Section 2</div></div>
+    <main>
+      <div class="left">
+        <h1>How riders reach Kestrel Valley station</h1>
+        <p class="sub">Main way of getting to the station on the day of the survey, share of riders, May 2026.</p>
+        <svg width="460" height="420" viewBox="0 0 460 420">
+<g class="wall">
+<path d="M400,210 A170,98.6 0 0 1 346.4,281.9 L346.4,299.9 A170,98.6 0 0 0 400,228 Z" fill="#1d5945" />
+<path d="M346.4,281.9 A170,98.6 0 0 1 92.5,268 L92.5,286 A170,98.6 0 0 0 346.4,299.9 Z" fill="#9d7229" />
+<path d="M92.5,268 A170,98.6 0 0 1 60,210 L60,228 A170,98.6 0 0 0 92.5,286 Z" fill="#893b2b" />
+</g>
+<g class="pie">
+<path d="M230,210 L230,40 A170,170 0 0 1 346.4,333.9 Z" fill="#2a7f62" />
+<path d="M230,210 L346.4,333.9 A170,170 0 0 1 92.5,309.9 Z" fill="#e0a33a" />
+<path d="M230,210 L92.5,309.9 A170,170 0 0 1 76.2,137.6 Z" fill="#c4553d" />
+<path d="M230,210 L76.2,137.6 A170,170 0 0 1 157.6,56.2 Z" fill="#5a73b8" />
+<path d="M230,210 L157.6,56.2 A170,170 0 0 1 230,40 Z" fill="#8c8c8c" />
+</g>
+</svg>
+      </div>
+      <div class="right">
+        <h2>Share of riders by way of reaching the station</h2>
+        <ul><li><span class="sw" style="background:#2a7f62"></span><span class="nm">Walked</span><span class="pc">38%</span></li><li><span class="sw" style="background:#e0a33a"></span><span class="nm">Bus</span><span class="pc">27%</span></li><li><span class="sw" style="background:#c4553d"></span><span class="nm">Car, dropped off</span><span class="pc">17%</span></li><li><span class="sw" style="background:#5a73b8"></span><span class="nm">Bicycle</span><span class="pc">11%</span></li><li><span class="sw" style="background:#8c8c8c"></span><span class="nm">Car, parked</span><span class="pc">7%</span></li></ul>
+        <p>Walking is the most common way to reach the station. The new bus link from the east estate, opened in January, now brings more than a quarter of riders.</p>
+        <p class="source">Source: Kestrel Valley Rail Partnership platform survey, 6 to 10 May 2026, 1,214 riders.</p>
+      </div>
+    </main>
+  </body>
+</html>

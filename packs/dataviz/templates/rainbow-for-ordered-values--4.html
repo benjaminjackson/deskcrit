@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: rainbow for ordered values, score table</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion rainbow-for-ordered-values. A feedback report with a table of module scores, each cell shaded by
+ * its score. The clean side uses six light steps of one purple that grows darker as the score rises, so the
+ * dark text reads on every cell. The defect switch only changes the background colour of each step class
+ * (.s1 to .s6), in the cells and in the legend, to light tints of blue, cyan, green, yellow, orange, and red.
+ * The text colour stays the same. Nothing else changes (OQ-17).
+ */
+.top { padding: 30px 64px 0; display: flex; justify-content: space-between; align-items: baseline; }
+.school { font-family: var(--font-serif); font-size: 19px; font-weight: 700; }
+.term { font-size: 14px; color: var(--color-muted); }
+main { padding: 22px 64px 0; }
+h1 { font-family: var(--font-serif); font-size: 32px; font-weight: 700; line-height: 1.2; }
+.sub { color: var(--color-muted); font-size: 16px; margin: 6px 0 22px; }
+table { border-collapse: separate; border-spacing: 3px; font-size: 16px; }
+thead th { font-size: 13px; font-weight: 700; color: var(--color-muted); text-align: center; padding: 0 0 6px; }
+thead th:first-child { text-align: left; }
+tbody th { text-align: left; font-weight: 400; padding-right: 24px; width: 260px; }
+td { width: 118px; height: 42px; text-align: center; color: #1f2328; font-variant-numeric: tabular-nums; border-radius: 3px; }
+.legend { display: flex; gap: 18px; font-size: 13px; margin-top: 18px; color: #1f2328; align-items: center; }
+.legend .title { font-weight: 700; }
+.key { display: flex; align-items: center; gap: 6px; }
+.swatch { display: inline-block; width: 22px; height: 14px; border-radius: 2px; }
+.source { margin-top: 14px; font-size: 13px; color: var(--color-muted); }
+.s1 { background-color: #f4f1fa; }
+.s2 { background-color: #e4ddf2; }
+.s3 { background-color: #d1c6ea; }
+.s4 { background-color: #bcaadf; }
+.s5 { background-color: #a690d2; }
+.s6 { background-color: #927ac6; }
+
+[data-defect="on"] .s1 { background-color: #9bbcef; }
+[data-defect="on"] .s2 { background-color: #92d6e3; }
+[data-defect="on"] .s3 { background-color: #a5da9c; }
+[data-defect="on"] .s4 { background-color: #f6e07e; }
+[data-defect="on"] .s5 { background-color: #f6b571; }
+[data-defect="on"] .s6 { background-color: #ef8f86; }
+    </style>
+  </head>
+  <body>
+<div class="top"><span class="school">Ashgrove Institute of Art</span><span class="term">Autumn term · Student feedback</span></div>
+    <main>
+      <h1>Module feedback scores</h1>
+      <p class="sub">Average student rating from 1 (poor) to 5 (excellent), first-year modules</p>
+      <table>
+        <thead><tr><th>Module</th><th>Clarity</th><th>Pace</th><th>Materials</th><th>Support</th><th>Assessment</th><th>Overall</th></tr></thead>
+        <tbody>
+<tr><th>Foundations of drawing</th><td class="s4">3.9</td><td class="s3">3.5</td><td class="s6">4.6</td><td class="s5">4.4</td><td class="s5">4.3</td><td class="s5">4.3</td></tr>
+<tr><th>Material studies</th><td class="s3">3.7</td><td class="s3">3.6</td><td class="s2">3.4</td><td class="s2">3.1</td><td class="s4">4.1</td><td class="s4">4.0</td></tr>
+<tr><th>Colour and light</th><td class="s3">3.7</td><td class="s4">3.9</td><td class="s5">4.4</td><td class="s5">4.3</td><td class="s5">4.3</td><td class="s5">4.3</td></tr>
+<tr><th>Typography I</th><td class="s4">4.0</td><td class="s1">2.8</td><td class="s2">3.4</td><td class="s4">4.1</td><td class="s3">3.5</td><td class="s4">4.1</td></tr>
+<tr><th>Printmaking</th><td class="s3">3.8</td><td class="s2">3.2</td><td class="s2">3.4</td><td class="s3">3.6</td><td class="s3">3.5</td><td class="s3">3.6</td></tr>
+<tr><th>Digital tools</th><td class="s3">3.5</td><td class="s1">2.7</td><td class="s2">3.2</td><td class="s2">3.0</td><td class="s1">2.6</td><td class="s2">3.2</td></tr>
+<tr><th>Studio practice</th><td class="s3">3.7</td><td class="s3">3.6</td><td class="s4">4.0</td><td class="s3">3.5</td><td class="s3">3.5</td><td class="s3">3.8</td></tr>
+<tr><th>History of design</th><td class="s4">4.0</td><td class="s2">3.2</td><td class="s4">3.9</td><td class="s4">4.1</td><td class="s3">3.6</td><td class="s2">3.3</td></tr>
+<tr><th>Portfolio review</th><td class="s4">4.0</td><td class="s3">3.7</td><td class="s4">3.9</td><td class="s6">4.7</td><td class="s4">4.1</td><td class="s3">3.8</td></tr>
+
+        </tbody>
+      </table>
+      <div class="legend"><span class="title">Average rating</span><span class="key"><span class="swatch s1"></span>below 3.0</span><span class="key"><span class="swatch s2"></span>3.0–3.4</span><span class="key"><span class="swatch s3"></span>3.5–3.8</span><span class="key"><span class="swatch s4"></span>3.9–4.1</span><span class="key"><span class="swatch s5"></span>4.2–4.4</span><span class="key"><span class="swatch s6"></span>4.5 and up</span></div>
+      <p class="source">Source: end-of-term feedback forms, 412 responses. Modules with fewer than 20 responses are not shown.</p>
+    </main>
+  </body>
+</html>

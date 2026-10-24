@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: website traffic sources</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion pie-too-many-slices. A web analytics dashboard with a donut of visits by traffic
+ * source, a legend on the left, and a total in the hole.
+ * Both sides hold every wedge, label, and legend row; the wedge paths are
+ * fixed. The defect switch only changes display: off shows 4 large
+ * wedges and one grey Other wedge, on hides Other and shows the
+ * 9 thin wedges that fill exactly its angle (OQ-17).
+ */
+
+body { background: #f5f7fa; }
+.bar { display: flex; align-items: center; gap: 40px; height: 60px; padding: 0 40px; background: #ffffff; border-bottom: 1px solid #e3e7ec; font-size: 15px; }
+.logo { font-weight: 700; font-size: 19px; color: #3b6fd4; }
+nav { display: flex; gap: 28px; color: #5d6773; flex: 1; }
+nav .on { color: #1f2328; font-weight: 700; }
+.range { color: #5d6773; font-size: 14px; }
+main { padding: 26px 40px 0; }
+h1 { font-size: 26px; font-weight: 700; }
+.sub { color: #5d6773; font-size: 15px; margin-top: 2px; }
+.panel { display: flex; gap: 80px; align-items: center; margin-top: 18px; padding: 24px 48px; background: #ffffff; border-radius: 10px; width: 1200px; height: 556px; }
+.legend { width: 440px; font-size: 15px; }
+.legend { border-collapse: collapse; }
+.legend td { padding: 5px 0; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+.legend td.sw { width: 26px; }
+.swatch { display: inline-block; vertical-align: middle; width: 12px; height: 12px; border-radius: 50%; }
+.name { color: #2c333b; }
+.pct { text-align: right; color: #1f2328; font-weight: 700; }
+.wedge { stroke: #ffffff; stroke-width: 2; }
+.in-label { font-size: 16px; font-weight: 700; fill: #ffffff; }
+.in-label.dark { fill: #2c333b; }
+.out-label { font-size: 12px; fill: #4a525c; }
+.tick { stroke: #a6aeb8; stroke-width: 1; }
+.hole-num { font-size: 30px; font-weight: 700; fill: #1f2328; }
+.hole-cap { font-size: 13px; fill: #5d6773; }
+.source { font-size: 13px; color: #6b7480; margin-top: 12px; }
+
+/* The defect switch: off shows the grey Other wedge, its label and legend row;
+   on hides them and shows the slivers that make up Other instead. */
+.legend tr.sliver { display: none; }
+svg g.sliver { display: none; }
+[data-defect="on"] svg g.other { display: none; }
+[data-defect="on"] .legend tr.other { display: none; }
+[data-defect="on"] svg g.sliver { display: inline; }
+[data-defect="on"] .legend tr.sliver { display: table-row; }
+    </style>
+  </head>
+  <body>
+    <header class="bar"><span class="logo">Tallyfox</span><nav><span class="on">Acquisition</span><span>Behaviour</span><span>Goals</span><span>Settings</span></nav><span class="range">1 to 30 September 2026</span></header>
+    <main>
+      <h1>Traffic sources</h1>
+      <p class="sub">Share of sessions on lanternbooks.example by first source, September 2026</p>
+      <section class="panel">
+        <table class="legend">
+          <tr><td class="sw"><span class="swatch" style="background:#3b6fd4"></span></td><td class="name">Organic search</td><td class="pct">34%</td></tr>
+            <tr><td class="sw"><span class="swatch" style="background:#18a39a"></span></td><td class="name">Direct</td><td class="pct">22%</td></tr>
+            <tr><td class="sw"><span class="swatch" style="background:#f2a33a"></span></td><td class="name">Email</td><td class="pct">14%</td></tr>
+            <tr><td class="sw"><span class="swatch" style="background:#7a56c7"></span></td><td class="name">Paid search</td><td class="pct">11%</td></tr>
+            <tr class="other"><td class="sw"><span class="swatch" style="background:#b9bec5"></span></td><td class="name">Other</td><td class="pct">19%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#e05d6f"></span></td><td class="name">Partner blogs</td><td class="pct">3%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#66b84a"></span></td><td class="name">Newsletter swaps</td><td class="pct">3%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#2bb3d9"></span></td><td class="name">Forum links</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#c97d2e"></span></td><td class="name">Video channel</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#d36cc2"></span></td><td class="name">Podcast show notes</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#8c9c2a"></span></td><td class="name">Affiliates</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#5a63c9"></span></td><td class="name">App referrals</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#a3523f"></span></td><td class="name">QR codes</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#46a68a"></span></td><td class="name">Press mentions</td><td class="pct">1%</td></tr>
+        </table>
+        <svg width="420" height="420" viewBox="0 0 420 420" aria-label="Donut chart of sessions by traffic source">
+          <path class="wedge" fill="#3b6fd4" d="M210 20 A190 190 0 0 1 370.42 311.81 L304.56 270.01 A112 112 0 0 0 210 98 Z"/>
+          <text class="in-label" x="342.32" y="142.26" text-anchor="middle">34%</text>
+          <path class="wedge" fill="#18a39a" d="M370.42 311.81 A190 190 0 0 1 140.06 386.66 L168.77 314.13 A112 112 0 0 0 304.56 270.01 Z"/>
+          <text class="in-label" x="256.66" y="358.61" text-anchor="middle">22%</text>
+          <path class="wedge" fill="#f2a33a" d="M140.06 386.66 A190 190 0 0 1 29.3 268.71 L103.48 244.61 A112 112 0 0 0 168.77 314.13 Z"/>
+          <text class="in-label" x="99.93" y="318.37" text-anchor="middle">14%</text>
+          <path class="wedge" fill="#7a56c7" d="M29.3 268.71 A190 190 0 0 1 33.34 140.06 L105.87 168.77 A112 112 0 0 0 103.48 244.61 Z"/>
+          <text class="in-label" x="59.07" y="210.26" text-anchor="middle">11%</text>
+          <g class="other"><path class="wedge" fill="#b9bec5" d="M33.34 140.06 A190 190 0 0 1 210 20 L210 98 A112 112 0 0 0 105.87 168.77 Z"/><text class="in-label dark" x="125.13" y="90.11" text-anchor="middle">19%</text></g>
+          <g class="sliver"><path class="wedge" fill="#e05d6f" d="M33.34 140.06 A190 190 0 0 1 49.58 108.19 L115.44 149.99 A112 112 0 0 0 105.87 168.77 Z"/><line class="tick" x1="38.93" y1="122.83" x2="32.69" y2="119.66"/><text class="out-label" x="26.45" y="120.48" text-anchor="end">3%</text><path class="wedge" fill="#66b84a" d="M49.58 108.19 A190 190 0 0 1 71.5 79.94 L128.36 133.33 A112 112 0 0 0 115.44 149.99 Z"/><line class="tick" x1="58.29" y1="92.32" x2="52.76" y2="88.03"/><text class="out-label" x="47.23" y="87.74" text-anchor="end">3%</text><path class="wedge" fill="#2bb3d9" d="M71.5 79.94 A190 190 0 0 1 88.89 63.6 L138.61 123.7 A112 112 0 0 0 128.36 133.33 Z"/><line class="tick" x1="78.57" y1="70.04" x2="73.78" y2="64.94"/><text class="out-label" x="68.98" y="63.83" text-anchor="end">2%</text><path class="wedge" fill="#c97d2e" d="M88.89 63.6 A190 190 0 0 1 108.19 49.58 L149.99 115.44 A112 112 0 0 0 138.61 123.7 Z"/><line class="tick" x1="97.15" y1="54.67" x2="93.03" y2="49.01"/><text class="out-label" x="88.92" y="47.34" text-anchor="end">2%</text><path class="wedge" fill="#d36cc2" d="M108.19 49.58 A190 190 0 0 1 129.1 38.08 L162.31 108.66 A112 112 0 0 0 149.99 115.44 Z"/><line class="tick" x1="117.5" y1="41.75" x2="114.13" y2="35.61"/><text class="out-label" x="110.76" y="33.48" text-anchor="end">2%</text><path class="wedge" fill="#8c9c2a" d="M129.1 38.08 A190 190 0 0 1 151.29 29.3 L175.39 103.48 A112 112 0 0 0 162.31 108.66 Z"/><line class="tick" x1="139.32" y1="31.48" x2="136.74" y2="24.97"/><text class="out-label" x="134.17" y="22.47" text-anchor="end">2%</text><path class="wedge" fill="#5a63c9" d="M151.29 29.3 A190 190 0 0 1 174.4 23.37 L189.01 99.98 A112 112 0 0 0 175.39 103.48 Z"/><line class="tick" x1="162.25" y1="24.03" x2="160.51" y2="17.25"/><text class="out-label" x="158.77" y="14.47" text-anchor="end">2%</text><path class="wedge" fill="#a3523f" d="M174.4 23.37 A190 190 0 0 1 198.07 20.37 L202.97 98.22 A112 112 0 0 0 189.01 99.98 Z"/><line class="tick" x1="185.94" y1="19.51" x2="185.06" y2="12.57"/><text class="out-label" x="184.18" y="9.62" text-anchor="end">2%</text><path class="wedge" fill="#46a68a" d="M198.07 20.37 A190 190 0 0 1 210 20 L210 98 A112 112 0 0 0 202.97 98.22 Z"/><line class="tick" x1="203.97" y1="18.09" x2="203.75" y2="11.1"/><text class="out-label" x="203.53" y="8.1" text-anchor="end">1%</text></g>
+          <text class="hole-num" x="210" y="212" text-anchor="middle">184,300</text>
+          <text class="hole-cap" x="210" y="238" text-anchor="middle">sessions in September</text>
+        </svg>
+      </section>
+      <p class="source">Source: Tallyfox session log, first-touch attribution. Shares rounded to whole percent.</p>
+    </main>
+  </body>
+</html>

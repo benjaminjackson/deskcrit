@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: survey answer shares</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion pie-too-many-slices. A research brief with a pie of answers to one survey question,
+ * a text column on the left, and the legend under the pie title.
+ * Both sides hold every wedge, label, and legend row; the wedge paths are
+ * fixed. The defect switch only changes display: off shows 4 large
+ * wedges and one grey Other wedge, on hides Other and shows the
+ * 8 thin wedges that fill exactly its angle (OQ-17).
+ */
+
+body { background: #ffffff; }
+.mast { display: flex; justify-content: space-between; padding: 20px 56px; font-size: 14px; color: #5c6670; border-bottom: 1px solid #e8ebee; }
+.org { font-weight: 700; color: #1d6a96; }
+main { display: flex; gap: 48px; padding: 28px 56px 0; }
+.text { width: 380px; font-family: var(--font-serif); font-size: 17px; line-height: 1.55; color: #2a2f35; }
+.text p { margin-top: 12px; }
+.label { font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: #1d6a96; }
+h1 { font-family: var(--font-serif); font-size: 30px; line-height: 1.2; margin-top: 6px; }
+.note { font-family: var(--font-sans); font-size: 13px; color: #6a737c; }
+.chart { flex: 1; }
+figcaption { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+.row { display: flex; gap: 20px; align-items: flex-start; height: 560px; }
+.legend { font-size: 14px; width: 220px; padding-top: 10px; }
+.legend { border-collapse: collapse; }
+.legend td { padding: 4px 0; vertical-align: middle; }
+.legend td.sw { width: 24px; }
+.swatch { display: inline-block; vertical-align: middle; width: 12px; height: 12px; }
+.name { color: #2a2f35; }
+.pct { text-align: right; font-weight: 700; }
+.wedge { stroke: #ffffff; stroke-width: 1.5; }
+.in-label { font-size: 17px; font-weight: 700; fill: #ffffff; }
+.in-label.dark { fill: #2a2f35; }
+.out-label { font-size: 12px; fill: #46505a; }
+.tick { stroke: #a3acb5; stroke-width: 1; }
+.source { font-size: 13px; color: #6a737c; }
+
+/* The defect switch: off shows the grey Other wedge, its label and legend row;
+   on hides them and shows the slivers that make up Other instead. */
+.legend tr.sliver { display: none; }
+svg g.sliver { display: none; }
+[data-defect="on"] svg g.other { display: none; }
+[data-defect="on"] .legend tr.other { display: none; }
+[data-defect="on"] svg g.sliver { display: inline; }
+[data-defect="on"] .legend tr.sliver { display: table-row; }
+    </style>
+  </head>
+  <body>
+    <header class="mast"><span class="org">Civic Transit Lab</span><span class="crumb">Briefs / 2026 / No. 14</span></header>
+    <main>
+      <article class="text">
+        <p class="label">Research brief</p>
+        <h1>How residents of Corvan Bay get to work</h1>
+        <p>We asked 2,140 working residents of Corvan Bay one question in the spring 2026 household survey: <em>How do you usually travel to work?</em> Each person gave one answer, the mode they use on most days.</p>
+        <p>Driving alone is still the most common answer, but buses and bicycles together now account for more trips than it does. Walking is strongest in the old harbour wards, where most jobs sit within two kilometres of home.</p>
+        <p class="note">Method: online and phone panel, 3 to 28 April 2026, weighted to ward population. Margin of error &plusmn;2 points.</p>
+      </article>
+      <figure class="chart">
+        <figcaption>Usual way to travel to work, share of respondents</figcaption>
+        <div class="row">
+          <svg width="420" height="420" viewBox="0 0 420 420" aria-label="Pie chart of usual commute mode">
+            <path class="wedge" fill="#1d6a96" d="M210 210 L210 30 A180 180 0 0 1 377.36 276.26 Z"/>
+          <text class="in-label" x="305.28" y="150.25" text-anchor="middle">31%</text>
+          <path class="wedge" fill="#e07a3f" d="M210 210 L377.36 276.26 A180 180 0 0 1 154.38 381.19 Z"/>
+          <text class="in-label" x="259.05" y="319.24" text-anchor="middle">24%</text>
+          <path class="wedge" fill="#3e9b5f" d="M210 210 L154.38 381.19 A180 180 0 0 1 38.81 265.62 Z"/>
+          <text class="in-label" x="128.54" y="296.46" text-anchor="middle">15%</text>
+          <path class="wedge" fill="#9b5aa6" d="M210 210 L38.81 265.62 A180 180 0 0 1 47.13 133.36 Z"/>
+          <text class="in-label" x="95.03" y="207.77" text-anchor="middle">12%</text>
+          <g class="other"><path class="wedge" fill="#b9bec5" d="M210 210 L47.13 133.36 A180 180 0 0 1 210 30 Z"/><text class="in-label dark" x="148.27" y="117.73" text-anchor="middle">18%</text></g>
+          <g class="sliver"><path class="wedge" fill="#d4a72c" d="M210 210 L47.13 133.36 A180 180 0 0 1 64.38 104.2 Z"/><line class="tick" x1="53.34" y1="117.35" x2="47.32" y2="113.79"/><text class="out-label" x="41.29" y="114.23" text-anchor="end">3%</text><path class="wedge" fill="#c0475a" d="M210 210 L64.38 104.2 A180 180 0 0 1 86.78 78.79 Z"/><line class="tick" x1="73.48" y1="89.64" x2="68.23" y2="85.01"/><text class="out-label" x="62.98" y="84.38" text-anchor="end">3%</text><path class="wedge" fill="#4fb3c8" d="M210 210 L86.78 78.79 A180 180 0 0 1 104.2 64.38 Z"/><line class="tick" x1="93.99" y1="69.77" x2="89.53" y2="64.37"/><text class="out-label" x="85.06" y="62.98" text-anchor="end">2%</text><path class="wedge" fill="#8d6e3f" d="M210 210 L104.2 64.38 A180 180 0 0 1 123.28 52.26 Z"/><line class="tick" x1="112.48" y1="56.33" x2="108.73" y2="50.42"/><text class="out-label" x="104.98" y="48.51" text-anchor="end">2%</text><path class="wedge" fill="#e58fb8" d="M210 210 L123.28 52.26 A180 180 0 0 1 143.74 42.64 Z"/><line class="tick" x1="132.51" y1="45.32" x2="129.53" y2="38.99"/><text class="out-label" x="126.55" y="36.65" text-anchor="end">2%</text><path class="wedge" fill="#5b6fc4" d="M210 210 L143.74 42.64 A180 180 0 0 1 165.24 35.66 Z"/><line class="tick" x1="153.76" y1="36.91" x2="151.6" y2="30.25"/><text class="out-label" x="149.43" y="27.59" text-anchor="end">2%</text><path class="wedge" fill="#9aa83a" d="M210 210 L165.24 35.66 A180 180 0 0 1 187.44 31.42 Z"/><line class="tick" x1="175.9" y1="31.22" x2="174.58" y2="24.35"/><text class="out-label" x="173.27" y="21.47" text-anchor="end">2%</text><path class="wedge" fill="#e2603a" d="M210 210 L187.44 31.42 A180 180 0 0 1 210 30 Z"/><line class="tick" x1="198.57" y1="28.36" x2="198.13" y2="21.37"/><text class="out-label" x="197.69" y="18.39" text-anchor="end">2%</text></g>
+          </svg>
+          <table class="legend">
+            <tr><td class="sw"><span class="swatch" style="background:#1d6a96"></span></td><td class="name">Car, driving alone</td><td class="pct">31%</td></tr>
+            <tr><td class="sw"><span class="swatch" style="background:#e07a3f"></span></td><td class="name">Bus</td><td class="pct">24%</td></tr>
+            <tr><td class="sw"><span class="swatch" style="background:#3e9b5f"></span></td><td class="name">Bicycle</td><td class="pct">15%</td></tr>
+            <tr><td class="sw"><span class="swatch" style="background:#9b5aa6"></span></td><td class="name">Walking</td><td class="pct">12%</td></tr>
+            <tr class="other"><td class="sw"><span class="swatch" style="background:#b9bec5"></span></td><td class="name">Other</td><td class="pct">18%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#d4a72c"></span></td><td class="name">Tram</td><td class="pct">3%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#c0475a"></span></td><td class="name">Train</td><td class="pct">3%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#4fb3c8"></span></td><td class="name">Car share</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#8d6e3f"></span></td><td class="name">E-scooter</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#e58fb8"></span></td><td class="name">Ferry</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#5b6fc4"></span></td><td class="name">Taxi</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#9aa83a"></span></td><td class="name">Motorbike</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#e2603a"></span></td><td class="name">Carpool</td><td class="pct">2%</td></tr>
+          </table>
+        </div>
+        <p class="source">Source: Corvan Bay household survey 2026, n = 2,140. Shares rounded to whole percent.</p>
+      </figure>
+    </main>
+  </body>
+</html>

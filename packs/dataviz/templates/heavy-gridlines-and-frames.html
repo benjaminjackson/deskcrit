@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: heavy gridlines and frames</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion heavy-gridlines-and-frames. A SaaS revenue dashboard with a
+ * column chart of monthly revenue. The defect switch turns the pale gridlines
+ * and baseline dark and thick, draws a dark y-axis line, and shows a dark
+ * plot frame that is hidden on the clean side. Nothing else changes (OQ-17).
+ */
+body { display: flex; background: #ffffff; }
+.side { width: 220px; height: 800px; background: #f5f6f8; padding: 28px 22px; }
+.brand { font-weight: 700; font-size: 20px; color: #1b2a41; margin-bottom: 32px; }
+.nav a { display: block; font-size: 15px; color: #4c5663; padding: 8px 12px; border-radius: 6px; text-decoration: none; margin-bottom: 2px; }
+.nav a.on { background: #e4e9f1; color: #1b2a41; font-weight: 700; }
+main { flex: 1; padding: 30px 40px; }
+.top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 22px; }
+h1 { font-size: 26px; font-weight: 700; }
+.range { font-size: 14px; color: #59636e; background: #f5f6f8; padding: 6px 12px; border-radius: 6px; }
+.kpis { display: flex; gap: 18px; margin-bottom: 22px; }
+.kpi { flex: 1; background: #fafbfc; border-radius: 10px; padding: 16px 20px; }
+.kpi .label { font-size: 13px; color: #59636e; }
+.kpi .value { font-size: 28px; font-weight: 700; margin: 2px 0; }
+.kpi .delta { font-size: 13px; color: #2e7d4f; }
+.row { display: flex; gap: 22px; }
+.card { background: #ffffff; }
+.chart-card { width: 730px; }
+.card h2 { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.card .note { font-size: 13px; color: #59636e; margin-bottom: 10px; }
+.plans { flex: 1; padding-top: 4px; }
+.plans table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.plans td { padding: 9px 0; border-bottom: 1px solid #eef0f3; }
+.plans td.num { text-align: right; font-weight: 700; }
+.source { font-size: 12px; color: #6b7480; margin-top: 8px; }
+.bar { fill: #3566a8; }
+.tick, .month { font-size: 12px; fill: #59636e; }
+
+.grid { stroke: #e9ecef; stroke-width: 1; }
+.axis { stroke: #c4cad1; stroke-width: 1; }
+.axis-y { stroke: none; stroke-width: 1; }
+.frame { display: none; fill: none; stroke: #1e2125; stroke-width: 1.5; }
+
+[data-defect="on"] .grid { stroke: #34383d; stroke-width: 1.5; }
+[data-defect="on"] .axis { stroke: #111316; stroke-width: 2; }
+[data-defect="on"] .axis-y { stroke: #111316; stroke-width: 2; }
+[data-defect="on"] .frame { display: inline; }
+    </style>
+  </head>
+  <body>
+<aside class="side">
+      <div class="brand">Ledgerly</div>
+      <nav class="nav">
+        <a class="on">Overview</a><a>Revenue</a><a>Customers</a><a>Plans</a><a>Invoices</a><a>Settings</a>
+      </nav>
+    </aside>
+    <main>
+      <div class="top"><h1>Revenue overview</h1><span class="range">Jan to Dec 2025</span></div>
+      <div class="kpis">
+        <div class="kpi"><div class="label">Annual recurring revenue, Dec 2025</div><div class="value">$4.82M</div><div class="delta">+18% vs Dec 2024</div></div>
+        <div class="kpi"><div class="label">Net revenue retention, 2025</div><div class="value">112%</div><div class="delta">+3 pts vs 2024</div></div>
+        <div class="kpi"><div class="label">New customers, 2025</div><div class="value">1,246</div><div class="delta">+9% vs 2024</div></div>
+      </div>
+      <div class="row">
+        <section class="card chart-card">
+          <h2>Monthly revenue, 2025</h2>
+          <p class="note">Thousands of US dollars, recognised revenue</p>
+          <svg width="720" height="434" viewBox="0 0 720 434">
+<line class="grid" x1="56" x2="700" y1="323.2" y2="323.2" />
+<line class="grid" x1="56" x2="700" y1="246.39999999999998" y2="246.39999999999998" />
+<line class="grid" x1="56" x2="700" y1="169.60000000000002" y2="169.60000000000002" />
+<line class="grid" x1="56" x2="700" y1="92.79999999999995" y2="92.79999999999995" />
+<line class="grid" x1="56" x2="700" y1="16" y2="16" />
+<text class="tick" x="46" y="405" text-anchor="end">0</text>
+<text class="tick" x="46" y="328.2" text-anchor="end">100</text>
+<text class="tick" x="46" y="251.39999999999998" text-anchor="end">200</text>
+<text class="tick" x="46" y="174.60000000000002" text-anchor="end">300</text>
+<text class="tick" x="46" y="97.79999999999995" text-anchor="end">400</text>
+<text class="tick" x="46" y="21" text-anchor="end">500</text>
+<rect class="bar" x="67" y="160.4" width="31.7" height="239.6" />
+<text class="month" x="82.8" y="424" text-anchor="middle">Jan</text>
+<rect class="bar" x="120.7" y="148.1" width="31.7" height="251.9" />
+<text class="month" x="136.5" y="424" text-anchor="middle">Feb</text>
+<rect class="bar" x="174.3" y="138.1" width="31.7" height="261.9" />
+<text class="month" x="190.1" y="424" text-anchor="middle">Mar</text>
+<rect class="bar" x="228" y="142" width="31.7" height="258" />
+<text class="month" x="243.8" y="424" text-anchor="middle">Apr</text>
+<rect class="bar" x="281.7" y="127.4" width="31.7" height="272.6" />
+<text class="month" x="297.5" y="424" text-anchor="middle">May</text>
+<rect class="bar" x="335.3" y="114.3" width="31.7" height="285.7" />
+<text class="month" x="351.1" y="424" text-anchor="middle">Jun</text>
+<rect class="bar" x="389" y="117.4" width="31.7" height="282.6" />
+<text class="month" x="404.8" y="424" text-anchor="middle">Jul</text>
+<rect class="bar" x="442.7" y="101.2" width="31.7" height="298.8" />
+<text class="month" x="458.5" y="424" text-anchor="middle">Aug</text>
+<rect class="bar" x="496.3" y="92" width="31.7" height="308" />
+<text class="month" x="512.1" y="424" text-anchor="middle">Sep</text>
+<rect class="bar" x="550" y="83.6" width="31.7" height="316.4" />
+<text class="month" x="565.8" y="424" text-anchor="middle">Oct</text>
+<rect class="bar" x="603.7" y="71.3" width="31.7" height="328.7" />
+<text class="month" x="619.5" y="424" text-anchor="middle">Nov</text>
+<rect class="bar" x="657.3" y="56.7" width="31.7" height="343.3" />
+<text class="month" x="673.1" y="424" text-anchor="middle">Dec</text>
+<line class="axis-y" x1="56" x2="56" y1="16" y2="400" />
+<line class="axis" x1="56" x2="700" y1="400" y2="400" />
+<rect class="frame" x="56" y="16" width="644" height="384" />
+          </svg>
+          <p class="source">Source: Ledgerly billing ledger, closed invoices only.</p>
+        </section>
+        <section class="plans">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:8px">Revenue by plan, 2025</h2>
+          <table>
+            <tr><td>Starter</td><td class="num">$0.61M</td></tr>
+            <tr><td>Team</td><td class="num">$1.94M</td></tr>
+            <tr><td>Business</td><td class="num">$2.27M</td></tr>
+            <tr><td>Total</td><td class="num">$4.82M</td></tr>
+          </table>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

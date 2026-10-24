@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: three-d chart (ribbon line)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion three-d-chart. A water utility's district page with a line chart
+ * of water use by month. The defect only shows a ribbon of shaded faces
+ * behind the line, about 14 px deep, so the line reads as a 3D ribbon as an
+ * office 3D line preset draws it. The ribbon is in the page on both sides and
+ * hidden on the clean side. Nothing else changes (OQ-17).
+ */
+body { background: #f6f9fa; }
+header { background: #ffffff; padding: 18px 60px; display: flex; gap: 36px; align-items: center; border-bottom: 1px solid #e3eaed; }
+.brand { font-size: 19px; font-weight: 700; color: #0e5566; }
+nav { display: flex; gap: 24px; font-size: 15px; color: #59636e; }
+nav b { color: #0e5566; }
+main { padding: 26px 60px 0; }
+.crumbs { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+h1 { font-size: 28px; font-weight: 700; margin-bottom: 16px; }
+.panel { background: #ffffff; border-radius: 10px; padding: 20px 24px 12px; width: 1100px; }
+.panel h2 { font-size: 17px; font-weight: 700; }
+.panel .sub { font-size: 14px; color: #59636e; margin-bottom: 6px; }
+.source { font-size: 13px; color: #6b7280; margin-top: 4px; }
+.grid { stroke: #e8edf0; stroke-width: 1; }
+.baseline { stroke: #9aa3ad; stroke-width: 1; }
+.tick, .cat { font-size: 13px; fill: #6b7280; }
+.line { fill: none; stroke: #0e7490; stroke-width: 3; stroke-linejoin: round; }
+.ribbon { display: none; }
+
+[data-defect="on"] .ribbon { display: inline; }
+    </style>
+  </head>
+  <body>
+<header><div class="brand">Marlow Water</div><nav><span>Billing</span><span>Supply</span><b>Districts</b><span>Works and outages</span></nav></header>
+    <main>
+      <p class="crumbs">Districts / Marlow reservoir district</p>
+      <h1>Water use in the reservoir district, 2025</h1>
+      <div class="panel">
+        <h2>Water supplied each month</h2>
+        <p class="sub">Megalitres, January to December 2025. Use peaks in July, when garden watering is highest.</p>
+        <svg width="1040" height="410" viewBox="0 0 1040 410">
+<line class="baseline" x1="70" y1="380" x2="1000" y2="380" />
+<text class="tick" x="60" y="385" text-anchor="end">0</text>
+<line class="grid" x1="70" y1="295" x2="1000" y2="295" />
+<text class="tick" x="60" y="300" text-anchor="end">200</text>
+<line class="grid" x1="70" y1="210" x2="1000" y2="210" />
+<text class="tick" x="60" y="215" text-anchor="end">400</text>
+<line class="grid" x1="70" y1="125" x2="1000" y2="125" />
+<text class="tick" x="60" y="130" text-anchor="end">600</text>
+<line class="grid" x1="70" y1="40" x2="1000" y2="40" />
+<text class="tick" x="60" y="45" text-anchor="end">800</text>
+<text class="cat" x="85" y="406" text-anchor="middle">Jan</text>
+<text class="cat" x="166.8" y="406" text-anchor="middle">Feb</text>
+<text class="cat" x="248.6" y="406" text-anchor="middle">Mar</text>
+<text class="cat" x="330.5" y="406" text-anchor="middle">Apr</text>
+<text class="cat" x="412.3" y="406" text-anchor="middle">May</text>
+<text class="cat" x="494.1" y="406" text-anchor="middle">Jun</text>
+<text class="cat" x="575.9" y="406" text-anchor="middle">Jul</text>
+<text class="cat" x="657.7" y="406" text-anchor="middle">Aug</text>
+<text class="cat" x="739.5" y="406" text-anchor="middle">Sep</text>
+<text class="cat" x="821.4" y="406" text-anchor="middle">Oct</text>
+<text class="cat" x="903.2" y="406" text-anchor="middle">Nov</text>
+<text class="cat" x="985" y="406" text-anchor="middle">Dec</text>
+<g class="ribbon">
+<polygon points="85,204.9 166.8,210.9 180.8,199.9 99,193.9" fill="#3e90a6" stroke="#0c637a" stroke-width="1" />
+<polygon points="166.8,210.9 248.6,201.5 262.6,190.5 180.8,199.9" fill="#7ab3c2" stroke="#0c637a" stroke-width="1" />
+<polygon points="248.6,201.5 330.5,186.6 344.5,175.6 262.6,190.5" fill="#7ab3c2" stroke="#0c637a" stroke-width="1" />
+<polygon points="330.5,186.6 412.3,163.3 426.3,152.3 344.5,175.6" fill="#7ab3c2" stroke="#0c637a" stroke-width="1" />
+<polygon points="412.3,163.3 494.1,130.1 508.1,119.1 426.3,152.3" fill="#7ab3c2" stroke="#0c637a" stroke-width="1" />
+<polygon points="494.1,130.1 575.9,107.1 589.9,96.1 508.1,119.1" fill="#7ab3c2" stroke="#0c637a" stroke-width="1" />
+<polygon points="575.9,107.1 657.7,112.3 671.7,101.3 589.9,96.1" fill="#3e90a6" stroke="#0c637a" stroke-width="1" />
+<polygon points="657.7,112.3 739.5,147.1 753.5,136.1 671.7,101.3" fill="#3e90a6" stroke="#0c637a" stroke-width="1" />
+<polygon points="739.5,147.1 821.4,180.3 835.4,169.3 753.5,136.1" fill="#3e90a6" stroke="#0c637a" stroke-width="1" />
+<polygon points="821.4,180.3 903.2,199.4 917.2,188.4 835.4,169.3" fill="#3e90a6" stroke="#0c637a" stroke-width="1" />
+<polygon points="903.2,199.4 985,206.2 999,195.2 917.2,188.4" fill="#3e90a6" stroke="#0c637a" stroke-width="1" />
+</g>
+<polyline class="line" points="85,204.9 166.8,210.9 248.6,201.5 330.5,186.6 412.3,163.3 494.1,130.1 575.9,107.1 657.7,112.3 739.5,147.1 821.4,180.3 903.2,199.4 985,206.2" />
+</svg>
+        <p class="source">Source: Marlow Water district meters, 2025. Includes homes and businesses.</p>
+      </div>
+    </main>
+  </body>
+</html>

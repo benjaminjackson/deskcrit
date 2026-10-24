@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: heavy gridlines and frames 2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion heavy-gridlines-and-frames. A page of a hydrology report with a
+ * two-line chart of monthly rainfall. The defect switch turns the pale
+ * gridlines and baseline dark and thick, draws a dark y-axis line, and shows a
+ * dark plot frame that is hidden on the clean side. Nothing else changes.
+ */
+body { font-family: var(--font-serif); background: #fdfcf9; }
+.mast { display: flex; justify-content: space-between; padding: 22px 64px 14px; font-family: var(--font-sans); font-size: 13px; color: #6a6459; border-bottom: 1px solid #e8e3d9; }
+.wrap { display: flex; gap: 48px; padding: 28px 64px 0; }
+.text { width: 330px; }
+.kicker { font-family: var(--font-sans); font-size: 13px; font-weight: 700; color: #8a5a1f; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+h1 { font-size: 34px; line-height: 1.2; font-weight: 700; margin-bottom: 18px; color: #22201c; }
+.text p { font-size: 17px; line-height: 1.6; color: #3a3630; margin-bottom: 14px; }
+figure { flex: 1; }
+figcaption { font-size: 17px; font-weight: 700; color: #22201c; margin-bottom: 2px; }
+.unit { font-family: var(--font-sans); font-size: 13px; color: #6a6459; margin-bottom: 12px; }
+.source { font-family: var(--font-sans); font-size: 12px; color: #6a6459; margin-top: 6px; }
+svg text { font-family: var(--font-sans); }
+.tick { font-size: 12px; fill: #6a6459; }
+.line-upland { fill: none; stroke: #1f5f8b; stroke-width: 2.5; }
+.line-lowland { fill: none; stroke: #c2701e; stroke-width: 2.5; }
+.label-upland { font-size: 13px; font-weight: 700; fill: #1f5f8b; }
+.label-lowland { font-size: 13px; font-weight: 700; fill: #c2701e; }
+
+.grid { stroke: #e9ecef; stroke-width: 1; }
+.axis { stroke: #c4cad1; stroke-width: 1; }
+.axis-y { stroke: none; stroke-width: 1; }
+.frame { display: none; fill: none; stroke: #1e2125; stroke-width: 1.5; }
+
+[data-defect="on"] .grid { stroke: #34383d; stroke-width: 1.5; }
+[data-defect="on"] .axis { stroke: #111316; stroke-width: 2; }
+[data-defect="on"] .axis-y { stroke: #111316; stroke-width: 2; }
+[data-defect="on"] .frame { display: inline; }
+    </style>
+  </head>
+  <body>
+<div class="mast"><span>Varnmouth Basin Authority</span><span>Annual hydrology report 2025 &middot; page 14</span></div>
+    <div class="wrap">
+      <div class="text">
+        <div class="kicker">Section 3</div>
+        <h1>Rainfall at the upland and lowland gauges</h1>
+        <p>The upland gauge at Hollin Ridge recorded 1,212 mm over the year, about 60 percent more than the lowland gauge at Marsh End.</p>
+        <p>Both gauges followed the same seasonal pattern. Totals fell from January to a low in July and rose again through the autumn.</p>
+        <p>December was the wettest month at both sites, which matches the long-run record for the basin.</p>
+      </div>
+      <figure>
+        <figcaption>Figure 3.1. Monthly rainfall at two gauges, 2025</figcaption>
+        <div class="unit">Millimetres per month</div>
+        <svg width="740" height="420" viewBox="0 0 740 420">
+<line class="grid" x1="50" x2="640" y1="322.3" y2="322.3" />
+<line class="grid" x1="50" x2="640" y1="260.7" y2="260.7" />
+<line class="grid" x1="50" x2="640" y1="199" y2="199" />
+<line class="grid" x1="50" x2="640" y1="137.3" y2="137.3" />
+<line class="grid" x1="50" x2="640" y1="75.7" y2="75.7" />
+<line class="grid" x1="50" x2="640" y1="14" y2="14" />
+<text class="tick" x="40" y="389" text-anchor="end">0</text>
+<text class="tick" x="40" y="327.3" text-anchor="end">30</text>
+<text class="tick" x="40" y="265.7" text-anchor="end">60</text>
+<text class="tick" x="40" y="204" text-anchor="end">90</text>
+<text class="tick" x="40" y="142.3" text-anchor="end">120</text>
+<text class="tick" x="40" y="80.7" text-anchor="end">150</text>
+<text class="tick" x="40" y="19" text-anchor="end">180</text>
+<text class="tick" x="70" y="408" text-anchor="middle">J</text>
+<text class="tick" x="120" y="408" text-anchor="middle">F</text>
+<text class="tick" x="170" y="408" text-anchor="middle">M</text>
+<text class="tick" x="220" y="408" text-anchor="middle">A</text>
+<text class="tick" x="270" y="408" text-anchor="middle">M</text>
+<text class="tick" x="320" y="408" text-anchor="middle">J</text>
+<text class="tick" x="370" y="408" text-anchor="middle">J</text>
+<text class="tick" x="420" y="408" text-anchor="middle">A</text>
+<text class="tick" x="470" y="408" text-anchor="middle">S</text>
+<text class="tick" x="520" y="408" text-anchor="middle">O</text>
+<text class="tick" x="570" y="408" text-anchor="middle">N</text>
+<text class="tick" x="620" y="408" text-anchor="middle">D</text>
+<line class="axis-y" x1="50" x2="50" y1="14" y2="384" />
+<line class="axis" x1="50" x2="640" y1="384" y2="384" />
+<rect class="frame" x="50" y="14" width="590" height="370" />
+<path class="line-upland" d="M70 92.1 L120 141.4 L170 170.2 L220 207.2 L270 238.1 L320 264.8 L370 283.3 L420 256.6 L470 203.1 L520 135.3 L570 75.7 L620 48.9" />
+<path class="line-lowland" d="M70 203.1 L120 236 L170 248.3 L220 279.2 L270 293.6 L320 307.9 L370 322.3 L420 299.7 L470 266.8 L520 221.6 L570 190.8 L620 174.3" />
+<text class="label-upland" x="650" y="53.9">Hollin Ridge</text>
+<text class="label-lowland" x="650" y="179.3">Marsh End</text>
+        </svg>
+        <p class="source">Source: Basin gauge network, daily totals summed by calendar month.</p>
+      </figure>
+    </div>
+  </body>
+</html>

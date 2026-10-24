@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: app time by feature</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion pie-too-many-slices. A product analytics page with a donut of time spent in a mobile
+ * app by feature, a legend to its right, and a short summary column.
+ * Both sides hold every wedge, label, and legend row; the wedge paths are
+ * fixed. The defect switch only changes display: off shows 4 large
+ * wedges and one grey Other wedge, on hides Other and shows the
+ * 9 thin wedges that fill exactly its angle (OQ-17).
+ */
+
+body { background: #ffffff; }
+.top { display: flex; align-items: center; gap: 36px; height: 56px; padding: 0 48px; background: #23213a; color: #d9d7ea; font-size: 14px; }
+.brand { font-weight: 700; color: #ffffff; font-size: 17px; }
+.app { flex: 1; }
+main { display: flex; gap: 40px; padding: 26px 48px 0; }
+.chartcol { width: 860px; }
+h1 { font-size: 27px; font-weight: 700; }
+.sub { font-size: 15px; color: #5f6470; margin-top: 2px; }
+.row { display: flex; gap: 40px; align-items: center; margin-top: 12px; height: 520px; }
+.legend { font-size: 14px; width: 300px; }
+.legend { border-collapse: collapse; }
+.legend td { padding: 4px 0; vertical-align: middle; }
+.legend td.sw { width: 24px; }
+.swatch { display: inline-block; vertical-align: middle; width: 12px; height: 12px; border-radius: 50%; }
+.name { color: #2d3038; }
+.pct { text-align: right; font-weight: 700; }
+.wedge { stroke: #ffffff; stroke-width: 2; }
+.in-label { font-size: 16px; font-weight: 700; fill: #ffffff; }
+.in-label.dark { fill: #2d3038; }
+.out-label { font-size: 12px; fill: #4c505a; }
+.tick { stroke: #a9adb6; stroke-width: 1; }
+.hole-num { font-size: 30px; font-weight: 700; fill: #1f2328; }
+.hole-cap { font-size: 13px; fill: #5f6470; }
+.source { font-size: 13px; color: #6c717c; }
+.summary { width: 280px; padding-top: 120px; font-size: 15px; color: #3a3d45; }
+.summary h2 { font-size: 16px; font-weight: 700; }
+.summary p { margin-top: 10px; }
+
+/* The defect switch: off shows the grey Other wedge, its label and legend row;
+   on hides them and shows the slivers that make up Other instead. */
+.legend tr.sliver { display: none; }
+svg g.sliver { display: none; }
+[data-defect="on"] svg g.other { display: none; }
+[data-defect="on"] .legend tr.other { display: none; }
+[data-defect="on"] svg g.sliver { display: inline; }
+[data-defect="on"] .legend tr.sliver { display: table-row; }
+    </style>
+  </head>
+  <body>
+    <header class="top"><span class="brand">Orbitly Insights</span><span class="app">App: Nestnote for Android and iOS</span><span class="when">Week 41, 2026</span></header>
+    <main>
+      <section class="chartcol">
+        <h1>Where time in the app goes</h1>
+        <p class="sub">Share of foreground minutes by feature, all active installs, 6 to 12 October 2026</p>
+        <div class="row">
+          <svg width="460" height="448" viewBox="0 0 460 448" aria-label="Donut chart of time in app by feature">
+            <path class="wedge" fill="#5b4fcf" d="M240 24 A200 200 0 0 1 394.1 351.48 L332.46 300.49 A120 120 0 0 0 240 104 Z"/>
+          <text class="in-label" x="384.77" y="160.88" text-anchor="middle">36%</text>
+          <path class="wedge" fill="#14a3c7" d="M394.1 351.48 A200 200 0 0 1 122.44 385.8 L169.47 321.08 A120 120 0 0 0 332.46 300.49 Z"/>
+          <text class="in-label" x="260.05" y="387.74" text-anchor="middle">24%</text>
+          <path class="wedge" fill="#f0b429" d="M122.44 385.8 A200 200 0 0 1 41.58 249.07 L120.95 239.04 A120 120 0 0 0 169.47 321.08 Z"/>
+          <text class="in-label" x="102.28" y="310.45" text-anchor="middle">13%</text>
+          <path class="wedge" fill="#e5677a" d="M41.58 249.07 A200 200 0 0 1 59.03 138.84 L131.42 172.91 A120 120 0 0 0 120.95 239.04 Z"/>
+          <text class="in-label" x="81.97" y="203.97" text-anchor="middle">9%</text>
+          <g class="other"><path class="wedge" fill="#b9bec5" d="M59.03 138.84 A200 200 0 0 1 240 24 L240 104 A120 120 0 0 0 131.42 172.91 Z"/><text class="in-label dark" x="154.27" y="93.91" text-anchor="middle">18%</text></g>
+          <g class="sliver"><path class="wedge" fill="#3f9e5a" d="M59.03 138.84 A200 200 0 0 1 78.2 106.44 L142.92 153.47 A120 120 0 0 0 131.42 172.91 Z"/><line class="tick" x1="66.13" y1="121.17" x2="60.1" y2="117.61"/><text class="out-label" x="54.08" y="118.05" text-anchor="end">3%</text><path class="wedge" fill="#c46d2b" d="M78.2 106.44 A200 200 0 0 1 94.21 87.09 L152.52 141.85 A120 120 0 0 0 142.92 153.47 Z"/><line class="tick" x1="84.36" y1="95.24" x2="78.96" y2="90.78"/><text class="out-label" x="73.57" y="90.32" text-anchor="end">2%</text><path class="wedge" fill="#8fa83c" d="M94.21 87.09 A200 200 0 0 1 112.52 69.9 L163.51 131.54 A120 120 0 0 0 152.52 141.85 Z"/><line class="tick" x1="101.72" y1="76.75" x2="96.93" y2="71.65"/><text class="out-label" x="92.14" y="70.54" text-anchor="end">2%</text><path class="wedge" fill="#b45bb8" d="M112.52 69.9 A200 200 0 0 1 132.83 55.13 L175.7 122.68 A120 120 0 0 0 163.51 131.54 Z"/><line class="tick" x1="121.27" y1="60.58" x2="117.15" y2="54.92"/><text class="out-label" x="113.04" y="53.25" text-anchor="end">2%</text><path class="wedge" fill="#2f7fd6" d="M132.83 55.13 A200 200 0 0 1 154.84 43.03 L188.91 115.42 A120 120 0 0 0 175.7 122.68 Z"/><line class="tick" x1="142.69" y1="46.99" x2="139.31" y2="40.85"/><text class="out-label" x="135.94" y="38.72" text-anchor="end">2%</text><path class="wedge" fill="#d9a3c9" d="M154.84 43.03 A200 200 0 0 1 178.2 33.79 L202.92 109.87 A120 120 0 0 0 188.91 115.42 Z"/><line class="tick" x1="165.64" y1="36.19" x2="163.06" y2="29.68"/><text class="out-label" x="160.49" y="27.17" text-anchor="end">2%</text><path class="wedge" fill="#7a5230" d="M178.2 33.79 A200 200 0 0 1 202.52 27.54 L217.51 106.13 A120 120 0 0 0 202.92 109.87 Z"/><line class="tick" x1="189.76" y1="28.35" x2="188.02" y2="21.57"/><text class="out-label" x="186.28" y="18.79" text-anchor="end">2%</text><path class="wedge" fill="#46b8a6" d="M202.52 27.54 A200 200 0 0 1 227.44 24.39 L232.47 104.24 A120 120 0 0 0 217.51 106.13 Z"/><line class="tick" x1="214.68" y1="23.59" x2="213.81" y2="16.65"/><text class="out-label" x="212.93" y="13.7" text-anchor="end">2%</text><path class="wedge" fill="#e3793f" d="M227.44 24.39 A200 200 0 0 1 240 24 L240 104 A120 120 0 0 0 232.47 104.24 Z"/><line class="tick" x1="233.66" y1="22.1" x2="233.44" y2="15.1"/><text class="out-label" x="233.22" y="12.11" text-anchor="end">1%</text></g>
+            <text class="hole-num" x="240" y="226" text-anchor="middle">11.6 min</text>
+            <text class="hole-cap" x="240" y="250" text-anchor="middle">per user per day</text>
+          </svg>
+          <table class="legend">
+            <tr><td class="sw"><span class="swatch" style="background:#5b4fcf"></span></td><td class="name">Home feed</td><td class="pct">36%</td></tr>
+            <tr><td class="sw"><span class="swatch" style="background:#14a3c7"></span></td><td class="name">Messages</td><td class="pct">24%</td></tr>
+            <tr><td class="sw"><span class="swatch" style="background:#f0b429"></span></td><td class="name">Search</td><td class="pct">13%</td></tr>
+            <tr><td class="sw"><span class="swatch" style="background:#e5677a"></span></td><td class="name">Saved lists</td><td class="pct">9%</td></tr>
+            <tr class="other"><td class="sw"><span class="swatch" style="background:#b9bec5"></span></td><td class="name">Other</td><td class="pct">18%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#3f9e5a"></span></td><td class="name">Settings</td><td class="pct">3%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#c46d2b"></span></td><td class="name">Notifications</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#8fa83c"></span></td><td class="name">Map view</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#b45bb8"></span></td><td class="name">Camera</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#2f7fd6"></span></td><td class="name">Marketplace</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#d9a3c9"></span></td><td class="name">Events</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#7a5230"></span></td><td class="name">Groups</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#46b8a6"></span></td><td class="name">Help centre</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#e3793f"></span></td><td class="name">Wallet</td><td class="pct">1%</td></tr>
+          </table>
+        </div>
+        <p class="source">Source: Orbitly event stream, foreground time only. Shares rounded to whole percent.</p>
+      </section>
+      <aside class="summary">
+        <h2>Summary</h2>
+        <p>The home feed and messages take three fifths of all time in the app, the same split as in week 40.</p>
+        <p>Saved lists grew after the shared lists release on 2 October.</p>
+      </aside>
+    </main>
+  </body>
+</html>

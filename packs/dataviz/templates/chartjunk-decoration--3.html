@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: chartjunk decoration (coin glyphs on bars)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion chartjunk-decoration. A county budget brief with horizontal bars
+ * of planned spending by department. The defect only shows a row of coin
+ * glyphs drawn on top of each bar; the coin group is in the page on both
+ * sides and hidden on the clean side. Nothing else changes (OQ-17).
+ */
+body { background: #ffffff; }
+.top { background: #0f3b3a; color: #ffffff; padding: 18px 64px; display: flex; justify-content: space-between; align-items: center; }
+.top .name { font-size: 18px; font-weight: 700; }
+.top .meta { font-size: 14px; color: #cfe3e1; }
+main { display: flex; gap: 56px; padding: 36px 64px 0; }
+.intro { width: 380px; }
+.label { font-size: 13px; color: #0f6b67; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+h1 { font-family: var(--font-serif); font-size: 34px; line-height: 1.15; margin: 8px 0 16px; }
+.intro p { font-size: 16px; color: #3b434c; margin-bottom: 12px; }
+.facts { margin-top: 22px; border-top: 1px solid #e3e7eb; }
+.facts div { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eef0f3; font-size: 15px; }
+.facts b { font-weight: 700; }
+.chart h2 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.chart .unit { font-size: 14px; color: #59636e; margin-bottom: 14px; }
+.source { font-size: 13px; color: #6b7280; margin-top: 10px; }
+.grid { stroke: #eceff3; stroke-width: 1; }
+.baseline { stroke: #9aa3ad; stroke-width: 1; }
+.tick { font-size: 13px; fill: #6b7280; }
+.cat { font-size: 14px; fill: #1f2328; }
+.value { font-size: 14px; font-weight: 700; fill: #1f2328; }
+.bar { fill: #1f7f78; }
+.coins { display: none; }
+
+[data-defect="on"] .coins { display: inline; }
+    </style>
+  </head>
+  <body>
+<div class="top"><div class="name">Fenwick County Budget Office</div><div class="meta">Budget brief 4 of 6 · Fiscal year 2027</div></div>
+    <main>
+      <div class="intro">
+        <p class="label">Proposed budget</p>
+        <h1>Where the 2027 operating budget goes</h1>
+        <p>The proposed operating budget for fiscal year 2027 is $256 million. Schools take the largest share, a third of the total.</p>
+        <p>Roads and bridges grow the most, by $7 million, to pay for the river crossing repairs that start in spring.</p>
+        <div class="facts">
+          <div><span>Total operating budget, FY2027</span><b>$256M</b></div>
+          <div><span>Change on FY2026</span><b>+$12M (+4.9%)</b></div>
+          <div><span>Public hearing</span><b>18 November</b></div>
+        </div>
+      </div>
+      <div class="chart">
+        <h2>Proposed operating spending by department, FY2027</h2>
+        <p class="unit">Millions of US dollars</p>
+        <svg width="700" height="352" viewBox="0 0 700 352">
+<line class="baseline" x1="180" y1="10" x2="180" y2="322" />
+<text class="tick" x="180" y="342" text-anchor="middle">$0M</text>
+<line class="grid" x1="272" y1="10" x2="272" y2="322" />
+<text class="tick" x="272" y="342" text-anchor="middle">$20M</text>
+<line class="grid" x1="364" y1="10" x2="364" y2="322" />
+<text class="tick" x="364" y="342" text-anchor="middle">$40M</text>
+<line class="grid" x1="456" y1="10" x2="456" y2="322" />
+<text class="tick" x="456" y="342" text-anchor="middle">$60M</text>
+<line class="grid" x1="548" y1="10" x2="548" y2="322" />
+<text class="tick" x="548" y="342" text-anchor="middle">$80M</text>
+<line class="grid" x1="640" y1="10" x2="640" y2="322" />
+<text class="tick" x="640" y="342" text-anchor="middle">$100M</text>
+<text class="cat" x="168" y="41" text-anchor="end">Schools</text>
+<rect class="bar" x="180" y="21" width="386.4" height="30" />
+<text class="value" x="574.4" y="41">$84M</text>
+<text class="cat" x="168" y="93" text-anchor="end">Roads and bridges</text>
+<rect class="bar" x="180" y="73" width="239.2" height="30" />
+<text class="value" x="427.2" y="93">$52M</text>
+<text class="cat" x="168" y="145" text-anchor="end">Health services</text>
+<rect class="bar" x="180" y="125" width="211.6" height="30" />
+<text class="value" x="399.6" y="145">$46M</text>
+<text class="cat" x="168" y="197" text-anchor="end">Public safety</text>
+<rect class="bar" x="180" y="177" width="179.4" height="30" />
+<text class="value" x="367.4" y="197">$39M</text>
+<text class="cat" x="168" y="249" text-anchor="end">Parks and libraries</text>
+<rect class="bar" x="180" y="229" width="96.6" height="30" />
+<text class="value" x="284.6" y="249">$21M</text>
+<text class="cat" x="168" y="301" text-anchor="end">Administration</text>
+<rect class="bar" x="180" y="281" width="64.4" height="30" />
+<text class="value" x="252.4" y="301">$14M</text>
+<g class="coins">
+<circle cx="195" cy="36" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="195" cy="36" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="242.3" cy="36" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="242.3" cy="36" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="289.6" cy="36" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="289.6" cy="36" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="336.9" cy="36" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="336.9" cy="36" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="384.2" cy="36" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="384.2" cy="36" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="431.5" cy="36" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="431.5" cy="36" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="478.8" cy="36" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="478.8" cy="36" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="526.1" cy="36" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="526.1" cy="36" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="195" cy="88" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="195" cy="88" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="241.2" cy="88" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="241.2" cy="88" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="287.5" cy="88" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="287.5" cy="88" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="333.7" cy="88" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="333.7" cy="88" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="380" cy="88" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="380" cy="88" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="195" cy="140" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="195" cy="140" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="245.9" cy="140" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="245.9" cy="140" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="296.8" cy="140" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="296.8" cy="140" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="347.7" cy="140" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="347.7" cy="140" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="195" cy="192" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="195" cy="192" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="252.1" cy="192" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="252.1" cy="192" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="309.3" cy="192" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="309.3" cy="192" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="195" cy="244" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="195" cy="244" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="239.3" cy="244" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="239.3" cy="244" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+<circle cx="195" cy="296" r="10" fill="#e8b93a" stroke="#a87b12" stroke-width="2" /><circle cx="195" cy="296" r="5" fill="none" stroke="#a87b12" stroke-width="1.5" />
+</g>
+</svg>
+        <p class="source">Source: Fenwick County Budget Office, proposed budget tabled 2 October 2026.</p>
+      </div>
+    </main>
+  </body>
+</html>

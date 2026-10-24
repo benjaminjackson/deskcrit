@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: rainbow for ordered values, hex map</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion rainbow-for-ordered-values. A library service report with a hex tile map of 45 invented districts
+ * coloured by loans per 1,000 residents. The clean side uses six steps of one orange that grows darker, light
+ * enough that the dark codes read on every tile. The defect switch only changes the fill of each step class
+ * (.s1 to .s6), on the map and in the legend, to a rainbow of blue, cyan, green, yellow, orange, and red.
+ * Nothing else changes (OQ-17).
+ */
+header { height: 64px; display: flex; align-items: center; padding: 0 56px; gap: 14px; border-bottom: 1px solid #ebe7e1; }
+.brand { font-weight: 700; font-size: 18px; }
+.section { font-size: 14px; color: var(--color-muted); }
+main { display: flex; gap: 40px; padding: 30px 56px 0; }
+.left { width: 360px; }
+h1 { font-size: 30px; font-weight: 700; line-height: 1.2; margin-bottom: 10px; }
+p { font-size: 16px; line-height: 1.55; margin-bottom: 12px; color: #2b3138; }
+.legend-title { font-size: 14px; font-weight: 700; margin: 20px 0 8px; }
+.key { display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 4px; }
+.map { padding-top: 6px; }
+.map polygon { stroke: #ffffff; stroke-width: 1; }
+.code { font-family: var(--font-sans); font-size: 13px; font-weight: 700; fill: #1f2328; }
+.source { font-size: 13px; color: var(--color-muted); margin-top: 8px; }
+.s1 { fill: #fdf1e6; }
+.s2 { fill: #fbdcc0; }
+.s3 { fill: #f7c193; }
+.s4 { fill: #f2a463; }
+.s5 { fill: #e8883a; }
+.s6 { fill: #d06d1f; }
+
+[data-defect="on"] .s1 { fill: #6f9be3; }
+[data-defect="on"] .s2 { fill: #5cc4d6; }
+[data-defect="on"] .s3 { fill: #78c86e; }
+[data-defect="on"] .s4 { fill: #f2d84f; }
+[data-defect="on"] .s5 { fill: #f39c4a; }
+[data-defect="on"] .s6 { fill: #e5675c; }
+    </style>
+  </head>
+  <body>
+<header><span class="brand">Velmora Provincial Library Service</span><span class="section">Annual lending report</span></header>
+    <main>
+      <div class="left">
+        <h1>Loans per 1,000 residents, by district</h1>
+        <p>Each hexagon is one of the province's 45 library districts, placed roughly where it lies on the map. The two-letter code names the district.</p>
+        <p>Lending is highest in the eastern districts, where the new branch libraries opened last year, and lowest in the north-west uplands.</p>
+        <div class="legend-title">Loans per 1,000 residents, last 12 months</div>
+        <div class="key"><svg width="26" height="26" viewBox="0 0 26 26"><polygon class="s1" points="13,1 24,7 24,19 13,25 2,19 2,7"/></svg><span>under 200</span></div><div class="key"><svg width="26" height="26" viewBox="0 0 26 26"><polygon class="s2" points="13,1 24,7 24,19 13,25 2,19 2,7"/></svg><span>200–299</span></div><div class="key"><svg width="26" height="26" viewBox="0 0 26 26"><polygon class="s3" points="13,1 24,7 24,19 13,25 2,19 2,7"/></svg><span>300–399</span></div><div class="key"><svg width="26" height="26" viewBox="0 0 26 26"><polygon class="s4" points="13,1 24,7 24,19 13,25 2,19 2,7"/></svg><span>400–499</span></div><div class="key"><svg width="26" height="26" viewBox="0 0 26 26"><polygon class="s5" points="13,1 24,7 24,19 13,25 2,19 2,7"/></svg><span>500–599</span></div><div class="key"><svg width="26" height="26" viewBox="0 0 26 26"><polygon class="s6" points="13,1 24,7 24,19 13,25 2,19 2,7"/></svg><span>600+</span></div>
+      </div>
+      <div class="map">
+        <svg width="640" height="470" viewBox="0 0 640 470">
+<polygon class="s4" points="244.8,23.8 244.8,56.3 216.7,72.5 188.5,56.3 188.5,23.7 216.7,7.5"/><text class="code" x="216.7" y="45.0" text-anchor="middle">AR</text>
+<polygon class="s6" points="303.7,23.8 303.7,56.3 275.6,72.5 247.4,56.3 247.4,23.7 275.6,7.5"/><text class="code" x="275.6" y="45.0" text-anchor="middle">BE</text>
+<polygon class="s6" points="362.6,23.8 362.6,56.3 334.4,72.5 306.3,56.3 306.3,23.7 334.4,7.5"/><text class="code" x="334.4" y="45.0" text-anchor="middle">CO</text>
+<polygon class="s4" points="215.4,74.8 215.4,107.3 187.2,123.5 159.1,107.3 159.1,74.8 187.2,58.5"/><text class="code" x="187.2" y="96.0" text-anchor="middle">DA</text>
+<polygon class="s3" points="274.3,74.8 274.3,107.3 246.1,123.5 218.0,107.3 218.0,74.8 246.1,58.5"/><text class="code" x="246.1" y="96.0" text-anchor="middle">EL</text>
+<polygon class="s4" points="333.1,74.8 333.1,107.3 305.0,123.5 276.9,107.3 276.9,74.8 305.0,58.5"/><text class="code" x="305.0" y="96.0" text-anchor="middle">FA</text>
+<polygon class="s5" points="392.0,74.8 392.0,107.3 363.9,123.5 335.7,107.3 335.7,74.8 363.9,58.5"/><text class="code" x="363.9" y="96.0" text-anchor="middle">GR</text>
+<polygon class="s5" points="450.9,74.8 450.9,107.3 422.8,123.5 394.6,107.3 394.6,74.8 422.8,58.5"/><text class="code" x="422.8" y="96.0" text-anchor="middle">HO</text>
+<polygon class="s3" points="127.0,125.8 127.0,158.3 98.9,174.5 70.7,158.3 70.7,125.8 98.9,109.5"/><text class="code" x="98.9" y="147.0" text-anchor="middle">IV</text>
+<polygon class="s2" points="185.9,125.8 185.9,158.3 157.8,174.5 129.6,158.3 129.6,125.8 157.8,109.5"/><text class="code" x="157.8" y="147.0" text-anchor="middle">KA</text>
+<polygon class="s4" points="244.8,125.8 244.8,158.3 216.7,174.5 188.5,158.3 188.5,125.8 216.7,109.5"/><text class="code" x="216.7" y="147.0" text-anchor="middle">LU</text>
+<polygon class="s4" points="303.7,125.8 303.7,158.3 275.6,174.5 247.4,158.3 247.4,125.8 275.6,109.5"/><text class="code" x="275.6" y="147.0" text-anchor="middle">MO</text>
+<polygon class="s5" points="362.6,125.8 362.6,158.3 334.4,174.5 306.3,158.3 306.3,125.8 334.4,109.5"/><text class="code" x="334.4" y="147.0" text-anchor="middle">NE</text>
+<polygon class="s5" points="421.5,125.8 421.5,158.3 393.3,174.5 365.2,158.3 365.2,125.8 393.3,109.5"/><text class="code" x="393.3" y="147.0" text-anchor="middle">OR</text>
+<polygon class="s6" points="480.4,125.8 480.4,158.3 452.2,174.5 424.1,158.3 424.1,125.8 452.2,109.5"/><text class="code" x="452.2" y="147.0" text-anchor="middle">PA</text>
+<polygon class="s2" points="156.5,176.8 156.5,209.3 128.3,225.5 100.2,209.3 100.2,176.8 128.3,160.5"/><text class="code" x="128.3" y="198.0" text-anchor="middle">RI</text>
+<polygon class="s3" points="215.4,176.8 215.4,209.3 187.2,225.5 159.1,209.3 159.1,176.8 187.2,160.5"/><text class="code" x="187.2" y="198.0" text-anchor="middle">SA</text>
+<polygon class="s3" points="274.3,176.8 274.3,209.3 246.1,225.5 218.0,209.3 218.0,176.8 246.1,160.5"/><text class="code" x="246.1" y="198.0" text-anchor="middle">TE</text>
+<polygon class="s3" points="333.1,176.8 333.1,209.3 305.0,225.5 276.9,209.3 276.9,176.8 305.0,160.5"/><text class="code" x="305.0" y="198.0" text-anchor="middle">UL</text>
+<polygon class="s4" points="392.0,176.8 392.0,209.3 363.9,225.5 335.7,209.3 335.7,176.8 363.9,160.5"/><text class="code" x="363.9" y="198.0" text-anchor="middle">VA</text>
+<polygon class="s5" points="450.9,176.8 450.9,209.3 422.8,225.5 394.6,209.3 394.6,176.8 422.8,160.5"/><text class="code" x="422.8" y="198.0" text-anchor="middle">WE</text>
+<polygon class="s6" points="509.8,176.8 509.8,209.3 481.7,225.5 453.5,209.3 453.5,176.8 481.7,160.5"/><text class="code" x="481.7" y="198.0" text-anchor="middle">YS</text>
+<polygon class="s5" points="568.7,176.8 568.7,209.3 540.6,225.5 512.4,209.3 512.4,176.8 540.6,160.5"/><text class="code" x="540.6" y="198.0" text-anchor="middle">ZO</text>
+<polygon class="s2" points="68.1,227.8 68.1,260.3 40.0,276.5 11.9,260.3 11.9,227.8 40.0,211.5"/><text class="code" x="40.0" y="249.0" text-anchor="middle">BR</text>
+<polygon class="s2" points="127.0,227.8 127.0,260.3 98.9,276.5 70.7,260.3 70.7,227.8 98.9,211.5"/><text class="code" x="98.9" y="249.0" text-anchor="middle">CR</text>
+<polygon class="s3" points="185.9,227.8 185.9,260.3 157.8,276.5 129.6,260.3 129.6,227.8 157.8,211.5"/><text class="code" x="157.8" y="249.0" text-anchor="middle">DU</text>
+<polygon class="s3" points="244.8,227.8 244.8,260.3 216.7,276.5 188.5,260.3 188.5,227.8 216.7,211.5"/><text class="code" x="216.7" y="249.0" text-anchor="middle">FE</text>
+<polygon class="s3" points="303.7,227.8 303.7,260.3 275.6,276.5 247.4,260.3 247.4,227.8 275.6,211.5"/><text class="code" x="275.6" y="249.0" text-anchor="middle">GL</text>
+<polygon class="s4" points="362.6,227.8 362.6,260.3 334.4,276.5 306.3,260.3 306.3,227.8 334.4,211.5"/><text class="code" x="334.4" y="249.0" text-anchor="middle">HA</text>
+<polygon class="s4" points="421.5,227.8 421.5,260.3 393.3,276.5 365.2,260.3 365.2,227.8 393.3,211.5"/><text class="code" x="393.3" y="249.0" text-anchor="middle">KE</text>
+<polygon class="s6" points="480.4,227.8 480.4,260.3 452.2,276.5 424.1,260.3 424.1,227.8 452.2,211.5"/><text class="code" x="452.2" y="249.0" text-anchor="middle">LO</text>
+<polygon class="s2" points="156.5,278.8 156.5,311.3 128.3,327.5 100.2,311.3 100.2,278.8 128.3,262.5"/><text class="code" x="128.3" y="300.0" text-anchor="middle">MI</text>
+<polygon class="s2" points="215.4,278.8 215.4,311.3 187.2,327.5 159.1,311.3 159.1,278.8 187.2,262.5"/><text class="code" x="187.2" y="300.0" text-anchor="middle">NO</text>
+<polygon class="s2" points="274.3,278.8 274.3,311.3 246.1,327.5 218.0,311.3 218.0,278.8 246.1,262.5"/><text class="code" x="246.1" y="300.0" text-anchor="middle">PE</text>
+<polygon class="s3" points="333.1,278.8 333.1,311.3 305.0,327.5 276.9,311.3 276.9,278.8 305.0,262.5"/><text class="code" x="305.0" y="300.0" text-anchor="middle">RO</text>
+<polygon class="s5" points="392.0,278.8 392.0,311.3 363.9,327.5 335.7,311.3 335.7,278.8 363.9,262.5"/><text class="code" x="363.9" y="300.0" text-anchor="middle">SU</text>
+<polygon class="s5" points="450.9,278.8 450.9,311.3 422.8,327.5 394.6,311.3 394.6,278.8 422.8,262.5"/><text class="code" x="422.8" y="300.0" text-anchor="middle">TH</text>
+<polygon class="s5" points="509.8,278.8 509.8,311.3 481.7,327.5 453.5,311.3 453.5,278.8 481.7,262.5"/><text class="code" x="481.7" y="300.0" text-anchor="middle">VE</text>
+<polygon class="s3" points="185.9,329.8 185.9,362.3 157.8,378.5 129.6,362.3 129.6,329.8 157.8,313.5"/><text class="code" x="157.8" y="351.0" text-anchor="middle">AL</text>
+<polygon class="s3" points="244.8,329.8 244.8,362.3 216.7,378.5 188.5,362.3 188.5,329.8 216.7,313.5"/><text class="code" x="216.7" y="351.0" text-anchor="middle">BO</text>
+<polygon class="s3" points="303.7,329.8 303.7,362.3 275.6,378.5 247.4,362.3 247.4,329.8 275.6,313.5"/><text class="code" x="275.6" y="351.0" text-anchor="middle">CA</text>
+<polygon class="s5" points="362.6,329.8 362.6,362.3 334.4,378.5 306.3,362.3 306.3,329.8 334.4,313.5"/><text class="code" x="334.4" y="351.0" text-anchor="middle">DE</text>
+<polygon class="s4" points="421.5,329.8 421.5,362.3 393.3,378.5 365.2,362.3 365.2,329.8 393.3,313.5"/><text class="code" x="393.3" y="351.0" text-anchor="middle">FI</text>
+<polygon class="s3" points="333.1,380.8 333.1,413.3 305.0,429.5 276.9,413.3 276.9,380.8 305.0,364.5"/><text class="code" x="305.0" y="402.0" text-anchor="middle">GA</text>
+<polygon class="s5" points="392.0,380.8 392.0,413.3 363.9,429.5 335.7,413.3 335.7,380.8 363.9,364.5"/><text class="code" x="363.9" y="402.0" text-anchor="middle">HE</text>
+
+        </svg>
+        <p class="source">Source: Velmora Provincial Library Service loan records, April to March. Population from the provincial register.</p>
+      </div>
+    </main>
+  </body>
+</html>

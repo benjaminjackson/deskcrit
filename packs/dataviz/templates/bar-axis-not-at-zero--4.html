@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: bar axis not at zero 4</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion bar-axis-not-at-zero. A logistics dashboard with horizontal bars
+ * of average delivery time by region. The defect switch hides the zero-based
+ * tick labels and shows a second set that starts at 2.8 days, and changes each
+ * bar's width (and moves its value label) to that cut axis. No text changes.
+ */
+body { display: flex; background: #ffffff; }
+.rail { width: 76px; height: 800px; background: #13363a; display: flex; flex-direction: column; align-items: center; padding-top: 24px; gap: 22px; }
+.rail .mark { width: 34px; height: 34px; border-radius: 8px; background: #f2b33d; }
+.rail .dot { width: 22px; height: 22px; border-radius: 6px; background: #2d5a5f; }
+main { flex: 1; padding: 30px 46px; }
+.crumbs { font-size: 13px; color: #6b7480; margin-bottom: 6px; }
+h1 { font-size: 27px; font-weight: 700; margin-bottom: 20px; }
+.row { display: flex; gap: 34px; }
+.panel { width: 790px; background: #f8faf9; border-radius: 12px; padding: 22px 26px; }
+.panel h2 { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.panel .sub { font-size: 13px; color: #59636e; margin-bottom: 12px; }
+.source { font-size: 12px; color: #6b7480; margin-top: 4px; }
+aside { flex: 1; }
+.kpi { margin-bottom: 22px; }
+.kpi .l { font-size: 13px; color: #59636e; }
+.kpi .v { font-size: 26px; font-weight: 700; }
+.kpi .d { font-size: 13px; color: #2e7d4f; }
+.kpi .d.bad { color: #b4472f; }
+.bar { fill: #2b7a78; }
+.cat { font-size: 14px; fill: #1f2328; }
+.val { font-size: 13px; font-weight: 700; fill: #1f2328; }
+.tick { font-size: 12px; fill: #59636e; }
+
+.axis-cut { display: none; }
+[data-defect="on"] .axis-zero { display: none; }
+[data-defect="on"] .axis-cut { display: inline; }
+.grid { stroke: #e9ecef; stroke-width: 1; }
+.baseline { stroke: #b9c0c8; stroke-width: 1; }
+
+.bar-1 { x: 110px; width: 483.8px; }
+[data-defect="on"] .bar-1 { width: 479.4px; }
+[data-defect="on"] .val-1 { transform: translateX(-4.4px); }
+.bar-2 { x: 110px; width: 460.2px; }
+[data-defect="on"] .bar-2 { width: 405.6px; }
+[data-defect="on"] .val-2 { transform: translateX(-54.6px); }
+.bar-3 { x: 110px; width: 436.6px; }
+[data-defect="on"] .bar-3 { width: 331.9px; }
+[data-defect="on"] .val-3 { transform: translateX(-104.7px); }
+.bar-4 { x: 110px; width: 413px; }
+[data-defect="on"] .bar-4 { width: 258.1px; }
+[data-defect="on"] .val-4 { transform: translateX(-154.9px); }
+.bar-5 { x: 110px; width: 401.2px; }
+[data-defect="on"] .bar-5 { width: 221.3px; }
+[data-defect="on"] .val-5 { transform: translateX(-179.9px); }
+.bar-6 { x: 110px; width: 377.6px; }
+[data-defect="on"] .bar-6 { width: 147.5px; }
+[data-defect="on"] .val-6 { transform: translateX(-230.1px); }
+    </style>
+  </head>
+  <body>
+<nav class="rail"><span class="mark"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></nav>
+    <main>
+      <div class="crumbs">Kestrel Freight &middot; Operations &middot; Delivery performance</div>
+      <h1>Delivery times, September 2025</h1>
+      <div class="row">
+        <section class="panel">
+          <h2>Average delivery time by region</h2>
+          <p class="sub">Days from dispatch to signed delivery, parcels sent 1 to 30 September 2025</p>
+          <svg width="740" height="490" viewBox="0 0 740 490">
+<g class="axis-zero">
+<text class="tick" x="110" y="476" text-anchor="middle">0.0</text>
+<line class="grid" x1="228" x2="228" y1="10" y2="454" />
+<text class="tick" x="228" y="476" text-anchor="middle">1.0</text>
+<line class="grid" x1="346" x2="346" y1="10" y2="454" />
+<text class="tick" x="346" y="476" text-anchor="middle">2.0</text>
+<line class="grid" x1="464" x2="464" y1="10" y2="454" />
+<text class="tick" x="464" y="476" text-anchor="middle">3.0</text>
+<line class="grid" x1="582" x2="582" y1="10" y2="454" />
+<text class="tick" x="582" y="476" text-anchor="middle">4.0</text>
+<line class="grid" x1="700" x2="700" y1="10" y2="454" />
+<text class="tick" x="700" y="476" text-anchor="middle">5.0</text>
+</g>
+<g class="axis-cut">
+<text class="tick" x="110" y="476" text-anchor="middle">2.8</text>
+<line class="grid" x1="257.5" x2="257.5" y1="10" y2="454" />
+<text class="tick" x="257.5" y="476" text-anchor="middle">3.2</text>
+<line class="grid" x1="405" x2="405" y1="10" y2="454" />
+<text class="tick" x="405" y="476" text-anchor="middle">3.6</text>
+<line class="grid" x1="552.5" x2="552.5" y1="10" y2="454" />
+<text class="tick" x="552.5" y="476" text-anchor="middle">4.0</text>
+<line class="grid" x1="700" x2="700" y1="10" y2="454" />
+<text class="tick" x="700" y="476" text-anchor="middle">4.4</text>
+</g>
+<text class="cat" x="98" y="50" text-anchor="end">Eastern</text>
+<rect class="bar bar-1" y="27" height="36" />
+<text class="val val-1" x="601.8" y="50">4.1 days</text>
+<text class="cat" x="98" y="124" text-anchor="end">Coastal</text>
+<rect class="bar bar-2" y="101" height="36" />
+<text class="val val-2" x="578.2" y="124">3.9 days</text>
+<text class="cat" x="98" y="198" text-anchor="end">Highland</text>
+<rect class="bar bar-3" y="175" height="36" />
+<text class="val val-3" x="554.6" y="198">3.7 days</text>
+<text class="cat" x="98" y="272" text-anchor="end">Southern</text>
+<rect class="bar bar-4" y="249" height="36" />
+<text class="val val-4" x="531" y="272">3.5 days</text>
+<text class="cat" x="98" y="346" text-anchor="end">Northern</text>
+<rect class="bar bar-5" y="323" height="36" />
+<text class="val val-5" x="519.2" y="346">3.4 days</text>
+<text class="cat" x="98" y="420" text-anchor="end">Central</text>
+<rect class="bar bar-6" y="397" height="36" />
+<text class="val val-6" x="495.6" y="420">3.2 days</text>
+<line class="baseline" x1="110" x2="110" y1="10" y2="454" />
+          </svg>
+          <p class="source">Source: Kestrel Freight scan events, 48,210 parcels.</p>
+        </section>
+        <aside>
+          <div class="kpi"><div class="l">Network average, Sep 2025</div><div class="v">3.6 days</div><div class="d">0.2 days faster than Aug 2025</div></div>
+          <div class="kpi"><div class="l">On time, Sep 2025</div><div class="v">91.4%</div><div class="d">+1.2 pts vs Aug 2025</div></div>
+          <div class="kpi"><div class="l">Failed first attempts, Sep 2025</div><div class="v">4.8%</div><div class="d bad">+0.3 pts vs Aug 2025</div></div>
+        </aside>
+      </div>
+    </main>
+  </body>
+</html>

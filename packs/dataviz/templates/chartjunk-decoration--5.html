@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: chartjunk decoration (shadow and gloss on donut)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion chartjunk-decoration. A transit authority's monthly ridership
+ * page with a four-segment donut of trips by fare type. The defect only adds
+ * a drop shadow to the segments and shows a glossy white highlight over the
+ * top of the ring; the highlight is in the page on both sides and hidden on
+ * the clean side. Nothing else changes (OQ-17).
+ */
+body { background: #ffffff; }
+header { padding: 20px 72px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e6e9ee; }
+.brand { font-size: 20px; font-weight: 700; color: #1d4e89; }
+nav { display: flex; gap: 26px; font-size: 15px; color: #59636e; }
+main { padding: 30px 72px 0; }
+h1 { font-size: 30px; font-weight: 700; margin-bottom: 4px; }
+.sub { font-size: 16px; color: #59636e; margin-bottom: 18px; }
+.row { display: flex; gap: 64px; align-items: flex-start; }
+.figure h2 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+ul { list-style: none; margin-top: 60px; width: 380px; }
+li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eef0f3; font-size: 17px; }
+.sw { width: 16px; height: 16px; border-radius: 3px; }
+.nm { flex: 1; }
+.pc { font-weight: 700; }
+.notes { width: 300px; margin-top: 60px; font-size: 15px; color: #3b434c; }
+.notes p { margin-bottom: 12px; }
+.source { font-size: 13px; color: #6b7280; margin-top: 4px; }
+.centre-num { font-size: 34px; font-weight: 700; fill: #1f2328; }
+.centre-l { font-size: 14px; fill: #59636e; }
+.gloss { display: none; }
+
+[data-defect="on"] .segments { filter: drop-shadow(4px 6px 5px rgba(0, 0, 0, 0.35)); }
+[data-defect="on"] .gloss { display: inline; }
+    </style>
+  </head>
+  <body>
+<header><div class="brand">Orchard Lane Transit</div><nav><span>Plan a trip</span><span>Fares</span><span class="cur">Ridership</span><span>Service alerts</span></nav></header>
+    <main>
+      <h1>Ridership, September 2026</h1>
+      <p class="sub">Bus and tram trips across the network, counted at the fare gates and on board.</p>
+      <div class="row">
+        <div class="figure">
+          <h2>Share of trips by fare type, September 2026</h2>
+          <svg width="420" height="430" viewBox="0 0 420 430">
+<defs>
+  <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffffff" stop-opacity="0.55" />
+    <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.12" />
+    <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+  </linearGradient>
+</defs>
+<g class="segments">
+<circle cx="210" cy="210" r="150" fill="none" stroke="#1d4e89" stroke-width="64" stroke-dasharray="430.5 942.5" stroke-dashoffset="0" transform="rotate(-90 210 210)" />
+<circle cx="210" cy="210" r="150" fill="none" stroke="#3d7cc9" stroke-width="64" stroke-dasharray="289.2 942.5" stroke-dashoffset="-433.5" transform="rotate(-90 210 210)" />
+<circle cx="210" cy="210" r="150" fill="none" stroke="#7aa7dc" stroke-width="64" stroke-dasharray="138.4 942.5" stroke-dashoffset="-725.7" transform="rotate(-90 210 210)" />
+<circle cx="210" cy="210" r="150" fill="none" stroke="#b9d0ec" stroke-width="64" stroke-dasharray="72.4 942.5" stroke-dashoffset="-867.1" transform="rotate(-90 210 210)" />
+</g>
+<path class="gloss" d="M34,210 A176,176 0 0 1 386,210 L334,210 A124,124 0 0 0 86,210 Z" fill="url(#gloss)" />
+<text class="centre-num" x="210" y="214" text-anchor="middle">2.31M</text>
+<text class="centre-l" x="210" y="240" text-anchor="middle">trips, Sep 2026</text>
+</svg>
+          <p class="source">Source: Orchard Lane Transit fare system, 1 to 30 September 2026.</p>
+        </div>
+        <ul><li><span class="sw" style="background:#1d4e89"></span><span class="nm">Monthly pass</span><span class="pc">46%</span></li><li><span class="sw" style="background:#3d7cc9"></span><span class="nm">Pay as you go card</span><span class="pc">31%</span></li><li><span class="sw" style="background:#7aa7dc"></span><span class="nm">Single ticket</span><span class="pc">15%</span></li><li><span class="sw" style="background:#b9d0ec"></span><span class="nm">Concession pass</span><span class="pc">8%</span></li></ul>
+        <div class="notes">
+          <p>Monthly passes carried almost half of all trips, up 3 points on September 2025.</p>
+          <p>Single tickets fell to 15% after contactless payment reached every tram stop in June.</p>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
