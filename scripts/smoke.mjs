@@ -99,6 +99,52 @@ function expectPackLoadsInBundle() {
 }
 
 /**
+ * Runs the bundle from a temporary folder that holds only a .crit.yaml naming the typography and
+ * layout packs, with no packs/ folder and TYPESAFE_API_KEY unset. main checks the key after it
+ * loads the packs, so exit code 2 with the key message proves the packs came from the bundle
+ * (FR-11, FR-53, NFR-2).
+ */
+function expectBundledPacksLoad() {
+  const workingDirectory = mkdtempSync(join(tmpdir(), "deskcrit-bundled-"));
+  try {
+    writeFileSync(
+      join(workingDirectory, ".crit.yaml"),
+      "packs: [typography, layout]\n",
+    );
+    const environment = { ...process.env };
+    delete environment.TYPESAFE_API_KEY;
+    const commandArguments = [
+      resolve("dist/crit.js"),
+      "report",
+      resolve("packs/_example/fixtures/example-contrast.positive.png"),
+      "--json",
+    ];
+    const description = `node ${commandArguments.join(" ")} with only .crit.yaml`;
+    const result = spawnSync("node", commandArguments, {
+      cwd: workingDirectory,
+      encoding: "utf8",
+      env: environment,
+    });
+    if (result.status !== 2) {
+      throw new Error(
+        `${description} exited with ${result.status}, expected 2\n${result.stderr}`,
+      );
+    }
+    if (result.stderr !== "crit: TYPESAFE_API_KEY is not set\n") {
+      throw new Error(
+        `${description} stderr is not the key message\n${result.stderr}`,
+      );
+    }
+    console.log(
+      `ok: ${description} loads the bundled packs and stops for the key`,
+    );
+  } finally {
+    // The path comes from mkdtempSync, so it is never empty and sits inside the temp folder.
+    rmSync(workingDirectory, { recursive: true, force: true });
+  }
+}
+
+/**
  * Returns the SHA-256 of a file's bytes as lowercase hexadecimal, the image fingerprint an answers
  * file records (FR-42, OQ-26 e).
  */
@@ -427,6 +473,7 @@ async function runSmokeChecks() {
 
   expectUsageRun("node", ["dist/crit.js"], process.cwd());
   expectPackLoadsInBundle();
+  expectBundledPacksLoad();
   expectOfflineRunWithAnswers();
   expectLibraryLeavesOutSdk();
   expectLibraryImportIsQuiet();

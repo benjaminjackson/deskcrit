@@ -22,6 +22,7 @@ import type { AskRequest, TypeSafeAdapter } from "../ask/adapter.js";
 import { createStubAdapter, type StubOptions } from "../ask/stub.js";
 import type { TypeSafeAdapterOptions } from "../ask/typesafe/adapter.js";
 import { CouldNotRunError } from "../shared/could-not-run-error.js";
+import { listBundledPackSources } from "./bundled-packs.js";
 import { main } from "./main.js";
 
 /** The repository root, so the tests can find the example packs, the image, and the schema. */
@@ -83,6 +84,22 @@ function copyExamplePack(exampleName: string, directory: string): void {
     join(repositoryRoot, "schemas/examples/valid", exampleName),
     join(workingDirectory, directory, "pack.yaml"),
   );
+}
+
+/** Return the pack.yaml text of one bundled pack, so a test does not copy it by hand. */
+function bundledPackText(name: string): string {
+  const source = listBundledPackSources().find(
+    (candidate) => candidate.name === name,
+  );
+  if (source === undefined) {
+    throw new Error(`no bundled pack named ${name}`);
+  }
+  return source.yamlText;
+}
+
+/** Return the version line of one bundled pack's text, so no test hard-codes a pack version. */
+function bundledPackVersion(name: string): string | undefined {
+  return bundledPackText(name).match(/^version: (.+)$/m)?.[1];
 }
 
 /** Write a file in the working directory. */
@@ -213,11 +230,45 @@ describe("a run that works", () => {
     expect(result.stderr).toBe("");
   });
 
-  it("loads a pack that .crit.yaml names when it is a local pack directory (FR-11)", async () => {
-    writeWorkingFile(".crit.yaml", "packs: [minimal]\n");
+  it("runs only the bundled packs that .crit.yaml names, with their bundled versions (US-5, FR-11, FR-51)", async () => {
+    writeWorkingFile(".crit.yaml", "packs: [typography, layout]\n");
     const result = await runCrit(["report", "page.png", "--json"]);
     expect(result.exitCode).toBe(0);
     expect(parseReport(result.stdout).packs).toEqual([
+      { name: "typography", version: bundledPackVersion("typography") },
+      { name: "layout", version: bundledPackVersion("layout") },
+    ]);
+    const askedPackNames = new Set<string>();
+    for (const request of result.requests) {
+      for (const question of request.questions) {
+        askedPackNames.add(question.criterion.split("/")[0] ?? "");
+      }
+    }
+    expect([...askedPackNames].sort()).toEqual(["layout", "typography"]);
+  });
+
+  it("runs every bundled pack when .crit.yaml names none and no --pack is given (FR-11)", async () => {
+    const result = await runCrit(["report", "page.png", "--json"]);
+    expect(result.exitCode).toBe(0);
+    const expectedPacks = listBundledPackSources().map((source) => ({
+      name: source.name,
+      version: bundledPackVersion(source.name),
+    }));
+    expect(parseReport(result.stdout).packs).toEqual(expectedPacks);
+  });
+
+  it("runs the named bundled packs first, then the --pack directories (FR-11)", async () => {
+    writeWorkingFile(".crit.yaml", "packs: [layout]\n");
+    const result = await runCrit([
+      "report",
+      "page.png",
+      "--pack",
+      "minimal",
+      "--json",
+    ]);
+    expect(result.exitCode).toBe(0);
+    expect(parseReport(result.stdout).packs).toEqual([
+      { name: "layout", version: bundledPackVersion("layout") },
       { name: "minimal", version: "1.0.0" },
     ]);
   });
@@ -370,22 +421,26 @@ describe("could not run: exit 2, a message that names the input, and empty stdou
       message: "broken: invalid pack",
     },
     {
-      name: "a .crit.yaml pack that cannot be found (FR-11)",
-      argv: ["report", "page.png"],
-      files: { ".crit.yaml": "packs: [typography]\n" },
-      message: "pack typography named in .crit.yaml was not found",
-    },
-    {
-      name: "no packs at all (OQ-25 d)",
-      argv: ["report", "page.png"],
-      message: "no packs: pass --pack <dir> or name packs in .crit.yaml",
-    },
-    {
-      name: "two packs with the same name",
+      name: "a .crit.yaml pack that is not bundled (FR-11)",
       argv: ["report", "page.png", "--pack", "minimal"],
       files: { ".crit.yaml": "packs: [minimal]\n" },
+      message: "pack minimal is not a bundled pack; the bundled packs are: ",
+    },
+    {
+      name: "a pack named twice in .crit.yaml (FR-11)",
+      argv: ["report", "page.png"],
+      files: { ".crit.yaml": "packs: [layout, layout]\n" },
+      message: "pack layout is named twice in .crit.yaml",
+    },
+    {
+      name: "a --pack directory with the name of a bundled pack (FR-11)",
+      argv: ["report", "page.png", "--pack", "my-typography"],
+      files: {
+        ".crit.yaml": "packs: [typography]\n",
+        "my-typography/pack.yaml": bundledPackText("typography"),
+      },
       message:
-        "two packs are named minimal: --pack minimal and pack minimal in .crit.yaml",
+        "two packs are named typography: bundled pack typography and --pack my-typography",
     },
     {
       name: "a bad --context pair",
