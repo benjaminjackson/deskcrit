@@ -9,6 +9,12 @@
 
 import { decideLiveRun } from "./frozen-set.ts";
 import type { AskedQuestionHash } from "./question-hash.ts";
+import {
+  britishQuestionHashesFor,
+  currentCriterionIdFor,
+  NO_RESPELLING,
+  type Respelling,
+} from "./spelling.ts";
 
 /** One criterion of a pack: its full id (`<pack>/<id>`) and its own fixture paths. */
 export type PlanCriterion = {
@@ -231,16 +237,18 @@ function isRewordingRun(input: LivePlanInput): boolean {
 /**
  * Return the criteria of a pack that are reworded: the asked list holds a question for the
  * criterion and its current question is not one of them (EV-4 rule 5, R-4). Throw when the list
- * already holds two questions for a criterion and its current question is a third, because R-4
- * allows one rewording per criterion id, and throw when saved answers exist but the list does not,
- * because then no one can tell which questions were asked. askedQuestionHashes is null when the
- * pack has no asked list.
+ * already holds two counted questions for a criterion and its current question is a third, because
+ * R-4 allows one rewording per criterion id, and throw when saved answers exist but the list does
+ * not, because then no one can tell which questions were asked. askedQuestionHashes is null when
+ * the pack has no asked list. A question asked under an id that respelling renamed counts for the
+ * new id, and a British question that respelling lists is not counted (R-4, crit-q25.24).
  */
 export function findRewordedCriteria(
   packName: string,
   currentQuestionSha256ByCriterion: ReadonlyMap<string, string>,
   askedQuestionHashes: readonly AskedQuestionHash[] | null,
   hasSavedAnswers: boolean,
+  respelling: Respelling = NO_RESPELLING,
 ): string[] {
   if (askedQuestionHashes === null) {
     if (hasSavedAnswers) {
@@ -254,16 +262,24 @@ export function findRewordedCriteria(
   for (const [criterion, currentHash] of currentQuestionSha256ByCriterion) {
     const askedHashes = new Set<string>();
     for (const entry of askedQuestionHashes) {
-      if (entry.criterion === criterion) {
+      if (currentCriterionIdFor(entry.criterion, respelling) === criterion) {
         askedHashes.add(entry.questionSha256);
       }
     }
     if (askedHashes.size === 0 || askedHashes.has(currentHash)) {
       continue;
     }
-    if (askedHashes.size >= 2) {
+    // A question that changed spelling only is not a rewording, so its British form is not counted.
+    const britishHashes = britishQuestionHashesFor(criterion, respelling);
+    const countedHashes = new Set<string>();
+    for (const askedHash of askedHashes) {
+      if (!britishHashes.has(askedHash)) {
+        countedHashes.add(askedHash);
+      }
+    }
+    if (countedHashes.size >= 2) {
       throw new Error(
-        `${packName}: ${criterion} was already asked ${String(askedHashes.size)} different questions, and its current question is new. R-4 allows one rewording per criterion id, so no request was sent.`,
+        `${packName}: ${criterion} was already asked ${String(countedHashes.size)} different questions, and its current question is new. R-4 allows one rewording per criterion id, so no request was sent.`,
       );
     }
     reworded.push(criterion);
@@ -274,12 +290,14 @@ export function findRewordedCriteria(
 /**
  * Return a saved file with only the answers to each criterion's current question, and the question
  * ids it leaves out (EV-4 rule 5, crit-q25.23). An answer counts when the record file gives its
- * criterion the same question hash as the pack does now. An answer to a criterion that is not in
- * the pack is kept, so planReplay can name it.
+ * criterion the same question hash as the pack does now. An answer under an id that respelling
+ * renamed is always left out, because it answers the old text (R-4, crit-q25.24). An answer to any
+ * other criterion that is not in the pack is kept, so planReplay can name it.
  */
 export function keepCurrentAnswers(
   savedFile: RecordedAnswersFile,
   currentQuestionSha256ByCriterion: ReadonlyMap<string, string>,
+  respelling: Respelling = NO_RESPELLING,
 ): { savedFile: SavedAnswersFile; questionIdsToDrop: string[] } {
   const kept: string[] = [];
   const questionIdsToDrop: string[] = [];
@@ -291,6 +309,10 @@ export function keepCurrentAnswers(
       throw new Error(
         `${savedFile.fileName}: the question record has no entry for ${criterion}`,
       );
+    }
+    if (respelling.criterionIds.has(criterion)) {
+      questionIdsToDrop.push(questionId);
+      continue;
     }
     const currentHash = currentQuestionSha256ByCriterion.get(criterion);
     if (currentHash === undefined || currentHash === recordedHash) {
