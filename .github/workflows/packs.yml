@@ -7,10 +7,10 @@
 # packs/package.json or Playwright, because CI never renders a fixture (FR-54, NFR-3, OQ-17).
 #
 # The packs-test job runs only when a person starts this workflow by hand. It runs
-# `crit packs test`, which asks Jev, on each pack and keeps the output as a run artifact, so a
-# pull request that changes a pack can record that run. Its output never decides a criterion
-# (EV-4 rule 5) and never justifies changing a fixture (FR-54 rule 1). The test step is one
-# step so that crit-q25.18 can replace it.
+# `crit packs test`, which asks Jev, on each pack and keeps the output as a run artifact for a
+# person to look at. It is not the record of a pack's score: that is the answers the agreement
+# harness saves in evals/agreement/runs/ (FR-53). Its output never decides a criterion
+# (EV-4 rule 5) and never justifies changing a fixture (FR-54 rule 1).
 name: Packs
 
 on:
@@ -65,7 +65,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      # The one step that asks Jev. crit-q25.18 may replace it. Its output never decides a
+      # The one step that asks Jev. It is only for looking (FR-53). Its output never decides a
       # criterion (EV-4 rule 5) and never justifies changing a fixture (FR-54 rule 1).
       # It runs in evals/agreement so that crit reads the model pin in its .crit.yaml.
       - name: Run crit packs test on every pack
