@@ -171,7 +171,7 @@ All seven domains ship on day one. The research behind them is in `GUIDELINES.md
 ## Integration
 
 - **CLI.** `crit report <image> [--pack ...] [--context ...] [--facts facts.json] [--json]`, `crit compare <before> <after>`, `crit gate <image>`. Exit codes: 0 pass, 1 fail, 2 could not run. Any agent that can run a shell command can use it.
-- **Claude Code plugin.** A skill that teaches Claude the loop: build, screenshot, `crit report --json`, fix the top findings, screenshot, `crit compare`. The loop stops when the gate passes or two rounds show no improvement. An optional hook runs `crit gate` after a UI file changes. The plugin is a thin wrapper around the CLI so there is one source of behavior.
+- **Claude Code plugin.** A skill that teaches Claude the loop: build, screenshot, `crit report --json`, fix the top findings, screenshot, `crit compare`. The loop stops when the gate passes or two rounds show no improvement. The skill runs `crit gate` each round, so the plugin needs no hook. The plugin is a thin wrapper around the CLI so there is one source of behavior.
 - **Library.** The same pipeline importable from TypeScript for people building their own loops: `prepare`, `build`, `ask`, `compose` as separate functions.
 
 ## Stack
@@ -219,7 +219,7 @@ Naming: the package, the repo, and the marketplace are `deskcrit`, `deskcrit`, a
 2. **report.** Prepare, build, ask, compose, JSON and pretty output. The `typography` and `layout` packs first.
 3. **Packs and marketplace.** Pack schema, loader, `crit packs`, the `deskcrit-packs` repo with CI and fixtures. The remaining five first-party packs.
 4. **compare and gate.** Order-swapped comparison, thresholds, exit codes.
-5. **Claude Code plugin.** Skill and hook. The loop test.
+5. **Claude Code plugin.** Skill. The loop test.
 
 ## Open questions
 
