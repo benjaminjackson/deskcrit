@@ -2,6 +2,7 @@
 // agent reads, so it is plain text with no color codes and no wrapping to the terminal width, and it
 // is built from fixed strings so it gives the same bytes on every run. The usage lines come from
 // args.ts, the same constants that error messages end with, so help and errors cannot drift apart.
+// The top-level help prints USAGE, the five lines an error prints when it does not know the command.
 // It reads no file and no environment variable.
 
 import {
@@ -12,13 +13,14 @@ import {
   PACKS_TEST_USAGE,
   PACKS_VALIDATE_USAGE,
   REPORT_USAGE,
+  USAGE,
 } from "./args.js";
 import { CRIT_YAML_KEYS } from "./crit-yaml.js";
 
 /** The help of `crit --help` and `crit -h`: every command, the exit codes, output, settings, and examples (FR-76). */
 const TOP_LEVEL_HELP = `crit (deskcrit) judges a picture of a design against criteria packs and reports what looks wrong.
 
-usage: crit <command> [arguments]
+${USAGE}
 usage: crit <command> --help
 usage: crit --version
 
@@ -162,7 +164,7 @@ Flags:
 
 Exit codes:
   0  the pack is valid.
-  1  the pack is invalid. stdout lists each problem.
+  1  the pack is invalid. stderr lists each problem.
   2  could not run.
 
 Examples:

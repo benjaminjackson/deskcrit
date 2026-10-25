@@ -15,7 +15,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import { runCritBundle } from "./support/run-crit-bundle.js";
 
 /** A new empty working directory, so crit finds no .crit.yaml (FR-51). */
@@ -94,6 +94,108 @@ function expectedErrorText(commandLine: string): string {
   return "cannot read image";
 }
 
+/**
+ * Each test here starts crit as a child process several times, and the Flags list check about
+ * fifty times, so on a busy machine a test needs more than the default 30 seconds. vi.setConfig
+ * sets the timeout for every test in this file.
+ */
+vi.setConfig({ testTimeout: 300_000 });
+
+/** One flag as a Flags list names it, and whether it takes a value, as in "--pack <dir>". */
+type ListedFlag = { readonly name: string; readonly takesValue: boolean };
+
+/**
+ * Returns the flags of the Flags section of one help text: each line from "Flags:" to the next blank
+ * line names one flag, as in "  --pack <dir>  ...", and may name a short form, as in "  --help, -h".
+ */
+function listHelpFlags(helpText: string): ListedFlag[] {
+  const flags: ListedFlag[] = [];
+  let insideFlags = false;
+  for (const line of helpText.split("\n")) {
+    if (line === "Flags:") {
+      insideFlags = true;
+      continue;
+    }
+    if (insideFlags && line === "") {
+      break;
+    }
+    if (!insideFlags) {
+      continue;
+    }
+    // Group 1 is the long flag, group 2 its value placeholder, and group 3 the short form.
+    const match = /^ {2}(--[a-z-]+)( <[^>]+>)?(?:, (-[a-z]))?/.exec(line);
+    if (match === null || match[1] === undefined) {
+      continue;
+    }
+    flags.push({ name: match[1], takesValue: match[2] !== undefined });
+    if (match[3] !== undefined) {
+      flags.push({ name: match[3], takesValue: false });
+    }
+  }
+  return flags;
+}
+
+/**
+ * Returns the flags of a Flags list that the parser rejects and the flags the parser accepts that the
+ * list leaves out, each sorted, so a test can expect both to be empty (FR-76).
+ */
+function compareFlagLists(
+  listedFlags: readonly string[],
+  acceptedFlags: readonly string[],
+): { readonly notAccepted: string[]; readonly notListed: string[] } {
+  const notAccepted: string[] = [];
+  for (const flag of listedFlags) {
+    if (!acceptedFlags.includes(flag)) {
+      notAccepted.push(flag);
+    }
+  }
+  const notListed: string[] = [];
+  for (const flag of acceptedFlags) {
+    if (!listedFlags.includes(flag)) {
+      notListed.push(flag);
+    }
+  }
+  notAccepted.sort();
+  notListed.sort();
+  return { notAccepted, notListed };
+}
+
+/**
+ * Returns the arguments that run one command with its images or its pack directory missing, so a
+ * flag the parser accepts stops on the missing input and an unknown flag stops on a usage error.
+ */
+function argumentsWithMissingInputs(commandName: string): string[] {
+  if (commandName === "compare") {
+    return [
+      "compare",
+      join(MISSING_FOLDER, "before.png"),
+      join(MISSING_FOLDER, "after.png"),
+    ];
+  }
+  if (commandName === "report" || commandName === "gate") {
+    return [commandName, join(MISSING_FOLDER, "shot.png")];
+  }
+  // "packs validate" or "packs test".
+  return [...commandName.split(" "), join(MISSING_FOLDER, "my-pack")];
+}
+
+/**
+ * Returns true when the parser of the command accepts the flag: the run does not stop on
+ * "unknown option". A flag that takes a value gets one, so a missing value is not mistaken for an
+ * unknown flag.
+ */
+async function parserAcceptsFlag(
+  commandName: string,
+  flag: ListedFlag,
+): Promise<boolean> {
+  const critArguments = [...argumentsWithMissingInputs(commandName), flag.name];
+  if (flag.takesValue) {
+    critArguments.push("platform=web");
+  }
+  const run = await runCrit(critArguments);
+  return !run.stderr.includes("unknown option");
+}
+
 describe("crit --version (FR-75)", () => {
   it("prints one line deskcrit <version> <commit> on stdout, nothing on stderr, and exits 0", async () => {
     const run = await runCrit(["--version"]);
@@ -155,6 +257,17 @@ describe("crit --help (FR-76)", () => {
       expect(helpText).toContain("Exit codes:");
       expect(helpText).toContain("2  could not run.");
     }
+  });
+
+  it("prints the usage lines that an error prints when it does not know the command", async () => {
+    const errorRun = await runCrit([]);
+    expect(errorRun.exitCode).toBe(2);
+    const usageLines = errorRun.stderr
+      .split("\n")
+      .filter((line) => line.startsWith("usage: "));
+    expect(usageLines.length).toBe(5);
+    const helpText = (await runCrit(["--help"])).stdout;
+    expect(helpText).toContain(usageLines.join("\n"));
   });
 
   it("prints help, not an error, when --help comes after a missing image", async () => {
@@ -231,4 +344,69 @@ describe("the examples in the help (FR-76)", () => {
       expect(run.stderr).not.toContain(expectedErrorText(wrongLine));
     });
   }
+});
+
+describe("the Flags lists in the help (FR-76)", () => {
+  it("names, for each command, exactly the flags its parser accepts", async () => {
+    // Every flag that any help text or usage line names is a candidate, so a flag one command
+    // accepts and another rejects, such as --save-answers for gate, is tried on every command.
+    const candidates = new Map<string, ListedFlag>();
+    const listedByCommand = new Map<string, string[]>();
+    for (const [name, commandLine] of Object.entries(HELP_COMMAND_LINES)) {
+      const helpText = (await runCrit(commandLine)).stdout;
+      if (name === "top-level") {
+        continue;
+      }
+      const listedFlags = listHelpFlags(helpText);
+      expect(listedFlags.length, name).toBeGreaterThan(0);
+      listedByCommand.set(
+        name,
+        listedFlags.map((flag) => flag.name),
+      );
+      for (const flag of listedFlags) {
+        candidates.set(flag.name, flag);
+      }
+      const usageLine = helpText.split("\n")[0] ?? "";
+      for (const match of usageLine.matchAll(/(--[a-z-]+)( <[^>]+>)?/g)) {
+        const flagName = match[1];
+        if (flagName !== undefined && !candidates.has(flagName)) {
+          candidates.set(flagName, {
+            name: flagName,
+            takesValue: match[2] !== undefined,
+          });
+        }
+      }
+    }
+    for (const [commandName, listedFlags] of listedByCommand) {
+      const acceptedFlags: string[] = [];
+      for (const candidate of candidates.values()) {
+        if (await parserAcceptsFlag(commandName, candidate)) {
+          acceptedFlags.push(candidate.name);
+        }
+      }
+      expect(compareFlagLists(listedFlags, acceptedFlags), commandName).toEqual(
+        {
+          notAccepted: [],
+          notListed: [],
+        },
+      );
+    }
+  });
+
+  it("finds a listed flag the parser rejects and an accepted flag the list leaves out, so the check can fail", async () => {
+    const wrongHelpText =
+      "Flags:\n  --jsn                  Print JSON.\n  --help, -h             Print this help.\n\n";
+    const listedFlags = listHelpFlags(wrongHelpText).map((flag) => flag.name);
+    const acceptedFlags: string[] = [];
+    for (const flagName of ["--jsn", "--json", "--help", "-h"]) {
+      const flag = { name: flagName, takesValue: false };
+      if (await parserAcceptsFlag("report", flag)) {
+        acceptedFlags.push(flagName);
+      }
+    }
+    expect(compareFlagLists(listedFlags, acceptedFlags)).toEqual({
+      notAccepted: ["--jsn"],
+      notListed: ["--json"],
+    });
+  });
 });

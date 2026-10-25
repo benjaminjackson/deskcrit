@@ -334,7 +334,7 @@ function rejectExtraImages(
 }
 
 /** The options that both `crit report` and `crit gate` take (FR-60). */
-const SHARED_REPORT_OPTIONS = {
+export const SHARED_REPORT_OPTIONS = {
   pack: { type: "string", multiple: true },
   context: { type: "string", multiple: true },
   facts: { type: "string" },
@@ -343,7 +343,7 @@ const SHARED_REPORT_OPTIONS = {
 } as const;
 
 /** The options of `crit report` and `crit compare`: the shared ones plus --save-answers (FR-42, FR-60). */
-const REPORT_OPTIONS = {
+export const REPORT_OPTIONS = {
   ...SHARED_REPORT_OPTIONS,
   "save-answers": { type: "string" },
 } as const;
