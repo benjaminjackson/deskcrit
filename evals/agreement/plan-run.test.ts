@@ -495,6 +495,14 @@ describe("a reworded criterion (EV-4 rule 5, R-4, crit-q25.23)", () => {
     ]);
   });
 
+  it("refuses --rerun-same-set with a rewording and names the reworded criterion", () => {
+    expect(() =>
+      planLiveRun({ ...rewordedInput(), rerunSameSet: true }),
+    ).toThrow(
+      /--rerun-same-set cannot score the reworded demo\/B.*normal live run/,
+    );
+  });
+
   it("still refuses the scored set when a pair of a criterion that is not reworded is unscored", () => {
     const input = rewordedInput();
     const withNewCriterion: PlanCriterion = {

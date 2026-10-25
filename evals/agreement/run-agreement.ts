@@ -570,6 +570,7 @@ async function askFixture(
   if (existsSync(recordPath)) {
     previousRecordText = readFileSync(recordPath, "utf8");
   }
+  const answersSha256Before = hashFileIfPresent(answersPath);
   const askedHashes = new Map<string, string>();
   for (const criterion of fixturePlan.criteria) {
     askedHashes.set(criterion, currentQuestionSha256(pack, criterion));
@@ -586,10 +587,18 @@ async function askFixture(
       ["--save-answers", answersPath],
     );
   } catch (error) {
-    if (previousRecordText === null) {
-      rmSync(recordPath, { force: true });
-    } else {
-      writeFileSync(recordPath, previousRecordText);
+    // The record must always describe the answers file on disk. crit may have written the answers
+    // file before the harness failed, for example on a report that is not JSON; then the new
+    // record stays. Only when the answers file is missing or unchanged does the old record return.
+    const answersSha256After = hashFileIfPresent(answersPath);
+    const answersFileChanged =
+      answersSha256After !== null && answersSha256After !== answersSha256Before;
+    if (!answersFileChanged) {
+      if (previousRecordText === null) {
+        rmSync(recordPath, { force: true });
+      } else {
+        writeFileSync(recordPath, previousRecordText);
+      }
     }
     throw error;
   }
@@ -598,6 +607,14 @@ async function askFixture(
     rmSync(join(directory, recordFileNameFor(fileName)), { force: true });
   }
   return report;
+}
+
+/** Return the SHA-256 of a file's bytes, or null when the file does not exist. */
+function hashFileIfPresent(filePath: string): string | null {
+  if (!existsSync(filePath)) {
+    return null;
+  }
+  return createHash("sha256").update(readFileSync(filePath)).digest("hex");
 }
 
 /** Return the SHA-256 of a criterion's current question, or throw for a criterion not in the pack. */

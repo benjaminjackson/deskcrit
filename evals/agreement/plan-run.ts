@@ -141,6 +141,13 @@ function imageFileNameOf(fixture: string): string {
 export function planLiveRun(input: LivePlanInput): LiveFixturePlan[] {
   const allCriteria = input.criteria.map((criterion) => criterion.criterion);
   if (input.rerunSameSet) {
+    // A rerun asks every pair again, so with a rewording it would rewrite the answers of criteria
+    // already decided. A rewording is scored by a normal live run (EV-4 rule 5, R-4).
+    if (input.rewordedCriteria.length > 0) {
+      throw new Error(
+        `${input.packName}: --rerun-same-set cannot score the reworded ${input.rewordedCriteria.join(", ")}, because it would ask the decided criteria again; a rewording is scored by a normal live run without --rerun-same-set (EV-4 rule 5)`,
+      );
+    }
     return planRerun(input.fixtures, allCriteria);
   }
   if (input.currentSetPngHashes !== null) {

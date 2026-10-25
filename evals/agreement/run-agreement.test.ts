@@ -485,6 +485,55 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
     expect(hashFiles(answersDirectory)).toEqual(after);
   });
 
+  it("keeps the new record when crit wrote the answers file and the harness then failed", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    // crit runs and saves its answers, but the report it prints is not JSON.
+    const stubRunner = makeStubCritRunner(askedQuestionIds, failure);
+    const brokenReportRunner: CritRunner = async (
+      critArguments,
+      environment,
+      workingDirectory,
+    ) => {
+      const run = await stubRunner(
+        critArguments,
+        environment,
+        workingDirectory,
+      );
+      return { ...run, stdout: "not JSON" };
+    };
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], {
+        ...options,
+        runCrit: brokenReportRunner,
+      }),
+    ).rejects.toThrow(/crit did not write JSON/);
+    const fileNames = [...hashFiles(answersDirectory).keys()].sort();
+    expect(fileNames).toEqual([
+      "first.negative.png.answers.json",
+      "first.negative.png.answers.questions.json",
+    ]);
+    // The record names the criteria the saved answers file answers.
+    expect(
+      Object.keys(
+        JSON.parse(
+          readFileSync(
+            join(answersDirectory, "first.negative.png.answers.questions.json"),
+            "utf8",
+          ),
+        ),
+      ),
+    ).toEqual(["demo/first", "demo/second"]);
+  });
+
+  it("removes the new record when crit fails before it writes the answers file", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    failure.fail = true;
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], options),
+    ).rejects.toThrow(/crit exited 2/);
+    expect([...hashFiles(answersDirectory).keys()]).toEqual([]);
+  });
+
   it("stops the replay when a saved answers file has no record file", async () => {
     await writePack(packDirectory, [FIRST, SECOND]);
     await runHarness(["--live", "--pack", packDirectory], options);
