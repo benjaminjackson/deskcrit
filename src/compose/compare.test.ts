@@ -197,6 +197,11 @@ const lowerBetterScore = scoreCriterion("crowding", {
 const lowerBetterNoul = noulCriterion("contrast", {
   fail_when: { probability_at_least: 0.7 },
 });
+// A noul criterion whose pass_when makes a higher probability of true better (FR-36).
+const higherBetterNoul = noulCriterion("contrast", {
+  pass_when: { probability_at_least: 0.7 },
+  fail_when: { probability_at_most: 0.3 },
+});
 
 describe("compareFinding through compare (FR-36, FR-37)", () => {
   const cases: Array<{
@@ -275,6 +280,20 @@ describe("compareFinding through compare (FR-36, FR-37)", () => {
       before: noulFinding("contrast", "uncertain", 0.45),
       after: noulFinding("contrast", "uncertain", 0.42),
       change: "same",
+    },
+    {
+      name: "noul with higher better, uncertain in after, with a rise of 0.15 gives better",
+      criterion: higherBetterNoul,
+      before: noulFinding("contrast", "fail", 0.2),
+      after: noulFinding("contrast", "uncertain", 0.35),
+      change: "better",
+    },
+    {
+      name: "noul with higher better, uncertain in before, with a drop of 0.4 gives worse",
+      criterion: higherBetterNoul,
+      before: noulFinding("contrast", "uncertain", 0.5),
+      after: noulFinding("contrast", "fail", 0.1),
+      change: "worse",
     },
     {
       name: "score uncertain in before gives uncertain whatever the level moved",
@@ -608,6 +627,7 @@ describe("the compare document (section 8.2, FR-33, FR-39)", () => {
     scoreCriterion("c-score", { pass_when: { level_at_most: 0 } }),
     noulCriterion("z-skip", { fail_when: { probability_at_least: 0.7 } }),
     noulCriterion("m-skip", { fail_when: { probability_at_least: 0.7 } }),
+    choiceCriterion("d-choice"),
   ];
   const packs = [makePack(criteria)];
   const before = makeReport(
@@ -616,6 +636,7 @@ describe("the compare document (section 8.2, FR-33, FR-39)", () => {
       scoreFinding("c-score", "fail", 2),
       noulFinding("a-noul", "uncertain", 0.5),
       noulFinding("z-skip", "fail", 0.9),
+      choiceFinding("d-choice", "pass", "right"),
     ],
     {
       skipped: [{ criterion: "test/m-skip", reason: "platform" }],
@@ -633,6 +654,7 @@ describe("the compare document (section 8.2, FR-33, FR-39)", () => {
       noulFinding("m-skip", "fail", 0.9),
       scoreFinding("c-score", "fail", 3),
       noulFinding("b-noul", "pass", 0.1),
+      choiceFinding("d-choice", "uncertain", "right"),
     ],
     {
       skipped: [{ criterion: "test/z-skip", reason: "needs facts" }],
@@ -651,6 +673,7 @@ describe("the compare document (section 8.2, FR-33, FR-39)", () => {
       "test/a-noul",
       "test/b-noul",
       "test/c-score",
+      "test/d-choice",
     ]);
     expect(result.skipped.map((entry) => entry.criterion)).toEqual([
       "test/m-skip",
@@ -664,7 +687,7 @@ describe("the compare document (section 8.2, FR-33, FR-39)", () => {
       improved: 2,
       regressed: 1,
       same: 0,
-      uncertain: 0,
+      uncertain: 1,
     });
   });
 
