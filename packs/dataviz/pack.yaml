@@ -2,8 +2,9 @@
 # visualization" section of GUIDELINES.md. Every question is noul, and true is the defect (JC-5). Each
 # question is the pre-screen wording in spike/prescreen/dataviz/questions.json, unchanged.
 # Two pre-screened criteria are not encoded: series-split-only-by-red-green and tangled-overlaid-lines.
-# GUIDELINES.md records why. Each criterion has pass_when and warn_when and no fail_when until the
-# EV-5 run (crit-q25.14). The source rule for this pack is awaiting a decision by Benjamin Jackson:
+# GUIDELINES.md records why. Each criterion has pass_when. After the EV-5 run (crit-q25.14, crit-q25.28),
+# the seven criteria at or above the agreement floor have fail_when, and heavy-gridlines-and-frames,
+# below the floor, has warn_when, so warn is its most severe verdict (EV-5). The source rule for this pack is awaiting a decision by Benjamin Jackson:
 # each source names the practice reference and, where one exists, the Tufte page, and every Tufte page
 # is marked "page unchecked". Benjamin Jackson approved the eight fix hints on 2026-10-25 (G-4).
 name: dataviz
@@ -49,7 +50,7 @@ criteria:
         "true": 'A chart carries decoration that shows no data, such as pictures, icons, patterned or textured fills, or ornamental backgrounds behind or inside the marks.'
         "false": 'Every chart is drawn with plain marks, axes, and labels and carries no decoration that shows no data, or the image shows no chart.'
     pass_when: { probability_at_most: 0.3 }
-    warn_when: { probability_at_least: 0.7 }
+    fail_when: { probability_at_least: 0.7 }
     fix: 'Remove the pictures, icons, patterns, and ornamental backgrounds, and draw the marks in plain flat color on a plain background (Few, "Common Pitfalls in Dashboard Design").'
     fixtures:
       positive:
@@ -76,7 +77,7 @@ criteria:
         "true": 'A chart is drawn with a three-dimensional effect, such as bars or slices with depth, visible sides, or a tilted perspective.'
         "false": 'Every chart is drawn flat, with no depth, visible sides, or tilted perspective, or the image shows no chart.'
     pass_when: { probability_at_most: 0.3 }
-    warn_when: { probability_at_least: 0.7 }
+    fail_when: { probability_at_least: 0.7 }
     fix: 'Draw the chart flat, with no depth, sides, or tilt, so that each value is read from one length or one angle (Wilke, *Fundamentals of Data Visualization*).'
     fixtures:
       positive:
@@ -103,7 +104,7 @@ criteria:
         "true": 'A pie or donut chart has so many slices that several are thin slivers and the slices are hard to tell apart and compare.'
         "false": 'Every pie or donut chart has few enough slices that each is easy to tell apart and compare, or the image shows no pie or donut chart.'
     pass_when: { probability_at_most: 0.3 }
-    warn_when: { probability_at_least: 0.7 }
+    fail_when: { probability_at_least: 0.7 }
     fix: 'Keep the four or five largest slices and group the small ones into one Other slice, or show the shares as a sorted bar chart (Few, "Common Pitfalls in Dashboard Design").'
     fixtures:
       positive:
@@ -130,7 +131,7 @@ criteria:
         "true": 'A chart or map shows values that run from low to high with a rainbow of unrelated hues, so the colors do not read as an order from low to high.'
         "false": 'Values that run from low to high are shown with one color, or two, that grow lighter or darker in order, or the image shows no such chart or map.'
     pass_when: { probability_at_most: 0.3 }
-    warn_when: { probability_at_least: 0.7 }
+    fail_when: { probability_at_least: 0.7 }
     fix: 'Show values that run from low to high with one hue that goes from light to dark, so that the order of the colors follows the order of the values (Wilke, *Fundamentals of Data Visualization*).'
     fixtures:
       positive:
@@ -157,7 +158,7 @@ criteria:
         "true": 'The bars or marks of a single series are drawn in many different colors that encode nothing, and one color would show the same data.'
         "false": 'Each chart uses color only to tell apart series or categories that the legend or labels name, or draws a single series in one color, or the image shows no chart.'
     pass_when: { probability_at_most: 0.3 }
-    warn_when: { probability_at_least: 0.7 }
+    fail_when: { probability_at_least: 0.7 }
     fix: 'Draw the bars or marks of one series in one color, and keep a second color for the one point that the reader must notice (Few, "Common Pitfalls in Dashboard Design").'
     fixtures:
       positive:
@@ -184,7 +185,7 @@ criteria:
         "true": 'A bar chart''s value axis starts above zero, so the bars are cut off and the differences between them look larger than they are.'
         "false": 'Every bar chart''s value axis starts at zero, so bar lengths are in proportion to the values, or the image shows no bar chart.'
     pass_when: { probability_at_most: 0.3 }
-    warn_when: { probability_at_least: 0.7 }
+    fail_when: { probability_at_least: 0.7 }
     fix: 'Start the value axis of the bar chart at zero, so that the bar lengths keep the proportions of the values; to show small differences, use dots or a line on a scale that does not start at zero (Wilke, *Fundamentals of Data Visualization*).'
     fixtures:
       positive:
@@ -211,7 +212,7 @@ criteria:
         "true": 'A large headline number is shown alone, with no unit, no time period, and no comparison such as a change, a target, or an earlier value, so a reader cannot tell whether it is good or bad.'
         "false": 'Every large headline number has a unit or label, a time period, and a comparison such as a change, a target, or an earlier value, or the image shows no headline number.'
     pass_when: { probability_at_most: 0.3 }
-    warn_when: { probability_at_least: 0.7 }
+    fail_when: { probability_at_least: 0.7 }
     fix: 'Put the unit, the time period, and a comparison, such as the change from the last period or the target, next to each headline number (Few, "Common Pitfalls in Dashboard Design").'
     fixtures:
       positive:
