@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Accessibility fixture: field label placeholder only 5</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion field-label-placeholder-only. A contact page for a design
+ * studio: address and hours on the left, an enquiry form on the right.
+ * The defect switch hides the field labels, so the hint text inside each
+ * empty field is its only label. No text changes.
+ */
+body { background: #f2efe9; font-family: var(--font-sans); }
+.nav { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 110px; font-size: 15px; }
+.nav b { font-size: 19px; }
+.nav span { display: flex; gap: 30px; color: #3d444d; }
+.wrap { display: flex; gap: 90px; padding: 46px 110px 0; }
+.info { width: 380px; }
+h1 { font-family: var(--font-serif); font-size: 46px; line-height: 1.1; margin-bottom: 20px; }
+.info p { font-size: 16px; line-height: 1.6; color: #3d444d; margin-bottom: 18px; }
+.info h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+form { width: 590px; }
+label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+[data-defect="on"] label { display: none; }
+input, textarea { display: block; width: 100%; height: 46px; border: 1px solid #a9a39a; border-radius: 0; background: #ffffff; padding: 0 14px; font-family: var(--font-sans); font-size: 15px; margin-bottom: 18px; }
+textarea { height: 140px; padding: 12px 14px; resize: none; }
+input::placeholder, textarea::placeholder { color: #6e6a63; }
+.two { display: flex; gap: 16px; }
+.two div { flex: 1; }
+button { height: 50px; padding: 0 30px; border: 0; background: #1f2328; color: #ffffff; font-family: var(--font-sans); font-size: 15px; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <div class="nav"><b>Marrow Studio</b><span><span>Work</span><span>Studio</span><span>Journal</span><span>Contact</span></span></div>
+    <div class="wrap">
+      <div class="info">
+        <h1>Start a project with us</h1>
+        <p>Tell us a little about what you have in mind. We answer every enquiry within two working days.</p>
+        <h3>Studio</h3><p>14 Tannery Lane, second floor</p>
+        <h3>Hours</h3><p>Monday to Thursday, 9 am to 5 pm</p>
+      </div>
+      <form>
+        <div class="two">
+          <div><label for="a">Your name</label><input id="a" placeholder="Full name"></div>
+          <div><label for="b">Email</label><input id="b" placeholder="So we can reply"></div>
+        </div>
+        <div class="two">
+          <div><label for="c">Organization</label><input id="c" placeholder="Company or charity"></div>
+          <div><label for="d">Budget</label><input id="d" placeholder="A rough range is fine"></div>
+        </div>
+        <label for="e">About the project</label><textarea id="e" placeholder="What do you need, and by when?"></textarea>
+        <button type="button">Send enquiry</button>
+      </form>
+    </div>
+  </body>
+</html>

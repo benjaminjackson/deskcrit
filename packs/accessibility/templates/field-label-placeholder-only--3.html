@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Accessibility fixture: field label placeholder only 3</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion field-label-placeholder-only. The profile page of an app's
+ * settings, with a side menu. The fields are empty, and each has a label
+ * beside it and hint text inside it. The defect switch hides the labels, so
+ * the hint text is each field's only label. No text changes.
+ */
+body { background: #ffffff; }
+.app { display: flex; }
+.side { width: 240px; height: 800px; background: #f6f7f9; border-right: 1px solid #e3e6ea; padding: 26px 22px; font-size: 14px; color: #3d444d; }
+.side .name { font-weight: 700; font-size: 16px; color: #1f2328; margin-bottom: 28px; }
+.side div { margin-bottom: 12px; }
+.side .on { color: #1f2328; font-weight: 700; }
+main { padding: 40px 64px; width: 1040px; }
+h1 { font-size: 26px; margin-bottom: 6px; }
+.sub { font-size: 15px; color: #59636e; margin-bottom: 30px; }
+.field { display: flex; align-items: center; border-top: 1px solid #eceef1; padding: 16px 0; width: 760px; }
+label { width: 200px; font-size: 15px; font-weight: 700; }
+[data-defect="on"] label { display: none; }
+input, textarea { width: 420px; height: 40px; border: 1px solid #c3c8cf; border-radius: 6px; padding: 0 12px; font-family: var(--font-sans); font-size: 15px; }
+textarea { height: 84px; padding: 10px 12px; resize: none; }
+input::placeholder, textarea::placeholder { color: #6e7781; }
+.actions { margin-top: 24px; display: flex; gap: 12px; }
+.btn { height: 40px; padding: 0 18px; border-radius: 6px; font-family: var(--font-sans); font-size: 15px; font-weight: 700; border: 1px solid #c3c8cf; background: #ffffff; color: #1f2328; }
+.btn.main { background: #1f6f5c; border-color: #1f6f5c; color: #ffffff; }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="side"><div class="name">Northdesk</div><div>Inbox</div><div>Customers</div><div>Reports</div><div class="on">Settings</div></div>
+      <main>
+        <h1>Your profile</h1>
+        <div class="sub">This is how other agents and customers see you in conversations.</div>
+        <div class="field"><label for="a">Display name</label><input id="a" placeholder="Name shown to customers"></div>
+        <div class="field"><label for="b">Job title</label><input id="b" placeholder="e.g. Support lead"></div>
+        <div class="field"><label for="c">Phone</label><input id="c" placeholder="Include the country code"></div>
+        <div class="field"><label for="d">Time zone</label><input id="d" placeholder="Search for a city"></div>
+        <div class="field"><label for="e">Signature</label><textarea id="e" placeholder="Added to the end of every reply"></textarea></div>
+        <div class="actions"><button class="btn main" type="button">Save changes</button><button class="btn" type="button">Cancel</button></div>
+      </main>
+    </div>
+  </body>
+</html>

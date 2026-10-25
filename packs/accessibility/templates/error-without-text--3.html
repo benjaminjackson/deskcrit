@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="crit-viewport" content="390x844">
+    <title>Accessibility fixture: error without text 3</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion error-without-text. A phone screen where a user creates an
+ * account. The password field has a red border and a small red warning icon
+ * on both sides. Under it, a message says what is wrong; the defect switch
+ * hides the message, so only the border and the icon mark the error.
+ * No text changes.
+ */
+html, body { width: 390px; height: 844px; }
+body { background: #ffffff; }
+.bar { height: 56px; display: flex; align-items: center; padding: 0 20px; font-size: 15px; color: #3d444d; border-bottom: 1px solid #eceef1; }
+form { padding: 28px 24px 0; }
+h1 { font-size: 26px; margin-bottom: 8px; }
+.lead { font-size: 15px; color: #59636e; margin-bottom: 24px; line-height: 1.5; }
+label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.box { position: relative; }
+input { display: block; width: 100%; height: 50px; border: 1px solid #b6bec8; border-radius: 10px; padding: 0 14px; font-family: var(--font-sans); font-size: 16px; color: #1f2328; }
+input.bad { border: 2px solid #d93025; padding-right: 44px; }
+.icon { position: absolute; right: 14px; top: 15px; width: 20px; height: 20px; border-radius: 10px; background: #d93025; }
+.icon::after { content: ""; position: absolute; left: 9px; top: 4px; width: 2px; height: 8px; background: #ffffff; }
+.field { margin-bottom: 18px; }
+.err { font-size: 14px; color: #b3261e; margin-top: 6px; line-height: 1.4; }
+[data-defect="on"] .err { display: none; }
+.check { display: flex; gap: 10px; font-size: 14px; color: #3d444d; line-height: 1.45; margin: 4px 0 22px; }
+.check i { width: 20px; height: 20px; border: 2px solid #1f6f5c; background: #1f6f5c; border-radius: 4px; flex: none; }
+button { width: 100%; height: 52px; border: 0; border-radius: 26px; background: #1f6f5c; color: #ffffff; font-family: var(--font-sans); font-size: 17px; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <div class="bar">Back</div>
+    <form>
+      <h1>Create your account</h1>
+      <div class="lead">Save your routes and sync them to your watch.</div>
+      <div class="field"><label for="n">Name</label><input id="n" value="Priya Nand"></div>
+      <div class="field"><label for="e">Email</label><input id="e" value="priya.nand@example.com"></div>
+      <div class="field"><label for="p">Password</label><div class="box"><input id="p" class="bad" value="&bull;&bull;&bull;&bull;&bull;"><span class="icon"></span></div><div class="err">Use at least 8 characters, with one number.</div></div>
+      <div class="check"><i></i><span>Send me a weekly summary of my runs</span></div>
+      <button type="button">Create account</button>
+    </form>
+  </body>
+</html>
