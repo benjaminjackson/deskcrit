@@ -84,6 +84,8 @@ export type Criterion = {
   readonly locate?: boolean;
   readonly locate_instructions?: string;
   readonly requires?: readonly string[];
+  /** Why a criterion whose source is "Common sense" holds; the schema requires it then (FR-45). */
+  readonly reason?: string;
   readonly fix: string;
   readonly fixtures?: PackFixtures;
 };

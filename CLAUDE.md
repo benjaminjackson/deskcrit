@@ -118,7 +118,7 @@ This project follows Chad Fowler's regenerative software series, "The Phoenix Ar
 
 ## Product rules that must not be broken
 
-`docs/PRD.md` sections 9 and 10 are the rules that must not be broken, together with FR-14 (one question per criterion), FR-25 and FR-27 (verdicts decided in code), FR-45 (every criterion cites a source), G-4 (fix hints written by people), and NG-5 (no content linting). Read them before changing build, ask, or compose.
+`docs/PRD.md` sections 9 and 10 are the rules that must not be broken, together with FR-14 (one question per criterion), FR-25 and FR-27 (verdicts decided in code), FR-45 (every criterion cites a source that states the rule, or `Common sense` with a reason), G-4 (fix hints written by people), and NG-5 (no content linting). Read them before changing build, ask, or compose.
 
 ## Stack and conventions
 
