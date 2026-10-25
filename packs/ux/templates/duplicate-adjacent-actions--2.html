@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>UX fixture: document editor toolbar</title>
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion duplicate-adjacent-actions. A document editor with a toolbar above
+ * a page of text. Two buttons sit side by side at the right end of the toolbar.
+ * The defect switch only changes display: on hides the button with a different
+ * action (Cancel) and shows the button whose label is a synonym of the first
+ * (Save changes). Both second buttons have the same outlined style.
+ */
+body { background: #e9ecf1; color: #20242c; }
+.bar { display: flex; align-items: center; gap: 20px; height: 56px; padding: 0 24px; background: #ffffff; border-bottom: 1px solid #d3d8e0; font-size: 14px; }
+.doc { font-weight: 700; font-size: 15px; }
+.tools { display: flex; gap: 6px; margin-left: 16px; }
+.tool { width: 34px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; color: #4a5361; font-weight: 700; background: #f0f2f6; }
+.spacer { flex: 1; }
+.actions { display: flex; gap: 10px; }
+.btn { display: inline-flex; align-items: center; height: 34px; padding: 0 16px; border-radius: 6px; font-size: 14px; font-weight: 400; }
+.primary { background: #2f5fd0; color: #ffffff; }
+.secondary { border: 1px solid #9aa4b5; color: #2f3a4d; background: #ffffff; }
+.alt-synonym { display: none; }
+[data-defect="on"] .alt-different { display: none; }
+[data-defect="on"] .alt-synonym { display: inline-flex; }
+.sheet { width: 760px; height: 640px; margin: 28px auto 0; background: #ffffff; border: 1px solid #d3d8e0; padding: 56px 72px; }
+.sheet h1 { font-size: 30px; font-weight: 700; }
+.sheet p { margin-top: 18px; font-size: 16px; line-height: 1.65; color: #3a414d; }
+    </style>
+  </head>
+  <body>
+    <header class="bar">
+      <span class="doc">Quarterly notes</span>
+      <div class="tools"><span class="tool">B</span><span class="tool">I</span><span class="tool">U</span><span class="tool"><svg width="14" height="12" viewBox="0 0 14 12"><path d="M1 2H13M1 6H13M1 10H13" stroke="currentColor" stroke-width="1.6"/></svg></span></div>
+      <span class="spacer"></span>
+      <div class="actions">
+        <span class="btn secondary alt-different">Cancel</span>
+        <span class="btn secondary alt-synonym">Save changes</span>
+        <span class="btn primary">Save</span>
+      </div>
+    </header>
+    <main class="sheet">
+      <h1>Warehouse move: schedule and open items</h1>
+      <p>The racking crew arrives on the second Monday, and the first pallets move once the floor markings are dry. Each team lead confirms the list of shelves they own before the move begins.</p>
+      <p>Open items are the loading dock lights, the label printer cable, and the sign-off sheet for the forklift check.</p>
+    </main>
+  </body>
+</html>

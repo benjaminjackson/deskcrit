@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>UX fixture: dialog footer over a page</title>
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion duplicate-adjacent-actions. A dialog titled Share this folder over
+ * a dimmed file list page. The dialog has a close icon on both sides and two
+ * buttons in its footer.
+ * The defect switch only changes display: on hides the button with a different
+ * action (Copy link) and shows the button whose label is a synonym of the
+ * first (Send invite). Both second buttons have the same outlined style.
+ */
+body { background: #fafaf7; color: #26292e; }
+.app { display: flex; height: 800px; }
+.side { width: 220px; background: #2b3a2f; color: #dfe8e0; padding: 28px 22px; font-size: 15px; line-height: 2.2; }
+.side b { font-size: 18px; color: #ffffff; }
+.files { flex: 1; padding: 36px 48px; }
+.files h1 { font-size: 24px; font-weight: 700; }
+.row { display: flex; justify-content: space-between; margin-top: 14px; padding: 14px 0; border-bottom: 1px solid #e3e5df; font-size: 15px; color: #4a4f57; }
+.scrim { position: absolute; top: 0; left: 0; width: 1280px; height: 800px; background: rgba(20, 24, 22, 0.55); }
+.dialog { position: absolute; top: 180px; left: 400px; width: 480px; background: #ffffff; border-radius: 12px; padding: 28px 32px; }
+.dialog h2 { font-size: 20px; font-weight: 700; }
+.close { position: absolute; top: 24px; right: 28px; font-size: 20px; color: #6a7078; }
+.field { margin-top: 20px; }
+.field label { display: block; font-size: 13px; font-weight: 700; color: #4a4f57; }
+.box { margin-top: 6px; height: 40px; border: 1px solid #b8bdb5; border-radius: 6px; padding: 0 12px; display: flex; align-items: center; font-size: 15px; color: #6a7078; }
+.actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; }
+.btn { display: inline-flex; align-items: center; height: 40px; padding: 0 20px; border-radius: 6px; font-size: 15px; font-weight: 700; }
+.primary { background: #2f7a4b; color: #ffffff; }
+.secondary { border: 1px solid #2f7a4b; color: #2f7a4b; }
+.alt-synonym { display: none; }
+[data-defect="on"] .alt-different { display: none; }
+[data-defect="on"] .alt-synonym { display: inline-flex; }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <nav class="side"><b>Foldr</b><br>All files<br>Recent<br>Shared<br>Archive</nav>
+      <main class="files">
+        <h1>Project files</h1>
+        <div class="row"><span>Site plan</span><span>Edited today</span></div>
+        <div class="row"><span>Budget sheet</span><span>Edited yesterday</span></div>
+        <div class="row"><span>Meeting notes</span><span>Edited last week</span></div>
+        <div class="row"><span>Supplier list</span><span>Edited last month</span></div>
+      </main>
+    </div>
+    <div class="scrim"></div>
+    <section class="dialog">
+      <span class="close"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="1.6"/></svg></span>
+      <h2>Share this folder</h2>
+      <div class="field"><label>Invite by email</label><div class="box">Enter an email address</div></div>
+      <div class="actions">
+        <span class="btn secondary alt-different">Copy link</span>
+        <span class="btn secondary alt-synonym">Send invite</span>
+        <span class="btn primary">Invite</span>
+      </div>
+    </section>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>UX fixture: pricing card</title>
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion duplicate-adjacent-actions. A pricing page with one plan card and
+ * two links stacked in a row at the bottom of the card.
+ * The defect switch only changes display: on hides the link with a different
+ * action (Compare plans) and shows the link whose label is a synonym of the
+ * first (Choose Team). Both second links have the same plain outlined style.
+ */
+body { background: #14213d; color: #ffffff; font-family: "Source Serif 4", serif; }
+.page { display: flex; flex-direction: column; align-items: center; padding-top: 56px; }
+h1 { font-size: 38px; font-weight: 700; }
+.sub { margin-top: 10px; font-size: 18px; color: #c5cde0; }
+.card { margin-top: 36px; width: 460px; background: #ffffff; color: #14213d; border-radius: 14px; padding: 36px 40px; }
+.plan { font-size: 15px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #5b6b91; }
+.price { margin-top: 8px; font-size: 56px; font-weight: 700; }
+.price span { font-size: 18px; font-weight: 400; color: #5b6b91; }
+ul { margin-top: 20px; padding-left: 20px; font-size: 17px; line-height: 1.9; }
+.actions { display: flex; gap: 12px; margin-top: 28px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; flex: 1; height: 48px; border-radius: 8px; font-size: 16px; font-weight: 700; }
+.primary { background: #e0a72b; color: #14213d; }
+.secondary { border: 2px solid #14213d; color: #14213d; }
+.alt-synonym { display: none; }
+[data-defect="on"] .alt-different { display: none; }
+[data-defect="on"] .alt-synonym { display: inline-flex; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <h1>Plans for small teams</h1>
+      <p class="sub">Billed monthly. Change or stop any time.</p>
+      <section class="card">
+        <p class="plan">Team</p>
+        <p class="price">$24<span> per seat, per month</span></p>
+        <ul><li>Up to 25 seats</li><li>Shared project boards</li><li>Weekly usage summary</li><li>Email support</li></ul>
+        <div class="actions">
+          <span class="btn primary">Choose Team</span>
+          <span class="btn secondary alt-different">Compare plans</span>
+          <span class="btn secondary alt-synonym">Select Team</span>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -749,9 +749,10 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 
 ### Nielsen 1: Visibility of system status
 - **Rule:** The design shows the current state (selected tab, active step, progress, saved or unsaved, loading) with a visible indicator. A reviewer should be able to say where the user is and what is happening.
-- **Source:** Jakob Nielsen, *10 Usability Heuristics for User Interface Design* (1994, revised since); first stated in Nielsen & Molich, "Heuristic Evaluation of User Interfaces," CHI 1990.
-- **Link:** https://www.nngroup.com/articles/ten-usability-heuristics/
-- **Judged by:** askable.
+- **Source:** Jakob Nielsen, *10 Usability Heuristics for User Interface Design* (1994, revised since); first stated in Nielsen & Molich, "Heuristic Evaluation of User Interfaces," CHI 1990. For the navigation part of the rule, the ux pack cites Page Laubheimer, "Menu-Design Checklist: 17 UX Guidelines" (Nielsen Norman Group, 2024), guideline 5 "Indicate the User's Current Location in the Menu". Checked 2026-10-25 against the article text, which says that failing to show the current location is probably the most common mistake on website menus.
+- **Link:** https://www.nngroup.com/articles/ten-usability-heuristics/ and https://www.nngroup.com/articles/menu-design/
+- **Judged by:** askable for the navigation part only, as `no-current-location-shown`. Question: "Does the site's navigation menu look the same for every item, with nothing marking which item is the page the visitor is on now?" Progress, saved state, and loading are not encoded.
+- **Defect range:** `no-current-location-shown`: not measured. The current item in the navigation menu is drawn exactly like its siblings. The clean side marks it with one ordinary cue: a bolder weight, an underline or bar, a background, or an accent color. The page heading names the current page on both sides.
 
 ### Nielsen 2: Match between system and the real world
 - **Rule:** Labels, icons, and metaphors use the audience's own words and familiar real-world conventions, not internal jargon or system terms. Information appears in a natural order.
@@ -764,6 +765,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** Nielsen, *10 Usability Heuristics* (1994).
 - **Link:** https://www.nngroup.com/articles/ten-usability-heuristics/
 - **Judged by:** askable.
+- **Not encoded:** `dialog-without-exit` passed the pre-screen, but Benjamin Jackson dropped it on 2026-10-25 under the rule in this section's introduction: coding agents seldom ship a dialog with no way out.
 
 ### Nielsen 4: Consistency and standards
 - **Rule:** The same action, term, color, and component style means the same thing everywhere on the screen or set, and follows platform and industry conventions (logo top-left links home, cart icon top-right).
@@ -944,9 +946,10 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 
 ### Buttons and links must look clickable
 - **Rule:** Links are distinguishable from body text by more than color alone (underline or other cue); buttons have a shape, fill, or border. Flat text that is clickable but looks like a label is a fault.
-- **Source:** Nielsen Norman Group, "Flat UI Elements Attract Less Attention and Cause Uncertainty" (Kate Moran, 2017); WCAG 2.2 SC 1.4.1 Use of Color.
+- **Source:** Nielsen Norman Group, "Flat UI Elements Attract Less Attention and Cause Uncertainty" (Kate Moran, 2017); WCAG 2.2 SC 1.4.1 Use of Color. The ux pack cites `Common sense` for this rule (FR-45). Krug, *Don't Make Me Think, Revisited* (2014), chapter 3 "Billboard Design 101", has a section "Make it obvious what's clickable", but on 2026-10-25 only its table of contents could be opened, not its text, so it is not confirmed. Moran's article, checked the same day, reports that links styled as static text drew less attention, and says that flat designs can work when other conditions hold, so it does not state the rule that the main action must look clickable.
 - **Link:** https://www.nngroup.com/articles/flat-ui-less-attention-cause-uncertainty/
-- **Judged by:** askable.
+- **Judged by:** askable for the page's main action, as `actions-look-like-plain-text`. Question: "Is the page's main action, such as a submit, buy, or sign-up control, shown as plain text with no button shape, outline, fill, or link styling, so it looks like ordinary words and not like something to click?" Because the source is `Common sense`, the criterion can only warn.
+- **Defect range:** `actions-look-like-plain-text`: not measured. The main action is set as a bare word or short phrase in the body text's face, size, weight, and color, with no fill, border, or underline, where the button would sit. It is never shrunk, faded, or hidden. The clean side is an ordinary filled or outlined button, or a plainly styled link.
 
 ### Destructive action confirmation and safety
 - **Rule:** Destructive actions (delete, remove, reset) are visually separated from safe ones, labeled with the specific outcome ("Delete project"), styled as destructive (often red), not the default focus, and followed by a confirmation or undo. Prefer undo to confirmation dialogs.
@@ -983,17 +986,21 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** Luke Wroblewski, *Web Form Design* (2008); Baymard Institute, "Avoid Extensive Multicolumn Layouts".
 - **Link:** https://baymard.com/blog/avoid-multi-column-forms
 - **Judged by:** askable.
+- **Not encoded:** `multi-column-form` passed the pre-screen, but Benjamin Jackson dropped it on 2026-10-25 under the rule in this section's introduction: coding agents seldom set a form in several columns.
 
 ### Forms: inline validation and required markers
 - **Rule:** Fields validate when the user leaves them (not on every keystroke, not only at submit) with a visible result by the field; required and optional fields are marked, and optional fields are kept few.
-- **Source:** Luke Wroblewski, "Inline Validation in Web Forms," *A List Apart* (2009); Baymard Institute, "Inline Form Validation" research.
-- **Link:** https://alistapart.com/article/inline-validation-in-web-forms/
-- **Judged by:** askable.
+- **Source:** Luke Wroblewski, "Inline Validation in Web Forms," *A List Apart* (2009); Baymard Institute, "Inline Form Validation" research. For the required-marker part, the ux pack cites Raluca Budiu, "Marking Required Fields in Forms" (Nielsen Norman Group, 2019). Checked 2026-10-25 against the article text, which says to mark all the required fields, for example with an asterisk, and that marking the optional fields as well lightens the user's cognitive load.
+- **Link:** https://alistapart.com/article/inline-validation-in-web-forms/ and https://www.nngroup.com/articles/required-fields/
+- **Judged by:** askable for the required markers only, as `required-fields-unmarked`. Question: "Does a form show its fields with no mark or word that tells which fields must be filled in and which are optional?"
+- **Defect range:** `required-fields-unmarked`: not measured. Every asterisk, every "required" or "optional" word, and the legend are hidden, in a form that mixes required and optional fields. The clean side uses ordinary asterisks with a short legend, or "(optional)" after the optional labels.
+- **Not encoded (NG-10):** the inline-validation part, because when a field validates is behavior over time that one screenshot does not show.
 
 ### Redundancy and duplicate controls
 - **Rule:** The same action is not offered twice on one screen without reason (two "Sign up" buttons beside each other, repeated links in the same block, header and footer copies competing). Duplicates dilute the primary action.
 - **Source:** Nielsen heuristic 8 (aesthetic and minimalist design); Krug, *Don't Make Me Think* (2000), "get rid of half the words, then half of what's left."
-- **Judged by:** askable as a visual judgment only. Jev is asked about the same action visibly offered twice without reason. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Judged by:** askable for two controls side by side, as `duplicate-adjacent-actions`. Question: "Are there two buttons or links next to each other that do the same thing, with labels that mean the same action?" Header and footer copies are not encoded. The ux pack cites `Common sense` for this rule (FR-45): Nielsen heuristic 8 and Krug's advice on needless words state it only in part, and not the part that the question asks about. Because the source is `Common sense`, the criterion can only warn.
+- **Defect range:** `duplicate-adjacent-actions`: not measured. One extra control sits next to the original, styled like the second control on the clean side, with a label that is a plain synonym ("Get started" and "Start now", "Save" and "Save changes"). The clean side shows a control with a different action in the same place.
 
 ### Platform conventions (Apple HIG and Material)
 - **Rule:** Components, navigation patterns, iconography, and gestures follow the target platform's conventions (tab bar at bottom on iOS, back at top left, system icons for share and delete; Material navigation bar, FAB, app bar). Do not mix platform idioms on one screen.
@@ -1013,6 +1020,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** Steven Hoober, "How Do Users Really Hold Mobile Devices?" UXmatters (2013); Josh Clark, *Designing for Touch* (2015).
 - **Link:** https://www.uxmatters.com/mt/archives/2013/02/how-do-users-really-hold-mobile-devices.php
 - **Judged by:** askable.
+- **Not encoded:** `primary-action-out-of-thumb-reach` passed the pre-screen, but Benjamin Jackson dropped it on 2026-10-25 under the rule in this section's introduction: coding agents seldom put a phone screen's main action in a top corner.
 
 ### Dark patterns to avoid
 - **Rule:** The design does not use deceptive patterns. These include pre-checked opt-ins, a hidden or tiny decline option, confirmshaming ("No, I hate saving money"), fake urgency or scarcity counters, disguised ads, and forced continuity without a clear cancel. A button hierarchy that hides the safe choice counts too.
@@ -1215,7 +1223,8 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 ### Contrast of value
 - **Rule:** The image uses a clear range of light and dark; the key shapes read in a squinted, grayscale view. A flat mid-gray image with no value structure is a fault.
 - **Source:** Andrew Loomis, *Creative Illustration* (1947); Bruce Block, *The Visual Story* (2001).
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Does the large hero image or banner look flat and murky, with almost everything in it at a similar middle lightness and no clear light areas and dark areas?"
+- **Not encoded:** `flat-value-structure` was cut after the pre-screen (crit-q25.17, jev-1.14.0), because both positives stayed quiet, at 0.41 and 0.10.
 
 ### Limited, purposeful palette
 - **Rule:** The palette uses a small set of related hues (commonly one dominant, one or two supporting, one accent), and each color has a job. Many unrelated saturated hues are a fault.
@@ -1314,8 +1323,10 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 
 ### Consistent level of detail across a set
 - **Rule:** All illustrations or icons in the image share one level of detail and abstraction (all simple glyphs, or all rendered scenes), not a mix.
-- **Source:** Andrew Loomis, *Creative Illustration* (1947); Ellen Lupton and Jennifer Cole Phillips, *Graphic Design: The New Basics* (2008).
-- **Judged by:** askable.
+- **Source:** Apple Human Interface Guidelines, "Icons", section "Interface icons", checked on 2026-10-25: "all interface icons in your app need to use a consistent size, level of detail, stroke thickness (or weight), and perspective." The pack cites this page. Andrew Loomis, *Creative Illustration* (1947), and Ellen Lupton and Jennifer Cole Phillips, *Graphic Design: The New Basics* (2008), were listed before and were not checked.
+- **Link:** https://developer.apple.com/design/human-interface-guidelines/icons
+- **Judged by:** askable. Question: "Do icons that sit together as one set mix very different levels of detail, for example simple outline icons next to detailed, shaded, many-colored icons?"
+- **Defect range:** `mixed-level-of-detail`: not measured. A set of 4 to 8 simple icons in which one or two are detailed, shaded, multicolor icons, at the same size.
 
 ### One perspective and one light source
 - **Rule:** All objects in a scene share one viewpoint, horizon, and perspective system, and shadows and highlights agree on a single light direction. Mixed isometric and flat, or conflicting shadows, are faults.
@@ -1324,13 +1335,15 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 
 ### Consistent rendering style across assets
 - **Rule:** All imagery shares one treatment (flat vector, line art, photo, 3D render, texture), or mixes them by an explicit system (for example photo cut-outs on flat color). Random mixing of styles is a fault.
-- **Source:** Ellen Lupton and Jennifer Cole Phillips, *Graphic Design: The New Basics* (2008); Alina Wheeler, *Designing Brand Identity* (2003).
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Source:** Common sense. Reason: images shown side by side as one set read as one family, so a set that mixes photographs, flat drawings, and 3D renders looks assembled from unrelated sources rather than designed together. Checked on 2026-10-25 and not found stated: Apple Human Interface Guidelines, "Images". The Material Design imagery page did not open as text, so it counts as not confirmed. Ellen Lupton and Jennifer Cole Phillips, *Graphic Design: The New Basics* (2008), and Alina Wheeler, *Designing Brand Identity* (2003), were listed before, were not checked, and are not on the FR-45 list.
+- **Judged by:** askable. Question: "Do images that sit together as one set, such as a row of cards, mix different rendering styles, for example a photograph next to a flat vector illustration next to a glossy 3D render?"
+- **Defect range:** `mixed-rendering-styles`: not measured. A row of 3 to 6 images in one set where one or two use a different rendering (photo, flat illustration, or 3D render) at the same size and crop.
 
 ### Photos treated consistently
 - **Rule:** Photos in one design share lighting mood, color grade, crop style, and subject distance. One cold, desaturated photo among warm, bright ones is a fault.
 - **Source:** Michael Freeman, *The Photographer's Eye* (2007); David Ogilvy, *Ogilvy on Advertising* (1983).
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Do photographs that sit together as one set, such as a row of cards or a gallery, have clearly different color treatments, for example one warm and faded, one cold and blue, one black and white, or one heavily saturated?"
+- **Not encoded:** `photos-graded-inconsistently` was cut after the pre-screen (crit-q25.17, jev-1.14.0), because a negative fired at 0.74.
 
 ### Cropping and framing are intentional
 - **Rule:** Crops do not cut off heads, hands, or limbs at joints by accident, and tangents (edges that just touch) are avoided. Cropping that is bold and clearly intentional is acceptable.
@@ -1340,12 +1353,14 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 ### Image quality: sharp, undistorted, at native proportions
 - **Rule:** Images are sharp at display size (no visible pixelation or blur from upscaling), keep their original aspect ratio (no stretch or squash), and have no compression artifacts.
 - **Source:** David Ogilvy, *Ogilvy on Advertising* (1983), on photograph quality; Michael Freeman, *The Photographer's Eye* (2007).
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Is a photograph or picture on the page visibly stretched or squashed out of its natural proportions, or blurry and blocky because a small image was enlarged?"
+- **Not encoded:** `image-stretched-or-pixelated` was cut after the pre-screen (crit-q25.17, jev-1.14.0), because it stayed quiet at 0.13 on the stretched photograph.
 
 ### Texture and pattern with restraint
 - **Rule:** Texture or pattern is used on a limited area or at low contrast so it never competes with the focal point or reduces legibility of text over it.
 - **Source:** Wucius Wong, *Principles of Form and Design* (1993); Donis A. Dondis, *A Primer of Visual Literacy* (1973).
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Is text or other content placed over a busy, detailed background, such as a strong pattern or a cluttered photograph, so the background competes with what sits on it?"
+- **Not encoded:** `busy-texture-behind-content` passed the pre-screen (crit-q25.17) but is not encoded, because the color pack's `text-over-busy-image` owns the same rule and a rule has one owner. The layout pack's `figure-merges-with-ground` asked about the same rule and was removed under R-4.
 
 ### Every ornament does a job
 - **Rule:** Every ornament, flourish, gradient, shadow, or effect serves meaning, hierarchy, or mood. Elements that could be removed with no loss are a fault.

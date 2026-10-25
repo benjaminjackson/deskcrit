@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>UX fixture: empty-state panel</title>
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion duplicate-adjacent-actions. An app screen for a bookkeeping tool
+ * with an empty invoices panel that offers two buttons.
+ * The defect switch only changes display: on hides the button with a different
+ * action (Import invoices) and shows the button whose label is a synonym of the
+ * first (Add an invoice). Both second buttons have the same outlined style.
+ */
+body { background: #fff7f0; color: #3a2a24; }
+.top { display: flex; align-items: center; gap: 36px; height: 64px; padding: 0 48px; background: #7a2e3b; color: #ffffff; font-size: 15px; }
+.brand { font-weight: 700; font-size: 20px; }
+.top .on { font-weight: 700; border-bottom: 2px solid #ffffff; padding: 20px 0 18px; }
+main { padding: 40px 48px; }
+h1 { font-size: 28px; font-weight: 700; }
+.panel { margin-top: 28px; height: 460px; background: #ffffff; border: 1px dashed #d8b9b0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.panel h2 { font-size: 22px; font-weight: 700; margin-top: 16px; }
+.panel p { margin-top: 8px; font-size: 16px; line-height: 1.5; color: #6b5a54; width: 420px; }
+.actions { display: flex; gap: 14px; margin-top: 26px; }
+.btn { display: inline-flex; align-items: center; height: 44px; padding: 0 22px; border-radius: 22px; font-size: 15px; font-weight: 700; }
+.primary { background: #7a2e3b; color: #ffffff; }
+.secondary { border: 2px solid #7a2e3b; color: #7a2e3b; }
+.alt-synonym { display: none; }
+[data-defect="on"] .alt-different { display: none; }
+[data-defect="on"] .alt-synonym { display: inline-flex; }
+    </style>
+  </head>
+  <body>
+    <header class="top"><span class="brand">Ledgerly</span><span>Dashboard</span><span class="on">Invoices</span><span>Clients</span><span>Reports</span></header>
+    <main>
+      <h1>Invoices</h1>
+      <section class="panel">
+        <svg width="56" height="56" viewBox="0 0 56 56"><rect x="12" y="6" width="32" height="44" rx="4" fill="none" stroke="#c9a49a" stroke-width="3"/><path d="M19 20h18M19 28h18M19 36h10" stroke="#c9a49a" stroke-width="3" stroke-linecap="round"/></svg>
+        <h2>No invoices yet</h2>
+        <p>Invoices you create will be listed here with their status and due date.</p>
+        <div class="actions">
+          <span class="btn primary">Create invoice</span>
+          <span class="btn secondary alt-different">Import invoices</span>
+          <span class="btn secondary alt-synonym">Add an invoice</span>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
