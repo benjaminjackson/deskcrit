@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: rainbow for ordered values</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion rainbow-for-ordered-values. A help desk report with a weekday-by-hour heatmap of new tickets.
+ * The clean side colours the seven steps with one blue that grows darker as the count rises. The defect
+ * switch only changes the fill of each step class (.s1 to .s7), in the cells and in the legend, to a
+ * rainbow from blue through cyan, teal, green, yellow, and orange to red. Nothing else changes (OQ-17).
+ */
+header { height: 56px; display: flex; align-items: center; gap: 36px; padding: 0 40px; border-bottom: 1px solid #eceff2; }
+.brand { font-weight: 700; font-size: 18px; }
+nav { display: flex; gap: 24px; color: var(--color-muted); font-size: 15px; }
+nav .on { color: var(--color-text); font-weight: 700; }
+main { padding: 34px 40px 0; }
+h1 { font-size: 28px; font-weight: 700; }
+.sub { color: var(--color-muted); font-size: 16px; margin: 4px 0 26px; }
+.row { display: flex; gap: 30px; }
+aside { width: 170px; padding-top: 24px; }
+.kpi { margin-bottom: 26px; }
+.kpi .label { font-size: 13px; color: var(--color-muted); }
+.kpi .value { font-size: 26px; font-weight: 700; line-height: 1.2; }
+.kpi .note { font-size: 13px; color: var(--color-muted); }
+.source { margin-top: 18px; font-size: 13px; color: var(--color-muted); }
+svg text { font-family: var(--font-sans); }
+.axis { font-size: 12px; fill: #59636e; }
+.legend-title { font-size: 13px; fill: #1f2328; font-weight: 700; }
+.s1 { fill: #eef3fa; }
+.s2 { fill: #d2e1f2; }
+.s3 { fill: #aac6e6; }
+.s4 { fill: #7ca6d6; }
+.s5 { fill: #5085c2; }
+.s6 { fill: #2f65a6; }
+.s7 { fill: #1a467f; }
+
+[data-defect="on"] .s1 { fill: #5a6fd0; }
+[data-defect="on"] .s2 { fill: #3fa7d6; }
+[data-defect="on"] .s3 { fill: #4dbd8a; }
+[data-defect="on"] .s4 { fill: #8cc63f; }
+[data-defect="on"] .s5 { fill: #f1d33c; }
+[data-defect="on"] .s6 { fill: #f08a24; }
+[data-defect="on"] .s7 { fill: #d6312b; }
+    </style>
+  </head>
+  <body>
+<header><span class="brand">Northlight Desk</span><nav><span>Queues</span><span>Agents</span><span class="on">Reports</span><span>Settings</span></nav></header>
+    <main>
+      <h1>When new tickets arrive</h1>
+      <p class="sub">New tickets per hour of the day, all queues, average week, 1 to 28 September</p>
+      <div class="row">
+        <svg width="964" height="360" viewBox="0 0 964 360">
+<text class="axis" x="66" y="16" text-anchor="middle">00:00</text><text class="axis" x="180" y="16" text-anchor="middle">03:00</text><text class="axis" x="294" y="16" text-anchor="middle">06:00</text><text class="axis" x="408" y="16" text-anchor="middle">09:00</text><text class="axis" x="522" y="16" text-anchor="middle">12:00</text><text class="axis" x="636" y="16" text-anchor="middle">15:00</text><text class="axis" x="750" y="16" text-anchor="middle">18:00</text><text class="axis" x="864" y="16" text-anchor="middle">21:00</text>
+<text class="axis" x="38" y="49" text-anchor="end">Mon</text>
+<rect class="s1" x="48" y="26" width="36" height="36" rx="2"/><rect class="s1" x="86" y="26" width="36" height="36" rx="2"/><rect class="s1" x="124" y="26" width="36" height="36" rx="2"/><rect class="s1" x="162" y="26" width="36" height="36" rx="2"/><rect class="s1" x="200" y="26" width="36" height="36" rx="2"/><rect class="s1" x="238" y="26" width="36" height="36" rx="2"/><rect class="s1" x="276" y="26" width="36" height="36" rx="2"/><rect class="s2" x="314" y="26" width="36" height="36" rx="2"/><rect class="s3" x="352" y="26" width="36" height="36" rx="2"/><rect class="s5" x="390" y="26" width="36" height="36" rx="2"/><rect class="s6" x="428" y="26" width="36" height="36" rx="2"/><rect class="s7" x="466" y="26" width="36" height="36" rx="2"/><rect class="s6" x="504" y="26" width="36" height="36" rx="2"/><rect class="s5" x="542" y="26" width="36" height="36" rx="2"/><rect class="s6" x="580" y="26" width="36" height="36" rx="2"/><rect class="s5" x="618" y="26" width="36" height="36" rx="2"/><rect class="s4" x="656" y="26" width="36" height="36" rx="2"/><rect class="s2" x="694" y="26" width="36" height="36" rx="2"/><rect class="s1" x="732" y="26" width="36" height="36" rx="2"/><rect class="s1" x="770" y="26" width="36" height="36" rx="2"/><rect class="s1" x="808" y="26" width="36" height="36" rx="2"/><rect class="s1" x="846" y="26" width="36" height="36" rx="2"/><rect class="s1" x="884" y="26" width="36" height="36" rx="2"/><rect class="s1" x="922" y="26" width="36" height="36" rx="2"/>
+<text class="axis" x="38" y="87" text-anchor="end">Tue</text>
+<rect class="s1" x="48" y="64" width="36" height="36" rx="2"/><rect class="s1" x="86" y="64" width="36" height="36" rx="2"/><rect class="s1" x="124" y="64" width="36" height="36" rx="2"/><rect class="s1" x="162" y="64" width="36" height="36" rx="2"/><rect class="s1" x="200" y="64" width="36" height="36" rx="2"/><rect class="s1" x="238" y="64" width="36" height="36" rx="2"/><rect class="s1" x="276" y="64" width="36" height="36" rx="2"/><rect class="s1" x="314" y="64" width="36" height="36" rx="2"/><rect class="s3" x="352" y="64" width="36" height="36" rx="2"/><rect class="s5" x="390" y="64" width="36" height="36" rx="2"/><rect class="s6" x="428" y="64" width="36" height="36" rx="2"/><rect class="s6" x="466" y="64" width="36" height="36" rx="2"/><rect class="s5" x="504" y="64" width="36" height="36" rx="2"/><rect class="s4" x="542" y="64" width="36" height="36" rx="2"/><rect class="s5" x="580" y="64" width="36" height="36" rx="2"/><rect class="s5" x="618" y="64" width="36" height="36" rx="2"/><rect class="s4" x="656" y="64" width="36" height="36" rx="2"/><rect class="s2" x="694" y="64" width="36" height="36" rx="2"/><rect class="s2" x="732" y="64" width="36" height="36" rx="2"/><rect class="s1" x="770" y="64" width="36" height="36" rx="2"/><rect class="s1" x="808" y="64" width="36" height="36" rx="2"/><rect class="s1" x="846" y="64" width="36" height="36" rx="2"/><rect class="s1" x="884" y="64" width="36" height="36" rx="2"/><rect class="s1" x="922" y="64" width="36" height="36" rx="2"/>
+<text class="axis" x="38" y="125" text-anchor="end">Wed</text>
+<rect class="s1" x="48" y="102" width="36" height="36" rx="2"/><rect class="s1" x="86" y="102" width="36" height="36" rx="2"/><rect class="s1" x="124" y="102" width="36" height="36" rx="2"/><rect class="s1" x="162" y="102" width="36" height="36" rx="2"/><rect class="s1" x="200" y="102" width="36" height="36" rx="2"/><rect class="s1" x="238" y="102" width="36" height="36" rx="2"/><rect class="s1" x="276" y="102" width="36" height="36" rx="2"/><rect class="s1" x="314" y="102" width="36" height="36" rx="2"/><rect class="s3" x="352" y="102" width="36" height="36" rx="2"/><rect class="s5" x="390" y="102" width="36" height="36" rx="2"/><rect class="s6" x="428" y="102" width="36" height="36" rx="2"/><rect class="s6" x="466" y="102" width="36" height="36" rx="2"/><rect class="s5" x="504" y="102" width="36" height="36" rx="2"/><rect class="s4" x="542" y="102" width="36" height="36" rx="2"/><rect class="s4" x="580" y="102" width="36" height="36" rx="2"/><rect class="s5" x="618" y="102" width="36" height="36" rx="2"/><rect class="s4" x="656" y="102" width="36" height="36" rx="2"/><rect class="s3" x="694" y="102" width="36" height="36" rx="2"/><rect class="s1" x="732" y="102" width="36" height="36" rx="2"/><rect class="s1" x="770" y="102" width="36" height="36" rx="2"/><rect class="s1" x="808" y="102" width="36" height="36" rx="2"/><rect class="s1" x="846" y="102" width="36" height="36" rx="2"/><rect class="s1" x="884" y="102" width="36" height="36" rx="2"/><rect class="s1" x="922" y="102" width="36" height="36" rx="2"/>
+<text class="axis" x="38" y="163" text-anchor="end">Thu</text>
+<rect class="s1" x="48" y="140" width="36" height="36" rx="2"/><rect class="s1" x="86" y="140" width="36" height="36" rx="2"/><rect class="s1" x="124" y="140" width="36" height="36" rx="2"/><rect class="s1" x="162" y="140" width="36" height="36" rx="2"/><rect class="s1" x="200" y="140" width="36" height="36" rx="2"/><rect class="s1" x="238" y="140" width="36" height="36" rx="2"/><rect class="s2" x="276" y="140" width="36" height="36" rx="2"/><rect class="s2" x="314" y="140" width="36" height="36" rx="2"/><rect class="s3" x="352" y="140" width="36" height="36" rx="2"/><rect class="s5" x="390" y="140" width="36" height="36" rx="2"/><rect class="s6" x="428" y="140" width="36" height="36" rx="2"/><rect class="s6" x="466" y="140" width="36" height="36" rx="2"/><rect class="s5" x="504" y="140" width="36" height="36" rx="2"/><rect class="s5" x="542" y="140" width="36" height="36" rx="2"/><rect class="s4" x="580" y="140" width="36" height="36" rx="2"/><rect class="s5" x="618" y="140" width="36" height="36" rx="2"/><rect class="s4" x="656" y="140" width="36" height="36" rx="2"/><rect class="s2" x="694" y="140" width="36" height="36" rx="2"/><rect class="s1" x="732" y="140" width="36" height="36" rx="2"/><rect class="s1" x="770" y="140" width="36" height="36" rx="2"/><rect class="s1" x="808" y="140" width="36" height="36" rx="2"/><rect class="s1" x="846" y="140" width="36" height="36" rx="2"/><rect class="s1" x="884" y="140" width="36" height="36" rx="2"/><rect class="s1" x="922" y="140" width="36" height="36" rx="2"/>
+<text class="axis" x="38" y="201" text-anchor="end">Fri</text>
+<rect class="s1" x="48" y="178" width="36" height="36" rx="2"/><rect class="s1" x="86" y="178" width="36" height="36" rx="2"/><rect class="s1" x="124" y="178" width="36" height="36" rx="2"/><rect class="s1" x="162" y="178" width="36" height="36" rx="2"/><rect class="s1" x="200" y="178" width="36" height="36" rx="2"/><rect class="s1" x="238" y="178" width="36" height="36" rx="2"/><rect class="s1" x="276" y="178" width="36" height="36" rx="2"/><rect class="s2" x="314" y="178" width="36" height="36" rx="2"/><rect class="s2" x="352" y="178" width="36" height="36" rx="2"/><rect class="s5" x="390" y="178" width="36" height="36" rx="2"/><rect class="s6" x="428" y="178" width="36" height="36" rx="2"/><rect class="s7" x="466" y="178" width="36" height="36" rx="2"/><rect class="s5" x="504" y="178" width="36" height="36" rx="2"/><rect class="s4" x="542" y="178" width="36" height="36" rx="2"/><rect class="s4" x="580" y="178" width="36" height="36" rx="2"/><rect class="s5" x="618" y="178" width="36" height="36" rx="2"/><rect class="s5" x="656" y="178" width="36" height="36" rx="2"/><rect class="s2" x="694" y="178" width="36" height="36" rx="2"/><rect class="s2" x="732" y="178" width="36" height="36" rx="2"/><rect class="s1" x="770" y="178" width="36" height="36" rx="2"/><rect class="s1" x="808" y="178" width="36" height="36" rx="2"/><rect class="s1" x="846" y="178" width="36" height="36" rx="2"/><rect class="s1" x="884" y="178" width="36" height="36" rx="2"/><rect class="s1" x="922" y="178" width="36" height="36" rx="2"/>
+<text class="axis" x="38" y="239" text-anchor="end">Sat</text>
+<rect class="s1" x="48" y="216" width="36" height="36" rx="2"/><rect class="s1" x="86" y="216" width="36" height="36" rx="2"/><rect class="s1" x="124" y="216" width="36" height="36" rx="2"/><rect class="s1" x="162" y="216" width="36" height="36" rx="2"/><rect class="s1" x="200" y="216" width="36" height="36" rx="2"/><rect class="s1" x="238" y="216" width="36" height="36" rx="2"/><rect class="s1" x="276" y="216" width="36" height="36" rx="2"/><rect class="s1" x="314" y="216" width="36" height="36" rx="2"/><rect class="s1" x="352" y="216" width="36" height="36" rx="2"/><rect class="s1" x="390" y="216" width="36" height="36" rx="2"/><rect class="s3" x="428" y="216" width="36" height="36" rx="2"/><rect class="s3" x="466" y="216" width="36" height="36" rx="2"/><rect class="s2" x="504" y="216" width="36" height="36" rx="2"/><rect class="s1" x="542" y="216" width="36" height="36" rx="2"/><rect class="s2" x="580" y="216" width="36" height="36" rx="2"/><rect class="s2" x="618" y="216" width="36" height="36" rx="2"/><rect class="s2" x="656" y="216" width="36" height="36" rx="2"/><rect class="s1" x="694" y="216" width="36" height="36" rx="2"/><rect class="s1" x="732" y="216" width="36" height="36" rx="2"/><rect class="s1" x="770" y="216" width="36" height="36" rx="2"/><rect class="s1" x="808" y="216" width="36" height="36" rx="2"/><rect class="s1" x="846" y="216" width="36" height="36" rx="2"/><rect class="s1" x="884" y="216" width="36" height="36" rx="2"/><rect class="s1" x="922" y="216" width="36" height="36" rx="2"/>
+<text class="axis" x="38" y="277" text-anchor="end">Sun</text>
+<rect class="s1" x="48" y="254" width="36" height="36" rx="2"/><rect class="s1" x="86" y="254" width="36" height="36" rx="2"/><rect class="s1" x="124" y="254" width="36" height="36" rx="2"/><rect class="s1" x="162" y="254" width="36" height="36" rx="2"/><rect class="s1" x="200" y="254" width="36" height="36" rx="2"/><rect class="s1" x="238" y="254" width="36" height="36" rx="2"/><rect class="s1" x="276" y="254" width="36" height="36" rx="2"/><rect class="s1" x="314" y="254" width="36" height="36" rx="2"/><rect class="s1" x="352" y="254" width="36" height="36" rx="2"/><rect class="s1" x="390" y="254" width="36" height="36" rx="2"/><rect class="s2" x="428" y="254" width="36" height="36" rx="2"/><rect class="s2" x="466" y="254" width="36" height="36" rx="2"/><rect class="s2" x="504" y="254" width="36" height="36" rx="2"/><rect class="s2" x="542" y="254" width="36" height="36" rx="2"/><rect class="s1" x="580" y="254" width="36" height="36" rx="2"/><rect class="s1" x="618" y="254" width="36" height="36" rx="2"/><rect class="s2" x="656" y="254" width="36" height="36" rx="2"/><rect class="s1" x="694" y="254" width="36" height="36" rx="2"/><rect class="s1" x="732" y="254" width="36" height="36" rx="2"/><rect class="s1" x="770" y="254" width="36" height="36" rx="2"/><rect class="s1" x="808" y="254" width="36" height="36" rx="2"/><rect class="s1" x="846" y="254" width="36" height="36" rx="2"/><rect class="s1" x="884" y="254" width="36" height="36" rx="2"/><rect class="s1" x="922" y="254" width="36" height="36" rx="2"/>
+
+<text class="legend-title" x="48" y="330">New tickets per hour</text><rect class="s1" x="238" y="318" width="58" height="14"/><text class="axis" x="267" y="350" text-anchor="middle">0–4</text><rect class="s2" x="300" y="318" width="58" height="14"/><text class="axis" x="329" y="350" text-anchor="middle">5–9</text><rect class="s3" x="362" y="318" width="58" height="14"/><text class="axis" x="391" y="350" text-anchor="middle">10–14</text><rect class="s4" x="424" y="318" width="58" height="14"/><text class="axis" x="453" y="350" text-anchor="middle">15–19</text><rect class="s5" x="486" y="318" width="58" height="14"/><text class="axis" x="515" y="350" text-anchor="middle">20–24</text><rect class="s6" x="548" y="318" width="58" height="14"/><text class="axis" x="577" y="350" text-anchor="middle">25–29</text><rect class="s7" x="610" y="318" width="58" height="14"/><text class="axis" x="639" y="350" text-anchor="middle">30+</text>
+        </svg>
+        <aside>
+          <div class="kpi"><div class="label">New tickets, September</div><div class="value">3,412</div><div class="note">Up 4% on August</div></div>
+          <div class="kpi"><div class="label">Busiest hour, weekdays</div><div class="value">10:00</div><div class="note">Same as August</div></div>
+          <div class="kpi"><div class="label">Median first reply</div><div class="value">42 min</div><div class="note">Down 6 min on August</div></div>
+        </aside>
+      </div>
+      <p class="source">Source: Northlight Desk ticket log, times in the support team's local time. Hours are when a ticket was opened, not when it was answered.</p>
+    </main>
+  </body>
+</html>

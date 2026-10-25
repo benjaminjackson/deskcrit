@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: finance summary strip</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion bare-kpi-number. A board pack page with a strip of four finance figures across
+ * the top and the finance director's notes below.
+ * The defect switch only changes display: on hides the unit, the time
+ * period, and the comparison of each headline number, so only the metric
+ * name and the bare figure stay. Any chart on the page is the same on both
+ * sides (OQ-17).
+ */
+
+body { background: #fbfbfa; }
+.top { display: flex; justify-content: space-between; align-items: baseline; padding: 24px 64px 18px; }
+.top h1 { font-family: var(--font-serif); font-size: 30px; font-weight: 700; color: #1d2733; }
+.top span { font-size: 14px; color: #66707a; }
+.strip { display: flex; margin: 0 64px; border-top: 2px solid #1d2733; border-bottom: 1px solid #dfe3e7; }
+.cell { flex: 1; padding: 22px 24px 24px; border-left: 1px solid #e7eaed; }
+.cell:first-child { border-left: none; padding-left: 0; }
+.name { font-size: 14px; color: #4d5763; }
+.value { font-size: 44px; font-weight: 700; line-height: 1.2; color: #1d2733; margin-top: 2px; }
+.value .unit { font-weight: 400; }
+.line { font-size: 13px; line-height: 1.7; color: #66707a; }
+.delta { font-weight: 700; color: #1d2733; }
+.delta .vs { font-weight: 400; color: #66707a; }
+.arrow { fill: #1d2733; margin-right: 4px; }
+.notes { display: flex; gap: 56px; margin: 30px 64px 0; }
+.notes section { flex: 1; font-family: var(--font-serif); font-size: 17px; line-height: 1.6; color: #2c343d; }
+.notes h2 { font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #66707a; margin-bottom: 8px; }
+.notes p + p { margin-top: 10px; }
+.foot { margin: 34px 64px 0; font-size: 12px; color: #7a838c; }
+
+/* The defect switch: on hides every unit, period, and comparison span next to
+   the headline numbers. Each is an inline span inside its own line, so a
+   hidden line leaves an empty block with no height. */
+[data-defect="on"] .unit { display: none; }
+[data-defect="on"] .period { display: none; }
+[data-defect="on"] .delta { display: none; }
+    </style>
+  </head>
+  <body>
+    <header class="top"><h1>Finance summary</h1><span>Kestrel Moor Cooperative &middot; Board pack, item 3</span></header>
+    <div class="strip">
+      <section class="cell">
+        <p class="name">Revenue</p>
+        <p class="value"><span class="unit">€</span>2.41<span class="unit">M</span></p>
+        <div class="line"><span class="period">Q3 2026</span></div>
+        <div class="line"><span class="delta"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M5 1 L9 8 L1 8 Z"/></svg>+8.2% <span class="vs">vs Q2 2026</span></span></div>
+      </section>
+      <section class="cell">
+        <p class="name">Gross margin</p>
+        <p class="value">61.4<span class="unit">%</span></p>
+        <div class="line"><span class="period">Q3 2026</span></div>
+        <div class="line"><span class="delta"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M1 2 L9 2 L5 9 Z"/></svg>-0.6 pts <span class="vs">vs Q2 2026</span></span></div>
+      </section>
+      <section class="cell">
+        <p class="name">Operating cash flow</p>
+        <p class="value"><span class="unit">€</span>0.38<span class="unit">M</span></p>
+        <div class="line"><span class="period">Q3 2026</span></div>
+        <div class="line"><span class="delta"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M5 1 L9 8 L1 8 Z"/></svg>+€0.05M <span class="vs">vs Q2 2026</span></span></div>
+      </section>
+      <section class="cell">
+        <p class="name">Cash runway</p>
+        <p class="value">19<span class="unit"> months</span></p>
+        <div class="line"><span class="period">At 30 September 2026</span></div>
+        <div class="line"><span class="delta">Target 18 months <span class="vs">or more</span></span></div>
+      </section>
+    </div>
+    <div class="notes">
+      <section>
+        <h2>Trading</h2>
+        <p>Wholesale orders from the two new grocery partners started in August and carried most of the growth in the quarter.</p>
+        <p>Margin slipped slightly because feed and packaging prices rose before the new price list took effect.</p>
+      </section>
+      <section>
+        <h2>Cash and outlook</h2>
+        <p>The dairy refit was paid from reserves as planned. No new borrowing is proposed.</p>
+        <p>The finance committee recommends that the board approve the revised budget for the fourth quarter.</p>
+      </section>
+    </div>
+    <p class="foot">Figures are unaudited management accounts. Prepared by the finance office for the board meeting on 21 October 2026.</p>
+  </body>
+</html>

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: bar axis not at zero 3</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion bar-axis-not-at-zero. A finance brief with paired columns of
+ * monthly revenue and operating cost. The defect switch hides the zero-based
+ * tick labels and shows a second set that starts at 320, and moves each bar's
+ * y and height to that cut axis. No text changes.
+ */
+body { background: #f7f8fa; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 20px 56px; }
+.logo { font-weight: 700; font-size: 18px; color: #12355b; }
+.meta { font-size: 13px; color: #59636e; }
+.sheet { margin: 0 56px; background: #ffffff; border-radius: 12px; padding: 26px 34px; display: flex; gap: 34px; height: 690px; }
+.main { width: 790px; }
+h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.sub { font-size: 14px; color: #59636e; margin-bottom: 12px; }
+.legend { display: flex; gap: 20px; font-size: 13px; color: #1f2328; margin-bottom: 6px; }
+.key { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.key.r { background: #1f6fb2; }
+.key.c { background: #e3893b; }
+.source { font-size: 12px; color: #6b7480; margin-top: 6px; }
+aside { flex: 1; padding-top: 4px; }
+aside h2 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.stat { margin-bottom: 18px; }
+.stat .v { font-size: 24px; font-weight: 700; }
+.stat .l { font-size: 13px; color: #59636e; }
+aside p { font-size: 14px; line-height: 1.55; color: #3f4650; }
+.rev { fill: #1f6fb2; }
+.cost { fill: #e3893b; }
+.cat { font-size: 13px; fill: #1f2328; }
+.tick { font-size: 12px; fill: #59636e; }
+
+.axis-cut { display: none; }
+[data-defect="on"] .axis-zero { display: none; }
+[data-defect="on"] .axis-cut { display: inline; }
+.grid { stroke: #e9ecef; stroke-width: 1; }
+.baseline { stroke: #b9c0c8; stroke-width: 1; }
+
+.rev-1 { y: 79.4px; height: 296.6px; }
+[data-defect="on"] .rev-1 { y: 169px; height: 207px; }
+.cost-1 { y: 122.6px; height: 253.4px; }
+[data-defect="on"] .cost-1 { y: 304px; height: 72px; }
+.rev-2 { y: 67.8px; height: 308.2px; }
+[data-defect="on"] .rev-2 { y: 133px; height: 243px; }
+.cost-2 { y: 118.2px; height: 257.8px; }
+[data-defect="on"] .cost-2 { y: 290.5px; height: 85.5px; }
+.rev-3 { y: 62.8px; height: 313.2px; }
+[data-defect="on"] .rev-3 { y: 117.3px; height: 258.7px; }
+.cost-3 { y: 116.1px; height: 259.9px; }
+[data-defect="on"] .cost-3 { y: 283.8px; height: 92.2px; }
+.rev-4 { y: 51.3px; height: 324.7px; }
+[data-defect="on"] .rev-4 { y: 81.3px; height: 294.7px; }
+.cost-4 { y: 109.6px; height: 266.4px; }
+[data-defect="on"] .cost-4 { y: 263.5px; height: 112.5px; }
+.rev-5 { y: 54.9px; height: 321.1px; }
+[data-defect="on"] .rev-5 { y: 92.5px; height: 283.5px; }
+.cost-5 { y: 112.5px; height: 263.5px; }
+[data-defect="on"] .cost-5 { y: 272.5px; height: 103.5px; }
+.rev-6 { y: 39px; height: 337px; }
+[data-defect="on"] .rev-6 { y: 43px; height: 333px; }
+.cost-6 { y: 104.6px; height: 271.4px; }
+[data-defect="on"] .cost-6 { y: 247.8px; height: 128.2px; }
+    </style>
+  </head>
+  <body>
+<header><span class="logo">Brindle Outfitters &middot; Finance</span><span class="meta">Monthly brief &middot; prepared 4 July 2025</span></header>
+    <div class="sheet">
+      <section class="main">
+        <h1>Revenue against operating cost, first half of 2025</h1>
+        <p class="sub">Thousands of US dollars per month</p>
+        <div class="legend"><span><span class="key r"></span>Revenue</span><span><span class="key c"></span>Operating cost</span></div>
+        <svg width="790" height="410" viewBox="0 0 790 410">
+<g class="axis-zero">
+<text class="tick" x="50" y="380" text-anchor="end">0</text>
+<line class="grid" x1="60" x2="760" y1="304" y2="304" />
+<text class="tick" x="50" y="308" text-anchor="end">100</text>
+<line class="grid" x1="60" x2="760" y1="232" y2="232" />
+<text class="tick" x="50" y="236" text-anchor="end">200</text>
+<line class="grid" x1="60" x2="760" y1="160" y2="160" />
+<text class="tick" x="50" y="164" text-anchor="end">300</text>
+<line class="grid" x1="60" x2="760" y1="88" y2="88" />
+<text class="tick" x="50" y="92" text-anchor="end">400</text>
+<line class="grid" x1="60" x2="760" y1="16" y2="16" />
+<text class="tick" x="50" y="20" text-anchor="end">500</text>
+</g>
+<g class="axis-cut">
+<text class="tick" x="50" y="380" text-anchor="end">320</text>
+<line class="grid" x1="60" x2="760" y1="286" y2="286" />
+<text class="tick" x="50" y="290" text-anchor="end">360</text>
+<line class="grid" x1="60" x2="760" y1="196" y2="196" />
+<text class="tick" x="50" y="200" text-anchor="end">400</text>
+<line class="grid" x1="60" x2="760" y1="106" y2="106" />
+<text class="tick" x="50" y="110" text-anchor="end">440</text>
+<line class="grid" x1="60" x2="760" y1="16" y2="16" />
+<text class="tick" x="50" y="20" text-anchor="end">480</text>
+</g>
+<rect class="bar rev rev-1" x="80" width="36" />
+<rect class="bar cost cost-1" x="120" width="36" />
+<text class="cat" x="118" y="400" text-anchor="middle">Jan</text>
+<rect class="bar rev rev-2" x="196.7" width="36" />
+<rect class="bar cost cost-2" x="236.7" width="36" />
+<text class="cat" x="234.7" y="400" text-anchor="middle">Feb</text>
+<rect class="bar rev rev-3" x="313.3" width="36" />
+<rect class="bar cost cost-3" x="353.3" width="36" />
+<text class="cat" x="351.3" y="400" text-anchor="middle">Mar</text>
+<rect class="bar rev rev-4" x="430" width="36" />
+<rect class="bar cost cost-4" x="470" width="36" />
+<text class="cat" x="468" y="400" text-anchor="middle">Apr</text>
+<rect class="bar rev rev-5" x="546.7" width="36" />
+<rect class="bar cost cost-5" x="586.7" width="36" />
+<text class="cat" x="584.7" y="400" text-anchor="middle">May</text>
+<rect class="bar rev rev-6" x="663.3" width="36" />
+<rect class="bar cost cost-6" x="703.3" width="36" />
+<text class="cat" x="701.3" y="400" text-anchor="middle">Jun</text>
+<line class="baseline" x1="60" x2="760" y1="376" y2="376" />
+        </svg>
+        <p class="source">Source: Brindle Outfitters general ledger, unaudited management accounts.</p>
+      </section>
+      <aside>
+        <h2>First half totals</h2>
+        <div class="stat"><div class="v">$2.64M</div><div class="l">Revenue, Jan to Jun 2025, +7% vs H1 2024</div></div>
+        <div class="stat"><div class="v">$2.18M</div><div class="l">Operating cost, Jan to Jun 2025, +4% vs H1 2024</div></div>
+        <div class="stat"><div class="v">17.3%</div><div class="l">Operating margin, H1 2025, +2.1 pts vs H1 2024</div></div>
+        <p>June revenue was the highest of the half, after the summer range went on sale on 2 June.</p>
+      </aside>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: mobile metrics card</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion bare-kpi-number. A café till app's home screen shown at phone width in the middle
+ * of the page, with three headline numbers and a small bar chart.
+ * The defect switch only changes display: on hides the unit, the time
+ * period, and the comparison of each headline number, so only the metric
+ * name and the bare figure stay. Any chart on the page is the same on both
+ * sides (OQ-17).
+ */
+
+body { background: #ecebe7; }
+.top { display: flex; justify-content: space-between; align-items: center; padding: 18px 48px; font-size: 14px; color: #5f5c55; }
+.brand { font-weight: 700; color: #2b2925; font-size: 17px; }
+.phone { position: absolute; left: 460px; top: 64px; width: 360px; height: 712px; background: #ffffff; border-radius: 28px; padding: 22px 22px 0; }
+.bar-top { display: flex; justify-content: space-between; font-size: 13px; color: #6d6a63; }
+.shop { font-weight: 700; color: #2b2925; }
+h1 { font-size: 22px; font-weight: 700; margin-top: 10px; }
+.metric { padding: 14px 0 12px; border-bottom: 1px solid #f0eee9; }
+.name { font-size: 14px; color: #55524b; }
+.value { font-size: 40px; font-weight: 700; line-height: 1.15; color: #1f1d1a; }
+.value .unit { font-weight: 400; }
+.line { font-size: 13px; line-height: 1.65; color: #6d6a63; }
+.delta { font-weight: 700; color: #1d6b4a; }
+.delta .vs { font-weight: 400; color: #6d6a63; }
+.arrow { fill: #1d6b4a; margin-right: 4px; }
+.mini { margin-top: 12px; }
+.mini h2 { font-size: 14px; font-weight: 700; color: #2b2925; }
+.axis { font-size: 11px; }
+.side { position: absolute; left: 870px; top: 300px; width: 320px; font-size: 14px; color: #5f5c55; }
+
+.grid { stroke: #eceff2; stroke-width: 1; }
+.base { stroke: #b9c0c8; stroke-width: 1; }
+.axis { font-size: 12px; fill: #6b737c; }
+
+/* The defect switch: on hides every unit, period, and comparison span next to
+   the headline numbers. Each is an inline span inside its own line, so a
+   hidden line leaves an empty block with no height. */
+[data-defect="on"] .unit { display: none; }
+[data-defect="on"] .period { display: none; }
+[data-defect="on"] .delta { display: none; }
+    </style>
+  </head>
+  <body>
+    <header class="top"><span class="brand">Tillbird</span><span>Phone view of the owner app</span></header>
+    <div class="phone">
+      <div class="bar-top"><span class="shop">Copper Kettle Café</span><span>Home</span></div>
+      <h1>Today so far</h1>
+      <div class="metric">
+        <p class="name">Sales</p>
+        <p class="value"><span class="unit">€</span>1,284</p>
+        <div class="line"><span class="period">Today, 07:00 to 15:00</span></div>
+        <div class="line"><span class="delta"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M5 1 L9 8 L1 8 Z"/></svg>+9% <span class="vs">vs last Tuesday</span></span></div>
+      </div>
+      <div class="metric">
+        <p class="name">Orders</p>
+        <p class="value">37<span class="unit"> orders</span></p>
+        <div class="line"><span class="period">Today, 07:00 to 15:00</span></div>
+        <div class="line"><span class="delta"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M5 1 L9 8 L1 8 Z"/></svg>+4 <span class="vs">vs last Tuesday</span></span></div>
+      </div>
+      <div class="metric">
+        <p class="name">Average basket</p>
+        <p class="value"><span class="unit">€</span>34.70</p>
+        <div class="line"><span class="period">Today, 07:00 to 15:00</span></div>
+        <div class="line"><span class="delta"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M5 1 L9 8 L1 8 Z"/></svg>+€1.90 <span class="vs">vs last Tuesday</span></span></div>
+      </div>
+      <div class="mini">
+        <h2>Orders by category</h2>
+        <svg width="316" height="130" viewBox="0 0 316 130"><line class="grid" x1="30" y1="104" x2="300" y2="104"/><text class="axis" x="22" y="108" text-anchor="end">0</text><line class="grid" x1="30" y1="56" x2="300" y2="56"/><text class="axis" x="22" y="60" text-anchor="end">10</text><line class="grid" x1="30" y1="8" x2="300" y2="8"/><text class="axis" x="22" y="12" text-anchor="end">20</text><rect class="bar" x="43" y="27" width="41" height="77" fill="#a2632b"/><text class="axis" x="63.5" y="124" text-anchor="middle">Coffee</text><rect class="bar" x="111" y="51" width="41" height="53" fill="#a2632b"/><text class="axis" x="131.5" y="124" text-anchor="middle">Bakery</text><rect class="bar" x="178" y="75" width="41" height="29" fill="#a2632b"/><text class="axis" x="198.5" y="124" text-anchor="middle">Lunch</text><rect class="bar" x="246" y="85" width="41" height="19" fill="#a2632b"/><text class="axis" x="266.5" y="124" text-anchor="middle">Other</text><line class="base" x1="30" y1="104" x2="300" y2="104"/></svg>
+      </div>
+    </div>
+    <p class="side">The owner app opens on this screen. It refreshes every five minutes while the till is open.</p>
+  </body>
+</html>

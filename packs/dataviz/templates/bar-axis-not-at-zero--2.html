@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: bar axis not at zero 2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion bar-axis-not-at-zero. A staff survey summary with a column chart
+ * of mean satisfaction by team. The defect switch hides the zero-based tick
+ * labels and shows a second set that starts at 7.0, and moves each bar's y and
+ * height (and its value label) to that cut axis. No text changes.
+ */
+body { font-family: var(--font-serif); background: #ffffff; }
+.top { display: flex; justify-content: space-between; padding: 26px 80px 0; font-family: var(--font-sans); font-size: 13px; color: #6b6b6b; }
+.wrap { padding: 22px 80px 0; display: flex; gap: 50px; }
+.text { width: 330px; }
+h1 { font-size: 34px; line-height: 1.2; font-weight: 700; margin-bottom: 16px; }
+.text p { font-size: 17px; line-height: 1.6; color: #333; margin-bottom: 14px; }
+figure { flex: 1; padding-top: 6px; }
+figcaption { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+.unit { font-family: var(--font-sans); font-size: 13px; color: #666; margin-bottom: 10px; }
+.source { font-family: var(--font-sans); font-size: 12px; color: #6b6b6b; margin-top: 4px; }
+svg text { font-family: var(--font-sans); }
+.bar { fill: #2a7f8f; }
+.val { font-size: 14px; font-weight: 700; fill: #1f2328; }
+.cat { font-size: 14px; fill: #1f2328; }
+.tick { font-size: 12px; fill: #666; }
+
+.axis-cut { display: none; }
+[data-defect="on"] .axis-zero { display: none; }
+[data-defect="on"] .axis-cut { display: inline; }
+.grid { stroke: #e9ecef; stroke-width: 1; }
+.baseline { stroke: #b9c0c8; stroke-width: 1; }
+
+.bar-1 { y: 140.8px; height: 355.2px; }
+[data-defect="on"] .bar-1 { y: 368px; height: 128px; }
+[data-defect="on"] .val-1 { transform: translateY(227.2px); }
+.bar-2 { y: 107.2px; height: 388.8px; }
+[data-defect="on"] .bar-2 { y: 144px; height: 352px; }
+[data-defect="on"] .val-2 { transform: translateY(36.8px); }
+.bar-3 { y: 116.8px; height: 379.2px; }
+[data-defect="on"] .bar-3 { y: 208px; height: 288px; }
+[data-defect="on"] .val-3 { transform: translateY(91.2px); }
+.bar-4 { y: 131.2px; height: 364.8px; }
+[data-defect="on"] .bar-4 { y: 304px; height: 192px; }
+[data-defect="on"] .val-4 { transform: translateY(172.8px); }
+.bar-5 { y: 97.6px; height: 398.4px; }
+[data-defect="on"] .bar-5 { y: 80px; height: 416px; }
+[data-defect="on"] .val-5 { transform: translateY(-17.6px); }
+    </style>
+  </head>
+  <body>
+<div class="top"><span>Pellow &amp; Crane &middot; People team</span><span>Staff survey 2025 &middot; results summary</span></div>
+    <div class="wrap">
+      <div class="text">
+        <h1>How satisfied are the teams?</h1>
+        <p>We asked every member of staff how satisfied they are with their work, on a scale from 0 to 10. 412 people answered, 86 percent of all staff.</p>
+        <p>Operations and Design gave the highest scores. Support gave the lowest, and its score fell 0.3 points since 2024.</p>
+        <p>The next survey runs in March 2026.</p>
+      </div>
+      <figure>
+        <figcaption>Mean satisfaction score by team, 2025</figcaption>
+        <div class="unit">Score from 0 (not satisfied) to 10 (very satisfied)</div>
+        <svg width="720" height="530" viewBox="0 0 720 530">
+<g class="axis-zero">
+<text class="tick" x="40" y="500" text-anchor="end">0</text>
+<line class="grid" x1="50" x2="700" y1="400" y2="400" />
+<text class="tick" x="40" y="404" text-anchor="end">2</text>
+<line class="grid" x1="50" x2="700" y1="304" y2="304" />
+<text class="tick" x="40" y="308" text-anchor="end">4</text>
+<line class="grid" x1="50" x2="700" y1="208" y2="208" />
+<text class="tick" x="40" y="212" text-anchor="end">6</text>
+<line class="grid" x1="50" x2="700" y1="112" y2="112" />
+<text class="tick" x="40" y="116" text-anchor="end">8</text>
+<line class="grid" x1="50" x2="700" y1="16" y2="16" />
+<text class="tick" x="40" y="20" text-anchor="end">10</text>
+</g>
+<g class="axis-cut">
+<text class="tick" x="40" y="500" text-anchor="end">7.0</text>
+<line class="grid" x1="50" x2="700" y1="336" y2="336" />
+<text class="tick" x="40" y="340" text-anchor="end">7.5</text>
+<line class="grid" x1="50" x2="700" y1="176" y2="176" />
+<text class="tick" x="40" y="180" text-anchor="end">8.0</text>
+<line class="grid" x1="50" x2="700" y1="16" y2="16" />
+<text class="tick" x="40" y="20" text-anchor="end">8.5</text>
+</g>
+<rect class="bar bar-1" x="76" width="78" />
+<text class="val val-1" x="115" y="131.8" text-anchor="middle">7.4</text>
+<text class="cat" x="115" y="520" text-anchor="middle">Support</text>
+<rect class="bar bar-2" x="206" width="78" />
+<text class="val val-2" x="245" y="98.2" text-anchor="middle">8.1</text>
+<text class="cat" x="245" y="520" text-anchor="middle">Design</text>
+<rect class="bar bar-3" x="336" width="78" />
+<text class="val val-3" x="375" y="107.8" text-anchor="middle">7.9</text>
+<text class="cat" x="375" y="520" text-anchor="middle">Engineering</text>
+<rect class="bar bar-4" x="466" width="78" />
+<text class="val val-4" x="505" y="122.2" text-anchor="middle">7.6</text>
+<text class="cat" x="505" y="520" text-anchor="middle">Sales</text>
+<rect class="bar bar-5" x="596" width="78" />
+<text class="val val-5" x="635" y="88.6" text-anchor="middle">8.3</text>
+<text class="cat" x="635" y="520" text-anchor="middle">Operations</text>
+<line class="baseline" x1="50" x2="700" y1="496" y2="496" />
+        </svg>
+        <p class="source">Source: Pellow &amp; Crane staff survey, October 2025, 412 responses.</p>
+      </figure>
+    </div>
+  </body>
+</html>

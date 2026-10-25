@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: bar axis not at zero</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion bar-axis-not-at-zero. A product analytics page with a column
+ * chart of trial conversion by plan. The defect switch hides the zero-based
+ * tick labels and shows a second set that starts at 2.5 percent, and moves each
+ * bar's y and height (and its value label) to that cut axis. The tick and value
+ * texts are the same on both sides; only display, y, height, and transform change.
+ */
+body { background: #ffffff; }
+header { display: flex; align-items: center; gap: 36px; padding: 0 48px; height: 60px; border-bottom: 1px solid #eceef1; }
+.logo { font-weight: 700; font-size: 18px; color: #3b2d7a; }
+.tabs { display: flex; gap: 24px; font-size: 14px; color: #59636e; }
+.tabs .on { color: #3b2d7a; font-weight: 700; }
+.wrap { display: flex; gap: 40px; padding: 30px 48px 0; }
+.main { width: 680px; }
+h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+.sub { font-size: 15px; color: #59636e; margin-bottom: 14px; }
+.source { font-size: 12px; color: #6b7480; margin-top: 6px; }
+aside { flex: 1; padding-top: 6px; }
+aside h2 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 26px; }
+th { text-align: left; font-weight: 700; color: #59636e; font-size: 12px; padding: 0 0 8px; border-bottom: 1px solid #e3e7eb; }
+td { padding: 9px 0; border-bottom: 1px solid #f0f2f4; }
+td.num, th.num { text-align: right; }
+.note { font-size: 14px; color: #3f4650; line-height: 1.55; }
+.bar { fill: #5a48b0; }
+.val { font-size: 14px; font-weight: 700; fill: #1f2328; }
+.cat { font-size: 14px; fill: #1f2328; }
+.tick { font-size: 12px; fill: #59636e; }
+
+.axis-cut { display: none; }
+[data-defect="on"] .axis-zero { display: none; }
+[data-defect="on"] .axis-cut { display: inline; }
+.grid { stroke: #e9ecef; stroke-width: 1; }
+.baseline { stroke: #b9c0c8; stroke-width: 1; }
+
+.bar-1 { y: 206.2px; height: 303.8px; }
+[data-defect="on"] .bar-1 { y: 363px; height: 147px; }
+[data-defect="on"] .val-1 { transform: translateY(156.8px); }
+.bar-2 { y: 157.2px; height: 352.8px; }
+[data-defect="on"] .bar-2 { y: 240.5px; height: 269.5px; }
+[data-defect="on"] .val-2 { transform: translateY(83.3px); }
+.bar-3 { y: 118px; height: 392px; }
+[data-defect="on"] .bar-3 { y: 142.5px; height: 367.5px; }
+[data-defect="on"] .val-3 { transform: translateY(24.5px); }
+.bar-4 { y: 176.8px; height: 333.2px; }
+[data-defect="on"] .bar-4 { y: 289.5px; height: 220.5px; }
+[data-defect="on"] .val-4 { transform: translateY(112.7px); }
+    </style>
+  </head>
+  <body>
+<header><span class="logo">Quarry Analytics</span><nav class="tabs"><span>Acquisition</span><span class="on">Conversion</span><span>Retention</span><span>Revenue</span></nav></header>
+    <div class="wrap">
+      <section class="main">
+        <h1>Trial to paid conversion by plan</h1>
+        <p class="sub">Share of trials started in Q3 2025 that became paid accounts within 30 days</p>
+        <svg width="680" height="550" viewBox="0 0 680 550">
+<g class="axis-zero">
+<text class="tick" x="50" y="514" text-anchor="end">0.0%</text>
+<line class="grid" x1="60" x2="640" y1="412" y2="412" />
+<text class="tick" x="50" y="416" text-anchor="end">1.0%</text>
+<line class="grid" x1="60" x2="640" y1="314" y2="314" />
+<text class="tick" x="50" y="318" text-anchor="end">2.0%</text>
+<line class="grid" x1="60" x2="640" y1="216" y2="216" />
+<text class="tick" x="50" y="220" text-anchor="end">3.0%</text>
+<line class="grid" x1="60" x2="640" y1="118" y2="118" />
+<text class="tick" x="50" y="122" text-anchor="end">4.0%</text>
+<line class="grid" x1="60" x2="640" y1="20" y2="20" />
+<text class="tick" x="50" y="24" text-anchor="end">5.0%</text>
+</g>
+<g class="axis-cut">
+<text class="tick" x="50" y="514" text-anchor="end">2.5%</text>
+<line class="grid" x1="60" x2="640" y1="387.5" y2="387.5" />
+<text class="tick" x="50" y="391.5" text-anchor="end">3.0%</text>
+<line class="grid" x1="60" x2="640" y1="265" y2="265" />
+<text class="tick" x="50" y="269" text-anchor="end">3.5%</text>
+<line class="grid" x1="60" x2="640" y1="142.5" y2="142.5" />
+<text class="tick" x="50" y="146.5" text-anchor="end">4.0%</text>
+<line class="grid" x1="60" x2="640" y1="20" y2="20" />
+<text class="tick" x="50" y="24" text-anchor="end">4.5%</text>
+</g>
+<rect class="bar bar-1" x="94" width="77" />
+<text class="val val-1" x="132.5" y="196.2" text-anchor="middle">3.1%</text>
+<text class="cat" x="132.5" y="536" text-anchor="middle">Starter</text>
+<rect class="bar bar-2" x="239" width="77" />
+<text class="val val-2" x="277.5" y="147.2" text-anchor="middle">3.6%</text>
+<text class="cat" x="277.5" y="536" text-anchor="middle">Team</text>
+<rect class="bar bar-3" x="384" width="77" />
+<text class="val val-3" x="422.5" y="108" text-anchor="middle">4.0%</text>
+<text class="cat" x="422.5" y="536" text-anchor="middle">Growth</text>
+<rect class="bar bar-4" x="529" width="77" />
+<text class="val val-4" x="567.5" y="166.8" text-anchor="middle">3.4%</text>
+<text class="cat" x="567.5" y="536" text-anchor="middle">Enterprise</text>
+<line class="baseline" x1="60" x2="640" y1="510" y2="510" />
+        </svg>
+        <p class="source">Source: Quarry Analytics trial events, 1 July to 30 September 2025.</p>
+      </section>
+      <aside>
+        <h2>Trials by plan, Q3 2025</h2>
+        <table>
+          <tr><th>Plan</th><th class="num">Trials</th><th class="num">Paid</th></tr>
+          <tr><td>Starter</td><td class="num">9,210</td><td class="num">286</td></tr>
+          <tr><td>Team</td><td class="num">5,140</td><td class="num">185</td></tr>
+          <tr><td>Growth</td><td class="num">2,950</td><td class="num">118</td></tr>
+          <tr><td>Enterprise</td><td class="num">1,120</td><td class="num">38</td></tr>
+        </table>
+        <h2>Definition</h2>
+        <p class="note">A trial counts as converted when the first invoice is paid. Trials still open on 30 October are counted as not converted.</p>
+      </aside>
+    </div>
+  </body>
+</html>

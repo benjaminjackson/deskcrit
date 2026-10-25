@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: operating costs by category</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion pie-too-many-slices. A finance report page with a pie of operating costs by category
+ * beside its legend and a short note.
+ * Both sides hold every wedge, label, and legend row; the wedge paths are
+ * fixed. The defect switch only changes display: off shows 4 large
+ * wedges and one grey Other wedge, on hides Other and shows the
+ * 10 thin wedges that fill exactly its angle (OQ-17).
+ */
+
+body { font-family: var(--font-serif); background: #fbfaf7; }
+.top { display: flex; justify-content: space-between; align-items: baseline; padding: 18px 64px; border-bottom: 1px solid #e6e2da; font-family: var(--font-sans); font-size: 14px; color: #6b6760; }
+.brand { font-weight: 700; color: #2b2a28; letter-spacing: 0.02em; }
+main { padding: 22px 64px 0; }
+.kicker { font-family: var(--font-sans); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a6d3b; }
+h1 { font-size: 32px; font-weight: 700; line-height: 1.2; margin-top: 4px; }
+.dek { font-size: 18px; color: #555048; margin-top: 6px; }
+.figure { display: flex; gap: 56px; margin-top: 10px; align-items: flex-start; }
+.wedge { stroke: #fbfaf7; stroke-width: 1.5; }
+.in-label { font-family: var(--font-sans); font-size: 18px; font-weight: 700; fill: #ffffff; }
+.in-label.dark { fill: #2b2a28; }
+.out-label { font-family: var(--font-sans); font-size: 12px; fill: #4a4741; }
+.tick { stroke: #9a958c; stroke-width: 1; }
+.side { padding-top: 34px; width: 440px; }
+.legend { width: 100%; font-family: var(--font-sans); font-size: 15px; }
+.legend { border-collapse: collapse; }
+.legend td { padding: 4px 0; border-bottom: 1px solid #efebe4; vertical-align: middle; }
+.legend td.sw { width: 26px; }
+.swatch { display: inline-block; vertical-align: middle; width: 14px; height: 14px; border-radius: 3px; }
+.pct { text-align: right; font-weight: 700; }
+.source { font-family: var(--font-sans); font-size: 13px; color: #77736b; margin-top: 4px; }
+
+/* The defect switch: off shows the grey Other wedge, its label and legend row;
+   on hides them and shows the slivers that make up Other instead. */
+.legend tr.sliver { display: none; }
+svg g.sliver { display: none; }
+[data-defect="on"] svg g.other { display: none; }
+[data-defect="on"] .legend tr.other { display: none; }
+[data-defect="on"] svg g.sliver { display: inline; }
+[data-defect="on"] .legend tr.sliver { display: table-row; }
+    </style>
+  </head>
+  <body>
+    <header class="top"><span class="brand">Harrowgate Instruments</span><nav>Annual report 2026 &middot; Section 4 of 9</nav></header>
+    <main>
+      <p class="kicker">4.2 Costs</p>
+      <h1>Where operating costs went in fiscal 2026</h1>
+      <p class="dek">Share of total operating costs by category, twelve months to 30 June 2026.</p>
+      <div class="figure">
+        <svg width="500" height="500" viewBox="0 0 500 500" aria-label="Pie chart of operating costs by category">
+          <path class="wedge" fill="#2f5d8a" d="M250 250 L250 50 A200 200 0 0 1 386.91 395.79 Z"/>
+          <text class="in-label" x="369.01" y="207.88" text-anchor="middle">38%</text>
+          <path class="wedge" fill="#4f9a94" d="M250 250 L386.91 395.79 A200 200 0 0 1 200.26 443.72 Z"/>
+          <text class="in-label" x="281.83" y="378.98" text-anchor="middle">16%</text>
+          <path class="wedge" fill="#d08a3c" d="M250 250 L200.26 443.72 A200 200 0 0 1 81.13 357.17 Z"/>
+          <text class="in-label" x="174.76" y="358.55" text-anchor="middle">12%</text>
+          <path class="wedge" fill="#8a6bb0" d="M250 250 L81.13 357.17 A200 200 0 0 1 50 250 Z"/>
+          <text class="in-label" x="127.08" y="290.71" text-anchor="middle">9%</text>
+          <g class="other"><path class="wedge" fill="#b9bec5" d="M250 250 L50 250 A200 200 0 0 1 250 50 Z"/><text class="in-label dark" x="159.49" y="164.49" text-anchor="middle">25%</text></g>
+          <g class="sliver"><path class="wedge" fill="#c4515b" d="M250 250 L50 250 A200 200 0 0 1 56.28 200.26 Z"/><line class="tick" x1="49.59" y1="224.68" x2="42.65" y2="223.81"/><text class="out-label" x="35.7" y="226.93" text-anchor="end">4%</text><path class="wedge" fill="#6aa84f" d="M250 250 L56.28 200.26 A200 200 0 0 1 69.03 164.84 Z"/><line class="tick" x1="59.94" y1="181.57" x2="53.36" y2="179.2"/><text class="out-label" x="46.77" y="180.83" text-anchor="end">3%</text><path class="wedge" fill="#e0b43a" d="M250 250 L69.03 164.84 A200 200 0 0 1 88.2 132.44 Z"/><line class="tick" x1="76.13" y1="147.17" x2="70.1" y2="143.61"/><text class="out-label" x="64.08" y="144.05" text-anchor="end">3%</text><path class="wedge" fill="#3d8fd1" d="M250 250 L88.2 132.44 A200 200 0 0 1 113.09 104.21 Z"/><line class="tick" x1="98.48" y1="116.42" x2="93.23" y2="111.79"/><text class="out-label" x="87.98" y="111.16" text-anchor="end">3%</text><path class="wedge" fill="#a0522d" d="M250 250 L113.09 104.21 A200 200 0 0 1 142.83 81.13 Z"/><line class="tick" x1="126.19" y1="90.39" x2="121.9" y2="84.86"/><text class="out-label" x="117.61" y="83.33" text-anchor="end">3%</text><path class="wedge" fill="#d16fa8" d="M250 250 L142.83 81.13 A200 200 0 0 1 164.84 69.03 Z"/><line class="tick" x1="152.69" y1="72.99" x2="149.31" y2="66.85"/><text class="out-label" x="145.94" y="64.72" text-anchor="end">2%</text><path class="wedge" fill="#5c6bc0" d="M250 250 L164.84 69.03 A200 200 0 0 1 188.2 59.79 Z"/><line class="tick" x1="175.64" y1="62.19" x2="173.06" y2="55.68"/><text class="out-label" x="170.49" y="53.17" text-anchor="end">2%</text><path class="wedge" fill="#7cb7a6" d="M250 250 L188.2 59.79 A200 200 0 0 1 212.52 53.54 Z"/><line class="tick" x1="199.76" y1="54.35" x2="198.02" y2="47.57"/><text class="out-label" x="196.28" y="44.79" text-anchor="end">2%</text><path class="wedge" fill="#9e9d24" d="M250 250 L212.52 53.54 A200 200 0 0 1 237.44 50.39 Z"/><line class="tick" x1="224.68" y1="49.59" x2="223.81" y2="42.65"/><text class="out-label" x="222.93" y="39.7" text-anchor="end">2%</text><path class="wedge" fill="#f08d6e" d="M250 250 L237.44 50.39 A200 200 0 0 1 250 50 Z"/><line class="tick" x1="243.66" y1="48.1" x2="243.44" y2="41.1"/><text class="out-label" x="243.22" y="38.11" text-anchor="end">1%</text></g>
+        </svg>
+        <div class="side">
+          <table class="legend">
+            <tr><td class="sw"><span class="swatch" style="background:#2f5d8a"></span></td><td class="name">Salaries and benefits</td><td class="pct">38%</td></tr>
+            <tr><td class="sw"><span class="swatch" style="background:#4f9a94"></span></td><td class="name">Rent and facilities</td><td class="pct">16%</td></tr>
+            <tr><td class="sw"><span class="swatch" style="background:#d08a3c"></span></td><td class="name">Cloud hosting</td><td class="pct">12%</td></tr>
+            <tr><td class="sw"><span class="swatch" style="background:#8a6bb0"></span></td><td class="name">Marketing</td><td class="pct">9%</td></tr>
+            <tr class="other"><td class="sw"><span class="swatch" style="background:#b9bec5"></span></td><td class="name">Other</td><td class="pct">25%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#c4515b"></span></td><td class="name">Travel</td><td class="pct">4%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#6aa84f"></span></td><td class="name">Insurance</td><td class="pct">3%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#e0b43a"></span></td><td class="name">Legal fees</td><td class="pct">3%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#3d8fd1"></span></td><td class="name">Software licences</td><td class="pct">3%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#a0522d"></span></td><td class="name">Training</td><td class="pct">3%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#d16fa8"></span></td><td class="name">Office supplies</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#5c6bc0"></span></td><td class="name">Utilities</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#7cb7a6"></span></td><td class="name">Equipment repair</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#9e9d24"></span></td><td class="name">Bank fees</td><td class="pct">2%</td></tr>
+            <tr class="sliver"><td class="sw"><span class="swatch" style="background:#f08d6e"></span></td><td class="name">Postage</td><td class="pct">1%</td></tr>
+          </table>
+        </div>
+      </div>
+      <p class="source">Source: Harrowgate Instruments management accounts, fiscal year 2026. Shares are rounded to whole percent.</p>
+    </main>
+  </body>
+</html>

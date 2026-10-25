@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: hero visitors figure</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion bare-kpi-number. A gallery's web analytics page led by one large visitors
+ * figure, with a bar chart of visits by device type beside it.
+ * The defect switch only changes display: on hides the unit, the time
+ * period, and the comparison of each headline number, so only the metric
+ * name and the bare figure stay. Any chart on the page is the same on both
+ * sides (OQ-17).
+ */
+
+body { background: #ffffff; font-family: var(--font-serif); }
+.top { display: flex; justify-content: space-between; align-items: center; padding: 22px 72px; border-bottom: 1px solid #e9e6e1; font-family: var(--font-sans); font-size: 14px; color: #6d685f; }
+.brand { font-family: var(--font-serif); font-weight: 700; font-size: 22px; color: #2d2a26; }
+main { display: flex; gap: 80px; padding: 70px 72px 0; }
+.hero { width: 520px; }
+.label { font-family: var(--font-sans); font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; color: #7a5c2e; }
+.name { font-size: 28px; margin-top: 10px; color: #2d2a26; }
+.value { font-size: 132px; font-weight: 700; line-height: 1.05; color: #1f1d1a; margin-top: 6px; }
+.value .unit { font-size: 96px; }
+.line { font-family: var(--font-sans); font-size: 18px; line-height: 1.8; color: #5f5a52; }
+.delta { color: #1d6b4a; font-weight: 700; }
+.delta .vs { color: #5f5a52; font-weight: 400; }
+.arrow { fill: #1d6b4a; margin-right: 6px; }
+.note { font-family: var(--font-sans); font-size: 15px; color: #5f5a52; margin-top: 26px; width: 440px; }
+.side { flex: 1; font-family: var(--font-sans); padding-top: 20px; }
+.side h2 { font-size: 17px; font-weight: 700; color: #2d2a26; margin-bottom: 10px; }
+.side .src { font-size: 12px; color: #77726a; margin-top: 6px; }
+.axis.cat { font-size: 14px; fill: #3f3b35; }
+
+.grid { stroke: #eceff2; stroke-width: 1; }
+.base { stroke: #b9c0c8; stroke-width: 1; }
+.axis { font-size: 12px; fill: #6b737c; }
+
+/* The defect switch: on hides every unit, period, and comparison span next to
+   the headline numbers. Each is an inline span inside its own line, so a
+   hidden line leaves an empty block with no height. */
+[data-defect="on"] .unit { display: none; }
+[data-defect="on"] .period { display: none; }
+[data-defect="on"] .delta { display: none; }
+    </style>
+  </head>
+  <body>
+    <header class="top"><span class="brand">The Wrenfield Gallery</span><span>Website report &middot; prepared for the trustees</span></header>
+    <main>
+      <section class="hero">
+        <p class="label">Website</p>
+        <p class="name">Unique visitors</p>
+        <p class="value">48.2<span class="unit">k</span></p>
+        <div class="line"><span class="period">September 2026</span></div>
+        <div class="line"><span class="delta"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M5 1 L9 8 L1 8 Z"/></svg>+6.1% <span class="vs">vs August 2026</span></span></div>
+        <p class="note">Most new visitors arrived through the autumn exhibition pages and the members' newsletter.</p>
+      </section>
+      <section class="side">
+        <h2>Share of visits by device</h2>
+        <svg width="540" height="232" viewBox="0 0 540 232"><line class="grid" x1="90" y1="10" x2="90" y2="202"/><text class="axis" x="90" y="222" text-anchor="middle">0%</text><line class="grid" x1="160" y1="10" x2="160" y2="202"/><text class="axis" x="160" y="222" text-anchor="middle">10%</text><line class="grid" x1="230" y1="10" x2="230" y2="202"/><text class="axis" x="230" y="222" text-anchor="middle">20%</text><line class="grid" x1="300" y1="10" x2="300" y2="202"/><text class="axis" x="300" y="222" text-anchor="middle">30%</text><line class="grid" x1="370" y1="10" x2="370" y2="202"/><text class="axis" x="370" y="222" text-anchor="middle">40%</text><line class="grid" x1="440" y1="10" x2="440" y2="202"/><text class="axis" x="440" y="222" text-anchor="middle">50%</text><line class="grid" x1="510" y1="10" x2="510" y2="202"/><text class="axis" x="510" y="222" text-anchor="middle">60%</text><text class="axis cat" x="80" y="47" text-anchor="end">Phone</text><rect class="bar" x="90" y="22.8" width="364" height="38" fill="#7a5c2e"/><text class="axis cat" x="80" y="111" text-anchor="end">Desktop</text><rect class="bar" x="90" y="86.8" width="273" height="38" fill="#7a5c2e"/><text class="axis cat" x="80" y="175" text-anchor="end">Tablet</text><rect class="bar" x="90" y="150.8" width="63" height="38" fill="#7a5c2e"/><line class="base" x1="90" y1="10" x2="90" y2="202"/></svg>
+        <p class="src">Source: gallery web log, all visits in the month.</p>
+      </section>
+    </main>
+  </body>
+</html>

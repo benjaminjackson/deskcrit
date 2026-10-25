@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: ops dashboard tiles</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion bare-kpi-number. A service health dashboard with four KPI tiles in a two by two
+ * grid beside a bar chart of requests by service.
+ * The defect switch only changes display: on hides the unit, the time
+ * period, and the comparison of each headline number, so only the metric
+ * name and the bare figure stay. Any chart on the page is the same on both
+ * sides (OQ-17).
+ */
+
+body { background: #f3f5f8; }
+.top { display: flex; align-items: center; gap: 36px; height: 56px; padding: 0 40px; background: #17212e; color: #c9d2dd; font-size: 14px; }
+.brand { font-weight: 700; color: #ffffff; font-size: 17px; }
+.top .on { color: #ffffff; font-weight: 700; }
+main { padding: 24px 40px 0; }
+h1 { font-size: 24px; font-weight: 700; }
+.sub { font-size: 14px; color: #5e6875; }
+.layout { display: flex; gap: 24px; margin-top: 16px; }
+.grid4 { display: grid; grid-template-columns: 250px 250px; gap: 16px; }
+.tile { background: #ffffff; border-radius: 8px; padding: 18px 20px; height: 168px; }
+.name { font-size: 14px; color: #4b5562; }
+.value { font-size: 44px; font-weight: 700; line-height: 1.2; margin-top: 6px; color: #17212e; }
+.value .unit { font-size: 26px; font-weight: 400; color: #4b5562; }
+.line { font-size: 13px; line-height: 1.75; color: #5e6875; }
+.delta { font-weight: 700; color: #1b6e43; }
+.delta.neutral { color: #2f3a47; }
+.delta .vs { font-weight: 400; color: #5e6875; }
+.arrow { fill: #1b6e43; margin-right: 4px; }
+.chart { flex: 1; background: #ffffff; border-radius: 8px; padding: 18px 22px; height: 352px; display: flex; flex-direction: column; justify-content: space-between; }
+.chart h2 { font-size: 16px; font-weight: 700; }
+.chart .src { font-size: 12px; color: #6b7480; margin-top: 4px; }
+.axis.cat { font-size: 13px; fill: #2f3a47; }
+
+.grid { stroke: #eceff2; stroke-width: 1; }
+.base { stroke: #b9c0c8; stroke-width: 1; }
+.axis { font-size: 12px; fill: #6b737c; }
+
+/* The defect switch: on hides every unit, period, and comparison span next to
+   the headline numbers. Each is an inline span inside its own line, so a
+   hidden line leaves an empty block with no height. */
+[data-defect="on"] .unit { display: none; }
+[data-defect="on"] .period { display: none; }
+[data-defect="on"] .delta { display: none; }
+    </style>
+  </head>
+  <body>
+    <header class="top"><span class="brand">Lanternline</span><span class="on">Service health</span><span>Incidents</span><span>Deploys</span><span>On call</span></header>
+    <main>
+      <h1>Checkout platform</h1>
+      <p class="sub">Production, all regions</p>
+      <div class="layout">
+        <div class="grid4">
+          <section class="tile">
+            <p class="name">Uptime</p>
+            <p class="value">99.95<span class="unit">%</span></p>
+            <div class="line"><span class="period">Last 30 days</span></div>
+            <div class="line"><span class="delta neutral">Target 99.9%</span></div>
+          </section>
+          <section class="tile">
+            <p class="name">p95 latency</p>
+            <p class="value">182<span class="unit"> ms</span></p>
+            <div class="line"><span class="period">Last 24 hours</span></div>
+            <div class="line"><span class="delta"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M1 2 L9 2 L5 9 Z"/></svg>-14 ms <span class="vs">vs same day last week</span></span></div>
+          </section>
+          <section class="tile">
+            <p class="name">Error rate</p>
+            <p class="value">0.21<span class="unit">%</span></p>
+            <div class="line"><span class="period">Last 24 hours</span></div>
+            <div class="line"><span class="delta neutral">Target below 0.5%</span></div>
+          </section>
+          <section class="tile">
+            <p class="name">Requests</p>
+            <p class="value">3.4<span class="unit">M</span></p>
+            <div class="line"><span class="period">Last 24 hours</span></div>
+            <div class="line"><span class="delta"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M5 1 L9 8 L1 8 Z"/></svg>+12% <span class="vs">vs previous 24 hours</span></span></div>
+          </section>
+        </div>
+        <section class="chart">
+          <h2>Requests by service, share of total</h2>
+          <svg width="600" height="290" viewBox="0 0 600 290"><line class="grid" x1="130" y1="10" x2="130" y2="260"/><text class="axis" x="130" y="280" text-anchor="middle">0%</text><line class="grid" x1="240" y1="10" x2="240" y2="260"/><text class="axis" x="240" y="280" text-anchor="middle">10%</text><line class="grid" x1="350" y1="10" x2="350" y2="260"/><text class="axis" x="350" y="280" text-anchor="middle">20%</text><line class="grid" x1="460" y1="10" x2="460" y2="260"/><text class="axis" x="460" y="280" text-anchor="middle">30%</text><line class="grid" x1="570" y1="10" x2="570" y2="260"/><text class="axis" x="570" y="280" text-anchor="middle">40%</text><text class="axis cat" x="120" y="40" text-anchor="end">Cart</text><rect class="bar" x="130" y="20" width="374" height="30" fill="#2f6fb5"/><text class="axis cat" x="120" y="90" text-anchor="end">Payments</text><rect class="bar" x="130" y="70" width="286" height="30" fill="#2f6fb5"/><text class="axis cat" x="120" y="140" text-anchor="end">Catalogue</text><rect class="bar" x="130" y="120" width="187" height="30" fill="#2f6fb5"/><text class="axis cat" x="120" y="190" text-anchor="end">Accounts</text><rect class="bar" x="130" y="170" width="143" height="30" fill="#2f6fb5"/><text class="axis cat" x="120" y="240" text-anchor="end">Shipping</text><rect class="bar" x="130" y="220" width="110" height="30" fill="#2f6fb5"/><line class="base" x1="130" y1="10" x2="130" y2="260"/></svg>
+          <p class="src">Source: Lanternline gateway logs.</p>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

@@ -1003,137 +1003,155 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 
 ## Data visualization
 
+Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and Taylor) and, where one exists, a page of Tufte's *The Visual Display of Quantitative Information*. Benjamin Jackson has not yet decided whether a dataviz criterion may cite a practice reference under FR-45, and no Tufte page has been checked, so each Tufte page is marked "page unchecked". The source of each encoded entry below is awaiting that decision.
+
 ### Maximise the data-ink ratio
 - **Rule:** Most of the ink in a chart encodes data; heavy gridlines, borders, fills, and decoration that carry no information are removed or muted.
-- **Source:** Edward Tufte, *The Visual Display of Quantitative Information* (1983), ch. 4
-- **Judged by:** askable.
+- **Source:** Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 23.2 "Background grids"; Edward Tufte, *The Visual Display of Quantitative Information* (Graphics Press, 2nd ed. 2001), chapter 5, section "The Grid", about p. 112, page unchecked.
+- **Link:** https://clauswilke.com/dataviz/
+- **Judged by:** askable. Question: "Do the lines that only hold a chart together, such as its gridlines, axis lines, borders, or a box around the plot, look as bold and prominent as the bars, lines, or points that show the data?" Reworded once under R-4 on 2026-10-25 (crit-q25.9), written blind from this entry and its sources. The old question was "Is a chart drawn with dark, heavy gridlines, borders, or frames that stand out as strongly as the data marks themselves?"
+- **Defect range:** `heavy-gridlines-and-frames`: not measured. Gridlines, axis lines, and a plot frame in dark grey to near-black, 1 to 2 px, about as dark as the data marks.
 
 ### No chartjunk
 - **Rule:** Charts have no ornamental moire patterns, heavy textures, clip art, 3D effects, drop shadows, or decorative backgrounds that compete with the data.
-- **Source:** Edward Tufte, *The Visual Display of Quantitative Information* (1983), ch. 5
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Source:** Stephen Few, "Common Pitfalls in Dashboard Design" (Perceptual Edge, 2006), pitfall 11; Edward Tufte, *The Visual Display of Quantitative Information* (Graphics Press, 2nd ed. 2001), chapter 5, about pp. 107-121, page unchecked.
+- **Link:** https://www.perceptualedge.com/articles/Whitepapers/Common_Pitfalls.pdf
+- **Judged by:** askable as a visual judgment; the figure in the rule is not checked. Question: "Does a chart carry decoration that shows no data, such as pictures, icons, patterned or textured fills, or ornamental backgrounds behind or inside the marks?"
+- **Defect range:** `chartjunk-decoration`: not measured. One kind of decoration per chart at the strength of a charting product's preset, never several at once.
 
 ### Graphical integrity: keep the lie factor near 1
 - **Rule:** The visual size of an effect matches the size of the effect in the data. Tufte's lie factor, the size of the effect shown divided by the size in the data, stays near 1. A 10 percent change must not look like a 100 percent change.
 - **Source:** Edward Tufte, *The Visual Display of Quantitative Information* (1983), ch. 2 (six principles of graphical integrity)
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** not encoded. The lie factor is a measured size, not a plain all-or-nothing feature; `bar-axis-not-at-zero` asks about its most common case.
 
 ### Bar charts start at zero
 - **Rule:** Bar and area charts have a value axis that begins at zero because bar length encodes value; truncated bar axes are flagged. (Line and dot charts may use a non-zero baseline if labelled.)
-- **Source:** Alberto Cairo, *How Charts Lie* (2019); Stephen Few, *Show Me the Numbers* (2004, 2nd ed. 2012)
-- **Judged by:** askable.
+- **Source:** Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 17.1 "The principle of proportional ink"; Stephen Few, "Common Pitfalls in Dashboard Design" (Perceptual Edge, 2006), pitfall 8; Edward Tufte, *The Visual Display of Quantitative Information* (Graphics Press, 2nd ed. 2001), chapter 2, the Lie Factor, about p. 57, page unchecked, in part.
+- **Link:** https://clauswilke.com/dataviz/
+- **Judged by:** askable. Question: "Does a bar chart's value axis start above zero, so the bars are cut off at the bottom and the differences between them look larger than they are?"
+- **Defect range:** `bar-axis-not-at-zero`: not measured. The value axis starts above zero, so data that differ by under about 30 percent show bars whose lengths differ about 2 to 5 times; the clean side starts at zero.
 
 ### Do not distort with 3D
 - **Rule:** No 3D bars, pies, or ribbons; extra depth dimension without extra data makes values hard to read and distorts size.
-- **Source:** Edward Tufte, *The Visual Display of Quantitative Information* (1983); Stephen Few, *Show Me the Numbers* (2004)
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Source:** Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 26.1 "Avoid gratuitous 3D"; Stephen Few, "Common Pitfalls in Dashboard Design" (Perceptual Edge, 2006), pitfall 7; Edward Tufte, *The Visual Display of Quantitative Information* (Graphics Press, 2nd ed. 2001), chapter 2, about p. 71, page unchecked.
+- **Link:** https://clauswilke.com/dataviz/
+- **Judged by:** askable as a visual judgment; the figure in the rule is not checked. Question: "Is a chart drawn with a three-dimensional effect, such as bars or pie slices with depth, sides, or a tilted perspective, when the data has no third dimension?"
+- **Defect range:** `three-d-chart`: not measured. A moderate extrusion of about 8 to 16 px, or a pie tilted to an ellipse, as office chart defaults draw it.
 
 ### Rank encodings by perceptual accuracy
 - **Rule:** The most important comparison uses the most accurate encoding: position on a common scale, then length, then angle or slope, then area, then volume, then colour saturation or hue.
 - **Source:** William Cleveland and Robert McGill, *Graphical Perception: Theory, Experimentation, and Application to the Development of Graphical Methods*, Journal of the American Statistical Association 79(387), 531-554 (1984)
 - **Link:** https://www.jstor.org/stable/2288400
-- **Judged by:** askable.
+- **Judged by:** not encoded. Which comparison matters most depends on what the data says (NG-10).
 
 ### Choose chart type by data relationship
 - **Rule:** The chart type fits the question. Comparison across categories takes bars. Change over time takes lines. Part-to-whole takes stacked bars, or a pie with few slices. Distribution takes a histogram or box plot. Correlation takes a scatter plot. Ranking takes sorted bars.
 - **Source:** Stephen Few, *Show Me the Numbers* (2nd ed. 2012), ch. 6, "Fundamental Variations of Graphs" (eight types of quantitative relationships); Claus Wilke, *Fundamentals of Data Visualization* (2019)
 - **Link:** https://clauswilke.com/dataviz/
-- **Judged by:** askable.
+- **Judged by:** not encoded. The right chart type depends on what the data is and what question it answers (NG-10).
 
 ### Use pie charts sparingly
 - **Rule:** Pies are only for a part-to-whole of about five or fewer slices where exact comparison is not needed; pies with many slices, similar sizes, or several pies to compare are flagged.
-- **Source:** Stephen Few, *Show Me the Numbers* (2004); Cleveland and McGill (1984); Wilke, *Fundamentals of Data Visualization* (2019), ch. 10
-- **Link:** https://clauswilke.com/dataviz/
-- **Judged by:** askable.
+- **Source:** Stephen Few, "Common Pitfalls in Dashboard Design" (Perceptual Edge, 2006), pitfall 5; Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 10.1; Edward Tufte, *The Visual Display of Quantitative Information* (Graphics Press, 2nd ed. 2001), about p. 178, page unchecked, in part.
+- **Link:** https://www.perceptualedge.com/articles/Whitepapers/Common_Pitfalls.pdf
+- **Judged by:** askable. Question: "Does a pie or donut chart have so many slices that the slices are hard to tell apart and compare?"
+- **Defect range:** `pie-too-many-slices`: not measured. One pie or donut of 9 to 14 slices, four or more of them thin slivers; the clean side groups the slivers into one Other slice, leaving 4 to 6.
 
 ### Label directly instead of using a legend
 - **Rule:** Series, bars, and lines are labelled at the data itself; if a legend is needed the reader should not have to look back and forth to decode colours.
 - **Source:** Edward Tufte, *The Visual Display of Quantitative Information* (1983) (labels placed on the graphic itself); Cole Nussbaumer Knaflic, *Storytelling with Data* (2015); Wilke, *Fundamentals of Data Visualization* (2019)
-- **Judged by:** askable.
+- **Judged by:** not encoded. A legend is often acceptable, so this is a matter of degree and not a plain all-or-nothing feature.
 
 ### Use colour type that matches the data
 - **Rule:** Ordered values use a sequential (single-hue lightness) palette, values with a meaningful midpoint use a diverging palette, and unordered categories use a qualitative palette of distinct hues, limited to about 5 to 7 categories.
-- **Source:** Cynthia Brewer, *ColorBrewer* and "Color Use Guidelines for Mapping and Visualization" (1994, ch. 7 of MacEachren and Taylor, eds., *Visualization in Modern Cartography*, pp. 123-147); Wilke, *Fundamentals of Data Visualization* (2019), ch. 4
-- **Link:** https://colorbrewer2.org/
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Source:** Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapters 19.2 and 4.2; David Borland and Russell M. Taylor II, "Rainbow Color Map (Still) Considered Harmful", *IEEE Computer Graphics and Applications* 27(2), 2007; Edward Tufte, *The Visual Display of Quantitative Information* (Graphics Press, 2nd ed. 2001), about p. 154, page unchecked, in part.
+- **Link:** https://clauswilke.com/dataviz/
+- **Judged by:** askable as a visual judgment; the figure in the rule is not checked. Question: "Does a chart or map show values that run from low to high with a rainbow of unrelated hues, such as red, yellow, green, and blue, instead of one colour that grows lighter or darker?"
+- **Defect range:** `rainbow-for-ordered-values`: not measured. A ramp through 5 to 7 spectrum hues; the clean side is a single-hue light-to-dark ramp with the same steps.
 
 ### Do not rely on colour alone and avoid red-green pairs
 - **Rule:** Meaning conveyed by colour is also carried by label, shape, or position, and palettes are distinguishable under common colour-vision deficiency; contrast of marks against background is at least 3:1.
 - **Source:** WCAG 2.2, SC 1.4.1 *Use of Color* and SC 1.4.11 *Non-text Contrast*
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Does a chart tell two series or categories apart only by red and green, with no other difference such as labels, shape, pattern, or lightness?"
+- **Not encoded:** `series-split-only-by-red-green` was cut after the pre-screen (crit-q25.17, jev-1.14.0), with pre-screen figures 0.06, 0.50 / 0.00, 0.00.
 
 ### Use colour with restraint and emphasis
 - **Rule:** Neutral grey carries context and one accent colour highlights the point; a rainbow of colours without meaning is flagged.
-- **Source:** Cole Nussbaumer Knaflic, *Storytelling with Data* (2015); Stephen Few, *Information Dashboard Design* (2006)
-- **Judged by:** askable.
+- **Source:** Stephen Few, "Common Pitfalls in Dashboard Design" (Perceptual Edge, 2006), pitfall 12; Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 19.1.
+- **Link:** https://www.perceptualedge.com/articles/Whitepapers/Common_Pitfalls.pdf
+- **Judged by:** askable. Question: "Are the bars or marks of a single series drawn in many different colours that encode nothing, when one colour would show the same data?"
+- **Defect range:** `colour-without-meaning`: not measured. One series of 5 to 10 bars, each a different hue from a common categorical palette at the saturation of the clean side's single colour.
 
 ### Titles and annotations state the takeaway
 - **Rule:** The chart title or a caption states the finding ("Sales fell 20% after March"), not only the topic ("Sales by month"), and key points are annotated on the chart.
 - **Source:** Alberto Cairo, *The Functional Art* (2012) and *How Charts Lie* (2019); Knaflic, *Storytelling with Data* (2015)
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** not encoded. It asks what the title says (NG-10).
 
 ### Label axes, units, and sources
 - **Rule:** Every chart has labelled axes (or direct labels) with units, a readable scale, and a data source or date where relevant; the reader should never need to guess what a number measures.
 - **Source:** Edward Tufte, *The Visual Display of Quantitative Information* (1983), ch. 2 (clear labelling); Few, *Show Me the Numbers* (2004)
-- **Judged by:** askable.
+- **Judged by:** owned by the accessibility criterion `chart-without-text`, so the dataviz pack does not ask it again.
 
 ### Keep scales honest and consistent
 - **Rule:** Axes are linear unless clearly marked as log, tick intervals are even, no broken axes without a marker, and charts meant for comparison share the same scale.
 - **Source:** Alberto Cairo, *How Charts Lie* (2019); Edward Tufte, *The Visual Display of Quantitative Information* (1983)
-- **Judged by:** askable.
+- **Judged by:** not encoded. It needs the tick values read and compared, which is content and detail too fine to see (NG-10).
 
 ### Use small multiples for comparison across many series
 - **Rule:** Instead of one chart with many overlapping lines or categories, repeat the same small chart with identical scales and layout so differences are visible at a glance.
 - **Source:** Edward Tufte, *Envisioning Information* (1990), and *The Visual Display of Quantitative Information* (1983)
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Does a line chart overlay so many lines that cross each other that the lines form a tangle and no single line can be followed?"
+- **Not encoded:** `tangled-overlaid-lines` was cut after the pre-screen (crit-q25.17, jev-1.14.0), with pre-screen figures 0.33, 0.13 / 0.02, 0.01.
 
 ### Use sparklines for compact trend context
 - **Rule:** Small word-sized trend lines without axes can sit beside numbers in tables and dashboards to show shape and change; they are not used when exact values are needed.
 - **Source:** Edward Tufte, *Beautiful Evidence* (2006), ch. 2 (sparklines); Few, *Information Dashboard Design* (2006)
-- **Judged by:** askable.
+- **Judged by:** not encoded. It says when sparklines may be used, so there is no plain all-or-nothing defect to ask about.
 
 ### Sort and order data meaningfully
 - **Rule:** Categorical bars are sorted by value (or a natural order such as time, size, or age), not alphabetically or randomly, unless the reader must look up named items.
 - **Source:** Stephen Few, *Show Me the Numbers* (2004); Wilke, *Fundamentals of Data Visualization* (2019)
-- **Judged by:** askable.
+- **Judged by:** not encoded. Whether an order is natural depends on what the labels say (NG-10).
 
 ### Dashboards fit on one screen and are glanceable
 - **Rule:** A dashboard shows its most important metrics on one screen without scrolling, in a prioritised layout, with the key figures in the top left or the most prominent area.
 - **Source:** Stephen Few, *Information Dashboard Design* (2006, 2nd ed. 2013), ch. 3 ("Thirteen Common Mistakes in Dashboard Design" in the 2006 edition), and his white paper "Common Pitfalls in Dashboard Design" (the thirteen mistakes, first of which is exceeding a single screen)
 - **Link:** https://www.perceptualedge.com/articles/Whitepapers/Common_Pitfalls.pdf
-- **Judged by:** askable.
+- **Judged by:** not encoded. One screenshot does not show whether the page scrolls, and "glanceable" is not a plain all-or-nothing feature.
 
 ### Give metrics context and comparison
 - **Rule:** A KPI number is shown with a comparison (target, previous period, trend) so the reader can tell good from bad; a bare big number is flagged.
-- **Source:** Stephen Few, *Information Dashboard Design* (2006), ch. 3 (mistake 2, "supplying inadequate context for the data"); Few, *Show Me the Numbers* (2004)
-- **Judged by:** askable.
+- **Source:** Stephen Few, "Common Pitfalls in Dashboard Design" (Perceptual Edge, 2006), pitfall 2; Edward Tufte, *The Visual Display of Quantitative Information* (Graphics Press, 2nd ed. 2001), chapter 2, about p. 74, page unchecked.
+- **Link:** https://www.perceptualedge.com/articles/Whitepapers/Common_Pitfalls.pdf
+- **Judged by:** askable. Question: "Is a large headline number on a dashboard shown alone, with no unit, no time period, and no comparison such as a change, a target, or an earlier value?"
+- **Defect range:** `bare-kpi-number`: not measured. One to four headline numbers that carry only a metric name, without a unit, a period, or a comparison.
 
 ### Group related items by proximity, enclosure, and similarity
 - **Rule:** Related marks or panels sit together with space between unrelated groups; the Gestalt rules (proximity, similarity, enclosure, connection, continuity) make the intended groups, and only those, look grouped.
 - **Source:** Max Wertheimer, "Untersuchungen zur Lehre von der Gestalt II", *Psychologische Forschung* (1923), English translation "Laws of Organization in Perceptual Forms" (1938, in Ellis, *A Source Book of Gestalt Psychology*); Stephen Few, *Information Dashboard Design* (2006), ch. 4, "Tapping into the Power of Visual Perception" (Gestalt principles applied to dashboards)
-- **Judged by:** askable.
+- **Judged by:** not encoded. Which items are related depends on the content (NG-10), and the layout pack's grouping criterion did not reach the EV-4 floor.
 
 ### Choose visual variables to fit the data type
 - **Rule:** Position and size suit quantitative data, hue and shape suit categories, lightness and size suit ordered data; do not encode a category with size or a quantity with shape.
 - **Source:** Jacques Bertin, *Sémiologie graphique* (1967; English translation by William J. Berg, *Semiology of Graphics*, 1983)
-- **Judged by:** askable.
+- **Judged by:** not encoded. It depends on what kind of data each mark carries, which the content says (NG-10).
 
 ### Chart vs table: use tables for lookup of exact values
 - **Rule:** When readers need precise values or many different units, use a table; when they need patterns, trends, or comparisons, use a chart. A table has aligned numbers (right-aligned, same decimals), light rules, and no heavy grid.
 - **Source:** Stephen Few, *Show Me the Numbers* (2004, 2nd ed. 2012), ch. 3, "Differing Roles of Tables and Graphs"; Tufte, *The Visual Display of Quantitative Information* (1983)
-- **Judged by:** askable.
+- **Judged by:** not encoded. It depends on what the reader needs from the numbers (NG-10).
 
 ### Show uncertainty and sample context
 - **Rule:** Estimates, forecasts, and samples are shown with ranges, error bars, or notes about sample size, and projections look different from observed data.
 - **Source:** Alberto Cairo, *How Charts Lie* (2019), ch. 5, "Charts That Lie by Concealing or Confusing Uncertainty"; Claus Wilke, *Fundamentals of Data Visualization* (2019), ch. 16
 - **Link:** https://clauswilke.com/dataviz/
-- **Judged by:** askable.
+- **Judged by:** not encoded. Whether a number is an estimate is something the content says (NG-10).
 
 ### Do not truncate or cherry-pick the time range or sample
 - **Rule:** Time ranges and subsets show enough context to avoid misleading trends; a chart that begins or ends exactly where it makes the claim look strongest is flagged for review.
 - **Source:** Alberto Cairo, *How Charts Lie* (2019), ch. 4 ("Charts That Lie by Displaying Insufficient Data")
-- **Judged by:** askable.
+- **Judged by:** not encoded. It depends on the claim and on data outside the chart (NG-10).
 
 
 ---

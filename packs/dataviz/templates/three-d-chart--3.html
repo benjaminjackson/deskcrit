@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: three-d chart (clustered columns)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion three-d-chart. A city library annual report with clustered
+ * columns of visits by branch for 2025 and 2026. The defect only shows a
+ * darker side face and a lighter top face on every column, about 11 px deep,
+ * as an office 3D clustered column preset draws them. The faces are in the
+ * page on both sides and hidden on the clean side. Nothing else changes
+ * (OQ-17).
+ */
+body { background: #ffffff; font-family: var(--font-serif); }
+.band { height: 10px; background: #2e5f99; }
+header { padding: 22px 76px 0; display: flex; justify-content: space-between; align-items: baseline; }
+.org { font-size: 20px; font-weight: 700; }
+.part { font-family: var(--font-sans); font-size: 14px; color: #6b7280; }
+main { display: flex; gap: 40px; padding: 26px 76px 0; }
+.chart { width: 880px; }
+h1 { font-size: 30px; margin-bottom: 4px; }
+.sub { font-family: var(--font-sans); font-size: 15px; color: #59636e; margin-bottom: 10px; }
+.legend { font-family: var(--font-sans); display: flex; gap: 22px; font-size: 14px; margin-bottom: 4px; }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend i { width: 14px; height: 14px; display: inline-block; border-radius: 2px; }
+.notes { width: 210px; padding-top: 110px; font-size: 16px; color: #3b434c; }
+.notes p { margin-bottom: 14px; }
+.source { font-family: var(--font-sans); font-size: 13px; color: #6b7280; margin-top: 6px; }
+svg text { font-family: var(--font-sans); }
+.grid { stroke: #eceff3; stroke-width: 1; }
+.baseline { stroke: #9aa3ad; stroke-width: 1; }
+.tick, .cat { font-size: 13px; fill: #6b7280; }
+.value { font-size: 12px; font-weight: 700; fill: #1f2328; }
+.s0 { fill: #9db3cf; }
+.s1 { fill: #2e5f99; }
+.depth { display: none; }
+
+[data-defect="on"] .depth { display: inline; }
+    </style>
+  </head>
+  <body>
+<div class="band"></div>
+    <header><div class="org">Ashcombe City Libraries</div><div class="part">Annual report 2026 · Use of the branches</div></header>
+    <main>
+      <div class="chart">
+        <h1>Visits rose at four of five branches</h1>
+        <p class="sub">Visits counted at the door, thousands, 2025 and 2026 (twelve months to 30 September).</p>
+        <div class="legend"><span><i style="background:#9db3cf"></i>2025</span><span><i style="background:#2e5f99"></i>2026</span></div>
+        <svg width="870" height="410" viewBox="0 0 870 410">
+<line class="baseline" x1="70" y1="380" x2="840" y2="380" />
+<text class="tick" x="60" y="385" text-anchor="end">0k</text>
+<line class="grid" x1="70" y1="292.5" x2="840" y2="292.5" />
+<text class="tick" x="60" y="297.5" text-anchor="end">50k</text>
+<line class="grid" x1="70" y1="205" x2="840" y2="205" />
+<text class="tick" x="60" y="210" text-anchor="end">100k</text>
+<line class="grid" x1="70" y1="117.5" x2="840" y2="117.5" />
+<text class="tick" x="60" y="122.5" text-anchor="end">150k</text>
+<line class="grid" x1="70" y1="30" x2="840" y2="30" />
+<text class="tick" x="60" y="35" text-anchor="end">200k</text>
+<rect class="bar s0" x="92" y="61.5" width="46" height="318.5" />
+<polygon class="depth" points="138,61.5 149,53.5 149,372 138,380" fill="#718195" />
+<polygon class="depth" points="92,61.5 103,53.5 149,53.5 138,61.5" fill="#bccbde" />
+<text class="value" x="115" y="45.5" text-anchor="middle">182</text>
+<rect class="bar s1" x="156" y="37" width="46" height="343" />
+<polygon class="depth" points="202,37 213,29 213,372 202,380" fill="#21446e" />
+<polygon class="depth" points="156,37 167,29 213,29 202,37" fill="#7192ba" />
+<text class="value" x="179" y="21" text-anchor="middle">196</text>
+<text class="cat" x="147" y="406" text-anchor="middle">Central</text>
+<rect class="bar s0" x="246" y="212" width="46" height="168" />
+<polygon class="depth" points="292,212 303,204 303,372 292,380" fill="#718195" />
+<polygon class="depth" points="246,212 257,204 303,204 292,212" fill="#bccbde" />
+<text class="value" x="269" y="196" text-anchor="middle">96</text>
+<rect class="bar s1" x="310" y="198" width="46" height="182" />
+<polygon class="depth" points="356,198 367,190 367,372 356,380" fill="#21446e" />
+<polygon class="depth" points="310,198 321,190 367,190 356,198" fill="#7192ba" />
+<text class="value" x="333" y="182" text-anchor="middle">104</text>
+<text class="cat" x="301" y="406" text-anchor="middle">Eastgate</text>
+<rect class="bar s0" x="400" y="250.5" width="46" height="129.5" />
+<polygon class="depth" points="446,250.5 457,242.5 457,372 446,380" fill="#718195" />
+<polygon class="depth" points="400,250.5 411,242.5 457,242.5 446,250.5" fill="#bccbde" />
+<text class="value" x="423" y="234.5" text-anchor="middle">74</text>
+<rect class="bar s1" x="464" y="255.8" width="46" height="124.2" />
+<polygon class="depth" points="510,255.8 521,247.8 521,372 510,380" fill="#21446e" />
+<polygon class="depth" points="464,255.8 475,247.8 521,247.8 510,255.8" fill="#7192ba" />
+<text class="value" x="487" y="239.8" text-anchor="middle">71</text>
+<text class="cat" x="455" y="406" text-anchor="middle">Millbrook</text>
+<rect class="bar s0" x="554" y="156" width="46" height="224" />
+<polygon class="depth" points="600,156 611,148 611,372 600,380" fill="#718195" />
+<polygon class="depth" points="554,156 565,148 611,148 600,156" fill="#bccbde" />
+<text class="value" x="577" y="140" text-anchor="middle">128</text>
+<rect class="bar s1" x="618" y="133.3" width="46" height="246.7" />
+<polygon class="depth" points="664,133.3 675,125.3 675,372 664,380" fill="#21446e" />
+<polygon class="depth" points="618,133.3 629,125.3 675,125.3 664,133.3" fill="#7192ba" />
+<text class="value" x="641" y="117.30000000000001" text-anchor="middle">141</text>
+<text class="cat" x="609" y="406" text-anchor="middle">Riverside</text>
+<rect class="bar s0" x="708" y="278.5" width="46" height="101.5" />
+<polygon class="depth" points="754,278.5 765,270.5 765,372 754,380" fill="#718195" />
+<polygon class="depth" points="708,278.5 719,270.5 765,270.5 754,278.5" fill="#bccbde" />
+<text class="value" x="731" y="262.5" text-anchor="middle">58</text>
+<rect class="bar s1" x="772" y="264.5" width="46" height="115.5" />
+<polygon class="depth" points="818,264.5 829,256.5 829,372 818,380" fill="#21446e" />
+<polygon class="depth" points="772,264.5 783,256.5 829,256.5 818,264.5" fill="#7192ba" />
+<text class="value" x="795" y="248.5" text-anchor="middle">66</text>
+<text class="cat" x="763" y="406" text-anchor="middle">West Hill</text>
+</svg>
+        <p class="source">Source: Ashcombe City Libraries door counters, October 2025 to September 2026.</p>
+      </div>
+      <div class="notes">
+        <p>Riverside gained the most, 13,000 visits, after its study rooms reopened in March.</p>
+        <p>Millbrook dipped while its roof was repaired over the summer.</p>
+      </div>
+    </main>
+  </body>
+</html>
