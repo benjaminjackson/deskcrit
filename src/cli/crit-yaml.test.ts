@@ -59,13 +59,13 @@ describe("parseCritYaml", () => {
     },
     {
       name: "an unknown key",
-      text: "colour: red\n",
-      message: ".crit.yaml: unknown key colour",
+      text: "color: red\n",
+      message: ".crit.yaml: unknown key color",
     },
     {
       name: "an unknown context key",
-      text: "context:\n  colour: red\n",
-      message: ".crit.yaml: unknown context key colour",
+      text: "context:\n  color: red\n",
+      message: ".crit.yaml: unknown context key color",
     },
     {
       name: "a context value that is not a string",

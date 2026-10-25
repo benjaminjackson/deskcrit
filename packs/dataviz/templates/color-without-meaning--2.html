@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: color without meaning, product ratings</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion color-without-meaning. A magazine article with a horizontal bar chart of average owner ratings for
+ * eight products, one series. The products are named beside the bars. The clean side draws every bar in one
+ * green. The defect switch only changes the fill of each bar (.b1 to .b8) to a different hue from a common
+ * categorical palette, which encodes nothing. Nothing else changes (OQ-17).
+ */
+.masthead { padding: 28px 0 14px; margin: 0 120px; border-bottom: 1px solid #e4e0d8; display: flex; justify-content: space-between; align-items: baseline; }
+.title { font-family: var(--font-serif); font-size: 24px; font-weight: 700; }
+.masthead nav { font-size: 14px; color: var(--color-muted); display: flex; gap: 20px; }
+article { margin: 26px 120px 0; display: flex; gap: 50px; }
+.copy { width: 300px; }
+.kicker { font-size: 13px; font-weight: 700; color: #7a5c2e; letter-spacing: 0.04em; text-transform: uppercase; }
+h1 { font-family: var(--font-serif); font-size: 30px; line-height: 1.2; font-weight: 700; margin: 6px 0 14px; }
+.copy p { font-family: var(--font-serif); font-size: 17px; line-height: 1.55; margin-bottom: 14px; }
+figure h2 { font-size: 16px; font-weight: 700; }
+figure .sub { font-size: 14px; color: var(--color-muted); margin-bottom: 8px; }
+svg text { font-family: var(--font-sans); }
+.grid { stroke: #eceae5; stroke-width: 1; }
+.baseline { stroke: #8a929b; stroke-width: 1; }
+.axis { font-size: 12px; fill: #59636e; }
+.cat { font-size: 14px; fill: #1f2328; }
+.value { font-size: 13px; fill: #1f2328; font-weight: 700; }
+figcaption { font-size: 13px; color: var(--color-muted); margin-top: 6px; }
+.bar { fill: #59a14f; }
+
+[data-defect="on"] .b1 { fill: #59a14f; }
+[data-defect="on"] .b2 { fill: #4e79a7; }
+[data-defect="on"] .b3 { fill: #f28e2b; }
+[data-defect="on"] .b4 { fill: #e15759; }
+[data-defect="on"] .b5 { fill: #76b7b2; }
+[data-defect="on"] .b6 { fill: #b07aa1; }
+[data-defect="on"] .b7 { fill: #edc948; }
+[data-defect="on"] .b8 { fill: #9c755f; }
+    </style>
+  </head>
+  <body>
+<div class="masthead"><span class="title">The Counter Top</span><nav><span>Reviews</span><span>Guides</span><span>Recipes</span></nav></div>
+    <article>
+      <div class="copy">
+        <div class="kicker">Buyer survey</div>
+        <h1>Small appliances owners would buy again</h1>
+        <p>We asked readers to rate the small kitchen appliances they bought in the past year. The kettle and the drip coffee maker came out on top.</p>
+        <p>The juicer and the egg cooker drew the most complaints, mostly about cleaning.</p>
+      </div>
+      <figure>
+        <h2>Average owner rating, out of 5</h2>
+        <p class="sub">Eight appliances, readers who owned one for at least three months</p>
+        <svg width="720" height="420" viewBox="0 0 720 420">
+<line class="baseline" x1="220" x2="220" y1="22" y2="398"/><text class="axis" x="220" y="16" text-anchor="middle">0</text><line class="grid" x1="308" x2="308" y1="22" y2="398"/><text class="axis" x="308" y="16" text-anchor="middle">1</text><line class="grid" x1="396" x2="396" y1="22" y2="398"/><text class="axis" x="396" y="16" text-anchor="middle">2</text><line class="grid" x1="484" x2="484" y1="22" y2="398"/><text class="axis" x="484" y="16" text-anchor="middle">3</text><line class="grid" x1="572" x2="572" y1="22" y2="398"/><text class="axis" x="572" y="16" text-anchor="middle">4</text><line class="grid" x1="660" x2="660" y1="22" y2="398"/><text class="axis" x="660" y="16" text-anchor="middle">5</text>
+<text class="cat" x="208" y="58" text-anchor="end">Halden kettle</text><rect class="bar b1" x="220" y="40" width="404.8" height="26"/><text class="value" x="632.8" y="58">4.6</text>
+<text class="cat" x="208" y="104" text-anchor="end">Moor drip coffee maker</text><rect class="bar b2" x="220" y="86" width="387.2" height="26"/><text class="value" x="615.2" y="104">4.4</text>
+<text class="cat" x="208" y="150" text-anchor="end">Fenn hand blender</text><rect class="bar b3" x="220" y="132" width="378.4" height="26"/><text class="value" x="606.4" y="150">4.3</text>
+<text class="cat" x="208" y="196" text-anchor="end">Arlo toaster, 2 slot</text><rect class="bar b4" x="220" y="178" width="360.8" height="26"/><text class="value" x="588.8" y="196">4.1</text>
+<text class="cat" x="208" y="242" text-anchor="end">Brisk milk frother</text><rect class="bar b5" x="220" y="224" width="343.2" height="26"/><text class="value" x="571.2" y="242">3.9</text>
+<text class="cat" x="208" y="288" text-anchor="end">Corrie rice cooker</text><rect class="bar b6" x="220" y="270" width="325.6" height="26"/><text class="value" x="553.6" y="288">3.7</text>
+<text class="cat" x="208" y="334" text-anchor="end">Tamsin juicer</text><rect class="bar b7" x="220" y="316" width="299.2" height="26"/><text class="value" x="527.2" y="334">3.4</text>
+<text class="cat" x="208" y="380" text-anchor="end">Wren egg cooker</text><rect class="bar b8" x="220" y="362" width="272.8" height="26"/><text class="value" x="500.8" y="380">3.1</text>
+
+        </svg>
+        <figcaption>Source: The Counter Top reader survey, 2,180 responses, August. Each appliance had at least 120 ratings.</figcaption>
+      </figure>
+    </article>
+  </body>
+</html>

@@ -405,7 +405,7 @@ function isParseArgsError(error: unknown): error is Error {
 
 /**
  * Return crit's own text for a parseArgs error. For an unknown option it names the first flag in
- * argv that is not one of the command's options, as in "unknown option --colour", so stderr does
+ * argv that is not one of the command's options, as in "unknown option --color", so stderr does
  * not carry Node's wording, which can change between Node releases (FR-4, FR-60, NFR-1). Any other
  * parseArgs error, or an unknown option that cannot be found in argv, keeps Node's message.
  */

@@ -183,12 +183,12 @@ const mismatches: Array<{
         type: "choice",
         question_id: "layout/alignment",
         model: STUB_MODEL_ID,
-        distribution: { consistent: 0.6, centred: 0.4 },
+        distribution: { consistent: 0.6, centered: 0.4 },
         confidence: 0.5,
       },
     ],
     message:
-      /distribution keys consistent, centred for question layout\/alignment/,
+      /distribution keys consistent, centered for question layout\/alignment/,
   },
   {
     name: "a score answer has keys that are not the level indexes",
