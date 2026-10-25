@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { rm } from "node:fs/promises";
+import { chmod, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
@@ -122,6 +122,11 @@ await build({
   legalComments: "inline",
   logLevel: "info",
 });
+
+// esbuild writes dist/crit.js as a plain file (mode 644), and npm link points the crit and
+// deskcrit commands straight at it, so the shell refuses to run it without the executable bit.
+// Mode 755 lets the owner write it and everyone read and run it.
+await chmod("dist/crit.js", 0o755);
 
 /**
  * Bundles the package entry point src/index.ts into dist/index.js, the file that `import ... from
