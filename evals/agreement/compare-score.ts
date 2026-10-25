@@ -121,7 +121,7 @@ export function scorePair(
  * Count each outcome and divide the agreed pairs by all pairs, so an uncertain pair counts as not
  * agreeing in the rate but is reported on its own (EV-9, FR-37).
  */
-export function summariseAgreement(
+export function summarizeAgreement(
   outcomes: readonly PairOutcome[],
 ): AgreementSummary {
   let agreed = 0;

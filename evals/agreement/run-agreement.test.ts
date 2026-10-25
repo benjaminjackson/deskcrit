@@ -29,14 +29,14 @@ import {
 } from "./run-agreement.ts";
 
 /**
- * One criterion of the test pack: its id, a background colour for each of its two fixtures, the
+ * One criterion of the test pack: its id, a background color for each of its two fixtures, the
  * start of its fixture file names, which is the id unless a test renames the criterion, and its
  * question text, which a test changes to reword the criterion.
  */
 type TestCriterion = {
   readonly id: string;
-  readonly positiveColour: string;
-  readonly negativeColour: string;
+  readonly positiveColor: string;
+  readonly negativeColor: string;
   readonly fixtureStem?: string;
   readonly instructions?: string;
 };
@@ -48,18 +48,18 @@ function fixtureStemOf(criterion: TestCriterion): string {
 
 const FIRST: TestCriterion = {
   id: "first",
-  positiveColour: "#ff0000",
-  negativeColour: "#00ff00",
+  positiveColor: "#ff0000",
+  negativeColor: "#00ff00",
 };
 const SECOND: TestCriterion = {
   id: "second",
-  positiveColour: "#0000ff",
-  negativeColour: "#ffff00",
+  positiveColor: "#0000ff",
+  negativeColor: "#ffff00",
 };
 const THIRD: TestCriterion = {
   id: "third",
-  positiveColour: "#ff00ff",
-  negativeColour: "#00ffff",
+  positiveColor: "#ff00ff",
+  negativeColor: "#00ffff",
 };
 
 /** Return the pack.yaml text of a pack named demo with these criteria (FR-44, PRD 7.8). */
@@ -111,8 +111,8 @@ async function writePack(
   const records: { fixture: string; png_sha256: string }[] = [];
   for (const criterion of criteria) {
     const images = [
-      { kind: "positive", colour: criterion.positiveColour },
-      { kind: "negative", colour: criterion.negativeColour },
+      { kind: "positive", color: criterion.positiveColor },
+      { kind: "negative", color: criterion.negativeColor },
     ];
     for (const image of images) {
       const fileName = `${fixtureStemOf(criterion)}.${image.kind}.png`;
@@ -121,7 +121,7 @@ async function writePack(
           width: 400,
           height: 300,
           channels: 3,
-          background: image.colour,
+          background: image.color,
         },
       })
         .png()
@@ -504,16 +504,17 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
   });
 
   it("asks a respelled and renamed criterion again on every fixture and replays only its new answers", async () => {
+    // The British spellings in this test stand for the old question and id (CS-26).
     const british: TestCriterion = {
       id: "colour-check",
-      positiveColour: "#123456",
-      negativeColour: "#654321",
+      positiveColor: "#123456",
+      negativeColor: "#654321",
       instructions: "In the image at screenshot: Is the colour wrong?",
     };
     const us: TestCriterion = {
       id: "color-check",
-      positiveColour: british.positiveColour,
-      negativeColour: british.negativeColour,
+      positiveColor: british.positiveColor,
+      negativeColor: british.negativeColor,
       instructions: "In the image at screenshot: Is the color wrong?",
     };
     await writePack(packDirectory, [british, SECOND]);

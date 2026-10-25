@@ -1281,7 +1281,7 @@ function formatAgreement(context: HarnessContext, result: PackResult): string {
   for (const criterion of result.agreement) {
     let agreementText = "-";
     if (criterion.agreement !== null) {
-      agreementText = `${criterion.agreement.toFixed(2)} (${criterion.agreed} of ${criterion.labelled})`;
+      agreementText = `${criterion.agreement.toFixed(2)} (${criterion.agreed} of ${criterion.labeled})`;
     }
     let shipWith = "no labels scored";
     if (criterion.meets_floor === true) {
@@ -1293,7 +1293,7 @@ function formatAgreement(context: HarnessContext, result: PackResult): string {
     rows.push([
       criterion.criterion,
       agreementText,
-      String(criterion.labelled),
+      String(criterion.labeled),
       String(criterion.uncertain),
       String(criterion.cannot_tell),
       String(criterion.not_asked),
@@ -1306,7 +1306,7 @@ function formatAgreement(context: HarnessContext, result: PackResult): string {
       [
         "criterion",
         "agreement",
-        "labelled",
+        "labeled",
         "uncertain",
         "cannot tell",
         "not asked",
@@ -1319,7 +1319,7 @@ function formatAgreement(context: HarnessContext, result: PackResult): string {
 }
 
 /**
- * Format the label coverage: the labelled designs per domain, the total against 100, and the
+ * Format the label coverage: the labeled designs per domain, the total against 100, and the
  * domains with designs against seven. Below either, it says "EV-5 minimum not met" (EV-5, M-2).
  */
 function formatCoverage(coverage: Coverage): string {
@@ -1333,7 +1333,7 @@ function formatCoverage(coverage: Coverage): string {
   }
   const lines = [
     "EV-5 label coverage",
-    formatTable(["domain", "labelled designs", "cannot tell"], rows),
+    formatTable(["domain", "labeled designs", "cannot tell"], rows),
     `Total: ${coverage.total_designs} of ${EV5_MINIMUM_DESIGNS} designs, ${coverage.domains_with_designs} of ${FIRST_PARTY_DOMAINS.length} domains`,
   ];
   if (coverage.minimum_met) {

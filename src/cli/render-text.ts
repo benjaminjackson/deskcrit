@@ -1,6 +1,6 @@
 // The readable renderer for `crit report`, `crit compare`, and `crit gate` without `--json` (FR-31, FR-32, FR-33, US-2, US-3). It is pure:
 // it returns one string and the command writes it once (CS-6, CS-17). It uses plain text with no
-// colour codes, so it reads the same on any terminal (FR-32). Rounding happens only here (CS-18).
+// color codes, so it reads the same on any terminal (FR-32). Rounding happens only here (CS-18).
 // It prints only the text the pack author wrote and the numbers it was given, and adds no claim of
 // conformance or measurement (FR-34, NG-2).
 

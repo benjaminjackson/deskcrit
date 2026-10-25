@@ -286,16 +286,16 @@ describe("context and facts (FR-2, FR-3, US-7, US-8)", () => {
       "--pack",
       "minimal",
       "--context",
-      "purpose=poster seen from three metres",
+      "purpose=poster seen from three meters",
       "--json",
     ]);
     expect(result.exitCode).toBe(0);
     expect(result.requests[0]?.state.context).toEqual({
-      purpose: "poster seen from three metres",
+      purpose: "poster seen from three meters",
       audience: "designers",
     });
     expect(parseReport(result.stdout).context).toEqual({
-      purpose: "poster seen from three metres",
+      purpose: "poster seen from three meters",
       audience: "designers",
     });
   });
@@ -307,11 +307,11 @@ describe("context and facts (FR-2, FR-3, US-7, US-8)", () => {
       "--pack",
       "minimal",
       "--context",
-      "purpose=poster seen from three metres",
+      "purpose=poster seen from three meters",
     ]);
     expect(result.requests).toHaveLength(1);
     expect(result.requests[0]?.state.context?.purpose).toBe(
-      "poster seen from three metres",
+      "poster seen from three meters",
     );
   });
 
@@ -406,8 +406,8 @@ describe("could not run: exit 2, a message that names the input, and empty stdou
     {
       name: "an invalid .crit.yaml",
       argv: ["report", "page.png", "--pack", "minimal"],
-      files: { ".crit.yaml": "colour: red\n" },
-      message: ".crit.yaml: unknown key colour",
+      files: { ".crit.yaml": "color: red\n" },
+      message: ".crit.yaml: unknown key color",
     },
     {
       name: "a --pack directory with no pack.yaml",
@@ -450,9 +450,9 @@ describe("could not run: exit 2, a message that names the input, and empty stdou
         "--pack",
         "minimal",
         "--context",
-        "colour=red",
+        "color=red",
       ],
-      message: "--context colour=red: unknown key colour",
+      message: "--context color=red: unknown key color",
     },
     {
       name: "a missing TYPESAFE_API_KEY (NFR-14)",

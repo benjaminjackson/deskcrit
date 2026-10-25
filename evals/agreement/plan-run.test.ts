@@ -605,6 +605,7 @@ describe("a reworded criterion (EV-4 rule 5, R-4, crit-q25.23)", () => {
 });
 
 describe("a criterion respelled from British to US spelling (R-4, crit-q25.24)", () => {
+  // The British spellings in this block stand for the old question and id (CS-26).
   const questionA = hashPngHashes(["question A"]);
   const britishQuestionB = hashPngHashes(["Is the colour of B wrong?"]);
   const usQuestionB = hashPngHashes(["Is the color of B wrong?"]);
