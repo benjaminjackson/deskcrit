@@ -25,6 +25,12 @@ describe("parseCritYaml", () => {
     });
   });
 
+  it("reads warn_fails_gate: false as false (FR-41)", () => {
+    expect(parseCritYaml("warn_fails_gate: false\n")).toEqual({
+      warn_fails_gate: false,
+    });
+  });
+
   it("gives no settings for an empty file", () => {
     expect(parseCritYaml("")).toEqual({});
   });

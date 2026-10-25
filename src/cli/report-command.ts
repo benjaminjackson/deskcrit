@@ -14,12 +14,14 @@ import {
   CouldNotRunError,
   compose,
   prepare,
+  type Report,
   type TypeSafeAdapter,
 } from "../index.js";
 import {
   checkRecordedAnswers,
   checkRecordedImage,
   fingerprintImage,
+  type RunToWrite,
   writeAnswersFile,
 } from "./answers-file.js";
 import type { RecordedAnswers, ReportInputs } from "./read-inputs.js";
@@ -44,6 +46,17 @@ export type ReportOutput = {
 };
 
 /**
+ * What the four stages give: the report document, the answers file text for --save-answers, and
+ * the run that text records, so compare can write both runs into one file without parsing the text
+ * again (FR-42).
+ */
+export type ComposedReport = {
+  readonly report: Report;
+  readonly answersFileText: string;
+  readonly recording: RunToWrite;
+};
+
+/**
  * Run the four stages on the inputs and return the report text, one JSON document with --json and
  * the readable report without it, and the answers file text (FR-31, FR-33, FR-42, FR-65, US-1).
  * Any stage error propagates, so no partial report is returned (FR-24). A fail verdict is not an
@@ -53,12 +66,31 @@ export async function runReport(
   inputs: ReportInputs,
   answerSource: AnswerSource,
 ): Promise<ReportOutput> {
+  const composed = await composeReport(inputs, answerSource);
+  let stdoutText: string;
+  if (inputs.json) {
+    stdoutText = renderReportJson(composed.report);
+  } else {
+    stdoutText = renderReportText(composed.report);
+  }
+  return { stdoutText, answersFileText: composed.answersFileText };
+}
+
+/**
+ * Run prepare, build, ask or the recorded answers, and compose on the inputs, and return the report
+ * document and the answers file text. `crit report`, `crit compare`, and `crit gate` all call it,
+ * so every command runs the same pipeline as report (FR-35, FR-40, FR-42, FR-65). Any stage error propagates (FR-24).
+ */
+export async function composeReport(
+  inputs: ReportInputs,
+  answerSource: AnswerSource,
+): Promise<ComposedReport> {
   // The fingerprint is of the bytes as read from disk, and a replay checks it before prepare, so
   // answers from another image are refused with no image work (FR-42, OQ-26 e).
   const imageSha256 = fingerprintImage(inputs.imageBytes);
   if (answerSource.kind === "recorded") {
     checkRecordedImage(
-      answerSource.recorded.answersFile,
+      answerSource.recorded.recordedRun,
       imageSha256,
       answerSource.recorded.fileName,
       inputs.imagePath,
@@ -79,7 +111,7 @@ export async function runReport(
     asked = await ask(built.state, built.questions, answerSource.adapter);
   } else {
     asked = checkRecordedAnswers(
-      answerSource.recorded.answersFile,
+      answerSource.recorded.recordedRun,
       built.questions,
       answerSource.recorded.fileName,
     );
@@ -95,13 +127,11 @@ export async function runReport(
       context: inputs.context,
     },
   });
-  let stdoutText: string;
-  if (inputs.json) {
-    stdoutText = renderReportJson(report);
-  } else {
-    stdoutText = renderReportText(report);
-  }
-  return { stdoutText, answersFileText: writeAnswersFile(asked, imageSha256) };
+  return {
+    report,
+    answersFileText: writeAnswersFile(asked, imageSha256),
+    recording: { asked, imageSha256 },
+  };
 }
 
 /**

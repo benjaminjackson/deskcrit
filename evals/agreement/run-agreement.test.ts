@@ -27,14 +27,16 @@ import {
 } from "./run-agreement.ts";
 
 /**
- * One criterion of the test pack: its id, a background colour for each of its two fixtures, and
- * the start of its fixture file names, which is the id unless a test renames the criterion.
+ * One criterion of the test pack: its id, a background colour for each of its two fixtures, the
+ * start of its fixture file names, which is the id unless a test renames the criterion, and its
+ * question text, which a test changes to reword the criterion.
  */
 type TestCriterion = {
   readonly id: string;
   readonly positiveColour: string;
   readonly negativeColour: string;
   readonly fixtureStem?: string;
+  readonly instructions?: string;
 };
 
 /** Return the start of a criterion's fixture file names. */
@@ -74,7 +76,7 @@ function packYaml(criteria: readonly TestCriterion[]): string {
       "    source: 'W3C, WCAG 2.2, SC 1.4.3 Contrast (Minimum).'",
       "    question:",
       "      type: noul",
-      `      instructions: 'In the image at screenshot: Is the ${criterion.id} defect there?'`,
+      `      instructions: '${criterion.instructions ?? `In the image at screenshot: Is the ${criterion.id} defect there?`}'`,
       "      criteria:",
       `        "true": 'The ${criterion.id} defect is there.'`,
       `        "false": 'The ${criterion.id} defect is not there.'`,
@@ -272,9 +274,13 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
     const before = hashFiles(answersDirectory);
     expect([...before.keys()].sort()).toEqual([
       "first.negative.png.answers.json",
+      "first.negative.png.answers.questions.json",
       "first.positive.png.answers.json",
+      "first.positive.png.answers.questions.json",
       "second.negative.png.answers.json",
+      "second.negative.png.answers.questions.json",
       "second.positive.png.answers.json",
+      "second.positive.png.answers.questions.json",
     ]);
 
     await writePack(packDirectory, [FIRST, SECOND, THIRD]);
@@ -378,11 +384,17 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
     const after = [...hashFiles(answersDirectory).keys()].sort();
     expect(after).toEqual([
       "first.negative.png.answers.json",
+      "first.negative.png.answers.questions.json",
       "first.positive.png.answers.json",
+      "first.positive.png.answers.questions.json",
       "second.negative.png.answers.json",
+      "second.negative.png.answers.questions.json",
       "second.positive.png.answers.json",
+      "second.positive.png.answers.questions.json",
       "third.negative.png.answers.json",
+      "third.negative.png.answers.questions.json",
       "third.positive.png.answers.json",
+      "third.positive.png.answers.questions.json",
     ]);
     expect(
       questionIdsIn(join(answersDirectory, "first.positive.png.answers.json")),
@@ -400,6 +412,137 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
     expect(run.stdout).toBe("");
     expect(run.stderr).toContain(
       "answers demo/second, but demo/second is not in the pack. Removing a criterion means removing its answers from the saved answers files by hand",
+    );
+  });
+
+  it("asks a reworded criterion again about every fixture, keeps the old files, and replays only its new answers", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+    const before = hashFiles(answersDirectory);
+
+    const reworded: TestCriterion = {
+      ...SECOND,
+      instructions: "In the image at screenshot: Does the second defect show?",
+    };
+    await writePack(packDirectory, [FIRST, reworded]);
+    askedQuestionIds.length = 0;
+    await runHarness(["--live", "--pack", packDirectory], options);
+    expect(askedQuestionIds).toEqual([
+      ["demo/second"],
+      ["demo/second"],
+      ["demo/second"],
+      ["demo/second"],
+    ]);
+    const after = hashFiles(answersDirectory);
+    for (const [fileName, hash] of before) {
+      expect(after.get(fileName)).toBe(hash);
+    }
+    expect(
+      questionIdsIn(
+        join(answersDirectory, "first.positive.png.answers-2.json"),
+      ),
+    ).toEqual(["demo/second"]);
+    expect(
+      Object.keys(
+        JSON.parse(
+          readFileSync(
+            join(
+              answersDirectory,
+              "first.positive.png.answers-2.questions.json",
+            ),
+            "utf8",
+          ),
+        ),
+      ),
+    ).toEqual(["demo/second"]);
+
+    askedQuestionIds.length = 0;
+    // runHarness returns the text and exit code that main would print and set.
+    const replay = await runHarness(["--pack", packDirectory], options);
+    expect(replay.text).toContain("Mode: replay");
+    expect(askedQuestionIds).toEqual([]);
+    expect(replay.text).not.toContain("not asked  ");
+    // Each fixture replays its first file for first and its second file for second.
+    expect(replay.text).toContain("Usage: 8 requests");
+    // The replay copies the first files without the old answers; the saved files never change.
+    expect(hashFiles(answersDirectory)).toEqual(after);
+
+    // A third question for the same id is refused before any request (R-4).
+    const rewordedAgain: TestCriterion = {
+      ...SECOND,
+      instructions: "In the image at screenshot: Is there a second defect?",
+    };
+    await writePack(packDirectory, [FIRST, rewordedAgain]);
+    await expect(
+      runHarness(
+        ["--live", "--rerun-same-set", "--pack", packDirectory],
+        options,
+      ),
+    ).rejects.toThrow(
+      /demo\/second .*R-4 allows one rewording per criterion id/,
+    );
+    expect(askedQuestionIds).toEqual([]);
+    expect(hashFiles(answersDirectory)).toEqual(after);
+  });
+
+  it("keeps the new record when crit wrote the answers file and the harness then failed", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    // crit runs and saves its answers, but the report it prints is not JSON.
+    const stubRunner = makeStubCritRunner(askedQuestionIds, failure);
+    const brokenReportRunner: CritRunner = async (
+      critArguments,
+      environment,
+      workingDirectory,
+    ) => {
+      const run = await stubRunner(
+        critArguments,
+        environment,
+        workingDirectory,
+      );
+      return { ...run, stdout: "not JSON" };
+    };
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], {
+        ...options,
+        runCrit: brokenReportRunner,
+      }),
+    ).rejects.toThrow(/crit did not write JSON/);
+    const fileNames = [...hashFiles(answersDirectory).keys()].sort();
+    expect(fileNames).toEqual([
+      "first.negative.png.answers.json",
+      "first.negative.png.answers.questions.json",
+    ]);
+    // The record names the criteria the saved answers file answers.
+    expect(
+      Object.keys(
+        JSON.parse(
+          readFileSync(
+            join(answersDirectory, "first.negative.png.answers.questions.json"),
+            "utf8",
+          ),
+        ),
+      ),
+    ).toEqual(["demo/first", "demo/second"]);
+  });
+
+  it("removes the new record when crit fails before it writes the answers file", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    failure.fail = true;
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], options),
+    ).rejects.toThrow(/crit exited 2/);
+    expect([...hashFiles(answersDirectory).keys()]).toEqual([]);
+  });
+
+  it("stops the replay when a saved answers file has no record file", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+    rmSync(join(answersDirectory, "first.positive.png.answers.questions.json"));
+    // main turns this error into exit code 2 and a message on stderr.
+    await expect(
+      runHarness(["--pack", packDirectory], options),
+    ).rejects.toThrow(
+      /first\.positive\.png\.answers\.questions\.json does not exist/,
     );
   });
 

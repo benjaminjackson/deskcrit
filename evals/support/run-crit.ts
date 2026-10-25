@@ -22,10 +22,17 @@ export const GOLDEN_DIRECTORY = join(REPOSITORY_ROOT, "evals", "golden");
 /** The folder that holds one sub-folder for each golden case (EV-1). */
 const CASES_DIRECTORY = join(GOLDEN_DIRECTORY, "cases");
 
-/** The report fields that EV-1 leaves out of the comparison, and only these. */
-const VOLATILE_FIELD_PATHS: readonly (readonly [string, string])[] = [
+/**
+ * The fields that EV-1 leaves out of the comparison, and only these, each as the path of keys from
+ * the top of the document. A compare document holds a whole report under before and under after,
+ * so their tool versions are left out too (section 8.2). A report or gate document has no before
+ * or after field, so those two paths remove nothing from it.
+ */
+const VOLATILE_FIELD_PATHS: readonly (readonly string[])[] = [
   ["usage", "latency_ms"],
   ["tool", "version"],
+  ["before", "tool", "version"],
+  ["after", "tool", "version"],
 ];
 
 /** What one run of the bundle wrote and the exit code it set, or what a golden case stores as expected (EV-1). */
@@ -41,15 +48,23 @@ export type GoldenCase = {
   readonly directory: string;
   readonly description: string;
   readonly arguments: readonly string[];
+  /**
+   * The folder the case runs from: evals/golden/, or the folder that the optional working_directory
+   * key of case.json names, relative to evals/golden/. A case uses it to read its own .crit.yaml.
+   */
+  readonly workingDirectory: string;
 };
 
 /**
- * Run the built crit bundle with these arguments and return its stdout, stderr, and exit code
- * (CS-21). The child environment holds only PATH, so a TYPESAFE_API_KEY on the developer machine
+ * Run the built crit bundle with these arguments, from evals/golden/ or the given folder, and
+ * return its stdout, stderr, and exit code (CS-21). The child environment holds only PATH, so a TYPESAFE_API_KEY on the developer machine
  * cannot reach the child and cause a network call (FR-42). A missing bundle throws an error that
  * says to build it, so no test passes or skips without it.
  */
-export function runCrit(commandArguments: readonly string[]): CritOutput {
+export function runCrit(
+  commandArguments: readonly string[],
+  workingDirectory: string = GOLDEN_DIRECTORY,
+): CritOutput {
   if (!existsSync(BUNDLE_PATH)) {
     throw new Error(
       `The bundle ${BUNDLE_PATH} does not exist. Run "npm run build" first; "npm test" does this for you.`,
@@ -64,7 +79,7 @@ export function runCrit(commandArguments: readonly string[]): CritOutput {
     process.execPath,
     [BUNDLE_PATH, ...commandArguments],
     {
-      cwd: GOLDEN_DIRECTORY,
+      cwd: workingDirectory,
       env: childEnvironment,
       encoding: "utf8",
     },
@@ -84,8 +99,8 @@ export function runCrit(commandArguments: readonly string[]): CritOutput {
 
 /**
  * Read every golden case folder under evals/golden/cases/, sorted by name so the order does not
- * depend on the file system (CS-18). Each folder must hold a case.json with a description and a
- * list of string arguments.
+ * depend on the file system (CS-18). Each folder must hold a case.json with a description, a
+ * list of string arguments, and optionally a working_directory string.
  */
 export function readGoldenCases(): GoldenCase[] {
   const names = readdirSync(CASES_DIRECTORY, { withFileTypes: true })
@@ -127,7 +142,24 @@ function readCaseFile(
     }
     textArguments.push(argument);
   }
-  return { name, directory, description, arguments: textArguments };
+  const workingDirectoryKey: unknown = Reflect.get(
+    caseFile,
+    "working_directory",
+  );
+  let workingDirectory = GOLDEN_DIRECTORY;
+  if (workingDirectoryKey !== undefined) {
+    if (typeof workingDirectoryKey !== "string") {
+      throw new Error(`${name}/case.json: working_directory must be a string`);
+    }
+    workingDirectory = join(GOLDEN_DIRECTORY, workingDirectoryKey);
+  }
+  return {
+    name,
+    directory,
+    description,
+    arguments: textArguments,
+    workingDirectory,
+  };
 }
 
 /** Read the stored expected stdout, stderr, and exit code of one golden case (EV-1). */
@@ -153,21 +185,41 @@ export function isJsonCase(goldenCase: GoldenCase): boolean {
 }
 
 /**
- * Parse a report JSON document, remove usage.latency_ms and tool.version, and serialise it with
- * keys sorted at every level, so two runs compare equal when only those fields differ (EV-1).
+ * Parse a report, compare, or gate JSON document, remove the volatile fields usage.latency_ms and
+ * tool.version (and before.tool.version and after.tool.version in a compare document), and
+ * serialise it with keys sorted at every level, so two runs compare equal when only those fields
+ * differ (EV-1).
  */
 export function normaliseReportJson(reportText: string): string {
   const report: unknown = JSON.parse(reportText);
   if (typeof report !== "object" || report === null) {
     throw new Error("The report is not a JSON object");
   }
-  for (const [parentKey, childKey] of VOLATILE_FIELD_PATHS) {
-    const parent: unknown = Reflect.get(report, parentKey);
-    if (typeof parent === "object" && parent !== null) {
-      Reflect.deleteProperty(parent, childKey);
-    }
+  for (const fieldPath of VOLATILE_FIELD_PATHS) {
+    removeFieldAtPath(report, fieldPath);
   }
   return JSON.stringify(sortKeys(report), null, 2);
+}
+
+/**
+ * Delete the field at the end of the key path, when every object on the way exists. A path that
+ * runs into a missing field or a value that is not an object removes nothing (EV-1).
+ */
+function removeFieldAtPath(
+  document: object,
+  fieldPath: readonly string[],
+): void {
+  let parent: unknown = document;
+  for (let index = 0; index < fieldPath.length - 1; index++) {
+    if (typeof parent !== "object" || parent === null) {
+      return;
+    }
+    parent = Reflect.get(parent, fieldPath[index] ?? "");
+  }
+  const lastKey = fieldPath[fieldPath.length - 1];
+  if (typeof parent === "object" && parent !== null && lastKey !== undefined) {
+    Reflect.deleteProperty(parent, lastKey);
+  }
 }
 
 /**

@@ -2,7 +2,7 @@
 // hand (FR-63, FR-64, FR-65, US-13). It only re-exports what the stages and src/shared/ define. It
 // holds no logic and no wrapper types, and it is the one barrel file that CS-2 allows. The CLI in
 // src/cli/ imports the stage functions from here, so the CLI and the library run the same code.
-// The gate export (crit-8cu.3) goes in this file when the function exists (FR-63). Biome keeps the exports sorted by path, so each block follows that order.
+// Biome keeps the exports sorted by path, so each block follows that order.
 
 /**
  * Ask: send the state and the questions through the adapter that the caller gives. The stub
@@ -37,6 +37,13 @@ export type {
 export { compare } from "./compose/compare.js";
 export type { ComposeInput } from "./compose/compose.js";
 export { compose } from "./compose/compose.js";
+
+/**
+ * Gate: decide pass or fail for a finished report under the gate policy and return the gate
+ * document. It calls no other stage (FR-40, FR-41, FR-63, section 8.3).
+ */
+export type { GatePolicy, GateReport, GateResult } from "./compose/gate.js";
+export { DEFAULT_GATE_POLICY, gate } from "./compose/gate.js";
 export type {
   Finding,
   Report,

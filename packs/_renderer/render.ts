@@ -397,6 +397,24 @@ async function takePageSnapshot(page: Page): Promise<PageSnapshot> {
           }
         }
       }
+      // The element's own text and its attributes, so a defect that changes
+      // words or an SVG shape's d or points shows as a difference (FR-54
+      // rule 3). data-defect on <html> is left out, because the defect
+      // switch in base.js sets it and nothing else may differ.
+      let text = "";
+      for (const childNode of Array.from(element.childNodes)) {
+        // nodeType 3 is a text node.
+        if (childNode.nodeType === 3) {
+          text += childNode.textContent ?? "";
+        }
+      }
+      const attributes: Record<string, string> = {};
+      for (const attribute of Array.from(element.attributes)) {
+        if (parent === null && attribute.name === "data-defect") {
+          continue;
+        }
+        attributes[attribute.name] = attribute.value;
+      }
       return {
         path,
         parentIndex:
@@ -405,6 +423,8 @@ async function takePageSnapshot(page: Page): Promise<PageSnapshot> {
         hasOwnText,
         styles,
         pseudoStyles,
+        text,
+        attributes,
       };
     });
     let textEdgeDistance: number | null = null;

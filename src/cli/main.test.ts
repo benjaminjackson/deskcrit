@@ -892,3 +892,275 @@ describe("--save-answers and --answers (FR-42, CS-21)", () => {
     ).toEqual([]);
   });
 });
+
+describe("crit gate (FR-40, FR-41, FR-42, FR-60, section 8.3)", () => {
+  /** A stub answer that says the minimal pack's defect is there, so its criterion fails. */
+  const minimalDefectAnswer = {
+    type: "noul" as const,
+    question_id: "minimal/faint-body-text",
+    model: "stub",
+    distribution: { true: 1, false: 0 },
+    confidence: null,
+  };
+
+  /** Write a pack named warning with one criterion that only warns, and return the stub answer that makes it warn. */
+  function writeWarningPack() {
+    mkdirSync(join(workingDirectory, "warning"));
+    writeWorkingFile(
+      "warning/pack.yaml",
+      [
+        "name: warning",
+        "version: 1.0.0",
+        "title: Warning pack",
+        "license: MIT",
+        "criteria:",
+        "  - id: faint-labels",
+        "    title: Labels are faint",
+        "    source: Matthew Butterick, Practical Typography",
+        "    question:",
+        "      type: noul",
+        "      instructions: Are the labels in the image at image faint?",
+        "      criteria:",
+        "        true: The labels are faint.",
+        "        false: The labels are dark enough.",
+        "    warn_when:",
+        "      probability_at_least: 0.7",
+        "    fix: Darken the labels.",
+        "",
+      ].join("\n"),
+    );
+    return {
+      answers: [
+        {
+          type: "noul" as const,
+          question_id: "warning/faint-labels",
+          model: "stub",
+          distribution: { true: 1, false: 0 },
+          confidence: null,
+        },
+      ],
+    };
+  }
+
+  it("exits 0 and writes the gate document when nothing fails, with the default policy echoed", async () => {
+    const result = await runCrit([
+      "gate",
+      "page.png",
+      "--pack",
+      "minimal",
+      "--json",
+    ]);
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe("");
+    const document = parseReport(result.stdout);
+    expect(document.mode).toBe("gate");
+    expect(document.gate).toEqual({
+      passed: true,
+      policy: { warn_fails_gate: false },
+      blocking: [],
+    });
+  });
+
+  it("exits 1 and lists the failing criterion when a finding fails (US-4)", async () => {
+    const result = await runCrit(
+      ["gate", "page.png", "--pack", "minimal", "--json"],
+      environmentWithKey,
+      { answers: [minimalDefectAnswer] },
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toBe("");
+    expect(parseReport(result.stdout).gate).toEqual({
+      passed: false,
+      policy: { warn_fails_gate: false },
+      blocking: ["minimal/faint-body-text"],
+    });
+  });
+
+  it("ends the readable output with the gate line that names the blocking criteria (US-4)", async () => {
+    const result = await runCrit(
+      ["gate", "page.png", "--pack", "minimal"],
+      environmentWithKey,
+      { answers: [minimalDefectAnswer] },
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toContain("Fail (1)");
+    expect(
+      result.stdout.endsWith(
+        "\n\nGate: fail. Blocking: minimal/faint-body-text\n",
+      ),
+    ).toBe(true);
+  });
+
+  it("passes a warn by default and when warn_fails_gate is false, and fails it when true (FR-41)", async () => {
+    const stubOptions = writeWarningPack();
+    const argv = ["gate", "page.png", "--pack", "warning", "--json"];
+
+    const unset = await runCrit(argv, environmentWithKey, stubOptions);
+    expect(unset.exitCode).toBe(0);
+    expect(parseReport(unset.stdout).gate).toEqual({
+      passed: true,
+      policy: { warn_fails_gate: false },
+      blocking: [],
+    });
+
+    stdoutText = "";
+    writeWorkingFile(".crit.yaml", "warn_fails_gate: false\n");
+    const explicitFalse = await runCrit(argv, environmentWithKey, stubOptions);
+    expect(explicitFalse.exitCode).toBe(0);
+    expect(explicitFalse.stdout).toBe(unset.stdout);
+
+    stdoutText = "";
+    writeWorkingFile(".crit.yaml", "warn_fails_gate: true\n");
+    const policyOn = await runCrit(argv, environmentWithKey, stubOptions);
+    expect(policyOn.exitCode).toBe(1);
+    expect(parseReport(policyOn.stdout).gate).toEqual({
+      passed: false,
+      policy: { warn_fails_gate: true },
+      blocking: ["warning/faint-labels"],
+    });
+  });
+
+  it("exits 2 with empty stdout when warn_fails_gate is not a boolean (FR-4)", async () => {
+    writeWorkingFile(".crit.yaml", "warn_fails_gate: yes\n");
+    const result = await runCrit(["gate", "page.png", "--pack", "minimal"]);
+    expect(result.exitCode).toBe(2);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toBe(
+      "crit: .crit.yaml: warn_fails_gate must be true or false\n",
+    );
+  });
+
+  it("rejects --save-answers with exit 2, empty stdout, and no adapter (FR-60)", async () => {
+    const result = await runCrit([
+      "gate",
+      "page.png",
+      "--pack",
+      "minimal",
+      "--save-answers",
+      "answers.json",
+    ]);
+    expect(result.exitCode).toBe(2);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("--save-answers");
+    expect(result.stderr).toContain("usage: crit gate <image>");
+    expect(result.adapterOptions).toEqual([]);
+    expect(existsSync(join(workingDirectory, "answers.json"))).toBe(false);
+  });
+
+  it("takes --answers, reads no key, and makes no adapter (FR-42, FR-60)", async () => {
+    await runCrit(
+      [
+        "report",
+        "page.png",
+        "--pack",
+        "minimal",
+        "--save-answers",
+        "answers.json",
+      ],
+      environmentWithKey,
+      { answers: [minimalDefectAnswer] },
+    );
+    stdoutText = "";
+    const result = await runCrit(
+      [
+        "gate",
+        "page.png",
+        "--pack",
+        "minimal",
+        "--json",
+        "--answers",
+        "answers.json",
+      ],
+      {},
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toBe("");
+    expect(result.adapterOptions).toEqual([]);
+    expect(parseReport(result.stdout).gate).toEqual({
+      passed: false,
+      policy: { warn_fails_gate: false },
+      blocking: ["minimal/faint-body-text"],
+    });
+  });
+});
+
+describe("crit compare (FR-35, FR-42, FR-43, FR-60)", () => {
+  beforeEach(() => {
+    copyFileSync(
+      join(workingDirectory, "page.png"),
+      join(workingDirectory, "after.png"),
+    );
+  });
+
+  it("asks both runs through one adapter, exits 0, and writes the two-run answers file before stdout", async () => {
+    const result = await runCrit([
+      "compare",
+      "page.png",
+      "after.png",
+      "--pack",
+      "minimal",
+      "--json",
+      "--save-answers",
+      "compare.answers.json",
+    ]);
+    expect(result.stderr).toBe("");
+    expect(result.exitCode).toBe(0);
+    expect(result.adapterOptions.length).toBe(1);
+    expect(result.requests.length).toBe(2);
+    const document = parseReport(result.stdout);
+    expect(document.mode).toBe("compare");
+    expect(document.skipped).toEqual([]);
+    const saved: unknown = JSON.parse(
+      readFileSync(join(workingDirectory, "compare.answers.json"), "utf8"),
+    );
+    expect(Object.keys(saved ?? {})).toEqual([
+      "answers_file_version",
+      "before",
+      "after",
+    ]);
+    expect(Reflect.get(saved ?? {}, "answers_file_version")).toBe(2);
+  });
+
+  it("replays the two-run file with no key and no adapter, and gives the same stdout (FR-42)", async () => {
+    const asked = await runCrit([
+      "compare",
+      "page.png",
+      "after.png",
+      "--pack",
+      "minimal",
+      "--json",
+      "--save-answers",
+      "compare.answers.json",
+    ]);
+    const askedStdout = asked.stdout;
+    stdoutText = "";
+    stderrText = "";
+    const replayed = await runCrit(
+      [
+        "compare",
+        "page.png",
+        "after.png",
+        "--pack",
+        "minimal",
+        "--json",
+        "--answers",
+        "compare.answers.json",
+      ],
+      {},
+    );
+    expect(replayed.stderr).toBe("");
+    expect(replayed.exitCode).toBe(0);
+    expect(replayed.adapterOptions).toEqual([]);
+    expect(replayed.stdout).toBe(askedStdout);
+  });
+
+  it("exits 2 with empty stdout when no key is set and no --answers is given (FR-22, FR-24)", async () => {
+    const result = await runCrit(
+      ["compare", "page.png", "after.png", "--pack", "minimal", "--json"],
+      {},
+    );
+    expect(result.exitCode).toBe(2);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toBe("crit: TYPESAFE_API_KEY is not set\n");
+  });
+});

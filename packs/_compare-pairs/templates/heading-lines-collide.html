@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Compare pair: heading lines collide</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * EV-9 pair, criterion heading-lines-collide. A long-read feature on a
+ * magazine site. The headline runs to three lines at 64 px with a line
+ * height of 1.1. With the defect the line height is 0.82, so the descenders
+ * of one line touch the capitals of the next; padding-top keeps the first
+ * line clear of the label above. Nothing else changes.
+ */
+header { height: 60px; padding: 0 120px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e2dc; font-size: 14px; }
+header b { font-family: var(--font-serif); font-size: 22px; }
+article { width: 860px; margin: 56px 0 0 120px; }
+.label { font-size: 14px; font-weight: 700; color: #a3361f; margin-bottom: 14px; }
+h1 { font-family: var(--font-serif); font-size: 64px; font-weight: 700; line-height: 1.1; color: #1c1a17; margin-bottom: 28px; }
+.dek { font-family: var(--font-serif); font-size: 21px; line-height: 1.5; color: #3d3a35; width: 720px; margin-bottom: 20px; }
+.by { font-size: 14px; color: #55524c; }
+
+[data-defect="on"] h1 { line-height: 0.82; padding-top: 12px; }
+    </style>
+  </head>
+  <body>
+    <header><b>Northing</b><span>Features · Places · People · Subscribe</span></header>
+    <article>
+      <p class="label">Long read</p>
+      <h1>The quiet people keeping a forgotten lighthouse lit on Fair Skerry</h1>
+      <p class="dek">For forty years a rota of volunteers has rowed out each week to trim the lamp. Now the last boat is for sale.</p>
+      <p class="by">By Iona Strachan · Photographs by Ewan Bell</p>
+    </article>
+  </body>
+</html>

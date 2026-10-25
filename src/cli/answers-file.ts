@@ -11,19 +11,38 @@ import { CouldNotRunError } from "../shared/could-not-run-error.js";
 import type { Question } from "../shared/question.js";
 import type { Usage } from "../shared/usage.js";
 
-/** The one layout version this build reads and writes. Any other version stops the run (OQ-26). */
+/** The layout version of the one-run file that `crit report` and `crit gate` read and write (OQ-26 a). */
 const ANSWERS_FILE_VERSION = 1;
+
+/**
+ * The layout version of the two-run file that `crit compare` reads and writes, with a before and
+ * an after run (FR-42, OQ-26 a).
+ */
+const COMPARE_ANSWERS_FILE_VERSION = 2;
 
 /** An image fingerprint as the file holds it: 64 lowercase hexadecimal characters (OQ-26 e). */
 const IMAGE_SHA256_PATTERN = /^[0-9a-f]{64}$/;
 
-/** The answers file, with the wire field names (CS-10, FR-42, OQ-26). */
-export type AnswersFile = {
-  readonly answers_file_version: typeof ANSWERS_FILE_VERSION;
+/** The keys of one recorded run, in the order the file writes them (OQ-26 a). */
+const RUN_KEYS = ["image_sha256", "answers", "usage"] as const;
+
+/** One recorded run: the image it was saved from, the raw answers, and the usage (FR-42, OQ-26). */
+export type RecordedRun = {
   /** The SHA-256 of the original image bytes the answers were saved from (OQ-26 e). */
   readonly image_sha256: string;
   readonly answers: readonly Answer[];
   readonly usage: Usage;
+};
+
+/** The one-run answers file of `crit report`, with the wire field names (CS-10, FR-42, OQ-26). */
+export type AnswersFile = RecordedRun & {
+  readonly answers_file_version: typeof ANSWERS_FILE_VERSION;
+};
+
+/** The two runs of a `crit compare` answers file, labelled before and after (FR-42, OQ-26). */
+export type CompareAnswersFile = {
+  readonly before: RecordedRun;
+  readonly after: RecordedRun;
 };
 
 /** The fields of one JSON object, read as unknown values, so each one is checked before use. */
@@ -31,60 +50,125 @@ type JsonFields = ReadonlyMap<string, unknown>;
 
 /**
  * Parse the answers file text and check its shape, and return it as an AnswersFile (FR-42, CS-7).
- * This is the one function that turns the file's unknown value into a typed one. Text that is not
- * JSON or has the wrong shape throws CouldNotRunError that names the file and the JSON path (FR-4).
+ * This is the one function that turns the one-run file's unknown value into a typed one. Text that
+ * is not JSON or has the wrong shape throws CouldNotRunError that names the file and the JSON path
+ * (FR-4).
  */
 export function readAnswersFile(
   fileText: string,
   fileName: string,
 ): AnswersFile {
+  const fail = failNamingFile(fileName);
+  const top = readTopLevel(fileText, fileName, fail);
+  if (top.get("answers_file_version") !== ANSWERS_FILE_VERSION) {
+    fail("answers_file_version", `must be ${ANSWERS_FILE_VERSION}`);
+  }
+  requireExactKeys(
+    top,
+    ["answers_file_version", ...RUN_KEYS],
+    "the top level",
+    fail,
+  );
+  const run = readRun(top, "", fail);
+  return { answers_file_version: ANSWERS_FILE_VERSION, ...run };
+}
+
+/**
+ * Parse the two-run answers file of `crit compare` and check its shape: version 2, exactly the
+ * keys answers_file_version, before, and after, and each run with exactly the keys of a recorded
+ * run (FR-42, OQ-26 a, CS-7). An error names the file and a JSON path that starts with the run,
+ * such as before.answers[0].type (FR-4).
+ */
+export function readCompareAnswersFile(
+  fileText: string,
+  fileName: string,
+): CompareAnswersFile {
+  const fail = failNamingFile(fileName);
+  const top = readTopLevel(fileText, fileName, fail);
+  if (top.get("answers_file_version") !== COMPARE_ANSWERS_FILE_VERSION) {
+    fail(
+      "answers_file_version",
+      `must be ${COMPARE_ANSWERS_FILE_VERSION} for crit compare, which records a before and an after run`,
+    );
+  }
+  requireExactKeys(
+    top,
+    ["answers_file_version", "before", "after"],
+    "the top level",
+    fail,
+  );
+  const beforeFields = readFields(top.get("before"), "before", fail);
+  requireExactKeys(beforeFields, RUN_KEYS, "before", fail);
+  const afterFields = readFields(top.get("after"), "after", fail);
+  requireExactKeys(afterFields, RUN_KEYS, "after", fail);
+  return {
+    before: readRun(beforeFields, "before.", fail),
+    after: readRun(afterFields, "after.", fail),
+  };
+}
+
+/** Return the function that stops with CouldNotRunError naming the file and the JSON path (FR-4, CS-16). */
+function failNamingFile(fileName: string): Fail {
+  return (path: string, problem: string): never => {
+    throw new CouldNotRunError(`answers file ${fileName}: ${path} ${problem}`);
+  };
+}
+
+/**
+ * Parse the file text as JSON and return its top-level fields, after checking that the version
+ * key is there. The version is read before the other keys, so a file with another layout is named
+ * by its version and not by the first key that layout lacks (OQ-26 a).
+ */
+function readTopLevel(
+  fileText: string,
+  fileName: string,
+  fail: Fail,
+): JsonFields {
   let parsed: unknown;
   try {
     parsed = JSON.parse(fileText);
   } catch {
     throw new CouldNotRunError(`answers file ${fileName} is not valid JSON`);
   }
-  /** Stop with CouldNotRunError that names the file and the JSON path (FR-4, CS-16). */
-  const fail = (path: string, problem: string): never => {
-    throw new CouldNotRunError(`answers file ${fileName}: ${path} ${problem}`);
-  };
   const top = readFields(parsed, "the top level", fail);
-  // The version is read before the other keys, so a file with another layout is named by its
-  // version and not by the first key that layout lacks (OQ-26 a).
   if (!top.has("answers_file_version")) {
     fail("the top level", "has no answers_file_version");
   }
-  if (top.get("answers_file_version") !== ANSWERS_FILE_VERSION) {
-    fail("answers_file_version", `must be ${ANSWERS_FILE_VERSION}`);
-  }
-  requireExactKeys(
-    top,
-    ["answers_file_version", "image_sha256", "answers", "usage"],
-    "the top level",
-    fail,
-  );
-  const imageSha256 = top.get("image_sha256");
+  return top;
+}
+
+/**
+ * Read the image fingerprint, the answers, and the usage of one run, whose keys the caller has
+ * already checked. `pathPrefix` goes in front of every JSON path in a message: empty for the
+ * one-run file, and "before." or "after." for the compare file (FR-4, OQ-26).
+ */
+function readRun(
+  fields: JsonFields,
+  pathPrefix: string,
+  fail: Fail,
+): RecordedRun {
+  const imageSha256 = fields.get("image_sha256");
   if (
     typeof imageSha256 !== "string" ||
     !IMAGE_SHA256_PATTERN.test(imageSha256)
   ) {
-    return fail("image_sha256", "must be 64 lowercase hexadecimal characters");
+    return fail(
+      `${pathPrefix}image_sha256`,
+      "must be 64 lowercase hexadecimal characters",
+    );
   }
-  const answersValue = top.get("answers");
+  const answersValue = fields.get("answers");
   if (!Array.isArray(answersValue)) {
-    return fail("answers", "must be a list");
+    return fail(`${pathPrefix}answers`, "must be a list");
   }
   const answers: Answer[] = [];
   for (const [index, answerValue] of answersValue.entries()) {
-    answers.push(readAnswer(answerValue, `answers[${index}]`, fail));
+    answers.push(
+      readAnswer(answerValue, `${pathPrefix}answers[${index}]`, fail),
+    );
   }
-  const usage = readUsage(top.get("usage"), fail);
-  return {
-    answers_file_version: ANSWERS_FILE_VERSION,
-    image_sha256: imageSha256,
-    answers,
-    usage,
-  };
+  const usage = readUsage(fields.get("usage"), `${pathPrefix}usage`, fail);
+  return { image_sha256: imageSha256, answers, usage };
 }
 
 /**
@@ -101,7 +185,7 @@ export function fingerprintImage(imageBytes: Uint8Array): string {
  * refused with no image work (FR-42, OQ-26 e, CS-16).
  */
 export function checkRecordedImage(
-  recorded: AnswersFile,
+  recorded: RecordedRun,
   imageSha256: string,
   fileName: string,
   imagePath: string,
@@ -113,7 +197,7 @@ export function checkRecordedImage(
   }
 }
 
-/** The function readAnswersFile uses to stop with a message that names the path (CS-16). */
+/** The function the readers use to stop with a message that names the path (CS-16). */
 type Fail = (path: string, problem: string) => never;
 
 /**
@@ -238,32 +322,32 @@ function readRegion(value: unknown, path: string, fail: Fail): Region {
   };
 }
 
-/** Read the adapter's usage object: the four fields of FR-20 and no others (FR-23). */
-function readUsage(value: unknown, fail: Fail): Usage {
-  const fields = readFields(value, "usage", fail);
+/** Read the adapter's usage object at this JSON path: the four fields of FR-20 and no others (FR-23). */
+function readUsage(value: unknown, path: string, fail: Fail): Usage {
+  const fields = readFields(value, path, fail);
   requireExactKeys(
     fields,
     ["input_tokens", "cost_usd", "latency_ms", "model"],
-    "usage",
+    path,
     fail,
   );
   const latency_ms = readFiniteNumber(
     fields.get("latency_ms"),
-    "usage.latency_ms",
+    `${path}.latency_ms`,
     fail,
   );
   if (latency_ms < 0) {
-    fail("usage.latency_ms", "must not be negative");
+    fail(`${path}.latency_ms`, "must not be negative");
   }
   return {
     input_tokens: readCountOrNull(
       fields.get("input_tokens"),
-      "usage.input_tokens",
+      `${path}.input_tokens`,
       fail,
     ),
-    cost_usd: readCountOrNull(fields.get("cost_usd"), "usage.cost_usd", fail),
+    cost_usd: readCountOrNull(fields.get("cost_usd"), `${path}.cost_usd`, fail),
     latency_ms,
-    model: readNonEmptyText(fields.get("model"), "usage.model", fail),
+    model: readNonEmptyText(fields.get("model"), `${path}.model`, fail),
   };
 }
 
@@ -341,7 +425,7 @@ function requireExactKeys(
  * fit throws CouldNotRunError that names the file, because the file is input (CS-16).
  */
 export function checkRecordedAnswers(
-  recorded: AnswersFile,
+  recorded: RecordedRun,
   questions: readonly Question[],
   fileName: string,
 ): AskResult {
@@ -364,12 +448,47 @@ export function writeAnswersFile(
   asked: AskResult,
   imageSha256: string,
 ): string {
+  const file = {
+    answers_file_version: ANSWERS_FILE_VERSION,
+    ...orderedRun(asked, imageSha256),
+  };
+  return `${JSON.stringify(file, null, 2)}\n`;
+}
+
+/** One run as the compare writer takes it: the ask result and the fingerprint of its image (FR-42). */
+export type RunToWrite = {
+  readonly asked: AskResult;
+  readonly imageSha256: string;
+};
+
+/**
+ * Return the two-run answers file text of `crit compare`: version 2, then the before run and the
+ * after run, each in the fixed key order of the one-run file, as JSON with a two-space indent and a
+ * final newline (FR-42, OQ-26 a). The same answers give the same bytes.
+ */
+export function writeCompareAnswersFile(
+  before: RunToWrite,
+  after: RunToWrite,
+): string {
+  const file = {
+    answers_file_version: COMPARE_ANSWERS_FILE_VERSION,
+    before: orderedRun(before.asked, before.imageSha256),
+    after: orderedRun(after.asked, after.imageSha256),
+  };
+  return `${JSON.stringify(file, null, 2)}\n`;
+}
+
+/**
+ * Build one run as a new object with its keys in the fixed order: the image fingerprint, the
+ * answers with a fixed field order for each type, and the usage object (OQ-26 a). JSON.stringify
+ * writes keys in the order they were added, so this order is the order of the file.
+ */
+function orderedRun(asked: AskResult, imageSha256: string): object {
   const answers: object[] = [];
   for (const answer of asked.answers) {
     answers.push(orderAnswerFields(answer));
   }
-  const file = {
-    answers_file_version: ANSWERS_FILE_VERSION,
+  return {
     image_sha256: imageSha256,
     answers,
     usage: {
@@ -379,7 +498,6 @@ export function writeAnswersFile(
       model: asked.usage.model,
     },
   };
-  return `${JSON.stringify(file, null, 2)}\n`;
 }
 
 /** Copy one answer into a new object with its fields in the fixed order for its type (OQ-26). */
