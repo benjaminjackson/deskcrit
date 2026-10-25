@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Color fixture: vibrating color pair (settings screen)</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion vibrating-color-pair. A settings screen for a notes app with a plain list of options. The Sync option carries a small blue tag with the word BETA.
+ * The defect switch only sets the tag text color to a vivid orange, about the same lightness as the blue tag. The clean side sets it to white. Nothing else changes (OQ-17).
+ */
+header { height: 60px; display: flex; align-items: center; padding: 0 48px; border-bottom: 1px solid var(--color-border); font-weight: 700; font-size: 20px; }
+.wrap { display: flex; }
+aside { width: 220px; padding: 28px 0 0 48px; display: flex; flex-direction: column; gap: 14px; font-size: 16px; color: var(--color-muted); }
+aside .on { color: var(--color-text, #111); font-weight: 700; }
+main { flex: 1; padding: 28px 64px 0 48px; max-width: 800px; }
+h1 { font-size: 28px; margin-bottom: 14px; }
+.opt { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid var(--color-border); }
+.opt b { font-size: 17px; display: inline-block; } .opt span.d { display: block; font-size: 15px; color: #2b3138; margin-top: 4px; }
+.tag { background-color: #1f56ff; display: inline-block; vertical-align: middle; margin-left: 10px; width: 84px; height: 30px; border-radius: 4px; line-height: 30px; text-align: center; font-size: 15px; font-weight: 700; letter-spacing: 1px; color: #ffffff; }
+.sw { width: 44px; height: 24px; border-radius: 12px; background: #c9ced4; position: relative; } .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 9px; background: #ffffff; }
+.sw.on { background: #3d4650; } .sw.on::after { left: 23px; }
+
+[data-defect="on"] .tag { color: #ff8a00; }
+    </style>
+  </head>
+  <body>
+<header>Notebook</header>
+<div class="wrap">
+<aside><span>Account</span><span class="on">Preferences</span><span>Storage</span><span>Shortcuts</span><span>About</span></aside>
+<main>
+<h1>Preferences</h1>
+<div class="opt"><div><b>Dark appearance</b><span class="d">Use a dark background in the editor.</span></div><div class="sw"></div></div>
+<div class="opt"><div><b>Sync across devices</b><span class="tag">BETA</span><span class="d">Keep notes up to date on every device you sign in to.</span></div><div class="sw on"></div></div>
+<div class="opt"><div><b>Spell check</b><span class="d">Underline words that are not in the dictionary.</span></div><div class="sw on"></div></div>
+<div class="opt"><div><b>Weekly summary</b><span class="d">Send a list of your recent notes every Monday.</span></div><div class="sw"></div></div>
+<div class="opt"><div><b>Autosave</b><span class="d">Save changes every few seconds.</span></div><div class="sw on"></div></div>
+</main></div>
+  </body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Color fixture: competing saturated hues, bike share</title>
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion competing-saturated-hues. A bike-share trip screen on a light gray page. Three elements with
+ * three jobs: a map block with a route line, the large "Unlock a bike" button, and a ride-offer panel. The
+ * clean side makes the blue button the lead; the map block is a pale green tint with a green route and the
+ * offer panel is a white panel with a gray outline and dark text. The defect switch changes the background-color
+ * of the map block to vivid green and of the offer panel to vivid orange, and the color of their text and
+ * lines to white. The button stays blue. Nothing else changes.
+ */
+body { background-color: #f4f5f7; }
+header { height: 60px; background-color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; border-bottom: 1px solid #dfe3e8; }
+.brand { font-weight: 700; font-size: 19px; }
+nav { display: flex; gap: 24px; font-size: 15px; color: var(--color-muted); }
+nav .on { color: var(--color-text); font-weight: 700; }
+main { display: flex; gap: 40px; padding: 40px 48px 0; }
+.map { width: 480px; height: 380px; border-radius: 14px; background-color: #e3f3e8; color: #167a43; position: relative; }
+.map svg { position: absolute; left: 0; top: 0; fill: none; stroke: currentColor; stroke-width: 3; }
+.map .tag { position: absolute; left: 20px; bottom: 18px; font-size: 15px; font-weight: 700; color: currentColor; }
+.side { width: 600px; }
+.side h1 { font-size: 32px; font-weight: 700; }
+.side .sub { font-size: 17px; color: #4a535c; margin-top: 6px; }
+dl { display: flex; gap: 40px; margin-top: 26px; }
+dt { font-size: 14px; color: var(--color-muted); }
+dd { font-size: 24px; font-weight: 700; margin-top: 2px; }
+.btn { display: inline-block; margin-top: 30px; background-color: #1d4fd8; color: #fff; font-weight: 700; font-size: 20px; padding: 18px 44px; border-radius: 12px; }
+.offer { margin-top: 30px; width: 420px; padding: 18px 22px; border-radius: 12px; background-color: #fff; color: #1f2328; border: 1px solid #d5dae0; }
+.offer b { display: block; font-size: 17px; }
+.offer span { display: block; font-size: 15px; line-height: 1.45; margin-top: 4px; }
+
+[data-defect="on"] .map { background-color: #167a43; color: #ffffff; }
+[data-defect="on"] .offer { background-color: #d9480f; color: #ffffff; }
+    </style>
+  </head>
+  <body>
+<header><span class="brand">Pedalpoint</span><nav><span class="on">Ride</span><span>Passes</span><span>Stations</span><span>Help</span></nav></header>
+<main>
+  <div class="map"><svg width="480" height="380" viewBox="0 0 480 380"><path d="M0 120h480M0 250h480M110 0v380M300 0v380" stroke-width="1.5" opacity="0.35"/><path d="M60 320L110 250L110 120L300 120L300 250L410 60" stroke-width="5"/><circle cx="60" cy="320" r="9"/><circle cx="410" cy="60" r="9"/></svg><span class="tag">Route to Harbor Street</span></div>
+  <div class="side"><h1>Station 214, Market Square</h1><p class="sub">Six bikes available, two docks free.</p>
+    <dl><div><dt>Walk to bike</dt><dd>2 min</dd></div><div><dt>Ride to Harbor Street</dt><dd>11 min</dd></div><div><dt>Price</dt><dd>$1.50</dd></div></dl>
+    <span class="btn">Unlock a bike</span>
+    <div class="offer"><b>Ride three times this week</b><span>Your fourth ride is free, up to 30 minutes.</span></div></div>
+</main>
+  </body>
+</html>
