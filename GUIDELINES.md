@@ -685,7 +685,7 @@ The accessibility pack (crit-q25.7) encodes five entries below: `meaning-by-colo
 - **Rule:** An input error is identified in text, naming the field in error, not only by red color or an icon.
 - **Source:** W3C, WCAG 2.2 (2023), SC 3.3.1 Error Identification (A). The criterion text states the rule: "the item that is in error is identified and the error is described to the user in text". Checked on 2026-10-25.
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/error-identification.html
-- **Judged by:** askable. Question: "Is a form field marked as wrong only by a red border or outline, with no written message that says what is wrong?" The ux section's error-message entry is owned here.
+- **Judged by:** askable. Question: "Is a form field marked as wrong only by color or an icon, such as a red border, outline, label color, or warning icon, with no written message that says what is wrong?" The ux section's error-message entry is owned here.
 - **Defect range:** `error-without-text`: not measured. One or two fields with a red border, outline, label, or icon after a failed submit, and no message; the clean side adds a short message under each field that says what is wrong.
 
 ### Error suggestion
@@ -722,7 +722,7 @@ The accessibility pack (crit-q25.7) encodes five entries below: `meaning-by-colo
 - **Source:** British Dyslexia Association, *Dyslexia Style Guide* (2023; wording checked against the archived web version, since the PDF returns 403 to scripted requests)
 - **Link:** https://web.archive.org/web/20230315034831/www.bdadyslexia.org.uk/advice/employers/creating-a-dyslexia-friendly-workplace/dyslexia-friendly-style-guide
 - **Judged by:** not encoded.
-- **Not encoded (NG-10, R-4):** line spacing and line length are figures a screenshot does not show reliably, and degree questions of this kind went quiet under R-4. A cream background is a named color, which a question may not ask about (JC-2).
+- **Not encoded (NG-10, R-4):** line spacing and line length are figures a screenshot does not show reliably, and degree questions of this kind went quiet under R-4. A cream background is a page-wide preference and a matter of degree, not a defect that one image shows.
 
 ### Low-vision large-print guidance
 - **Rule:** For print and posters aimed at low-vision readers, RNIB See it Right advises at least 12 pt, and 14 pt or more for wider reach. It also calls for a clear sans-serif, strong contrast, and matte paper to avoid glare. Treat 18 pt as the large-text bar from WCAG.
@@ -733,7 +733,7 @@ The accessibility pack (crit-q25.7) encodes five entries below: `meaning-by-colo
 
 ### Text alternatives for charts and posters (information not conveyed in image alone)
 - **Rule:** Key meaning in a chart, infographic, or poster is also stated in text near it (title, summary, data table, caption) rather than only in the picture.
-- **Source:** Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 22.2 "Axis and legend titles": "Just like every plot needs a title, axes and legends need titles as well", and "Axis and legend titles and labels explain what the displayed data values are and how they map to plot aesthetics." Checked on 2026-10-25. WCAG 2.2 SC 1.1.1 (A) and its techniques G95 and G92 were checked too: they ask for a text alternative for assistive technology, not for visible labels or a legend, so the criterion does not cite them.
+- **Source:** Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 22.2 "Axis and legend titles". The criterion rests on one sentence there: "Axis and legend titles and labels explain what the displayed data values are and how they map to plot aesthetics." The section's other point, that axes and legends need titles, is not what the question asks. Checked on 2026-10-25. WCAG 2.2 SC 1.1.1 (A) and its techniques G95 and G92 were checked too: they ask for a text alternative for assistive technology, not for visible labels or a legend, so the criterion does not cite them.
 - **Link:** https://clauswilke.com/dataviz/figure-titles-captions.html
 - **Judged by:** askable, for the visible labels of a chart only. Question: "Is there a chart or graph with no written labels, axis values, or legend, so a reader cannot tell what its shapes or colors stand for?" A text alternative cannot be seen in a screenshot (NG-10). The dataviz entry "Label axes, units, and sources" is owned here.
 - **Defect range:** `chart-without-text`: not measured. A chart drawn with its axis values, category names, and legend switched off, as a chart library does when they are turned off; the card or figure title stays on both sides.
