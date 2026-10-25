@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Accessibility fixture: chart without text 3</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion chart-without-text. The usage page of a cloud hosting account,
+ * with a stacked area chart of storage used by three kinds of data over the
+ * days of a month. The defect switch hides the legend, the value axis
+ * numbers, and the date labels, so the colored bands carry no words. The
+ * panel title stays on both sides. No text changes.
+ */
+body { background: #ffffff; }
+.app { display: flex; }
+.side { width: 220px; height: 800px; background: #111827; color: #d1d5db; padding: 24px 22px; font-size: 14px; }
+.side b { display: block; color: #ffffff; font-size: 17px; margin-bottom: 26px; }
+.side div { margin-bottom: 12px; }
+.side .on { color: #ffffff; font-weight: 700; }
+main { padding: 32px 48px; width: 1060px; }
+h1 { font-size: 24px; margin-bottom: 4px; }
+.sub { font-size: 14px; color: #59636e; margin-bottom: 22px; }
+.panel { border: 1px solid #e3e6ea; border-radius: 8px; padding: 18px 22px; }
+.ph { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.ph h2 { font-size: 17px; }
+.legend { display: flex; gap: 20px; font-size: 14px; color: #3d444d; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 6px; margin-right: 7px; vertical-align: -1px; }
+svg text { font-family: var(--font-sans); font-size: 12px; fill: #59636e; }
+[data-defect="on"] .legend, [data-defect="on"] svg text { display: none; }
+.foot { display: flex; gap: 20px; margin-top: 18px; font-size: 14px; color: #3d444d; }
+.foot div { flex: 1; border: 1px solid #e3e6ea; border-radius: 8px; padding: 14px 18px; }
+.foot b { display: block; font-size: 20px; color: #1f2328; margin-top: 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="side"><b>Cobalt Cloud</b><div>Projects</div><div>Databases</div><div>Storage</div><div class="on">Usage</div><div>Billing</div></div>
+      <main>
+        <h1>Usage</h1>
+        <div class="sub">Project: field-reports &middot; September</div>
+        <div class="panel">
+          <div class="ph"><h2>Storage used</h2><div class="legend"><span><i style="background:#3b5bdb"></i>Files</span><span><i style="background:#7fa1f7"></i>Backups</span><span><i style="background:#c3d3fb"></i>Logs</span></div></div>
+          <svg width="920" height="372" viewBox="-24 0 1038 420">
+            <line x1="50" y1="30" x2="1004" y2="30" stroke="#eceef1"/><line x1="50" y1="120" x2="1004" y2="120" stroke="#eceef1"/><line x1="50" y1="210" x2="1004" y2="210" stroke="#eceef1"/><line x1="50" y1="300" x2="1004" y2="300" stroke="#eceef1"/>
+            <text x="40" y="34" text-anchor="end">400 GB</text><text x="40" y="124" text-anchor="end">300 GB</text><text x="40" y="214" text-anchor="end">200 GB</text><text x="40" y="304" text-anchor="end">100 GB</text><text x="40" y="394" text-anchor="end">0</text>
+            <polygon fill="#c3d3fb" points="60,390 60,210 220,200 380,186 540,180 700,160 860,150 1000,132 1000,390"/>
+            <polygon fill="#7fa1f7" points="60,390 60,260 220,254 380,242 540,240 700,226 860,220 1000,206 1000,390"/>
+            <polygon fill="#3b5bdb" points="60,390 60,320 220,316 380,306 540,304 700,296 860,290 1000,282 1000,390"/>
+            <line x1="50" y1="390" x2="1004" y2="390" stroke="#9aa3ad"/>
+            <text x="60" y="410" text-anchor="middle">Sep 1</text><text x="220" y="410" text-anchor="middle">Sep 6</text><text x="380" y="410" text-anchor="middle">Sep 11</text><text x="540" y="410" text-anchor="middle">Sep 16</text><text x="700" y="410" text-anchor="middle">Sep 21</text><text x="860" y="410" text-anchor="middle">Sep 26</text><text x="1000" y="410" text-anchor="end">Sep 30</text>
+          </svg>
+        </div>
+        <div class="foot"><div>Requests this month<b>12.8 million</b></div><div>Data transfer<b>641 GB</b></div><div>Estimated bill<b>$184.20</b></div></div>
+      </main>
+    </div>
+  </body>
+</html>

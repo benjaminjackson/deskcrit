@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Accessibility fixture: error without text 2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion error-without-text. A payment step of a checkout. Two fields,
+ * the card number and the expiry date, have red borders on both sides. Under
+ * each, a message says what is wrong; the defect switch hides both messages,
+ * so the fields are marked only by red borders. No text changes.
+ */
+body { background: #ffffff; }
+.top { height: 64px; border-bottom: 1px solid #e6e2dc; display: flex; align-items: center; justify-content: space-between; padding: 0 100px; }
+.brand { font-weight: 700; font-size: 20px; }
+.steps { font-size: 14px; color: #59636e; }
+.wrap { display: flex; gap: 64px; padding: 36px 100px 0; }
+form { width: 600px; }
+h1 { font-size: 26px; margin-bottom: 20px; }
+label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+input { display: block; width: 100%; height: 46px; border: 1px solid #c3c8cf; border-radius: 4px; padding: 0 12px; font-family: var(--font-sans); font-size: 15px; color: #1f2328; }
+input.bad { border-color: #d32f2f; box-shadow: 0 0 0 1px #d32f2f; }
+.field { margin-bottom: 18px; }
+.two { display: flex; gap: 16px; }
+.two .field { flex: 1; }
+.err { font-size: 14px; color: #b3261e; margin-top: 6px; }
+[data-defect="on"] .err { display: none; }
+button { height: 50px; padding: 0 34px; border: 0; border-radius: 4px; background: #0b5cad; color: #ffffff; font-family: var(--font-sans); font-size: 16px; font-weight: 700; margin-top: 4px; }
+aside { width: 416px; background: #f6f7f9; border-radius: 6px; padding: 26px 28px; }
+aside h2 { font-size: 18px; margin-bottom: 16px; }
+.item { display: flex; justify-content: space-between; font-size: 15px; margin-bottom: 12px; color: #3d444d; }
+.total { border-top: 1px solid #dde1e6; padding-top: 14px; font-weight: 700; color: #1f2328; }
+    </style>
+  </head>
+  <body>
+    <div class="top"><span class="brand">Pinecone Outfitters</span><span class="steps">Cart &rsaquo; Shipping &rsaquo; <b>Payment</b></span></div>
+    <div class="wrap">
+      <form>
+        <h1>Payment</h1>
+        <div class="field"><label for="n">Name on card</label><input id="n" value="Jonah Weller"></div>
+        <div class="field"><label for="c">Card number</label><input id="c" class="bad" value="4111 1111 1111 111"><div class="err">Card number is too short. Enter all 16 digits.</div></div>
+        <div class="two">
+          <div class="field"><label for="x">Expiry date</label><input id="x" class="bad" value="09 / 21"><div class="err">This card has expired. Check the date or use another card.</div></div>
+          <div class="field"><label for="s">Security code</label><input id="s" value="&bull;&bull;&bull;"></div>
+        </div>
+        <button type="button">Pay $142.00</button>
+      </form>
+      <aside>
+        <h2>Order summary</h2>
+        <div class="item"><span>Two-person tent</span><span>$119.00</span></div>
+        <div class="item"><span>Ground sheet</span><span>$15.00</span></div>
+        <div class="item"><span>Shipping</span><span>$8.00</span></div>
+        <div class="item total"><span>Total</span><span>$142.00</span></div>
+      </aside>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,148 @@
+# The first-party accessibility pack (crit-q25.7, FR-55). It encodes five askable entries in the
+# "Accessibility and legal compliance" section of GUIDELINES.md. Every question is noul, and true is the
+# defect (JC-5). Each question is the pre-screen wording in spike/prescreen/accessibility/questions.json,
+# with British spellings changed to US spelling only ("colour" to "color"). The pre-screened criterion
+# non-text-contrast-faint is not encoded, and neither are the entries that need more than one image, a focus
+# state, the content, or a measured size (NG-10). GUIDELINES.md records each one and why.
+# Each source names the version of the standard it cites (FR-57). No criterion says that a page conforms
+# to or fails WCAG (FR-34, NG-6). The WCAG and NN/g criteria have pass_when and warn_when and no fail_when
+# until the EV-5 run (crit-q25.12). The British Dyslexia Association advice is a folk rule, so it has
+# warn_when only (FR-56). The five fix hints are DRAFT and wait for Benjamin Jackson's approval (G-4).
+name: accessibility
+version: 0.1.0
+title: Accessibility
+license: MIT
+criteria:
+  - id: meaning-by-color-only
+    title: 'Links in running text differ from the words around them only by color'
+    source: 'W3C, WCAG 2.2 (2023), Success Criterion 1.4.1 Use of Color (Level A), and failure technique F73 "creating links that are not visually evident without color vision".'
+    link: https://www.w3.org/WAI/WCAG22/Techniques/failures/F73
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Are links inside running text, the sentences people are meant to read, set apart from the words around them only by their color, with no underline or other mark?'
+      criteria:
+        "true": 'Links inside running text differ from the words around them only by color, with no underline, bold, or other mark.'
+        "false": 'Links inside running text are underlined or marked in some other way besides color, or the running text holds no links.'
+    pass_when: { probability_at_most: 0.3 }
+    warn_when: { probability_at_least: 0.7 }
+    fix: 'DRAFT: Underline the links inside paragraphs, or give them another mark besides color, so that a reader who cannot tell the colors apart can still find them (WCAG 2.2, 1.4.1, technique F73).'
+    fixtures:
+      positive:
+        - fixtures/meaning-by-color-only.positive.png
+        - fixtures/meaning-by-color-only--2.positive.png
+        - fixtures/meaning-by-color-only--3.positive.png
+        - fixtures/meaning-by-color-only--4.positive.png
+        - fixtures/meaning-by-color-only--5.positive.png
+      negative:
+        - fixtures/meaning-by-color-only.negative.png
+        - fixtures/meaning-by-color-only--2.negative.png
+        - fixtures/meaning-by-color-only--3.negative.png
+        - fixtures/meaning-by-color-only--4.negative.png
+        - fixtures/meaning-by-color-only--5.negative.png
+
+  - id: field-label-placeholder-only
+    title: 'Form fields are labeled only by hint text inside the field'
+    source: 'Nielsen Norman Group, Katie Sherwin, "Placeholders in Form Fields Are Harmful" (2014), section "Placeholders that Replace Labels"; W3C, WCAG 2.2 (2023), Success Criterion 3.3.2 Labels or Instructions (Level A), in part: it asks for labels and does not mention placeholders.'
+    link: https://www.nngroup.com/articles/form-design-placeholders/
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Does a form show text fields whose only label is the pale hint text inside the empty field, with no label outside the field?'
+      criteria:
+        "true": 'A form has text fields whose only label is the pale hint text inside the empty field, with no visible label above or beside the field.'
+        "false": 'Every text field has a visible label above or beside it, or the image shows no form.'
+    pass_when: { probability_at_most: 0.3 }
+    warn_when: { probability_at_least: 0.7 }
+    fix: 'DRAFT: Put a visible label above or beside each field, and keep the hint text inside the field for an example only, because the hint disappears as soon as the person starts to type (Nielsen Norman Group, "Placeholders in Form Fields Are Harmful").'
+    fixtures:
+      positive:
+        - fixtures/field-label-placeholder-only.positive.png
+        - fixtures/field-label-placeholder-only--2.positive.png
+        - fixtures/field-label-placeholder-only--3.positive.png
+        - fixtures/field-label-placeholder-only--4.positive.png
+        - fixtures/field-label-placeholder-only--5.positive.png
+      negative:
+        - fixtures/field-label-placeholder-only.negative.png
+        - fixtures/field-label-placeholder-only--2.negative.png
+        - fixtures/field-label-placeholder-only--3.negative.png
+        - fixtures/field-label-placeholder-only--4.negative.png
+        - fixtures/field-label-placeholder-only--5.negative.png
+
+  - id: error-without-text
+    title: 'A form field is marked as wrong only by a red border'
+    source: 'W3C, WCAG 2.2 (2023), Success Criterion 3.3.1 Error Identification (Level A): "the item that is in error is identified and the error is described to the user in text".'
+    link: https://www.w3.org/WAI/WCAG22/Understanding/error-identification.html
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Is a form field marked as wrong only by a red border or outline, with no written message that says what is wrong?'
+      criteria:
+        "true": 'A form field is marked as wrong only by a red border or outline, and no written message near it says what is wrong.'
+        "false": 'Every field marked as wrong has a written message that says what is wrong, or no field is marked as wrong.'
+    pass_when: { probability_at_most: 0.3 }
+    warn_when: { probability_at_least: 0.7 }
+    fix: 'DRAFT: Show a short written message next to each field in error that says what is wrong, such as "Enter a date like 03/21/2026", and keep the red border as a second cue (WCAG 2.2, 3.3.1).'
+    fixtures:
+      positive:
+        - fixtures/error-without-text.positive.png
+        - fixtures/error-without-text--2.positive.png
+        - fixtures/error-without-text--3.positive.png
+        - fixtures/error-without-text--4.positive.png
+        - fixtures/error-without-text--5.positive.png
+      negative:
+        - fixtures/error-without-text.negative.png
+        - fixtures/error-without-text--2.negative.png
+        - fixtures/error-without-text--3.negative.png
+        - fixtures/error-without-text--4.negative.png
+        - fixtures/error-without-text--5.negative.png
+
+  - id: chart-without-text
+    title: 'A chart has no labels, axis values, or legend'
+    source: 'Claus O. Wilke, *Fundamentals of Data Visualization* (O''Reilly, 1st ed. 2019), chapter 22.2 "Axis and legend titles": "axes and legends need titles as well" and "Axis and legend titles and labels explain what the displayed data values are and how they map to plot aesthetics."'
+    link: https://clauswilke.com/dataviz/figure-titles-captions.html
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Is there a chart or graph with no written labels, axis values, or legend, so a reader cannot tell what its shapes or colors stand for?'
+      criteria:
+        "true": 'A chart or graph has no written labels, axis values, or legend, so a reader cannot tell what its shapes or colors stand for.'
+        "false": 'Every chart or graph has written labels, axis values, or a legend that say what its shapes and colors stand for, or the image shows no chart.'
+    pass_when: { probability_at_most: 0.3 }
+    warn_when: { probability_at_least: 0.7 }
+    fix: 'DRAFT: Give the chart its axis values and category names, and a legend or direct labels that name each color, so that a reader can tell what each shape stands for (Wilke, *Fundamentals of Data Visualization*, 22.2).'
+    fixtures:
+      positive:
+        - fixtures/chart-without-text.positive.png
+        - fixtures/chart-without-text--2.positive.png
+        - fixtures/chart-without-text--3.positive.png
+        - fixtures/chart-without-text--4.positive.png
+        - fixtures/chart-without-text--5.positive.png
+      negative:
+        - fixtures/chart-without-text.negative.png
+        - fixtures/chart-without-text--2.negative.png
+        - fixtures/chart-without-text--3.negative.png
+        - fixtures/chart-without-text--4.negative.png
+        - fixtures/chart-without-text--5.negative.png
+
+  - id: running-text-italic-or-underlined
+    title: 'A paragraph is set entirely in italic or underline (BDA advice)'
+    source: 'British Dyslexia Association, *Dyslexia Style Guide* (2023), advice, not a standard: "Avoid underlining and italics as this can make the text appear to run together and cause crowding. Use bold for emphasis." Checked against the archived web version of 15 March 2023.'
+    link: https://web.archive.org/web/20230315034831/www.bdadyslexia.org.uk/advice/employers/creating-a-dyslexia-friendly-workplace/dyslexia-friendly-style-guide
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Is a paragraph of running text, the sentences people are meant to read, set entirely in italic or entirely underlined?'
+      criteria:
+        "true": 'A paragraph of running text of several lines is set entirely in italic or entirely underlined.'
+        "false": 'Running text is set in upright, plain type, and italic or underline is kept to a few words, such as links or titles.'
+    warn_when: { probability_at_least: 0.7 }
+    fix: 'DRAFT: Set the paragraph in upright type with no underline, and use bold for the few words that need emphasis (British Dyslexia Association, *Dyslexia Style Guide*).'
+    fixtures:
+      positive:
+        - fixtures/running-text-italic-or-underlined.positive.png
+        - fixtures/running-text-italic-or-underlined--2.positive.png
+        - fixtures/running-text-italic-or-underlined--3.positive.png
+        - fixtures/running-text-italic-or-underlined--4.positive.png
+        - fixtures/running-text-italic-or-underlined--5.positive.png
+      negative:
+        - fixtures/running-text-italic-or-underlined.negative.png
+        - fixtures/running-text-italic-or-underlined--2.negative.png
+        - fixtures/running-text-italic-or-underlined--3.negative.png
+        - fixtures/running-text-italic-or-underlined--4.negative.png
+        - fixtures/running-text-italic-or-underlined--5.negative.png

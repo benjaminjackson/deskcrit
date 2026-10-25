@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Accessibility fixture: field label placeholder only 2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion field-label-placeholder-only. A shop checkout page: a shipping
+ * address form on the left and the order summary on the right. The defect
+ * switch hides the field labels, so each empty field shows only its hint
+ * text. The placeholders are the same on both sides. No text changes.
+ */
+body { background: #ffffff; }
+.top { height: 64px; border-bottom: 1px solid #e6e2dc; display: flex; align-items: center; justify-content: space-between; padding: 0 100px; }
+.brand { font-family: var(--font-serif); font-size: 24px; font-weight: 700; }
+.steps { font-size: 14px; color: #59636e; }
+.wrap { display: flex; gap: 64px; padding: 34px 100px 0; }
+form { width: 620px; }
+h1 { font-size: 26px; margin-bottom: 20px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; }
+.full { grid-column: 1 / 3; }
+label { display: block; font-size: 14px; color: #3d444d; margin-bottom: 5px; }
+[data-defect="on"] label { display: none; }
+input, select { display: block; width: 100%; height: 46px; border: 1px solid #c3c8cf; border-radius: 4px; padding: 0 12px; font-family: var(--font-sans); font-size: 15px; margin-bottom: 16px; background: #ffffff; }
+input::placeholder { color: #6e7781; }
+button { height: 50px; padding: 0 34px; border: 0; border-radius: 4px; background: #23201c; color: #ffffff; font-family: var(--font-sans); font-size: 16px; font-weight: 700; margin-top: 6px; }
+aside { width: 396px; background: #f7f5f2; border-radius: 6px; padding: 26px 28px; }
+aside h2 { font-size: 18px; margin-bottom: 16px; }
+.item { display: flex; justify-content: space-between; font-size: 15px; margin-bottom: 12px; }
+.item span:first-child { color: #3d444d; }
+.total { border-top: 1px solid #ddd8cf; padding-top: 14px; margin-top: 6px; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <div class="top"><span class="brand">Fold &amp; Stitch</span><span class="steps">Cart &rsaquo; <b>Shipping</b> &rsaquo; Payment</span></div>
+    <div class="wrap">
+      <form>
+        <h1>Shipping address</h1>
+        <div class="grid">
+          <div><label for="a">First name</label><input id="a" placeholder="First name"></div>
+          <div><label for="b">Last name</label><input id="b" placeholder="Last name"></div>
+          <div class="full"><label for="c">Street address</label><input id="c" placeholder="House number and street"></div>
+          <div class="full"><label for="d">Apartment, suite, etc. (optional)</label><input id="d" placeholder="Apartment or unit"></div>
+          <div><label for="e">City</label><input id="e" placeholder="City"></div>
+          <div><label for="f">Postal code</label><input id="f" placeholder="e.g. 10115"></div>
+          <div class="full"><label for="g">Phone</label><input id="g" placeholder="For delivery questions only"></div>
+        </div>
+        <button type="button">Continue to payment</button>
+      </form>
+      <aside>
+        <h2>Order summary</h2>
+        <div class="item"><span>Linen apron, olive</span><span>$48.00</span></div>
+        <div class="item"><span>Tea towels, set of 3</span><span>$26.00</span></div>
+        <div class="item"><span>Shipping</span><span>$6.50</span></div>
+        <div class="item total"><span>Total</span><span>$80.50</span></div>
+      </aside>
+    </div>
+  </body>
+</html>

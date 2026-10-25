@@ -547,6 +547,8 @@ These checks were in the earlier catalog, but no source this section may cite ho
 
 WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Understanding/ followed by the page name and .html. Level markers matter: 2.3.3, 2.4.13, 1.4.6, 2.5.5 are AAA and are quality tiers, not legal minimums.
 
+The accessibility pack (crit-q25.7) encodes five entries below: `meaning-by-color-only`, `field-label-placeholder-only`, `error-without-text`, `chart-without-text`, and `running-text-italic-or-underlined`. Each question is the pre-screen wording (crit-q25.17), with British spelling changed to US spelling only. Each source names the version of the standard it cites (FR-57). No question, title, or fix hint says that a page conforms to or fails WCAG, because one image cannot show that (FR-34, NG-6). The pack cites no legal regime, so the choice between EN 301 549 v3.2.1 and v4.1.1 in the table below does not touch it.
+
 ### Legal regimes
 
 | Regime | Jurisdiction | Standard it references | Link |
@@ -565,12 +567,14 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Source:** WCAG 2.2 SC 1.4.3 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
 - **Judged by:** askable as a visual judgment only. Jev is asked about text that reads as faint against its background. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Not encoded here:** the basics criterion `text-reads-faint` asks it, and a rule has one owner, so the accessibility pack does not ask it again.
 
 ### Non-text contrast
 - **Rule:** Visual boundaries needed to identify a UI component need at least 3:1 against adjacent colors: an input border, a checkbox, a button edge when there is no other cue. So do meaningful graphics such as chart lines and icons that carry meaning. Also applies to focus and selected states.
 - **Source:** WCAG 2.2 SC 1.4.11 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
-- **Judged by:** askable as a visual judgment only. Jev is asked about component boundaries or state indicators that look too faint. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Are the borders or outlines that mark out text fields, checkboxes, or other controls so pale against the background that the controls are hard to see?"
+- **Not encoded:** `non-text-contrast-faint` was cut after the pre-screen (crit-q25.17), with pre-screen figures 0.42, 0.12 / 0.10, 0.11. Jev stayed quiet on a clear positive.
 
 ### Reflow
 - **Rule:** At a 320 CSS px wide viewport (400% zoom of 1280 px) content reflows to one column with no horizontal scrolling and no loss of information. Exceptions: data tables, maps, diagrams, video, and toolbars needing two-dimensional layout; vertical content uses 256 CSS px height.
@@ -588,15 +592,17 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 
 ### Use of color
 - **Rule:** Color is not the only way to show information: links inside body text, errors, required fields, chart series, and states need a second cue (underline, icon, label, pattern). Or the link has 3:1 contrast against surrounding text plus a non-color cue on hover and focus.
-- **Source:** WCAG 2.2 SC 1.4.1 (A)
+- **Source:** W3C, WCAG 2.2 (2023), SC 1.4.1 Use of Color (A), and failure technique F73. F73 states the rule for links: "Link underlines or some other non-color visual distinction are required", and "Removing the underline and leaving only the color difference for such links would be a failure". Checked on 2026-10-25.
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** askable as a visual judgment, for links in running text only. Question: "Are links inside running text, the sentences people are meant to read, set apart from the words around them only by their color, with no underline or other mark?" 1.4.1 also accepts a link with 3:1 contrast against the text around it plus a cue on hover and focus, which a still image cannot show, so the question asks only about a visible mark. Errors, required fields, and chart series are not asked here; `error-without-text` and the dataviz pack cover the cases that can be seen.
+- **Defect range:** `meaning-by-color-only`: not measured. Links in paragraphs drawn in an ordinary link color (blue, teal, violet, or green) with the underline removed; the clean side underlines them.
 
 ### Sensory characteristics
 - **Rule:** Instructions do not rely only on shape, size, position, sound, or color (for example, 'click the green button on the right' needs a name or label too).
 - **Source:** WCAG 2.2 SC 1.3.3 (A)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/sensory-characteristics.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it reads what the instructions say, which is the content.
 
 ### Target size (minimum)
 - **Rule:** Pointer targets are at least 24 by 24 CSS px, or smaller targets have enough spacing that a 24 px diameter circle centered on each does not overlap another target or its circle. Exceptions: inline links in text, user-agent controls, essential presentation.
@@ -609,25 +615,29 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Rule:** Every keyboard-focusable element shows a visible focus indicator when focused. Removing the outline with `outline: none` and not replacing it fails.
 - **Source:** WCAG 2.2 SC 2.4.7 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it needs an element in its focus state, and one still image of a page shows no focused element.
 
 ### Focus not obscured (minimum)
 - **Rule:** A focused element is not entirely hidden by author-created content such as sticky headers, cookie banners, or chat widgets.
 - **Source:** WCAG 2.2 SC 2.4.11 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it needs an element in its focus state, and one still image of a page shows no focused element.
 
 ### Focus appearance
 - **Rule:** The focus indicator encloses the component or is at least 2 CSS px thick around its perimeter, and changes by at least 3:1 between focused and unfocused states. Included as the quality-tier reading of 2.4.7; it is AAA, not required by any law.
 - **Source:** WCAG 2.2 SC 2.4.13 (AAA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/focus-appearance.html
-- **Judged by:** askable as a visual judgment only. Jev is asked about a focus indicator that is hard to see in a focus-state screenshot. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it needs an element in its focus state, and its figures are measurements that a screenshot does not show.
 
 ### Orientation
 - **Rule:** Content works in both portrait and landscape unless one orientation is essential (piano app, bank-check deposit).
 - **Source:** WCAG 2.2 SC 1.3.4 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/orientation.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it needs a render in each orientation, which one image cannot show.
 
 ### Headings and labels
 - **Rule:** Headings and form labels describe the topic or purpose of their section or field. 'Click here' or 'Section 1' as a heading fails. Also check a sensible hierarchy with no skipped levels.
@@ -638,9 +648,10 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 
 ### Labels or instructions
 - **Rule:** Every input has a visible label or instruction that stays visible while typing. A placeholder alone is not enough.
-- **Source:** WCAG 2.2 SC 3.3.2 (A)
-- **Link:** https://www.w3.org/WAI/WCAG22/Understanding/labels-or-instructions.html
-- **Judged by:** askable.
+- **Source:** Nielsen Norman Group, Katie Sherwin, "Placeholders in Form Fields Are Harmful" (2014), section "Placeholders that Replace Labels", which gives "7 main reasons why placeholders should not be used as replacements for field labels"; W3C, WCAG 2.2 (2023), SC 3.3.2 Labels or Instructions (A), in part. The Understanding page for 3.3.2 says "Labels or instructions are provided when content requires user input" and does not mention placeholders, so NN/g carries the placeholder rule. Both checked on 2026-10-25.
+- **Link:** https://www.nngroup.com/articles/form-design-placeholders/
+- **Judged by:** askable. Question: "Does a form show text fields whose only label is the pale hint text inside the empty field, with no label outside the field?" The ux section's entry "Forms: labels above fields and never placeholder-only" is owned here.
+- **Defect range:** `field-label-placeholder-only`: not measured. Empty text fields whose labels are removed, so the hint text inside each field is its only label; the clean side shows a label above or beside each field.
 
 ### Link purpose (in context)
 - **Rule:** Each link's purpose can be told from its text or its surrounding sentence, paragraph, or list item. Repeated 'Read more' links need distinguishing context or an `aria-label`.
@@ -653,31 +664,36 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Rule:** Navigation links repeated on multiple pages appear in the same relative order each time.
 - **Source:** WCAG 2.2 SC 3.2.3 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/consistent-navigation.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it compares several pages, and crit judges one image.
 
 ### Consistent identification
 - **Rule:** The same function has the same label and icon across pages (a search icon is always called 'Search', not 'Find' on another page).
 - **Source:** WCAG 2.2 SC 3.2.4 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/consistent-identification.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it compares several pages, and crit judges one image.
 
 ### Consistent help
 - **Rule:** Help links, contact details, or chat appear in the same relative place across pages.
 - **Source:** WCAG 2.2 SC 3.2.6 (A)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/consistent-help.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it compares several pages, and crit judges one image.
 
 ### Error identification
 - **Rule:** An input error is identified in text, naming the field in error, not only by red color or an icon.
-- **Source:** WCAG 2.2 SC 3.3.1 (A)
+- **Source:** W3C, WCAG 2.2 (2023), SC 3.3.1 Error Identification (A). The criterion text states the rule: "the item that is in error is identified and the error is described to the user in text". Checked on 2026-10-25.
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/error-identification.html
-- **Judged by:** askable.
+- **Judged by:** askable. Question: "Is a form field marked as wrong only by a red border or outline, with no written message that says what is wrong?" The ux section's error-message entry is owned here.
+- **Defect range:** `error-without-text`: not measured. One or two fields with a red border, outline, label, or icon after a failed submit, and no message; the clean side adds a short message under each field that says what is wrong.
 
 ### Error suggestion
 - **Rule:** When an error is detected and a fix is known, the message says how to correct it ('Enter a date like 03/21/2026'), not just 'Invalid input'.
 - **Source:** WCAG 2.2 SC 3.3.3 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it reads what the error message says, which is the content.
 
 ### Apple touch target size
 - **Rule:** Interactive controls are at least 44 by 44 points on iOS and iPadOS, with space between them. (visionOS recommends 60 pt.)
@@ -695,27 +711,32 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 
 ### Dyslexia-friendly typography
 - **Rule:** Use a common sans-serif such as Arial, Verdana, or Calibri at 12 to 14 pt (about 16 to 19 px) or larger. Left-align text with no justification. Avoid italics, underline, and all caps for running text. Use wide letter and word spacing.
-- **Source:** British Dyslexia Association, *Dyslexia Style Guide* (2023; wording checked against the archived web version, since the PDF returns 403 to scripted requests)
+- **Source:** British Dyslexia Association, *Dyslexia Style Guide* (2023; wording checked against the archived web version, since the PDF returns 403 to scripted requests). The archived page says: "Avoid underlining and italics as this can make the text appear to run together and cause crowding. Use bold for emphasis." Checked on 2026-10-25.
 - **Link:** https://web.archive.org/web/20230315034831/www.bdadyslexia.org.uk/advice/employers/creating-a-dyslexia-friendly-workplace/dyslexia-friendly-style-guide
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** askable for italic and underline only. Question: "Is a paragraph of running text, the sentences people are meant to read, set entirely in italic or entirely underlined?" The guide is advice, not a standard, so the criterion is a folk rule and can only warn (FR-56). The question asks about two styles; if the underline half fails EV-4, the one allowed rewording narrows it to italic.
+- **Defect range:** `running-text-italic-or-underlined`: not measured. One paragraph of three to six lines set in italic (three pairs) or underlined (two pairs); the clean side sets it upright with no underline.
+- **Not encoded (NG-10, R-4):** the font choice, the size, left alignment, and wide spacing are matters of degree, the kind of question that went quiet for the typography leading and size criteria under R-4, and the named fonts would need a font to be named from the image. All capitals for running text is owned by the basics criterion `all-caps-long-text`.
 
 ### Dyslexia-friendly line length, spacing, and background
 - **Rule:** Line spacing of about 1.5, with extra space around headings and between paragraphs. Lines of about 60 to 70 characters. Cream or soft pastel backgrounds rather than pure white. Headings and bullets instead of dense blocks of text.
 - **Source:** British Dyslexia Association, *Dyslexia Style Guide* (2023; wording checked against the archived web version, since the PDF returns 403 to scripted requests)
 - **Link:** https://web.archive.org/web/20230315034831/www.bdadyslexia.org.uk/advice/employers/creating-a-dyslexia-friendly-workplace/dyslexia-friendly-style-guide
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10, R-4):** line spacing and line length are figures a screenshot does not show reliably, and degree questions of this kind went quiet under R-4. A cream background is a named color, which a question may not ask about (JC-2).
 
 ### Low-vision large-print guidance
 - **Rule:** For print and posters aimed at low-vision readers, RNIB See it Right advises at least 12 pt, and 14 pt or more for wider reach. It also calls for a clear sans-serif, strong contrast, and matte paper to avoid glare. Treat 18 pt as the large-text bar from WCAG.
 - **Source:** RNIB, *See it Right: Making Information Accessible* (Clear Print Guidelines)
 - **Link:** https://resourcecentre.org.uk/books/see-it-right-making-information-accessible-for-people-with-sight-problems/
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** point sizes are physical measurements that a screenshot does not show, matte paper cannot be seen in an image, and strong contrast is owned by the basics criterion `text-reads-faint`.
 
 ### Text alternatives for charts and posters (information not conveyed in image alone)
 - **Rule:** Key meaning in a chart, infographic, or poster is also stated in text near it (title, summary, data table, caption) rather than only in the picture.
-- **Source:** WCAG 2.2 SC 1.1.1 (A), complex images technique G95 / G92 (verified: G95 short text alternative describing the content, G92 long description)
-- **Link:** https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html
-- **Judged by:** askable.
+- **Source:** Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 22.2 "Axis and legend titles": "Just like every plot needs a title, axes and legends need titles as well", and "Axis and legend titles and labels explain what the displayed data values are and how they map to plot aesthetics." Checked on 2026-10-25. WCAG 2.2 SC 1.1.1 (A) and its techniques G95 and G92 were checked too: they ask for a text alternative for assistive technology, not for visible labels or a legend, so the criterion does not cite them.
+- **Link:** https://clauswilke.com/dataviz/figure-titles-captions.html
+- **Judged by:** askable, for the visible labels of a chart only. Question: "Is there a chart or graph with no written labels, axis values, or legend, so a reader cannot tell what its shapes or colors stand for?" A text alternative cannot be seen in a screenshot (NG-10). The dataviz entry "Label axes, units, and sources" is owned here.
+- **Defect range:** `chart-without-text`: not measured. A chart drawn with its axis values, category names, and legend switched off, as a chart library does when they are turned off; the card or figure title stays on both sides.
 
 
 ---

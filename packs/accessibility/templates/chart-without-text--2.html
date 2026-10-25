@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Accessibility fixture: chart without text 2</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion chart-without-text. A page of a charity's annual report, with
+ * text on the left and a column chart of money raised in six regions on the
+ * right. The defect switch hides the region names under the columns and the
+ * value axis numbers, so the columns carry no words. The figure title stays
+ * on both sides. No text changes.
+ */
+body { font-family: var(--font-serif); background: #fffdf8; }
+.run { display: flex; justify-content: space-between; padding: 26px 90px 0; font-family: var(--font-sans); font-size: 13px; color: #59636e; }
+.wrap { display: flex; gap: 60px; padding: 40px 90px 0; }
+.text { width: 380px; }
+h1 { font-size: 34px; line-height: 1.2; margin-bottom: 18px; }
+.text p { font-size: 17px; line-height: 1.6; color: #2b2925; margin-bottom: 14px; }
+figure { width: 650px; }
+figcaption { font-size: 19px; font-weight: 700; margin-bottom: 14px; }
+svg text { font-family: var(--font-sans); font-size: 13px; fill: #4a4f57; }
+.col { fill: #b4532a; }
+[data-defect="on"] svg text { display: none; }
+    </style>
+  </head>
+  <body>
+    <div class="run"><span>Hollin Trust &middot; Annual report 2025</span><span>Page 14</span></div>
+    <div class="wrap">
+      <div class="text">
+        <h1>Where the money came from</h1>
+        <p>Local groups raised more than in any year before. Most of the growth came from the two regions that started a monthly giving scheme in the spring.</p>
+        <p>Every group now reports its total each quarter, which lets us thank donors sooner and plan grants a season ahead.</p>
+      </div>
+      <figure>
+        <figcaption>Money raised by region, 2025</figcaption>
+        <svg width="650" height="440" viewBox="0 0 650 440">
+          <line x1="60" y1="40" x2="640" y2="40" stroke="#ece6da"/><line x1="60" y1="130" x2="640" y2="130" stroke="#ece6da"/><line x1="60" y1="220" x2="640" y2="220" stroke="#ece6da"/><line x1="60" y1="310" x2="640" y2="310" stroke="#ece6da"/><line x1="60" y1="400" x2="640" y2="400" stroke="#8d877c"/>
+          <text x="50" y="44" text-anchor="end">&pound;400k</text><text x="50" y="134" text-anchor="end">&pound;300k</text><text x="50" y="224" text-anchor="end">&pound;200k</text><text x="50" y="314" text-anchor="end">&pound;100k</text><text x="50" y="404" text-anchor="end">&pound;0</text>
+          <rect class="col" x="80" y="94" width="66" height="306"/><rect class="col" x="176" y="157" width="66" height="243"/><rect class="col" x="272" y="211" width="66" height="189"/><rect class="col" x="368" y="247" width="66" height="153"/><rect class="col" x="464" y="283" width="66" height="117"/><rect class="col" x="560" y="319" width="66" height="81"/>
+          <text x="113" y="422" text-anchor="middle">North</text><text x="209" y="422" text-anchor="middle">Coast</text><text x="305" y="422" text-anchor="middle">Valleys</text><text x="401" y="422" text-anchor="middle">City</text><text x="497" y="422" text-anchor="middle">Midlands</text><text x="593" y="422" text-anchor="middle">Islands</text>
+        </svg>
+      </figure>
+    </div>
+  </body>
+</html>
