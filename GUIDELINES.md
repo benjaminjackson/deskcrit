@@ -1044,7 +1044,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 
 ## Data visualization
 
-Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and Taylor) and, where one exists, a page of Tufte's *The Visual Display of Quantitative Information*. Benjamin Jackson has not yet decided whether a dataviz criterion may cite a practice reference under FR-45, and no Tufte page has been checked, so each Tufte page is marked "page unchecked". The source of each encoded entry below is awaiting that decision.
+Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and Taylor) and, where one exists, a page of Tufte's *The Visual Display of Quantitative Information*. FR-45 lets the dataviz pack cite the standard references of its field, among them Wilke and Few (changed 2026-10-25, crit-q25.25). No Tufte page has been checked, so each Tufte page is marked "page unchecked".
 
 ### Maximize the data-ink ratio
 - **Rule:** Most of the ink in a chart encodes data; heavy gridlines, borders, fills, and decoration that carry no information are removed or muted.
