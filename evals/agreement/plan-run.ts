@@ -1,10 +1,14 @@
 // Which (fixture, criterion) pairs a live agreement run asks, and how the replay splits a fixture's
-// saved answers files by criterion (EV-4 rule 5, crit-cy8.43). A pair is scored with a model when a
-// saved answers file of that model for that fixture holds an answer to that criterion's question.
-// A live run asks only the pairs that are not scored and writes them to a new file, so a saved
-// file is never written again. It does no I/O; run-agreement.ts reads and writes the files.
+// saved answers files by criterion (EV-4 rule 5, crit-cy8.43, crit-q25.23). A pair is scored with
+// a model when a saved answers file of that model for that fixture holds an answer to that
+// criterion's current question, as the record file next to it says. A live run asks only the
+// pairs that are not scored and writes them to a new file, so a saved file is never written
+// again. A criterion whose question changed under the same id is reworded, and a live run asks it
+// again about every fixture; a second rewording is refused (R-4). It does no I/O;
+// run-agreement.ts reads and writes the files.
 
 import { decideLiveRun } from "./frozen-set.ts";
+import type { AskedQuestionHash } from "./question-hash.ts";
 
 /** One criterion of a pack: its full id (`<pack>/<id>`) and its own fixture paths. */
 export type PlanCriterion = {
@@ -19,6 +23,14 @@ export type SavedAnswersFile = {
   /** The image_sha256 the file records (FR-42, OQ-26 e). */
   readonly imageSha256: string;
   readonly questionIds: readonly string[];
+};
+
+/**
+ * A saved answers file with its record file: for each criterion the file answers (`<pack>/<id>`),
+ * the SHA-256 of the question it was asked (EV-4 rule 5, crit-q25.23).
+ */
+export type RecordedAnswersFile = SavedAnswersFile & {
+  readonly questionSha256ByCriterion: ReadonlyMap<string, string>;
 };
 
 /** One fixture image of a pack: its path in the pack, the SHA-256 of its bytes, and its saved files. */
@@ -50,6 +62,12 @@ export type LivePlanInput = {
   readonly storedSetHash: string | null;
   /** The scored PNG list, or null when there is none. */
   readonly scoredPngHashes: readonly string[] | null;
+  /**
+   * The criteria whose current question differs from every question asked for them before
+   * (findRewordedCriteria). Their pairs are not scored, and asking them is allowed on a set whose
+   * PNGs were all scored (EV-4 rule 5, R-4).
+   */
+  readonly rewordedCriteria: readonly string[];
   readonly rerunSameSet: boolean;
 };
 
@@ -117,7 +135,8 @@ function imageFileNameOf(fixture: string): string {
  * Plan a live run on one pack (EV-4 rule 5). Return the fixtures to ask, each with only the
  * criteria it has no saved answer for, or throw an Error that says why the run is refused before
  * any request is sent. With rerunSameSet, which is only for repeating a run that broke, every criterion is asked
- * about every fixture again and the fixture's saved files are replaced.
+ * about every fixture again and the fixture's saved files are replaced. The saved files must hold
+ * only answers to current questions (keepCurrentAnswers), so a reworded criterion has no answer.
  */
 export function planLiveRun(input: LivePlanInput): LiveFixturePlan[] {
   const allCriteria = input.criteria.map((criterion) => criterion.criterion);
@@ -130,12 +149,14 @@ export function planLiveRun(input: LivePlanInput): LiveFixturePlan[] {
       input.storedSetHash,
       input.scoredPngHashes,
     );
-    if (decision === "refuse-same-set") {
+    // A run that asks only reworded criteria may score a set whose PNGs were all scored (R-4).
+    const asksOnlyRewordedCriteria = isRewordingRun(input);
+    if (decision === "refuse-same-set" && !asksOnlyRewordedCriteria) {
       throw new Error(
         `${input.packName}: a live run with this model already scored this fixture set (rendered.json.sha256)`,
       );
     }
-    if (decision === "refuse-all-scored") {
+    if (decision === "refuse-all-scored" && !asksOnlyRewordedCriteria) {
       throw new Error(
         `${input.packName}: live runs with this model already scored every fixture in this set (scored-png-sha256.txt)`,
       );
@@ -153,7 +174,8 @@ export function planLiveRun(input: LivePlanInput): LiveFixturePlan[] {
       const isOwnFixture =
         criterion.positive.includes(fixture.fixture) ||
         criterion.negative.includes(fixture.fixture);
-      if (isOwnFixture && scoredPngs.has(fixture.pngSha256)) {
+      const isReworded = input.rewordedCriteria.includes(criterion.criterion);
+      if (isOwnFixture && scoredPngs.has(fixture.pngSha256) && !isReworded) {
         throw new Error(
           `${input.packName}: ${criterion.criterion} has never been scored on its own fixture ${fixture.fixture}, but that PNG is in the scored PNG list, so the criterion looks like a rewording on fixtures already scored`,
         );
@@ -176,6 +198,108 @@ export function planLiveRun(input: LivePlanInput): LiveFixturePlan[] {
     );
   }
   return plans;
+}
+
+/**
+ * Say whether every pair the run would ask belongs to a reworded criterion, and there is at least
+ * one such pair. Only then may the run ask about a set whose PNGs were all scored (R-4).
+ */
+function isRewordingRun(input: LivePlanInput): boolean {
+  let anyPair = false;
+  for (const fixture of input.fixtures) {
+    const answered = answeredCriteria(input.packName, fixture);
+    for (const criterion of input.criteria) {
+      if (answered.has(criterion.criterion)) {
+        continue;
+      }
+      if (!input.rewordedCriteria.includes(criterion.criterion)) {
+        return false;
+      }
+      anyPair = true;
+    }
+  }
+  return anyPair;
+}
+
+/**
+ * Return the criteria of a pack that are reworded: the asked list holds a question for the
+ * criterion and its current question is not one of them (EV-4 rule 5, R-4). Throw when the list
+ * already holds two questions for a criterion and its current question is a third, because R-4
+ * allows one rewording per criterion id, and throw when saved answers exist but the list does not,
+ * because then no one can tell which questions were asked. askedQuestionHashes is null when the
+ * pack has no asked list.
+ */
+export function findRewordedCriteria(
+  packName: string,
+  currentQuestionSha256ByCriterion: ReadonlyMap<string, string>,
+  askedQuestionHashes: readonly AskedQuestionHash[] | null,
+  hasSavedAnswers: boolean,
+): string[] {
+  if (askedQuestionHashes === null) {
+    if (hasSavedAnswers) {
+      throw new Error(
+        `${packName}: saved answers exist but asked-question-sha256.txt does not, so the questions they answer are unknown (EV-4 rule 5)`,
+      );
+    }
+    return [];
+  }
+  const reworded: string[] = [];
+  for (const [criterion, currentHash] of currentQuestionSha256ByCriterion) {
+    const askedHashes = new Set<string>();
+    for (const entry of askedQuestionHashes) {
+      if (entry.criterion === criterion) {
+        askedHashes.add(entry.questionSha256);
+      }
+    }
+    if (askedHashes.size === 0 || askedHashes.has(currentHash)) {
+      continue;
+    }
+    if (askedHashes.size >= 2) {
+      throw new Error(
+        `${packName}: ${criterion} was already asked ${String(askedHashes.size)} different questions, and its current question is new. R-4 allows one rewording per criterion id, so no request was sent.`,
+      );
+    }
+    reworded.push(criterion);
+  }
+  return reworded;
+}
+
+/**
+ * Return a saved file with only the answers to each criterion's current question, and the question
+ * ids it leaves out (EV-4 rule 5, crit-q25.23). An answer counts when the record file gives its
+ * criterion the same question hash as the pack does now. An answer to a criterion that is not in
+ * the pack is kept, so planReplay can name it.
+ */
+export function keepCurrentAnswers(
+  savedFile: RecordedAnswersFile,
+  currentQuestionSha256ByCriterion: ReadonlyMap<string, string>,
+): { savedFile: SavedAnswersFile; questionIdsToDrop: string[] } {
+  const kept: string[] = [];
+  const questionIdsToDrop: string[] = [];
+  for (const questionId of savedFile.questionIds) {
+    const criterion = criterionForQuestionId(questionId);
+    const recordedHash = savedFile.questionSha256ByCriterion.get(criterion);
+    if (recordedHash === undefined) {
+      // run-agreement.ts checks that the record covers every criterion the file answers.
+      throw new Error(
+        `${savedFile.fileName}: the question record has no entry for ${criterion}`,
+      );
+    }
+    const currentHash = currentQuestionSha256ByCriterion.get(criterion);
+    if (currentHash === undefined || currentHash === recordedHash) {
+      kept.push(questionId);
+    } else {
+      questionIdsToDrop.push(questionId);
+    }
+  }
+  return {
+    savedFile: {
+      fileName: savedFile.fileName,
+      imageSha256: savedFile.imageSha256,
+      questionIds: kept,
+    },
+    questionIdsToDrop,
+  };
 }
 
 /** Plan a --rerun-same-set run: every criterion about every fixture, replacing every saved file. */
@@ -249,7 +373,8 @@ export type ReplayFilePlan = {
  * Plan the replay of one fixture (EV-4 rule 5, FR-42). Return each saved file with the criteria it
  * answers, or throw an Error when the fixture has no saved file, when a file answers a criterion
  * that is not in the pack, when two files answer the same criterion, or when a criterion of the
- * pack has no answer.
+ * pack has no answer. A file that answers nothing, because keepCurrentAnswers left out all of its
+ * answers to old questions, is skipped.
  */
 export function planReplay(
   packName: string,
@@ -275,6 +400,9 @@ export function planReplay(
       }
       fileCriteria.add(criterion);
     }
+    if (fileCriteria.size === 0) {
+      continue;
+    }
     for (const criterion of fileCriteria) {
       const earlierFile = fileByCriterion.get(criterion);
       if (earlierFile !== undefined) {
@@ -296,7 +424,7 @@ export function planReplay(
   for (const criterion of packCriteria) {
     if (!fileByCriterion.has(criterion)) {
       throw new Error(
-        `${packName} fixture ${fixture}: no saved answer for ${criterion}; record it with npm run test:live`,
+        `${packName} fixture ${fixture}: no saved answer for ${criterion} to its current question; record it with npm run test:live`,
       );
     }
   }
