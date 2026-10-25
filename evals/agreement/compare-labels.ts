@@ -14,7 +14,7 @@ export type HumanPreference = "after" | "before" | "same";
  * empty for a pair that should come out the same. `preference` is null until Benjamin Jackson
  * fills it in. Field names are the file's key names (CS-10).
  */
-export type LabelledPair = {
+export type LabeledPair = {
   readonly pair_id: string;
   readonly before: string;
   readonly after: string;
@@ -49,10 +49,10 @@ const TARGET_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*\/[a-z0-9]+(-[a-z0-9]+)*$/;
  * MINIMUM_PAIRS pairs. A null preference is valid here; the agreement script refuses it later.
  * Each message names the file and the pair (EV-9, EV-5, CS-7).
  */
-export function readLabelledPairs(
+export function readLabeledPairs(
   fileName: string,
   jsonText: string,
-): LabelledPair[] {
+): LabeledPair[] {
   let parsed: unknown;
   try {
     parsed = JSON.parse(jsonText);
@@ -62,7 +62,7 @@ export function readLabelledPairs(
   if (!Array.isArray(parsed)) {
     throw new Error(`${fileName}: must hold a JSON list of pairs`);
   }
-  const pairs: LabelledPair[] = [];
+  const pairs: LabeledPair[] = [];
   const seenIds = new Set<string>();
   const seenImages = new Set<string>();
   for (let index = 0; index < parsed.length; index += 1) {
@@ -96,25 +96,25 @@ export function readLabelledPairs(
  * Return the ids of the pairs whose preference is still null, in file order, so the agreement
  * script can refuse to start and name them (EV-5, EV-9).
  */
-export function findUnlabelledPairs(pairs: readonly LabelledPair[]): string[] {
-  const unlabelled: string[] = [];
+export function findUnlabeledPairs(pairs: readonly LabeledPair[]): string[] {
+  const unlabeled: string[] = [];
   for (const pair of pairs) {
     if (pair.preference === null) {
-      unlabelled.push(pair.pair_id);
+      unlabeled.push(pair.pair_id);
     }
   }
-  return unlabelled;
+  return unlabeled;
 }
 
 /**
- * Check one entry of the list and return it as a LabelledPair. The message names the pair by its
+ * Check one entry of the list and return it as a LabeledPair. The message names the pair by its
  * id when it has one, and by its place in the list when it does not (CS-7).
  */
 function checkPair(
   fileName: string,
   index: number,
   entry: unknown,
-): LabelledPair {
+): LabeledPair {
   if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
     throw new Error(`${fileName}: entry ${index + 1} must be a JSON object`);
   }

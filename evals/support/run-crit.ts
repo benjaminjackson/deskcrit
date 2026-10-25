@@ -187,10 +187,10 @@ export function isJsonCase(goldenCase: GoldenCase): boolean {
 /**
  * Parse a report, compare, or gate JSON document, remove the volatile fields usage.latency_ms and
  * tool.version (and before.tool.version and after.tool.version in a compare document), and
- * serialise it with keys sorted at every level, so two runs compare equal when only those fields
+ * serialize it with keys sorted at every level, so two runs compare equal when only those fields
  * differ (EV-1).
  */
-export function normaliseReportJson(reportText: string): string {
+export function normalizeReportJson(reportText: string): string {
   const report: unknown = JSON.parse(reportText);
   if (typeof report !== "object" || report === null) {
     throw new Error("The report is not a JSON object");

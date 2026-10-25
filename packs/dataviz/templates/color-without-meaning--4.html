@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: color without meaning, lollipop chart</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion color-without-meaning. A freight dashboard with a lollipop chart of median delivery time for seven
+ * depots, one series. The depots are named beside each mark, and the stems stay gray. The clean side draws
+ * every dot in one purple. The defect switch only changes the fill of each dot (.b1 to .b7) to a different hue
+ * from a common categorical palette, which encodes nothing. Nothing else changes (OQ-17).
+ */
+header { height: 56px; display: flex; align-items: center; gap: 40px; padding: 0 44px; border-bottom: 1px solid #eceff2; }
+.brand { font-weight: 700; font-size: 18px; }
+nav { display: flex; gap: 22px; font-size: 14px; color: var(--color-muted); }
+nav .on { color: var(--color-text); font-weight: 700; }
+main { padding: 32px 44px 0; display: flex; gap: 44px; }
+.chart h1 { font-size: 26px; font-weight: 700; }
+.chart .sub { font-size: 15px; color: var(--color-muted); margin: 4px 0 18px; }
+aside { width: 340px; padding-top: 70px; }
+.stat { padding: 14px 0; border-top: 1px solid #eef0f2; }
+.stat .label { font-size: 13px; color: var(--color-muted); }
+.stat .value { font-size: 26px; font-weight: 700; line-height: 1.25; }
+.stat .note { font-size: 13px; color: var(--color-muted); }
+svg text { font-family: var(--font-sans); }
+.grid { stroke: #eceef1; stroke-width: 1; }
+.baseline { stroke: #8a929b; stroke-width: 1; }
+.axis { font-size: 12px; fill: #59636e; }
+.cat { font-size: 15px; fill: #1f2328; }
+.value { font-size: 13px; fill: #1f2328; font-weight: 700; }
+.stem { fill: #c9ced4; }
+.source { margin-top: 8px; font-size: 13px; color: var(--color-muted); }
+.bar { fill: #6b5fa8; }
+
+[data-defect="on"] .b1 { fill: #4e79a7; }
+[data-defect="on"] .b2 { fill: #f28e2b; }
+[data-defect="on"] .b3 { fill: #e15759; }
+[data-defect="on"] .b4 { fill: #76b7b2; }
+[data-defect="on"] .b5 { fill: #59a14f; }
+[data-defect="on"] .b6 { fill: #b07aa1; }
+[data-defect="on"] .b7 { fill: #9c755f; }
+    </style>
+  </head>
+  <body>
+<header><span class="brand">Rook Freight</span><nav><span>Shipments</span><span class="on">Depots</span><span>Drivers</span><span>Invoices</span></nav></header>
+    <main>
+      <div class="chart">
+        <h1>Median delivery time by depot</h1>
+        <p class="sub">Hours from parcel scan-in to delivery, October, standard service</p>
+        <svg width="780" height="420" viewBox="0 0 780 420">
+<line class="baseline" x1="150" x2="150" y1="24" y2="388"/><text class="axis" x="150" y="18" text-anchor="middle">0 h</text><line class="grid" x1="290" x2="290" y1="24" y2="388"/><text class="axis" x="290" y="18" text-anchor="middle">12 h</text><line class="grid" x1="430" x2="430" y1="24" y2="388"/><text class="axis" x="430" y="18" text-anchor="middle">24 h</text><line class="grid" x1="570" x2="570" y1="24" y2="388"/><text class="axis" x="570" y="18" text-anchor="middle">36 h</text><line class="grid" x1="710" x2="710" y1="24" y2="388"/><text class="axis" x="710" y="18" text-anchor="middle">48 h</text>
+<text class="cat" x="136" y="55" text-anchor="end">Carrow</text><rect class="stem" x="150" y="48.5" width="210.0" height="3"/><circle class="bar b1" cx="360.0" cy="50" r="9"/><text class="value" x="376.0" y="55">18 h</text>
+<text class="cat" x="136" y="107" text-anchor="end">Ellsby</text><rect class="stem" x="150" y="100.5" width="245.0" height="3"/><circle class="bar b2" cx="395.0" cy="102" r="9"/><text class="value" x="411.0" y="107">21 h</text>
+<text class="cat" x="136" y="159" text-anchor="end">Fenwick Yard</text><rect class="stem" x="150" y="152.5" width="280.0" height="3"/><circle class="bar b3" cx="430.0" cy="154" r="9"/><text class="value" x="446.0" y="159">24 h</text>
+<text class="cat" x="136" y="211" text-anchor="end">Marl Cross</text><rect class="stem" x="150" y="204.5" width="315.0" height="3"/><circle class="bar b4" cx="465.0" cy="206" r="9"/><text class="value" x="481.0" y="211">27 h</text>
+<text class="cat" x="136" y="263" text-anchor="end">Oxlade</text><rect class="stem" x="150" y="256.5" width="361.7" height="3"/><circle class="bar b5" cx="511.7" cy="258" r="9"/><text class="value" x="527.7" y="263">31 h</text>
+<text class="cat" x="136" y="315" text-anchor="end">Pennick</text><rect class="stem" x="150" y="308.5" width="420.0" height="3"/><circle class="bar b6" cx="570.0" cy="310" r="9"/><text class="value" x="586.0" y="315">36 h</text>
+<text class="cat" x="136" y="367" text-anchor="end">Rudge Lane</text><rect class="stem" x="150" y="360.5" width="478.3" height="3"/><circle class="bar b7" cx="628.3" cy="362" r="9"/><text class="value" x="644.3" y="367">41 h</text>
+
+        </svg>
+        <p class="source">Source: Rook Freight scan records, 61,400 parcels. Express and same-day parcels are not included.</p>
+      </div>
+      <aside>
+        <div class="stat"><div class="label">Median delivery time, all depots, October</div><div class="value">27 h</div><div class="note">Down 2 h on September</div></div>
+        <div class="stat"><div class="label">Parcels delivered within 48 h, October</div><div class="value">94%</div><div class="note">Up 1 point on September</div></div>
+        <div class="stat"><div class="label">Slowest depot, October</div><div class="value">Rudge Lane</div><div class="note">Also slowest in September</div></div>
+      </aside>
+    </main>
+  </body>
+</html>

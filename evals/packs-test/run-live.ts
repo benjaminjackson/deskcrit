@@ -1,5 +1,5 @@
 // The live cases of the `crit packs test <dir>` durable test (EV-4, FR-50, FR-53, CS-21). It runs
-// the built bundle on three small packs whose fixtures are solid colours, so the verdicts are
+// the built bundle on three small packs whose fixtures are solid colors, so the verdicts are
 // stable: one pack where every fixture agrees, one where the positive fixture disagrees, and one
 // where the negative fixture disagrees. It asks TypeSafe 6 times in all (one request per fixture
 // image), so only `npm run test:live:packs` runs it and `npm run ci` never does. It refuses to

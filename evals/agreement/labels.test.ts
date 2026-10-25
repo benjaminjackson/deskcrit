@@ -77,10 +77,10 @@ describe("readLabels", () => {
     ).toThrow("labels/typography.csv line 2: quotes are not supported");
   });
 
-  it("rejects a fixture and criterion pair labelled twice", () => {
+  it("rejects a fixture and criterion pair labeled twice", () => {
     const text = `${LABEL_FILE_HEADER}\nfixtures/faint.positive.png,faint-body-text,yes\nfixtures/faint.positive.png,faint-body-text,no\n`;
     expect(() => readLabels(FILE_NAME, text, PACK)).toThrow(
-      "labels/typography.csv line 3: fixtures/faint.positive.png and faint-body-text are already labelled",
+      "labels/typography.csv line 3: fixtures/faint.positive.png and faint-body-text are already labeled",
     );
   });
 

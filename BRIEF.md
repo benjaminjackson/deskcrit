@@ -10,9 +10,9 @@ The companion repo, `deskcrit-packs`, is the marketplace: versioned, citable bun
 
 ## Why this exists
 
-A coding agent that builds a page can check that it renders and that the tests pass. It has no check for how the page looks. Two headings can compete for attention, a button can sit grey on grey, a chart can carry a legend it does not need, and nothing in the agent's loop reports any of it. The agent ships the page or asks a person to look.
+A coding agent that builds a page can check that it renders and that the tests pass. It has no check for how the page looks. Two headings can compete for attention, a button can sit gray on gray, a chart can carry a legend it does not need, and nothing in the agent's loop reports any of it. The agent ships the page or asks a person to look.
 
-axe-core and Lighthouse check the accessibility rules that can be computed from the DOM. They do not judge hierarchy, spacing, or colour harmony. A large vision model can be asked "is this good?". The answer is prose the agent has to parse. Each question costs enough, in money and time, that a few hundred of them per change is too many. And the confidence it states is not calibrated, while a loop needs a number it can trust to decide whether to keep going.
+axe-core and Lighthouse check the accessibility rules that can be computed from the DOM. They do not judge hierarchy, spacing, or color harmony. A large vision model can be asked "is this good?". The answer is prose the agent has to parse. Each question costs enough, in money and time, that a few hundred of them per change is too many. And the confidence it states is not calibrated, while a loop needs a number it can trust to decide whether to keep going.
 
 TypeSafe's System One model, Jev, answers narrow, typed questions over a state (text, JSON, and images) and returns a probability for every option plus a confidence. The docs give about 100 ms for text requests, with no published figure for image requests, and a price of $0.042 per million input tokens with output free. Questions in one request are evaluated independently and in parallel. TypeSafe trains Jev for calibrated probabilities and designs it for stable answers across repeated runs. The docs make no claim for design images. The fixture set in this brief exists to measure both properties there.
 
@@ -33,7 +33,7 @@ The bet: a design critique can be decomposed into a couple of hundred small judg
 ### Inputs
 
 - An image file, PNG or JPEG. A screenshot, a poster, a slide, an illustration, a Figma export. Capturing it is the caller's job. Claude Code can take one with a browser tool or Playwright.
-- Optional context: what the design is for (a landing page, a dashboard, a poster seen from three metres), the audience, and the platform. Packs use this to decide which criteria apply. A poster does not need a focus ring.
+- Optional context: what the design is for (a landing page, a dashboard, a poster seen from three meters), the audience, and the platform. Packs use this to decide which criteria apply. A poster does not need a focus ring.
 - An optional facts file, JSON the caller measured some other way (an axe-core result, a contrast ratio, a viewport width). `crit` places it in the TypeSafe state as-is and packs may reference it in a question. `crit` never computes a fact itself.
 
 ### Modes
@@ -69,7 +69,7 @@ Findings sort by severity first and confidence second. A finding whose confidenc
 
 **Probabilities, not verdicts, are the raw material.** Jev returns a distribution. Code turns it into a verdict using the pack's threshold, and the threshold is data the user can change without re-running inference. Weights and thresholds are tuned on a fixture set, not guessed.
 
-**Every criterion has a source.** A finding that says "this is wrong" is an opinion. A finding that says "Bringhurst, section 2.1.2: this column looks too wide to read comfortably" is a critique. Packs cite the original, not a blog that repeats it, and link when the source is online. Folk rules (rule of thirds, Z-pattern) are allowed but labelled as such and weighted low.
+**Every criterion has a source.** A finding that says "this is wrong" is an opinion. A finding that says "Bringhurst, section 2.1.2: this column looks too wide to read comfortably" is a critique. Packs cite the original, not a blog that repeats it, and link when the source is online. Folk rules (rule of thirds, Z-pattern) are allowed but labeled as such and weighted low.
 
 **Fix hints are written by people.** Jev does not generate text. The hint that goes with a finding is written by the pack author and shipped in the pack. The agent reading the report works out how to apply it to this page.
 
@@ -92,7 +92,7 @@ The TypeSafe call sits behind one small interface: a state and a list of questio
 
 From TypeSafe's published limits and known weaknesses for jev-1.13 and jev-1.14:
 
-- No arithmetic, counting, or hex colours in any question. If a pack author needs a number, it comes from the facts file or the criterion is not a `deskcrit` criterion.
+- No arithmetic, counting, or hex colors in any question. If a pack author needs a number, it comes from the facts file or the criterion is not a `deskcrit` criterion.
 - Instructions are literal and criteria are aligned with them. A Noul where true means no will underperform.
 - Choice option order can sway the answer, so compare-mode questions are asked twice with the options swapped and disagreement lowers confidence.
 - State is the image plus the short context, not a page dump. Per-question context is 32k tokens by default.
@@ -162,16 +162,16 @@ All seven domains ship on day one. The research behind them is in `GUIDELINES.md
 | --- | --- | --- |
 | `typography` | Type scale, measure, leading, pairing, legibility, rag, widows | Bringhurst, Butterick, Lupton, Hochuli, Apple HIG, Material |
 | `layout` | Grid, spacing rhythm, proximity, alignment, white space, hierarchy, Gestalt | Müller-Brockmann, Elam, Robin Williams, Vignelli, Nielsen Norman Group, Material |
-| `color` | Harmony, proportion, semantic colour, visible contrast, colour as sole carrier, dark mode, chart palettes | Itten, Albers, WCAG 1.4.1/1.4.3/1.4.11, ColorBrewer, Okabe and Ito |
+| `color` | Harmony, proportion, semantic color, visible contrast, color as sole carrier, dark mode, chart palettes | Itten, Albers, WCAG 1.4.1/1.4.3/1.4.11, ColorBrewer, Okabe and Ito |
 | `accessibility` | The WCAG 2.2 A and AA criteria with a visible symptom, platform target sizes as they look, the legal map (ADA Title II, Section 508, European Accessibility Act, UK, AODA) | WCAG 2.2 Understanding documents, ada.gov, EN 301 549, Apple HIG, Material, British Dyslexia Association |
 | `ux` | Nielsen's heuristics, Norman's affordances and signifiers, the usability laws, forms, states, deceptive patterns | Nielsen and Molich, Norman, Shneiderman, Tognazzini, Fitts, Hick, Miller, Brignull |
-| `dataviz` | Data-ink, chartjunk, graphical integrity, chart choice by data relationship, axes, direct labelling, chart colour, dashboard layout | Tufte, Few, Cairo, Cleveland and McGill, Bertin, Wilke |
+| `dataviz` | Data-ink, chartjunk, graphical integrity, chart choice by data relationship, axes, direct labeling, chart color, dashboard layout | Tufte, Few, Cairo, Cleveland and McGill, Bertin, Wilke |
 | `art-direction` | Elements and principles of design, focal point and eye path, unity, thematic and stylistic coherence, composition, reduction, poster and illustration conventions | Dondis, Arnheim, Wucius Wong, Rams, Loos, Bang, Ogilvy, Loomis |
 
 ## Integration
 
 - **CLI.** `crit report <image> [--pack ...] [--context ...] [--facts facts.json] [--json]`, `crit compare <before> <after>`, `crit gate <image>`. Exit codes: 0 pass, 1 fail, 2 could not run. Any agent that can run a shell command can use it.
-- **Claude Code plugin.** A skill that teaches Claude the loop: build, screenshot, `crit report --json`, fix the top findings, screenshot, `crit compare`. The loop stops when the gate passes or two rounds show no improvement. An optional hook runs `crit gate` after a UI file changes. The plugin is a thin wrapper around the CLI so there is one source of behaviour.
+- **Claude Code plugin.** A skill that teaches Claude the loop: build, screenshot, `crit report --json`, fix the top findings, screenshot, `crit compare`. The loop stops when the gate passes or two rounds show no improvement. An optional hook runs `crit gate` after a UI file changes. The plugin is a thin wrapper around the CLI so there is one source of behavior.
 - **Library.** The same pipeline importable from TypeScript for people building their own loops: `prepare`, `build`, `ask`, `compose` as separate functions.
 
 ## Stack
@@ -192,7 +192,7 @@ Naming: the package, the repo, and the marketplace are `deskcrit`, `deskcrit`, a
 
 ## Risks
 
-**TypeSafe's image support is labelled not production-ready.** It needs an opt-in header, its limits and request format can change between releases, and the docs say accuracy will change as the models update. This is the central dependency of the product, and we are building on it anyway. We have not found another API that returns calibrated probabilities for many independent questions over one image in a single request. Mitigations: the API call is behind one small interface, and every finding records the model version that produced it. Thresholds are pinned to a model version and re-tuned on the fixture set when the version moves. `jev-latest` is never used in a pinned project.
+**TypeSafe's image support is labeled not production-ready.** It needs an opt-in header, its limits and request format can change between releases, and the docs say accuracy will change as the models update. This is the central dependency of the product, and we are building on it anyway. We have not found another API that returns calibrated probabilities for many independent questions over one image in a single request. Mitigations: the API call is behind one small interface, and every finding records the model version that produced it. Thresholds are pinned to a model version and re-tuned on the fixture set when the version moves. `jev-latest` is never used in a pinned project.
 
 **We do not yet know how good Jev is at this.** We have not found published results for design critique on Jev, and TypeSafe's cookbooks cover text tasks. The first milestone is a spike that measures agreement between Jev and human designers on a fixture set before any other code is written.
 
@@ -208,7 +208,7 @@ Naming: the package, the repo, and the marketplace are `deskcrit`, `deskcrit`, a
 
 ## How we know it works
 
-- A fixture set of at least 100 designs with human-labelled defects across the seven domains, plus at least 30 before-and-after pairs with a human preference. Built before the CLI.
+- A fixture set of at least 100 designs with human-labeled defects across the seven domains, plus at least 30 before-and-after pairs with a human preference. Built before the CLI.
 - Per criterion: agreement with the human label, and self-consistency across repeated runs. A criterion below an agreed agreement floor ships as `warn`, not `fail`, or does not ship.
 - The loop test: give Claude Code a deliberately bad page and `crit`, and measure how many rounds it takes to clear the gate, and whether a designer agrees the result is better.
 - Latency and cost per `report` on a typical landing page, printed in every run.

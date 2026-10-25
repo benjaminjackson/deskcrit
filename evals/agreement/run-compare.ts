@@ -36,17 +36,17 @@ import {
   type UsageTotals,
 } from "../support/usage-totals.ts";
 import {
-  findUnlabelledPairs,
+  findUnlabeledPairs,
   type HumanPreference,
-  type LabelledPair,
-  readLabelledPairs,
+  type LabeledPair,
+  readLabeledPairs,
 } from "./compare-labels.ts";
 import {
   type AgreementSummary,
   meetsAgreementFloor,
   type PairScore,
   scorePair,
-  summariseAgreement,
+  summarizeAgreement,
 } from "./compare-score.ts";
 import { AGREEMENT_FLOOR, findSingleModel } from "./score.ts";
 
@@ -124,7 +124,7 @@ const DEFAULT_OPTIONS: CompareHarnessOptions = {
 
 /** One pair after its run: the pair, its compare document, and its score (EV-9). */
 type PairResult = {
-  readonly pair: LabelledPair;
+  readonly pair: LabeledPair;
   readonly preference: HumanPreference;
   readonly document: CompareDocument;
   readonly score: PairScore;
@@ -167,14 +167,14 @@ export async function runCompareHarness(
     allowPositionals: false,
   });
   const live = parsed.values.live ?? false;
-  const pairs = readLabelledPairs(
+  const pairs = readLabeledPairs(
     basename(options.labelsPath),
     readFileSync(options.labelsPath, "utf8"),
   );
-  const unlabelled = findUnlabelledPairs(pairs);
-  if (unlabelled.length > 0) {
+  const unlabeled = findUnlabeledPairs(pairs);
+  if (unlabeled.length > 0) {
     throw new Error(
-      `${unlabelled.length} pairs have no human preference yet, and only Benjamin Jackson writes them: ${unlabelled.join(", ")}`,
+      `${unlabeled.length} pairs have no human preference yet, and only Benjamin Jackson writes them: ${unlabeled.join(", ")}`,
     );
   }
   if (live && !isApiKeyPresent()) {
@@ -242,7 +242,7 @@ export async function runCompareHarness(
     results.push({ pair, preference: pair.preference, document, score });
   }
   const model = findSingleModel(pinnedModel, modelIds);
-  const summary = summariseAgreement(
+  const summary = summarizeAgreement(
     results.map((result) => result.score.outcome),
   );
   const sections = [
@@ -257,10 +257,7 @@ export async function runCompareHarness(
 }
 
 /** Return the saved answers file of one pair for the pinned model: <runs>/<model>/<pair-id>.answers.json (FR-42). */
-function answersPathFor(
-  modelRunsDirectory: string,
-  pair: LabelledPair,
-): string {
+function answersPathFor(modelRunsDirectory: string, pair: LabeledPair): string {
   return join(modelRunsDirectory, `${pair.pair_id}.answers.json`);
 }
 
@@ -275,7 +272,7 @@ function answersPathFor(
 async function runCompareOnPair(
   options: CompareHarnessOptions,
   modelRunsDirectory: string,
-  pair: LabelledPair,
+  pair: LabeledPair,
   validateCompare: ReturnType<typeof compileCompareValidator<CompareDocument>>,
 ): Promise<CompareDocument> {
   const critArguments = [

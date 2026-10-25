@@ -4,7 +4,7 @@ import {
   expectedChange,
   meetsAgreementFloor,
   scorePair,
-  summariseAgreement,
+  summarizeAgreement,
 } from "./compare-score.ts";
 
 /** Build one change entry of a compare document from a criterion id and its change. */
@@ -145,9 +145,9 @@ describe("scorePair", () => {
   });
 });
 
-describe("summariseAgreement", () => {
+describe("summarizeAgreement", () => {
   it("counts each outcome and counts uncertain as not agreeing in the rate", () => {
-    const summary = summariseAgreement([
+    const summary = summarizeAgreement([
       "agree",
       "agree",
       "agree",
@@ -165,7 +165,7 @@ describe("summariseAgreement", () => {
   });
 
   it("meets the floor at exactly 0.8 and gives no rate for no pairs", () => {
-    const atFloor = summariseAgreement([
+    const atFloor = summarizeAgreement([
       "agree",
       "agree",
       "agree",
@@ -174,7 +174,7 @@ describe("summariseAgreement", () => {
     ]);
     expect(atFloor.rate).toBe(0.8);
     expect(meetsAgreementFloor(atFloor)).toBe(true);
-    const empty = summariseAgreement([]);
+    const empty = summarizeAgreement([]);
     expect(empty.rate).toBeNull();
     expect(meetsAgreementFloor(empty)).toBe(false);
   });

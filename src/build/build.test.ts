@@ -470,11 +470,11 @@ describe("FR-17, US-7, US-8: context and facts in the state", () => {
   it("puts the purpose text in the state that every question is asked with", () => {
     const result = buildQuestions(
       makeInput(packs, {
-        context: { purpose: "poster seen from three metres" },
+        context: { purpose: "poster seen from three meters" },
       }),
     );
     expect(result.state.context).toEqual({
-      purpose: "poster seen from three metres",
+      purpose: "poster seen from three meters",
     });
   });
 
