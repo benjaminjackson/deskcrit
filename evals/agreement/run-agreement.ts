@@ -4,16 +4,21 @@
 // the label coverage. It imports no stage code (AC-6, CS-21).
 //
 // Live mode (`npm run test:live`) asks TypeSafe only the pairs of a fixture and a criterion that no
-// saved answers file of the pinned model answers yet, and saves each fixture's new answers with
-// --save-answers in a new file under runs/<pack>/<model>/: <image>.answers.json first, then
-// <image>.answers-2.json and so on. It never writes a saved file again. Replay mode
-// (`npm run eval:agreement`) scores every saved file with --answers against a pack of only the
-// criteria that file answers, needs no key, and makes no network call (EV-4 rule 5, FR-42).
+// saved answers file of the pinned model answers yet with the criterion's current question, and
+// saves each fixture's new answers with --save-answers in a new file under runs/<pack>/<model>/:
+// <image>.answers.json first, then <image>.answers-2.json and so on. It never writes a saved file
+// again. Next to each answers file it writes a record file, <image>.answers.questions.json or
+// <image>.answers-N.questions.json, with the SHA-256 of the question each criterion was asked, and
+// it adds every question it asks to asked-question-sha256.txt (crit-q25.23). A criterion whose
+// question changed under the same id is reworded and is asked again about every fixture; a second
+// rewording is refused (R-4). Replay mode (`npm run eval:agreement`) scores every saved file with
+// --answers against a pack of only the criteria that file answers to their current question,
+// needs no key, and makes no network call (EV-4 rule 5, FR-42).
 //
 // Usage: node evals/agreement/run-agreement.ts [--live] [--rerun-same-set] [--pack <dir>]...
 // A live run with no pair left to ask is refused, unless --rerun-same-set is passed, which asks
 // every pair again and replaces the saved answers. Pass it only to repeat a run that broke for a
-// technical reason, never to score a decided criterion again.
+// technical reason, never to score a decided criterion again. A reworded criterion needs no flag.
 // Without --pack it measures every first-party pack under packs/. Exit 0 when every fixture agrees,
 // 1 when any EV-4 fixture disagrees, and 2 when the harness could not run (FR-24).
 
@@ -59,12 +64,25 @@ import {
 } from "./labels.ts";
 import {
   answersFileNumber,
+  criterionForQuestionId,
+  findRewordedCriteria,
+  keepCurrentAnswers,
   type LiveFixturePlan,
   type PlanFixture,
   planLiveRun,
   planReplay,
+  type RecordedAnswersFile,
   type SavedAnswersFile,
 } from "./plan-run.ts";
+import {
+  type AskedQuestionHash,
+  formatAskedQuestionHashes,
+  formatQuestionRecord,
+  hashCriterionQuestion,
+  parseAskedQuestionHashes,
+  parseQuestionRecord,
+  recordFileNameFor,
+} from "./question-hash.ts";
 import {
   AGREEMENT_FLOOR,
   type Coverage,
@@ -110,11 +128,15 @@ type ReportDocument = {
   };
 };
 
-/** One pack's name, directory, and criteria with their fixture paths (FR-44, FR-50). */
+/**
+ * One pack's name, directory, criteria with their fixture paths, and the SHA-256 of each
+ * criterion's current question, keyed by `<pack>/<id>` (FR-44, FR-50, EV-4 rule 5).
+ */
 type PackFixtures = {
   readonly name: string;
   readonly directory: string;
   readonly criteria: readonly PackCriterionFixtures[];
+  readonly questionSha256ByCriterion: ReadonlyMap<string, string>;
 };
 
 /** The scored results of one pack, kept until every pack has run so no partial score prints (FR-24). */
@@ -268,9 +290,10 @@ async function runHarnessWithContext(
       plans.push(planPackLiveRun(context, pack, rerunSameSet));
     }
     for (const [index, pack] of packs.entries()) {
-      // Record the set before the first request, so a run that stops part way still counts as
-      // scored and the next live run on the same fixtures is refused (EV-4 rule 5).
+      // Record the set and the questions before the first request, so a run that stops part way
+      // still counts as scored and the next live run on the same fixtures is refused (EV-4 rule 5).
       recordFrozenSet(context, pack);
+      recordAskedQuestions(context, pack, plans[index] ?? []);
       for (const fixturePlan of plans[index] ?? []) {
         const report = await askFixture(context, pack, fixturePlan);
         modelIds.push(report.model);
@@ -341,6 +364,7 @@ function planPackLiveRun(
   rerunSameSet: boolean,
 ): LiveFixturePlan[] {
   const fixtures: PlanFixture[] = [];
+  let hasSavedAnswers = false;
   for (const fixture of listFixtureImages(pack)) {
     const imagePath = join(pack.directory, fixture);
     if (!existsSync(imagePath)) {
@@ -348,14 +372,36 @@ function planPackLiveRun(
         `${pack.name} fixture ${fixture}: ${imagePath} does not exist`,
       );
     }
+    // Only the answers to each criterion's current question count as scored (EV-4 rule 5).
+    const currentFiles: SavedAnswersFile[] = [];
+    for (const savedFile of readSavedAnswersFiles(context, pack, fixture)) {
+      hasSavedAnswers = true;
+      currentFiles.push(
+        keepCurrentAnswers(savedFile, pack.questionSha256ByCriterion).savedFile,
+      );
+    }
     fixtures.push({
       fixture,
       pngSha256: createHash("sha256")
         .update(readFileSync(imagePath))
         .digest("hex"),
-      savedFiles: readSavedAnswersFiles(context, pack, fixture),
+      savedFiles: currentFiles,
     });
   }
+  // A second rewording is refused here, before any request and also with --rerun-same-set (R-4).
+  let askedQuestionHashes: AskedQuestionHash[] | null = null;
+  const askedListPath = askedQuestionListPath(context, pack);
+  if (existsSync(askedListPath)) {
+    askedQuestionHashes = parseAskedQuestionHashes(
+      readFileSync(askedListPath, "utf8"),
+    );
+  }
+  const rewordedCriteria = findRewordedCriteria(
+    pack.name,
+    pack.questionSha256ByCriterion,
+    askedQuestionHashes,
+    hasSavedAnswers,
+  );
   let storedSetHash: string | null = null;
   const hashPath = frozenSetHashPath(context, pack);
   if (existsSync(hashPath)) {
@@ -374,6 +420,7 @@ function planPackLiveRun(
       currentSetPngHashes: readFixtureSetPngHashes(pack),
       storedSetHash,
       scoredPngHashes,
+      rewordedCriteria,
       rerunSameSet,
     });
   } catch (error) {
@@ -386,14 +433,15 @@ function planPackLiveRun(
 
 /**
  * Return the saved answers files of one fixture with the pinned model, first file first: the name,
- * the recorded image_sha256, and the question ids of each. Throw on a file that is not JSON or has
- * no answers list, naming it; crit checks the rest of its shape when it replays it (FR-42).
+ * the recorded image_sha256, the question ids, and the question record of each. Throw on a file
+ * that is not JSON or has no answers list, or has no record file, naming it; crit checks the rest
+ * of its shape when it replays it (FR-42, EV-4 rule 5).
  */
 function readSavedAnswersFiles(
   context: HarnessContext,
   pack: PackFixtures,
   fixture: string,
-): SavedAnswersFile[] {
+): RecordedAnswersFile[] {
   const directory = fixtureAnswersDirectory(context, pack, fixture);
   if (!existsSync(directory)) {
     return [];
@@ -407,12 +455,59 @@ function readSavedAnswersFiles(
     }
   }
   numbered.sort((left, right) => left.n - right.n);
-  const savedFiles: SavedAnswersFile[] = [];
+  const savedFiles: RecordedAnswersFile[] = [];
   for (const entry of numbered) {
     const filePath = join(directory, entry.fileName);
-    savedFiles.push(readSavedAnswersFile(filePath, entry.fileName));
+    const savedFile = readSavedAnswersFile(filePath, entry.fileName);
+    const recordPath = join(directory, recordFileNameFor(entry.fileName));
+    savedFiles.push({
+      ...savedFile,
+      questionSha256ByCriterion: readQuestionRecord(recordPath, savedFile),
+    });
   }
   return savedFiles;
+}
+
+/**
+ * Read the record file of one saved answers file and check that it names exactly the criteria the
+ * answers file answers. Throw when it is missing or does not fit, naming it, because without it no
+ * one can tell which question an answer belongs to (EV-4 rule 5, crit-q25.23).
+ */
+function readQuestionRecord(
+  recordPath: string,
+  savedFile: SavedAnswersFile,
+): Map<string, string> {
+  if (!existsSync(recordPath)) {
+    throw new Error(
+      `${recordPath} does not exist; every saved answers file needs the record of the questions it answers (EV-4 rule 5)`,
+    );
+  }
+  let record: Map<string, string>;
+  try {
+    record = parseQuestionRecord(readFileSync(recordPath, "utf8"));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`${recordPath}: ${message}`);
+  }
+  const answeredCriteria = new Set<string>();
+  for (const questionId of savedFile.questionIds) {
+    answeredCriteria.add(criterionForQuestionId(questionId));
+  }
+  for (const criterion of answeredCriteria) {
+    if (!record.has(criterion)) {
+      throw new Error(
+        `${recordPath}: no question is recorded for ${criterion}, which ${savedFile.fileName} answers`,
+      );
+    }
+  }
+  for (const criterion of record.keys()) {
+    if (!answeredCriteria.has(criterion)) {
+      throw new Error(
+        `${recordPath}: records a question for ${criterion}, which ${savedFile.fileName} does not answer`,
+      );
+    }
+  }
+  return record;
 }
 
 /** Read the image_sha256 and the question ids of one saved answers file (FR-42, OQ-26 a). */
@@ -451,7 +546,9 @@ function readSavedAnswersFile(
 
 /**
  * Ask crit about one fixture in live mode and save the answers with --save-answers to the file the
- * plan names (FR-42). Only after crit succeeds does it delete the files the plan lists, which only
+ * plan names (FR-42). First it writes the record file of the questions it asks next to that file,
+ * and puts the old record back, or removes the new one, when crit fails (EV-4 rule 5). Only after
+ * crit succeeds does it delete the files the plan lists and their record files, which only
  * --rerun-same-set does, so a failed run leaves the saved files as they were. When the plan asks
  * only some criteria, crit gets a pack made of only those criteria.
  */
@@ -464,39 +561,105 @@ async function askFixture(
   mkdirSync(directory, { recursive: true });
   const packDirectory = packDirectoryFor(context, pack, fixturePlan.criteria);
   const answersPath = join(directory, fixturePlan.answersFileName);
-  // runCritOnFixture throws unless crit exited 0 or 1, so the deletes below run only after success.
-  const report = await runCritOnFixture(
-    context,
-    pack,
-    fixturePlan.fixture,
-    packDirectory,
-    ["--save-answers", answersPath],
+  const recordPath = join(
+    directory,
+    recordFileNameFor(fixturePlan.answersFileName),
   );
+  // Only --rerun-same-set writes to a file that has a record already, so keep it to put back.
+  let previousRecordText: string | null = null;
+  if (existsSync(recordPath)) {
+    previousRecordText = readFileSync(recordPath, "utf8");
+  }
+  const answersSha256Before = hashFileIfPresent(answersPath);
+  const askedHashes = new Map<string, string>();
+  for (const criterion of fixturePlan.criteria) {
+    askedHashes.set(criterion, currentQuestionSha256(pack, criterion));
+  }
+  writeFileSync(recordPath, formatQuestionRecord(askedHashes));
+  let report: ReportDocument;
+  try {
+    // runCritOnFixture throws unless crit exited 0 or 1, so the deletes below run only after success.
+    report = await runCritOnFixture(
+      context,
+      pack,
+      fixturePlan.fixture,
+      packDirectory,
+      ["--save-answers", answersPath],
+    );
+  } catch (error) {
+    // The record must always describe the answers file on disk. crit may have written the answers
+    // file before the harness failed, for example on a report that is not JSON; then the new
+    // record stays. Only when the answers file is missing or unchanged does the old record return.
+    const answersSha256After = hashFileIfPresent(answersPath);
+    const answersFileChanged =
+      answersSha256After !== null && answersSha256After !== answersSha256Before;
+    if (!answersFileChanged) {
+      if (previousRecordText === null) {
+        rmSync(recordPath, { force: true });
+      } else {
+        writeFileSync(recordPath, previousRecordText);
+      }
+    }
+    throw error;
+  }
   for (const fileName of fixturePlan.fileNamesToDelete) {
     rmSync(join(directory, fileName));
+    rmSync(join(directory, recordFileNameFor(fileName)), { force: true });
   }
   return report;
 }
 
+/** Return the SHA-256 of a file's bytes, or null when the file does not exist. */
+function hashFileIfPresent(filePath: string): string | null {
+  if (!existsSync(filePath)) {
+    return null;
+  }
+  return createHash("sha256").update(readFileSync(filePath)).digest("hex");
+}
+
+/** Return the SHA-256 of a criterion's current question, or throw for a criterion not in the pack. */
+function currentQuestionSha256(pack: PackFixtures, criterion: string): string {
+  const questionSha256 = pack.questionSha256ByCriterion.get(criterion);
+  if (questionSha256 === undefined) {
+    throw new Error(`${pack.name}: ${criterion} is not in the pack`);
+  }
+  return questionSha256;
+}
+
 /**
  * Replay every saved answers file of one fixture with --answers and no key, each against a pack of
- * only the criteria that file answers, and return the reports (EV-4 rule 5, FR-42).
+ * only the criteria that file answers to their current question, and return the reports (EV-4
+ * rule 5, FR-42). A file that also holds answers to an old question of a criterion is replayed
+ * from a copy without them in the temporary folder, so the saved file never changes.
  */
 async function replayFixture(
   context: HarnessContext,
   pack: PackFixtures,
   fixture: string,
 ): Promise<ReportDocument[]> {
-  const savedFiles = readSavedAnswersFiles(context, pack, fixture);
+  const currentFiles: SavedAnswersFile[] = [];
+  const questionIdsToDropByFile = new Map<string, string[]>();
+  for (const savedFile of readSavedAnswersFiles(context, pack, fixture)) {
+    const current = keepCurrentAnswers(
+      savedFile,
+      pack.questionSha256ByCriterion,
+    );
+    currentFiles.push(current.savedFile);
+    questionIdsToDropByFile.set(savedFile.fileName, current.questionIdsToDrop);
+  }
   const packCriteria = pack.criteria.map((criterion) => criterion.criterion);
-  const filePlans = planReplay(pack.name, packCriteria, fixture, savedFiles);
+  const filePlans = planReplay(pack.name, packCriteria, fixture, currentFiles);
   const directory = fixtureAnswersDirectory(context, pack, fixture);
   const reports: ReportDocument[] = [];
   for (const filePlan of filePlans) {
     const packDirectory = filePlan.coversWholePack
       ? pack.directory
       : packDirectoryFor(context, pack, filePlan.criteria);
-    const answersPath = join(directory, filePlan.fileName);
+    const answersPath = answersPathToReplay(
+      context,
+      join(directory, filePlan.fileName),
+      questionIdsToDropByFile.get(filePlan.fileName) ?? [],
+    );
     reports.push(
       await runCritOnFixture(context, pack, fixture, packDirectory, [
         "--answers",
@@ -505,6 +668,59 @@ async function replayFixture(
     );
   }
   return reports;
+}
+
+/**
+ * Return the path of the answers file to replay: the saved file itself, or, when some of its
+ * answers are to an old question, a copy without those answers in the temporary folder. The copy
+ * keeps every other field, so crit still checks the image and the questions (FR-42, OQ-26).
+ */
+function answersPathToReplay(
+  context: HarnessContext,
+  answersPath: string,
+  questionIdsToDrop: readonly string[],
+): string {
+  if (questionIdsToDrop.length === 0) {
+    return answersPath;
+  }
+  const parsed: unknown = JSON.parse(readFileSync(answersPath, "utf8"));
+  if (typeof parsed !== "object" || parsed === null || !("answers" in parsed)) {
+    throw new Error(`${answersPath}: not an answers file`);
+  }
+  if (!Array.isArray(parsed.answers)) {
+    throw new Error(`${answersPath}: not an answers file`);
+  }
+  const keptAnswers: unknown[] = [];
+  for (const answer of parsed.answers) {
+    let questionId: unknown;
+    if (
+      typeof answer === "object" &&
+      answer !== null &&
+      "question_id" in answer
+    ) {
+      questionId = answer.question_id;
+    }
+    if (
+      typeof questionId === "string" &&
+      questionIdsToDrop.includes(questionId)
+    ) {
+      continue;
+    }
+    keptAnswers.push(answer);
+  }
+  // One folder per saved file, named after its path, so two copies never share a name.
+  const copyDirectory = join(
+    context.temporaryDirectory,
+    "current-answers",
+    createHash("sha256").update(answersPath).digest("hex"),
+  );
+  mkdirSync(copyDirectory, { recursive: true });
+  const copyPath = join(copyDirectory, basename(answersPath));
+  writeFileSync(
+    copyPath,
+    `${JSON.stringify({ ...parsed, answers: keptAnswers }, null, 2)}\n`,
+  );
+  return copyPath;
 }
 
 /**
@@ -641,6 +857,50 @@ function recordFrozenSet(context: HarnessContext, pack: PackFixtures): void {
   );
 }
 
+/**
+ * The path of the add-only list of every question a live run with this model asked for this pack,
+ * one line `<sha256> <pack>/<id>` each (EV-4 rule 5, R-4).
+ */
+function askedQuestionListPath(
+  context: HarnessContext,
+  pack: PackFixtures,
+): string {
+  return join(
+    context.options.runsDirectory,
+    pack.name,
+    context.pinnedModel,
+    "asked-question-sha256.txt",
+  );
+}
+
+/**
+ * Add the current question of every criterion the plans ask to the asked list, before the first
+ * request, so a run that stops part way still counts its questions as asked and a later rewording
+ * is counted against the one that R-4 allows (EV-4 rule 5).
+ */
+function recordAskedQuestions(
+  context: HarnessContext,
+  pack: PackFixtures,
+  plans: readonly LiveFixturePlan[],
+): void {
+  const added: AskedQuestionHash[] = [];
+  for (const fixturePlan of plans) {
+    for (const criterion of fixturePlan.criteria) {
+      added.push({
+        questionSha256: currentQuestionSha256(pack, criterion),
+        criterion,
+      });
+    }
+  }
+  const listPath = askedQuestionListPath(context, pack);
+  mkdirSync(dirname(listPath), { recursive: true });
+  let previous: AskedQuestionHash[] = [];
+  if (existsSync(listPath)) {
+    previous = parseAskedQuestionHashes(readFileSync(listPath, "utf8"));
+  }
+  writeFileSync(listPath, formatAskedQuestionHashes(previous, added));
+}
+
 /** Say whether TYPESAFE_API_KEY is set, without reading its value into any output (CS-19, NFR-14). */
 function isApiKeyPresent(): boolean {
   const key = process.env.TYPESAFE_API_KEY;
@@ -713,10 +973,24 @@ function readPackFixtures(packDirectory: string): PackFixtures {
   }
   const packName = parsed.name;
   const criteria: PackCriterionFixtures[] = [];
+  const questionSha256ByCriterion = new Map<string, string>();
   for (const criterion of parsed.criteria) {
-    criteria.push(readCriterionFixtures(packYamlPath, packName, criterion));
+    const fixtures = readCriterionFixtures(packYamlPath, packName, criterion);
+    criteria.push(fixtures);
+    // readCriterionFixtures throws unless the criterion is a mapping, so this check always holds.
+    if (typeof criterion === "object" && criterion !== null) {
+      questionSha256ByCriterion.set(
+        fixtures.criterion,
+        hashCriterionQuestion(criterion),
+      );
+    }
   }
-  return { name: packName, directory: packDirectory, criteria };
+  return {
+    name: packName,
+    directory: packDirectory,
+    criteria,
+    questionSha256ByCriterion,
+  };
 }
 
 /** Read one criterion's id and fixture lists from parsed pack.yaml data (FR-50, CS-7). */
