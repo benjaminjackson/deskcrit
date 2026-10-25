@@ -3,8 +3,9 @@
 // asked again on every fixture by a normal live run, but it does not use the criterion's one
 // rewording, so the agreement harness leaves the old question out when it counts rewordings. A
 // renamed id inherits the questions asked under its old id, and the answers saved under the old
-// id are left out of the replay. spelling.test.ts checks every entry against pack.yaml. It does
-// no I/O.
+// id are left out of the replay. spelling.test.ts checks every entry against a frozen copy of
+// its US question, made from pack.yaml when it was respelled, and checks that the asked list holds
+// the British question. It does no I/O.
 
 /** One question that changed spelling only: the criterion (`<pack>/<id>`) and both hashes. */
 export type RespelledQuestion = {
@@ -112,15 +113,24 @@ export function currentCriterionIdFor(
 
 /**
  * Return the British question hashes listed for a criterion, which do not count toward its one
- * rewording (R-4).
+ * rewording (R-4). A British hash is left out of the count only when its US question was asked or
+ * is the current question, so a listed respelling that was never asked cannot hide a rewording.
  */
 export function britishQuestionHashesFor(
   criterion: string,
   respelling: Respelling,
+  askedHashes: ReadonlySet<string>,
+  currentHash: string,
 ): Set<string> {
   const hashes = new Set<string>();
   for (const question of respelling.questions) {
-    if (question.criterion === criterion) {
+    if (question.criterion !== criterion) {
+      continue;
+    }
+    const usQuestionCounts =
+      askedHashes.has(question.usQuestionSha256) ||
+      question.usQuestionSha256 === currentHash;
+    if (usQuestionCounts) {
       hashes.add(question.britishQuestionSha256);
     }
   }

@@ -270,7 +270,12 @@ export function findRewordedCriteria(
       continue;
     }
     // A question that changed spelling only is not a rewording, so its British form is not counted.
-    const britishHashes = britishQuestionHashesFor(criterion, respelling);
+    const britishHashes = britishQuestionHashesFor(
+      criterion,
+      respelling,
+      askedHashes,
+      currentHash,
+    );
     const countedHashes = new Set<string>();
     for (const askedHash of askedHashes) {
       if (!britishHashes.has(askedHash)) {

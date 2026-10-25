@@ -702,6 +702,28 @@ describe("a criterion respelled from British to US spelling (R-4, crit-q25.24)",
     ).toThrow(/demo\/B .*R-4 allows one rewording per criterion id/);
   });
 
+  it("counts the British question when the listed US question was never asked", () => {
+    // The current question is a real rewording, not the listed US question, so the British
+    // question and the earlier rewording both count, and a second rewording is refused.
+    const askedWithRewording: AskedQuestionHash[] = [
+      ...askedBefore("demo/B"),
+      { questionSha256: rewordedQuestionB, criterion: "demo/B" },
+    ];
+    const rewordedAgain = new Map<string, string>([
+      ["demo/A", questionA],
+      ["demo/B", secondRewordingB],
+    ]);
+    expect(() =>
+      findRewordedCriteria(
+        "demo",
+        rewordedAgain,
+        askedWithRewording,
+        true,
+        respelledInPlace,
+      ),
+    ).toThrow(/demo\/B .*R-4 allows one rewording per criterion id/);
+  });
+
   /** Criteria A and the renamed B, each with one positive and one negative fixture of its own. */
   const renamedCriteria: PlanCriterion[] = [
     {
