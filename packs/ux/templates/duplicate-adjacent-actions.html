@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>UX fixture: landing page hero</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion duplicate-adjacent-actions. A landing page hero for a trip-planning
+ * product, with two buttons under the headline.
+ * The defect switch only changes display: on hides the button with a different
+ * action (See pricing) and shows the button whose label is a synonym of the
+ * first (Start now). Both second buttons have the same outlined style.
+ */
+body { background: #f4f1ea; color: #1d2a2e; }
+.top { display: flex; align-items: center; justify-content: space-between; height: 72px; padding: 0 80px; }
+.brand { font-weight: 700; font-size: 22px; color: #1f5f5b; }
+nav { display: flex; gap: 32px; font-size: 15px; color: #44545a; }
+.hero { padding: 120px 80px 0; max-width: 860px; }
+h1 { font-size: 60px; line-height: 1.08; font-weight: 700; letter-spacing: -1px; }
+.lede { margin-top: 22px; font-size: 20px; line-height: 1.5; color: #44545a; max-width: 620px; }
+.actions { display: flex; gap: 16px; margin-top: 40px; }
+.btn { display: inline-flex; align-items: center; height: 52px; padding: 0 28px; border-radius: 8px; font-size: 17px; font-weight: 700; }
+.primary { background: #1f5f5b; color: #ffffff; }
+.secondary { border: 2px solid #1f5f5b; color: #1f5f5b; }
+.alt-synonym { display: none; }
+[data-defect="on"] .alt-different { display: none; }
+[data-defect="on"] .alt-synonym { display: inline-flex; }
+    </style>
+  </head>
+  <body>
+    <header class="top"><span class="brand">Wayfold</span><nav><span>Destinations</span><span>How it works</span><span>Pricing</span><span>Help</span></nav></header>
+    <main class="hero">
+      <h1>Plan the whole trip in one place</h1>
+      <p class="lede">Wayfold keeps flights, stays, and day plans together so a group can agree on a trip without a dozen chat threads.</p>
+      <div class="actions">
+        <span class="btn primary">Get started</span>
+        <span class="btn secondary alt-different">See pricing</span>
+        <span class="btn secondary alt-synonym">Start now</span>
+      </div>
+    </main>
+  </body>
+</html>
