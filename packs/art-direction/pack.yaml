@@ -1,0 +1,68 @@
+# The first-party art-direction pack (crit-q25.10, FR-55). It encodes two askable entries in the "Art
+# direction, composition, illustration, and visual coherence" section of GUIDELINES.md. Every question is
+# noul, and true is the defect (JC-5). Each question is the pre-screen wording in
+# spike/prescreen/art-direction/questions.json, with only the spelling changed to US English
+# ("many-coloured" became "many-colored") before any scored run.
+# Four pre-screened candidates are not encoded: photos-graded-inconsistently, image-stretched-or-pixelated,
+# flat-value-structure, and busy-texture-behind-content. GUIDELINES.md records why.
+# mixed-level-of-detail cites Apple HIG "Icons", checked on 2026-10-25, and has pass_when and warn_when
+# and no fail_when until the EV-5 run (crit-q25.15). mixed-rendering-styles has no published source that
+# states its rule, so it is Common sense and may only warn (FR-45).
+# Benjamin Jackson approved the fix hints and the reason sentence on 2026-10-25 (G-4).
+name: art-direction
+version: 0.1.0
+title: Art direction
+license: MIT
+criteria:
+  - id: mixed-level-of-detail
+    title: 'Icons in one set mix very different levels of detail'
+    source: 'Apple Human Interface Guidelines, "Icons", section "Interface icons" (checked 2026-10-25): "Maintain visual consistency across all interface icons in your app. Whether you use only custom icons or mix custom and system-provided ones, all interface icons in your app need to use a consistent size, level of detail, stroke thickness (or weight), and perspective."'
+    link: https://developer.apple.com/design/human-interface-guidelines/icons
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Do icons that sit together as one set mix very different levels of detail, for example simple outline icons next to detailed, shaded, many-colored icons?'
+      criteria:
+        "true": 'Icons shown together as one set mix very different levels of detail, so some are simple and plain while others are detailed and elaborate, and the set does not look like one family.'
+        "false": 'Icons shown together as one set share a similar level of detail and style, or the page shows no set of icons.'
+    pass_when: { probability_at_most: 0.3 }
+    warn_when: { probability_at_least: 0.7 }
+    fix: 'Redraw or replace the odd icons so the whole set shares one level of detail: all simple outline glyphs, or all detailed illustrations, at one stroke weight (Apple Human Interface Guidelines, "Icons").'
+    fixtures:
+      positive:
+        - fixtures/mixed-level-of-detail.positive.png
+        - fixtures/mixed-level-of-detail--2.positive.png
+        - fixtures/mixed-level-of-detail--3.positive.png
+        - fixtures/mixed-level-of-detail--4.positive.png
+        - fixtures/mixed-level-of-detail--5.positive.png
+      negative:
+        - fixtures/mixed-level-of-detail.negative.png
+        - fixtures/mixed-level-of-detail--2.negative.png
+        - fixtures/mixed-level-of-detail--3.negative.png
+        - fixtures/mixed-level-of-detail--4.negative.png
+        - fixtures/mixed-level-of-detail--5.negative.png
+
+  - id: mixed-rendering-styles
+    title: 'Images in one set mix rendering styles'
+    source: Common sense
+    reason: 'Images shown side by side as one set read as one family, so a set that mixes photographs, flat drawings, and 3D renders looks assembled from unrelated sources rather than designed together.'
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Do images that sit together as one set, such as a row of cards, mix different rendering styles, for example a photograph next to a flat vector illustration next to a glossy 3D render?'
+      criteria:
+        "true": 'Images shown together as one set mix different rendering styles, such as photograph, flat illustration, and 3D render, so the set does not look like one family.'
+        "false": 'Images shown together as one set all use the same rendering style, or the page shows no set of images.'
+    warn_when: { probability_at_least: 0.7 }
+    fix: 'Choose one rendering style for the set, such as all photographs or all flat illustrations, and replace the images that differ, or mix styles only by a rule the whole design follows.'
+    fixtures:
+      positive:
+        - fixtures/mixed-rendering-styles.positive.png
+        - fixtures/mixed-rendering-styles--2.positive.png
+        - fixtures/mixed-rendering-styles--3.positive.png
+        - fixtures/mixed-rendering-styles--4.positive.png
+        - fixtures/mixed-rendering-styles--5.positive.png
+      negative:
+        - fixtures/mixed-rendering-styles.negative.png
+        - fixtures/mixed-rendering-styles--2.negative.png
+        - fixtures/mixed-rendering-styles--3.negative.png
+        - fixtures/mixed-rendering-styles--4.negative.png
+        - fixtures/mixed-rendering-styles--5.negative.png

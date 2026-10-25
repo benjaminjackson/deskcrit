@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Accessibility fixture: meaning by color only 4</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion meaning-by-color-only. A developer documentation page with a side
+ * menu and a code sample. Links in the prose are blue and underlined; the
+ * defect switch removes the underline, so they are told apart by color only.
+ * No text changes.
+ */
+body { background: #ffffff; }
+.head { height: 58px; display: flex; align-items: center; gap: 32px; padding: 0 40px; border-bottom: 1px solid #e3e6ea; font-size: 14px; color: #3d444d; }
+.head b { font-size: 16px; color: #1f2328; margin-right: 20px; }
+.page { display: flex; }
+nav { width: 260px; height: 742px; border-right: 1px solid #e3e6ea; padding: 28px 32px; font-size: 14px; color: #3d444d; }
+nav .grp { font-size: 12px; font-weight: 700; color: #59636e; margin: 18px 0 8px; }
+nav div { margin-bottom: 8px; }
+nav .on { color: #0b5cad; font-weight: 700; }
+main { padding: 36px 64px; width: 820px; }
+h1 { font-size: 30px; margin-bottom: 14px; }
+main p { font-size: 16px; line-height: 1.65; margin-bottom: 16px; }
+code { font-family: var(--font-sans); font-weight: 700; }
+pre { font-family: var(--font-sans); background: #f5f7f9; border: 1px solid #e3e6ea; border-radius: 6px; padding: 16px 18px; font-size: 14px; line-height: 1.6; margin-bottom: 18px; color: #24292f; white-space: pre; }
+h2 { font-size: 20px; margin: 22px 0 10px; }
+main a { color: #0b5cad; text-decoration: underline; }
+[data-defect="on"] main a { text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <div class="head"><b>Fernway API</b><span>Guides</span><span>Reference</span><span>Changelog</span><span>Status</span></div>
+    <div class="page">
+      <nav>
+        <div class="grp">Getting started</div><div>Overview</div><div>Authentication</div><div class="on">Pagination</div><div>Errors</div>
+        <div class="grp">Resources</div><div>Shipments</div><div>Parcels</div><div>Webhooks</div>
+      </nav>
+      <main>
+        <h1>Pagination</h1>
+        <p>Every list endpoint returns at most 100 items per page. Each response includes a <code>next_cursor</code> field; pass it back as the <code>cursor</code> parameter to read the next page. Cursors expire after one hour, as described in <a>cursor lifetime</a>.</p>
+        <pre>GET /v2/shipments?limit=50&amp;cursor=c_8f2a1e</pre>
+        <p>When <code>next_cursor</code> is empty, you have reached the last page. Items created while you page through a list may appear on a later page or not at all; if you need a stable view, filter by creation time as shown in <a>filtering by date</a>.</p>
+        <h2>Rate limits</h2>
+        <p>Paging through a large list counts as one request per page. If you read lists often, consider <a>subscribing to webhooks</a> instead, so that your service learns about new shipments without polling.</p>
+      </main>
+    </div>
+  </body>
+</html>

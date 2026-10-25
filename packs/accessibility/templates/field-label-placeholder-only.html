@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Accessibility fixture: field label placeholder only</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion field-label-placeholder-only. A sign-up page for a project
+ * tool, with a form card beside a short pitch. Each field has a label above
+ * it and hint text inside it. The defect switch hides the labels, so the hint
+ * text inside each empty field is its only label. The placeholders are the
+ * same on both sides. No text changes.
+ */
+body { background: #f4f6f8; }
+.wrap { display: flex; gap: 96px; padding: 96px 140px 0; }
+.pitch { width: 440px; padding-top: 40px; }
+.logo { font-weight: 700; font-size: 20px; margin-bottom: 40px; color: #2d4bd0; }
+.pitch h1 { font-size: 38px; line-height: 1.2; margin-bottom: 16px; }
+.pitch p { font-size: 17px; line-height: 1.6; color: #3d444d; }
+.card { width: 460px; background: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 36px 40px; }
+.card h2 { font-size: 22px; margin-bottom: 22px; }
+label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+[data-defect="on"] label { display: none; }
+input { display: block; width: 100%; height: 44px; border: 1px solid #b6bec8; border-radius: 6px; padding: 0 12px; font-family: var(--font-sans); font-size: 15px; margin-bottom: 18px; background: #ffffff; }
+input::placeholder { color: #6e7781; }
+.row { display: flex; gap: 14px; }
+.row div { flex: 1; }
+button { width: 100%; height: 46px; border: 0; border-radius: 6px; background: #2d4bd0; color: #ffffff; font-family: var(--font-sans); font-size: 16px; font-weight: 700; margin-top: 6px; }
+.small { font-size: 13px; color: #59636e; margin-top: 14px; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="pitch">
+        <div class="logo">Tallyboard</div>
+        <h1>Plan the week with your whole team</h1>
+        <p>Start a free workspace for up to five people. You can invite the rest of the team later.</p>
+      </div>
+      <form class="card">
+        <h2>Create your account</h2>
+        <div class="row">
+          <div><label for="f">First name</label><input id="f" placeholder="Enter first name"></div>
+          <div><label for="l">Last name</label><input id="l" placeholder="Enter last name"></div>
+        </div>
+        <label for="e">Work email</label><input id="e" placeholder="name@company.com">
+        <label for="p">Password</label><input id="p" type="password" placeholder="At least 10 characters">
+        <label for="c">Company</label><input id="c" placeholder="Company name">
+        <button type="button">Create account</button>
+        <div class="small">Already have an account? Sign in</div>
+      </form>
+    </div>
+  </body>
+</html>

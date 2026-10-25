@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Accessibility fixture: error without text 4</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion error-without-text. A dialog in a team app for inviting people,
+ * over a lightly dimmed page. The invite field has a red outline on both sides; a
+ * message under it says what is wrong, and the defect switch hides it, so
+ * only the outline marks the error. No text changes.
+ */
+body { background: #ffffff; }
+.page { position: absolute; inset: 0; padding: 30px 60px; }
+.page h1 { font-size: 26px; margin-bottom: 20px; }
+.row { height: 54px; border-bottom: 1px solid #eceef1; display: flex; align-items: center; gap: 16px; font-size: 15px; width: 1160px; }
+.av { width: 32px; height: 32px; border-radius: 16px; background: #c9d4e3; }
+.dim { position: absolute; inset: 0; background: rgba(22, 27, 34, 0.15); }
+.dlg { position: absolute; left: 380px; top: 180px; width: 520px; background: #ffffff; border-radius: 12px; padding: 28px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+.dlg h2 { font-size: 21px; margin-bottom: 6px; }
+.dlg .sub { font-size: 15px; color: #59636e; margin-bottom: 20px; }
+label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+input, select { display: block; width: 100%; height: 42px; border: 1px solid #b6bec8; border-radius: 6px; padding: 0 12px; font-family: var(--font-sans); font-size: 15px; color: #1f2328; background: #ffffff; }
+input.bad { outline: 2px solid #cf222e; outline-offset: 0; border-color: #cf222e; }
+.field { margin-bottom: 16px; }
+.err { font-size: 14px; color: #b3261e; margin-top: 6px; }
+[data-defect="on"] .err { display: none; }
+.btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+.btn { height: 40px; padding: 0 18px; border-radius: 6px; font-family: var(--font-sans); font-size: 15px; font-weight: 700; border: 1px solid #c3c8cf; background: #ffffff; color: #1f2328; }
+.btn.go { background: #1a7f37; border-color: #1a7f37; color: #ffffff; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Members</h1>
+      <div class="row"><span class="av"></span>Ines Fournier<span style="margin-left:auto;color:#3d444d">Admin</span></div>
+      <div class="row"><span class="av"></span>Tomasz Wilk<span style="margin-left:auto;color:#3d444d">Member</span></div>
+      <div class="row"><span class="av"></span>Adaeze Okafor<span style="margin-left:auto;color:#3d444d">Member</span></div>
+      <div class="row"><span class="av"></span>Leo Brandt<span style="margin-left:auto;color:#3d444d">Guest</span></div>
+    </div>
+    <div class="dim"></div>
+    <form class="dlg">
+      <h2>Invite people</h2>
+      <div class="sub">They get an email with a link to join the Harbor team.</div>
+      <div class="field"><label for="e">Email addresses</label><input id="e" class="bad" value="mo.hassan@example.com, ruth@"><div class="err">&ldquo;ruth@&rdquo; is not a complete email address.</div></div>
+      <div class="field"><label for="r">Role</label><select id="r"><option>Member</option></select></div>
+      <div class="btns"><button class="btn" type="button">Cancel</button><button class="btn go" type="button">Send invites</button></div>
+    </form>
+  </body>
+</html>

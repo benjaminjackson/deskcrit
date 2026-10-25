@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="crit-viewport" content="390x844">
+    <title>Accessibility fixture: field label placeholder only 4</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion field-label-placeholder-only. A phone screen where a guest books
+ * a table at a restaurant. Each field has a small label above it; the defect
+ * switch hides the labels, so the hint text inside each empty field is its
+ * only label. No text changes.
+ */
+html, body { width: 390px; height: 844px; }
+body { background: #ffffff; }
+.head { height: 160px; background: #3a2a22; color: #ffffff; padding: 56px 24px 0; }
+.head .r { font-family: var(--font-serif); font-size: 26px; font-weight: 700; }
+.head .s { font-size: 14px; color: #e8ddd5; margin-top: 4px; }
+form { padding: 24px 24px 0; }
+h1 { font-size: 21px; margin-bottom: 18px; }
+label { display: block; font-size: 13px; font-weight: 700; color: #3d444d; margin-bottom: 5px; }
+[data-defect="on"] label { display: none; }
+input { display: block; width: 100%; height: 48px; border: 1px solid #c3c8cf; border-radius: 8px; padding: 0 14px; font-family: var(--font-sans); font-size: 16px; margin-bottom: 14px; }
+input::placeholder { color: #6e7781; }
+.two { display: flex; gap: 12px; }
+.two div { flex: 1; }
+button { width: 100%; height: 52px; border: 0; border-radius: 8px; background: #b5462b; color: #ffffff; font-family: var(--font-sans); font-size: 17px; font-weight: 700; margin-top: 8px; }
+.fine { font-size: 13px; color: #59636e; margin-top: 12px; line-height: 1.5; }
+    </style>
+  </head>
+  <body>
+    <div class="head"><div class="r">Olive &amp; Ash</div><div class="s">Wood-fired kitchen &middot; Canal Street</div></div>
+    <form>
+      <h1>Book a table</h1>
+      <div class="two">
+        <div><label for="a">Date</label><input id="a" placeholder="Choose a date"></div>
+        <div><label for="b">Guests</label><input id="b" placeholder="How many?"></div>
+      </div>
+      <label for="c">Time</label><input id="c" placeholder="Preferred time">
+      <label for="d">Name</label><input id="d" placeholder="Name for the booking">
+      <label for="e">Mobile number</label><input id="e" placeholder="We text to confirm">
+      <label for="f">Requests (optional)</label><input id="f" placeholder="Allergies, high chair, etc.">
+      <button type="button">Request booking</button>
+      <div class="fine">We hold tables for 15 minutes after the booked time.</div>
+    </form>
+  </body>
+</html>

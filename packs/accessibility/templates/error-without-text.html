@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Accessibility fixture: error without text</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion error-without-text. A sign-in page after a failed attempt: the
+ * email field has a red border on both sides. Below it, a red message says
+ * what is wrong; the defect switch hides that message, so the field is marked
+ * as wrong only by its red border. No text changes.
+ */
+body { background: #eef1f5; }
+.card { width: 420px; margin: 110px auto 0; background: #ffffff; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.07); padding: 40px 40px 34px; }
+.logo { font-weight: 700; font-size: 20px; color: #5a2fc2; margin-bottom: 26px; }
+h1 { font-size: 24px; margin-bottom: 22px; }
+label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+input { display: block; width: 100%; height: 44px; border: 1px solid #b6bec8; border-radius: 6px; padding: 0 12px; font-family: var(--font-sans); font-size: 15px; color: #1f2328; }
+input.bad { border: 2px solid #c62828; }
+.field { margin-bottom: 18px; }
+.err { font-size: 14px; color: #b3261e; margin-top: 6px; }
+[data-defect="on"] .err { display: none; }
+.forgot { font-size: 14px; color: #5a2fc2; margin: -6px 0 20px; }
+button { width: 100%; height: 46px; border: 0; border-radius: 6px; background: #5a2fc2; color: #ffffff; font-family: var(--font-sans); font-size: 16px; font-weight: 700; }
+.foot { text-align: center; font-size: 14px; color: #59636e; margin-top: 18px; }
+    </style>
+  </head>
+  <body>
+    <form class="card">
+      <div class="logo">Quillpost</div>
+      <h1>Sign in</h1>
+      <div class="field"><label for="e">Email</label><input id="e" class="bad" value="dana.ortiz@exmaple"><div class="err">Enter an email address in the format name@example.com</div></div>
+      <div class="field"><label for="p">Password</label><input id="p" value="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"></div>
+      <div class="forgot">Forgot your password?</div>
+      <button type="button">Sign in</button>
+      <div class="foot">New here? Create an account</div>
+    </form>
+  </body>
+</html>

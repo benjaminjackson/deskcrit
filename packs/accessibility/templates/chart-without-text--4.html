@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="crit-viewport" content="390x844">
+    <title>Accessibility fixture: chart without text 4</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion chart-without-text. A phone screen of a budgeting app with a
+ * donut chart of last month's spending by category and a list of recent
+ * payments. The defect switch hides the legend under the donut, so the
+ * colored segments carry no words. The heading and the total in the middle
+ * stay on both sides. No text changes.
+ */
+html, body { width: 390px; height: 844px; }
+body { background: #f7f7fb; }
+.bar { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font-size: 15px; color: #3d444d; }
+.bar b { font-size: 18px; color: #1f2328; }
+.card { margin: 6px 16px 0; background: #ffffff; border-radius: 16px; padding: 18px 18px 16px; }
+.card h1 { font-size: 18px; margin-bottom: 2px; }
+.card .sub { font-size: 13px; color: #59636e; }
+.chart { display: flex; justify-content: center; margin: 10px 0 8px; }
+svg text { font-family: var(--font-sans); fill: #1f2328; }
+.legend { display: grid; grid-template-columns: 1fr 1fr; row-gap: 8px; column-gap: 12px; font-size: 14px; color: #3d444d; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 5px; margin-right: 7px; }
+[data-defect="on"] .legend { display: none; }
+.list { margin: 14px 16px 0; background: #ffffff; border-radius: 16px; padding: 6px 18px; }
+.row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eef0f3; font-size: 15px; }
+.row:last-child { border-bottom: 0; }
+.row span:last-child { font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <div class="bar"><b>Spending</b><span>September</span></div>
+    <div class="card">
+      <h1>Where your money went</h1>
+      <div class="sub">September, all accounts</div>
+      <div class="chart">
+        <svg width="220" height="220" viewBox="0 0 220 220">
+          <g fill="none" stroke-width="34" transform="rotate(-90 110 110)">
+            <circle cx="110" cy="110" r="80" stroke="#4c6ef5" stroke-dasharray="176 327"/>
+            <circle cx="110" cy="110" r="80" stroke="#f59f00" stroke-dasharray="101 402" stroke-dashoffset="-176"/>
+            <circle cx="110" cy="110" r="80" stroke="#12b886" stroke-dasharray="80 423" stroke-dashoffset="-277"/>
+            <circle cx="110" cy="110" r="80" stroke="#e64980" stroke-dasharray="60 443" stroke-dashoffset="-357"/>
+            <circle cx="110" cy="110" r="80" stroke="#adb5bd" stroke-dasharray="86 417" stroke-dashoffset="-417"/>
+          </g>
+          <text x="110" y="106" text-anchor="middle" font-size="22" font-weight="700">$2,418</text>
+          <text x="110" y="128" text-anchor="middle" font-size="13" fill="#59636e">spent</text>
+        </svg>
+      </div>
+      <div class="legend"><span><i style="background:#4c6ef5"></i>Rent 35%</span><span><i style="background:#f59f00"></i>Groceries 20%</span><span><i style="background:#12b886"></i>Transport 16%</span><span><i style="background:#e64980"></i>Eating out 12%</span><span><i style="background:#adb5bd"></i>Other 17%</span></div>
+    </div>
+    <div class="list">
+      <div class="row"><span>Corner Market</span><span>$38.60</span></div>
+      <div class="row"><span>Metro card top-up</span><span>$25.00</span></div>
+      <div class="row"><span>Noodle Bar</span><span>$17.40</span></div>
+      <div class="row"><span>Pharmacy</span><span>$9.95</span></div>
+    </div>
+  </body>
+</html>

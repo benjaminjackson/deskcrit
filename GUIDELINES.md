@@ -559,6 +559,8 @@ These checks were in the earlier catalog, but no source this section may cite ho
 
 WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Understanding/ followed by the page name and .html. Level markers matter: 2.3.3, 2.4.13, 1.4.6, 2.5.5 are AAA and are quality tiers, not legal minimums.
 
+The accessibility pack (crit-q25.7) encodes five entries below: `meaning-by-color-only`, `field-label-placeholder-only`, `error-without-text`, `chart-without-text`, and `running-text-italic-or-underlined`. Each question is the pre-screen wording (crit-q25.17), with British spelling changed to US spelling only, except the question of `meaning-by-color-only`, which was reworded once under R-4. Each source names the version of the standard it cites (FR-57). No question, title, or fix hint says that a page conforms to or fails WCAG, because one image cannot show that (FR-34, NG-6). The pack cites no legal regime, so the choice between EN 301 549 v3.2.1 and v4.1.1 in the table below does not touch it.
+
 ### Legal regimes
 
 | Regime | Jurisdiction | Standard it references | Link |
@@ -577,12 +579,14 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Source:** WCAG 2.2 SC 1.4.3 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
 - **Judged by:** askable as a visual judgment only. Jev is asked about text that reads as faint against its background. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Not encoded here:** the basics criterion `text-reads-faint` asks it, and a rule has one owner, so the accessibility pack does not ask it again.
 
 ### Non-text contrast
 - **Rule:** Visual boundaries needed to identify a UI component need at least 3:1 against adjacent colors: an input border, a checkbox, a button edge when there is no other cue. So do meaningful graphics such as chart lines and icons that carry meaning. Also applies to focus and selected states.
 - **Source:** WCAG 2.2 SC 1.4.11 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
-- **Judged by:** askable as a visual judgment only. Jev is asked about component boundaries or state indicators that look too faint. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Are the borders or outlines that mark out text fields, checkboxes, or other controls so pale against the background that the controls are hard to see?"
+- **Not encoded:** `non-text-contrast-faint` was cut after the pre-screen (crit-q25.17), with pre-screen figures 0.42, 0.12 / 0.10, 0.11. Jev stayed quiet on a clear positive.
 
 ### Reflow
 - **Rule:** At a 320 CSS px wide viewport (400% zoom of 1280 px) content reflows to one column with no horizontal scrolling and no loss of information. Exceptions: data tables, maps, diagrams, video, and toolbars needing two-dimensional layout; vertical content uses 256 CSS px height.
@@ -600,15 +604,17 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 
 ### Use of color
 - **Rule:** Color is not the only way to show information: links inside body text, errors, required fields, chart series, and states need a second cue (underline, icon, label, pattern). Or the link has 3:1 contrast against surrounding text plus a non-color cue on hover and focus.
-- **Source:** WCAG 2.2 SC 1.4.1 (A)
+- **Source:** W3C, WCAG 2.2 (2023), SC 1.4.1 Use of Color (A), and failure technique F73. F73 states the rule for links: "Link underlines or some other non-color visual distinction are required", and "Removing the underline and leaving only the color difference for such links would be a failure". Checked on 2026-10-25.
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** askable as a visual judgment, for links in running text only. Question: "Inside a paragraph of running text, are some words or phrases drawn in a different color from the rest of the sentence, as links often are, with nothing else to mark them, such as an underline, a bolder weight, a box, or an icon?" Reworded once under R-4 on 2026-10-25 (crit-q25.7), written blind from this entry, its source, and the old question. The old question was "Are links inside running text, the sentences people are meant to read, set apart from the words around them only by their color, with no underline or other mark?" 1.4.1 also accepts a link with 3:1 contrast against the text around it plus a cue on hover and focus, which a still image cannot show, so the question asks only about a visible mark. Errors, required fields, and chart series are not asked here; `error-without-text` and the dataviz pack cover the cases that can be seen.
+- **Defect range:** `meaning-by-color-only`: not measured. Links in paragraphs drawn in an ordinary link color (blue, teal, violet, or green) with the underline removed; the clean side underlines them.
 
 ### Sensory characteristics
 - **Rule:** Instructions do not rely only on shape, size, position, sound, or color (for example, 'click the green button on the right' needs a name or label too).
 - **Source:** WCAG 2.2 SC 1.3.3 (A)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/sensory-characteristics.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it reads what the instructions say, which is the content.
 
 ### Target size (minimum)
 - **Rule:** Pointer targets are at least 24 by 24 CSS px, or smaller targets have enough spacing that a 24 px diameter circle centered on each does not overlap another target or its circle. Exceptions: inline links in text, user-agent controls, essential presentation.
@@ -621,25 +627,29 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Rule:** Every keyboard-focusable element shows a visible focus indicator when focused. Removing the outline with `outline: none` and not replacing it fails.
 - **Source:** WCAG 2.2 SC 2.4.7 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it needs an element in its focus state, and one still image of a page shows no focused element.
 
 ### Focus not obscured (minimum)
 - **Rule:** A focused element is not entirely hidden by author-created content such as sticky headers, cookie banners, or chat widgets.
 - **Source:** WCAG 2.2 SC 2.4.11 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it needs an element in its focus state, and one still image of a page shows no focused element.
 
 ### Focus appearance
 - **Rule:** The focus indicator encloses the component or is at least 2 CSS px thick around its perimeter, and changes by at least 3:1 between focused and unfocused states. Included as the quality-tier reading of 2.4.7; it is AAA, not required by any law.
 - **Source:** WCAG 2.2 SC 2.4.13 (AAA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/focus-appearance.html
-- **Judged by:** askable as a visual judgment only. Jev is asked about a focus indicator that is hard to see in a focus-state screenshot. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it needs an element in its focus state, and its figures are measurements that a screenshot does not show.
 
 ### Orientation
 - **Rule:** Content works in both portrait and landscape unless one orientation is essential (piano app, bank-check deposit).
 - **Source:** WCAG 2.2 SC 1.3.4 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/orientation.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it needs a render in each orientation, which one image cannot show.
 
 ### Headings and labels
 - **Rule:** Headings and form labels describe the topic or purpose of their section or field. 'Click here' or 'Section 1' as a heading fails. Also check a sensible hierarchy with no skipped levels.
@@ -650,9 +660,10 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 
 ### Labels or instructions
 - **Rule:** Every input has a visible label or instruction that stays visible while typing. A placeholder alone is not enough.
-- **Source:** WCAG 2.2 SC 3.3.2 (A)
-- **Link:** https://www.w3.org/WAI/WCAG22/Understanding/labels-or-instructions.html
-- **Judged by:** askable.
+- **Source:** Nielsen Norman Group, Katie Sherwin, "Placeholders in Form Fields Are Harmful" (2014), section "Placeholders that Replace Labels", which gives "7 main reasons why placeholders should not be used as replacements for field labels"; W3C, WCAG 2.2 (2023), SC 3.3.2 Labels or Instructions (A), in part. The Understanding page for 3.3.2 says "Labels or instructions are provided when content requires user input" and does not mention placeholders, so NN/g carries the placeholder rule. Both checked on 2026-10-25.
+- **Link:** https://www.nngroup.com/articles/form-design-placeholders/
+- **Judged by:** askable. Question: "Does a form show text fields whose only label is the pale hint text inside the empty field, with no label outside the field?" The ux section's entry "Forms: labels above fields and never placeholder-only" is owned here.
+- **Defect range:** `field-label-placeholder-only`: not measured. Empty text fields whose labels are removed, so the hint text inside each field is its only label; the clean side shows a label above or beside each field.
 
 ### Link purpose (in context)
 - **Rule:** Each link's purpose can be told from its text or its surrounding sentence, paragraph, or list item. Repeated 'Read more' links need distinguishing context or an `aria-label`.
@@ -665,31 +676,36 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 - **Rule:** Navigation links repeated on multiple pages appear in the same relative order each time.
 - **Source:** WCAG 2.2 SC 3.2.3 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/consistent-navigation.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it compares several pages, and crit judges one image.
 
 ### Consistent identification
 - **Rule:** The same function has the same label and icon across pages (a search icon is always called 'Search', not 'Find' on another page).
 - **Source:** WCAG 2.2 SC 3.2.4 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/consistent-identification.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it compares several pages, and crit judges one image.
 
 ### Consistent help
 - **Rule:** Help links, contact details, or chat appear in the same relative place across pages.
 - **Source:** WCAG 2.2 SC 3.2.6 (A)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/consistent-help.html
-- **Judged by:** askable.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it compares several pages, and crit judges one image.
 
 ### Error identification
 - **Rule:** An input error is identified in text, naming the field in error, not only by red color or an icon.
-- **Source:** WCAG 2.2 SC 3.3.1 (A)
+- **Source:** W3C, WCAG 2.2 (2023), SC 3.3.1 Error Identification (A). The criterion text states the rule: "the item that is in error is identified and the error is described to the user in text". Checked on 2026-10-25.
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/error-identification.html
-- **Judged by:** askable.
+- **Judged by:** askable. Question: "Is a form field marked as wrong only by color or an icon, such as a red border, outline, label color, or warning icon, with no written message that says what is wrong?" The ux section's error-message entry is owned here.
+- **Defect range:** `error-without-text`: not measured. One or two fields with a red border, outline, label, or icon after a failed submit, and no message; the clean side adds a short message under each field that says what is wrong.
 
 ### Error suggestion
 - **Rule:** When an error is detected and a fix is known, the message says how to correct it ('Enter a date like 03/21/2026'), not just 'Invalid input'.
 - **Source:** WCAG 2.2 SC 3.3.3 (AA)
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion.html
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** breaks NG-10 because it reads what the error message says, which is the content.
 
 ### Apple touch target size
 - **Rule:** Interactive controls are at least 44 by 44 points on iOS and iPadOS, with space between them. (visionOS recommends 60 pt.)
@@ -707,27 +723,32 @@ WCAG 2.2 Understanding pages follow the pattern https://www.w3.org/WAI/WCAG22/Un
 
 ### Dyslexia-friendly typography
 - **Rule:** Use a common sans-serif such as Arial, Verdana, or Calibri at 12 to 14 pt (about 16 to 19 px) or larger. Left-align text with no justification. Avoid italics, underline, and all caps for running text. Use wide letter and word spacing.
-- **Source:** British Dyslexia Association, *Dyslexia Style Guide* (2023; wording checked against the archived web version, since the PDF returns 403 to scripted requests)
+- **Source:** British Dyslexia Association, *Dyslexia Style Guide* (2023; wording checked against the archived web version, since the PDF returns 403 to scripted requests). The archived page says: "Avoid underlining and italics as this can make the text appear to run together and cause crowding. Use bold for emphasis." Checked on 2026-10-25.
 - **Link:** https://web.archive.org/web/20230315034831/www.bdadyslexia.org.uk/advice/employers/creating-a-dyslexia-friendly-workplace/dyslexia-friendly-style-guide
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** askable for italic and underline only. Question: "Is a paragraph of running text, the sentences people are meant to read, set entirely in italic or entirely underlined?" The guide is advice, not a standard, so the criterion is a folk rule and can only warn (FR-56). The question asks about two styles; if the underline half fails EV-4, the one allowed rewording narrows it to italic.
+- **Defect range:** `running-text-italic-or-underlined`: not measured. One paragraph of three to six lines set in italic (three pairs) or underlined (two pairs); the clean side sets it upright with no underline.
+- **Not encoded (NG-10, R-4):** the font choice, the size, left alignment, and wide spacing are matters of degree, the kind of question that went quiet for the typography leading and size criteria under R-4, and the named fonts would need a font to be named from the image. All capitals for running text is owned by the basics criterion `all-caps-long-text`.
 
 ### Dyslexia-friendly line length, spacing, and background
 - **Rule:** Line spacing of about 1.5, with extra space around headings and between paragraphs. Lines of about 60 to 70 characters. Cream or soft pastel backgrounds rather than pure white. Headings and bullets instead of dense blocks of text.
 - **Source:** British Dyslexia Association, *Dyslexia Style Guide* (2023; wording checked against the archived web version, since the PDF returns 403 to scripted requests)
 - **Link:** https://web.archive.org/web/20230315034831/www.bdadyslexia.org.uk/advice/employers/creating-a-dyslexia-friendly-workplace/dyslexia-friendly-style-guide
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10, R-4):** line spacing and line length are figures a screenshot does not show reliably, and degree questions of this kind went quiet under R-4. A cream background is a page-wide preference and a matter of degree, not a defect that one image shows.
 
 ### Low-vision large-print guidance
 - **Rule:** For print and posters aimed at low-vision readers, RNIB See it Right advises at least 12 pt, and 14 pt or more for wider reach. It also calls for a clear sans-serif, strong contrast, and matte paper to avoid glare. Treat 18 pt as the large-text bar from WCAG.
 - **Source:** RNIB, *See it Right: Making Information Accessible* (Clear Print Guidelines)
 - **Link:** https://resourcecentre.org.uk/books/see-it-right-making-information-accessible-for-people-with-sight-problems/
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** not encoded.
+- **Not encoded (NG-10):** point sizes are physical measurements that a screenshot does not show, matte paper cannot be seen in an image, and strong contrast is owned by the basics criterion `text-reads-faint`.
 
 ### Text alternatives for charts and posters (information not conveyed in image alone)
 - **Rule:** Key meaning in a chart, infographic, or poster is also stated in text near it (title, summary, data table, caption) rather than only in the picture.
-- **Source:** WCAG 2.2 SC 1.1.1 (A), complex images technique G95 / G92 (verified: G95 short text alternative describing the content, G92 long description)
-- **Link:** https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html
-- **Judged by:** askable.
+- **Source:** Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 22.2 "Axis and legend titles". The criterion rests on one sentence there: "Axis and legend titles and labels explain what the displayed data values are and how they map to plot aesthetics." The section's other point, that axes and legends need titles, is not what the question asks. Checked on 2026-10-25. WCAG 2.2 SC 1.1.1 (A) and its techniques G95 and G92 were checked too: they ask for a text alternative for assistive technology, not for visible labels or a legend, so the criterion does not cite them.
+- **Link:** https://clauswilke.com/dataviz/figure-titles-captions.html
+- **Judged by:** askable, for the visible labels of a chart only. Question: "Is there a chart or graph with no written labels, axis values, or legend, so a reader cannot tell what its shapes or colors stand for?" A text alternative cannot be seen in a screenshot (NG-10). The dataviz entry "Label axes, units, and sources" is owned here.
+- **Defect range:** `chart-without-text`: not measured. A chart drawn with its axis values, category names, and legend switched off, as a chart library does when they are turned off; the card or figure title stays on both sides.
 
 
 ---
@@ -740,9 +761,10 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 
 ### Nielsen 1: Visibility of system status
 - **Rule:** The design shows the current state (selected tab, active step, progress, saved or unsaved, loading) with a visible indicator. A reviewer should be able to say where the user is and what is happening.
-- **Source:** Jakob Nielsen, *10 Usability Heuristics for User Interface Design* (1994, revised since); first stated in Nielsen & Molich, "Heuristic Evaluation of User Interfaces," CHI 1990.
-- **Link:** https://www.nngroup.com/articles/ten-usability-heuristics/
-- **Judged by:** askable.
+- **Source:** Jakob Nielsen, *10 Usability Heuristics for User Interface Design* (1994, revised since); first stated in Nielsen & Molich, "Heuristic Evaluation of User Interfaces," CHI 1990. For the navigation part of the rule, the ux pack cites Page Laubheimer, "Menu-Design Checklist: 17 UX Guidelines" (Nielsen Norman Group, 2024), guideline 5 "Indicate the User's Current Location in the Menu". Checked 2026-10-25 against the article text, which says that failing to show the current location is probably the most common mistake on website menus.
+- **Link:** https://www.nngroup.com/articles/ten-usability-heuristics/ and https://www.nngroup.com/articles/menu-design/
+- **Judged by:** askable for the navigation part only, as `no-current-location-shown`. Question: "Does the site's navigation menu look the same for every item, with nothing marking which item is the page the visitor is on now?" Progress, saved state, and loading are not encoded.
+- **Defect range:** `no-current-location-shown`: not measured. The current item in the navigation menu is drawn exactly like its siblings. The clean side marks it with one ordinary cue: a bolder weight, an underline or bar, a background, or an accent color. The page heading names the current page on both sides.
 
 ### Nielsen 2: Match between system and the real world
 - **Rule:** Labels, icons, and metaphors use the audience's own words and familiar real-world conventions, not internal jargon or system terms. Information appears in a natural order.
@@ -755,6 +777,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** Nielsen, *10 Usability Heuristics* (1994).
 - **Link:** https://www.nngroup.com/articles/ten-usability-heuristics/
 - **Judged by:** askable.
+- **Not encoded:** `dialog-without-exit` passed the pre-screen, but Benjamin Jackson dropped it on 2026-10-25 under the rule in this section's introduction: coding agents seldom ship a dialog with no way out.
 
 ### Nielsen 4: Consistency and standards
 - **Rule:** The same action, term, color, and component style means the same thing everywhere on the screen or set, and follows platform and industry conventions (logo top-left links home, cart icon top-right).
@@ -935,9 +958,10 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 
 ### Buttons and links must look clickable
 - **Rule:** Links are distinguishable from body text by more than color alone (underline or other cue); buttons have a shape, fill, or border. Flat text that is clickable but looks like a label is a fault.
-- **Source:** Nielsen Norman Group, "Flat UI Elements Attract Less Attention and Cause Uncertainty" (Kate Moran, 2017); WCAG 2.2 SC 1.4.1 Use of Color.
+- **Source:** Nielsen Norman Group, "Flat UI Elements Attract Less Attention and Cause Uncertainty" (Kate Moran, 2017); WCAG 2.2 SC 1.4.1 Use of Color. The ux pack cites `Common sense` for this rule (FR-45). Krug, *Don't Make Me Think, Revisited* (2014), chapter 3 "Billboard Design 101", has a section "Make it obvious what's clickable", but on 2026-10-25 only its table of contents could be opened, not its text, so it is not confirmed. Moran's article, checked the same day, reports that links styled as static text drew less attention, and says that flat designs can work when other conditions hold, so it does not state the rule that the main action must look clickable.
 - **Link:** https://www.nngroup.com/articles/flat-ui-less-attention-cause-uncertainty/
-- **Judged by:** askable.
+- **Judged by:** askable for the page's main action, as `actions-look-like-plain-text`. Question: "Is the page's main action, such as a submit, buy, or sign-up control, shown as plain text with no button shape, outline, fill, or link styling, so it looks like ordinary words and not like something to click?" Because the source is `Common sense`, the criterion can only warn.
+- **Defect range:** `actions-look-like-plain-text`: not measured. The main action is set as a bare word or short phrase in the body text's face, size, weight, and color, with no fill, border, or underline, where the button would sit. It is never shrunk, faded, or hidden. The clean side is an ordinary filled or outlined button, or a plainly styled link.
 
 ### Destructive action confirmation and safety
 - **Rule:** Destructive actions (delete, remove, reset) are visually separated from safe ones, labeled with the specific outcome ("Delete project"), styled as destructive (often red), not the default focus, and followed by a confirmation or undo. Prefer undo to confirmation dialogs.
@@ -974,17 +998,21 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** Luke Wroblewski, *Web Form Design* (2008); Baymard Institute, "Avoid Extensive Multicolumn Layouts".
 - **Link:** https://baymard.com/blog/avoid-multi-column-forms
 - **Judged by:** askable.
+- **Not encoded:** `multi-column-form` passed the pre-screen, but Benjamin Jackson dropped it on 2026-10-25 under the rule in this section's introduction: coding agents seldom set a form in several columns.
 
 ### Forms: inline validation and required markers
 - **Rule:** Fields validate when the user leaves them (not on every keystroke, not only at submit) with a visible result by the field; required and optional fields are marked, and optional fields are kept few.
-- **Source:** Luke Wroblewski, "Inline Validation in Web Forms," *A List Apart* (2009); Baymard Institute, "Inline Form Validation" research.
-- **Link:** https://alistapart.com/article/inline-validation-in-web-forms/
-- **Judged by:** askable.
+- **Source:** Luke Wroblewski, "Inline Validation in Web Forms," *A List Apart* (2009); Baymard Institute, "Inline Form Validation" research. For the required-marker part, the ux pack cites Raluca Budiu, "Marking Required Fields in Forms" (Nielsen Norman Group, 2019). Checked 2026-10-25 against the article text, which says to mark all the required fields, for example with an asterisk, and that marking the optional fields as well lightens the user's cognitive load.
+- **Link:** https://alistapart.com/article/inline-validation-in-web-forms/ and https://www.nngroup.com/articles/required-fields/
+- **Judged by:** askable for the required markers only, as `required-fields-unmarked`. Question: "Does a form show its fields with no mark or word that tells which fields must be filled in and which are optional?"
+- **Defect range:** `required-fields-unmarked`: not measured. Every asterisk, every "required" or "optional" word, and the legend are hidden, in a form that mixes required and optional fields. The clean side uses ordinary asterisks with a short legend, or "(optional)" after the optional labels.
+- **Not encoded (NG-10):** the inline-validation part, because when a field validates is behavior over time that one screenshot does not show.
 
 ### Redundancy and duplicate controls
 - **Rule:** The same action is not offered twice on one screen without reason (two "Sign up" buttons beside each other, repeated links in the same block, header and footer copies competing). Duplicates dilute the primary action.
 - **Source:** Nielsen heuristic 8 (aesthetic and minimalist design); Krug, *Don't Make Me Think* (2000), "get rid of half the words, then half of what's left."
-- **Judged by:** askable as a visual judgment only. Jev is asked about the same action visibly offered twice without reason. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Judged by:** askable for two controls side by side, as `duplicate-adjacent-actions`. Question: "Are there two buttons or links next to each other that do the same thing, with labels that mean the same action?" Header and footer copies are not encoded. The ux pack cites `Common sense` for this rule (FR-45): Nielsen heuristic 8 and Krug's advice on needless words state it only in part, and not the part that the question asks about. Because the source is `Common sense`, the criterion can only warn.
+- **Defect range:** `duplicate-adjacent-actions`: not measured. One extra control sits next to the original, styled like the second control on the clean side, with a label that is a plain synonym ("Get started" and "Start now", "Save" and "Save changes"). The clean side shows a control with a different action in the same place.
 
 ### Platform conventions (Apple HIG and Material)
 - **Rule:** Components, navigation patterns, iconography, and gestures follow the target platform's conventions (tab bar at bottom on iOS, back at top left, system icons for share and delete; Material navigation bar, FAB, app bar). Do not mix platform idioms on one screen.
@@ -1004,6 +1032,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Source:** Steven Hoober, "How Do Users Really Hold Mobile Devices?" UXmatters (2013); Josh Clark, *Designing for Touch* (2015).
 - **Link:** https://www.uxmatters.com/mt/archives/2013/02/how-do-users-really-hold-mobile-devices.php
 - **Judged by:** askable.
+- **Not encoded:** `primary-action-out-of-thumb-reach` passed the pre-screen, but Benjamin Jackson dropped it on 2026-10-25 under the rule in this section's introduction: coding agents seldom put a phone screen's main action in a top corner.
 
 ### Dark patterns to avoid
 - **Rule:** The design does not use deceptive patterns. These include pre-checked opt-ins, a hidden or tiny decline option, confirmshaming ("No, I hate saving money"), fake urgency or scarcity counters, disguised ads, and forced continuity without a clear cancel. A button hierarchy that hides the safe choice counts too.
@@ -1206,7 +1235,8 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 ### Contrast of value
 - **Rule:** The image uses a clear range of light and dark; the key shapes read in a squinted, grayscale view. A flat mid-gray image with no value structure is a fault.
 - **Source:** Andrew Loomis, *Creative Illustration* (1947); Bruce Block, *The Visual Story* (2001).
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Does the large hero image or banner look flat and murky, with almost everything in it at a similar middle lightness and no clear light areas and dark areas?"
+- **Not encoded:** `flat-value-structure` was cut after the pre-screen (crit-q25.17, jev-1.14.0), because both positives stayed quiet, at 0.41 and 0.10.
 
 ### Limited, purposeful palette
 - **Rule:** The palette uses a small set of related hues (commonly one dominant, one or two supporting, one accent), and each color has a job. Many unrelated saturated hues are a fault.
@@ -1305,8 +1335,10 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 
 ### Consistent level of detail across a set
 - **Rule:** All illustrations or icons in the image share one level of detail and abstraction (all simple glyphs, or all rendered scenes), not a mix.
-- **Source:** Andrew Loomis, *Creative Illustration* (1947); Ellen Lupton and Jennifer Cole Phillips, *Graphic Design: The New Basics* (2008).
-- **Judged by:** askable.
+- **Source:** Apple Human Interface Guidelines, "Icons", section "Interface icons", checked on 2026-10-25: "all interface icons in your app need to use a consistent size, level of detail, stroke thickness (or weight), and perspective." The pack cites this page. Andrew Loomis, *Creative Illustration* (1947), and Ellen Lupton and Jennifer Cole Phillips, *Graphic Design: The New Basics* (2008), were listed before and were not checked.
+- **Link:** https://developer.apple.com/design/human-interface-guidelines/icons
+- **Judged by:** askable. Question: "Do icons that sit together as one set mix very different levels of detail, for example simple outline icons next to detailed, shaded, many-colored icons?"
+- **Defect range:** `mixed-level-of-detail`: not measured. A set of 4 to 8 simple icons in which one or two are detailed, shaded, multicolor icons, at the same size.
 
 ### One perspective and one light source
 - **Rule:** All objects in a scene share one viewpoint, horizon, and perspective system, and shadows and highlights agree on a single light direction. Mixed isometric and flat, or conflicting shadows, are faults.
@@ -1315,13 +1347,15 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 
 ### Consistent rendering style across assets
 - **Rule:** All imagery shares one treatment (flat vector, line art, photo, 3D render, texture), or mixes them by an explicit system (for example photo cut-outs on flat color). Random mixing of styles is a fault.
-- **Source:** Ellen Lupton and Jennifer Cole Phillips, *Graphic Design: The New Basics* (2008); Alina Wheeler, *Designing Brand Identity* (2003).
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Source:** Common sense. Reason: images shown side by side as one set read as one family, so a set that mixes photographs, flat drawings, and 3D renders looks assembled from unrelated sources rather than designed together. Checked on 2026-10-25 and not found stated: Apple Human Interface Guidelines, "Images". The Material Design imagery page did not open as text, so it counts as not confirmed. Ellen Lupton and Jennifer Cole Phillips, *Graphic Design: The New Basics* (2008), and Alina Wheeler, *Designing Brand Identity* (2003), were listed before, were not checked, and are not on the FR-45 list.
+- **Judged by:** askable. Question: "Do images that sit together as one set, such as a row of cards, mix different rendering styles, for example a photograph next to a flat vector illustration next to a glossy 3D render?"
+- **Defect range:** `mixed-rendering-styles`: not measured. A row of 3 to 6 images in one set where one or two use a different rendering (photo, flat illustration, or 3D render) at the same size and crop.
 
 ### Photos treated consistently
 - **Rule:** Photos in one design share lighting mood, color grade, crop style, and subject distance. One cold, desaturated photo among warm, bright ones is a fault.
 - **Source:** Michael Freeman, *The Photographer's Eye* (2007); David Ogilvy, *Ogilvy on Advertising* (1983).
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Do photographs that sit together as one set, such as a row of cards or a gallery, have clearly different color treatments, for example one warm and faded, one cold and blue, one black and white, or one heavily saturated?"
+- **Not encoded:** `photos-graded-inconsistently` was cut after the pre-screen (crit-q25.17, jev-1.14.0), because a negative fired at 0.74.
 
 ### Cropping and framing are intentional
 - **Rule:** Crops do not cut off heads, hands, or limbs at joints by accident, and tangents (edges that just touch) are avoided. Cropping that is bold and clearly intentional is acceptable.
@@ -1331,12 +1365,14 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 ### Image quality: sharp, undistorted, at native proportions
 - **Rule:** Images are sharp at display size (no visible pixelation or blur from upscaling), keep their original aspect ratio (no stretch or squash), and have no compression artifacts.
 - **Source:** David Ogilvy, *Ogilvy on Advertising* (1983), on photograph quality; Michael Freeman, *The Photographer's Eye* (2007).
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Is a photograph or picture on the page visibly stretched or squashed out of its natural proportions, or blurry and blocky because a small image was enlarged?"
+- **Not encoded:** `image-stretched-or-pixelated` was cut after the pre-screen (crit-q25.17, jev-1.14.0), because it stayed quiet at 0.13 on the stretched photograph.
 
 ### Texture and pattern with restraint
 - **Rule:** Texture or pattern is used on a limited area or at low contrast so it never competes with the focal point or reduces legibility of text over it.
 - **Source:** Wucius Wong, *Principles of Form and Design* (1993); Donis A. Dondis, *A Primer of Visual Literacy* (1973).
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Is text or other content placed over a busy, detailed background, such as a strong pattern or a cluttered photograph, so the background competes with what sits on it?"
+- **Not encoded:** `busy-texture-behind-content` passed the pre-screen (crit-q25.17) but is not encoded, because the color pack's `text-over-busy-image` owns the same rule and a rule has one owner. The layout pack's `figure-merges-with-ground` asked about the same rule and was removed under R-4.
 
 ### Every ornament does a job
 - **Rule:** Every ornament, flourish, gradient, shadow, or effect serves meaning, hierarchy, or mood. Elements that could be removed with no loss are a fault.
