@@ -6,7 +6,9 @@
 // again. A criterion whose question changed under the same id is reworded, and a live run asks it
 // again about every fixture; when that run stops part way, the next normal live run asks only the
 // fixtures with an answer to an older question and none to the new one. A second rewording is
-// refused (R-4). It does no I/O; run-agreement.ts reads and writes the files.
+// refused (R-4). --rerun-same-set is refused while a saved file holds an answer to an older
+// question, because it replaces the saved files (crit-q25.29). It does no I/O; run-agreement.ts
+// reads and writes the files.
 
 import { decideLiveRun } from "./frozen-set.ts";
 import type { AskedQuestionHash } from "./question-hash.ts";
@@ -152,9 +154,12 @@ function imageFileNameOf(fixture: string): string {
 /**
  * Plan a live run on one pack (EV-4 rule 5). Return the fixtures to ask, each with only the
  * criteria it has no saved answer for, or throw an Error that says why the run is refused before
- * any request is sent. With rerunSameSet, which is only for repeating a run that broke, every criterion is asked
- * about every fixture again and the fixture's saved files are replaced. The saved files must hold
- * only answers to current questions (keepCurrentAnswers), so a reworded criterion has no answer.
+ * any request is sent. With rerunSameSet, which is only for repeating a run that broke, every
+ * criterion is asked about every fixture again and the fixture's saved files are replaced. That is
+ * refused while a rewording pair is left, and while any fixture has an answer to an older question
+ * in a saved file, because the rerun would overwrite or delete it (crit-q25.29). The saved files
+ * must hold only answers to current questions (keepCurrentAnswers), so a reworded criterion has no
+ * answer.
  */
 export function planLiveRun(input: LivePlanInput): LiveFixturePlan[] {
   const allCriteria = input.criteria.map((criterion) => criterion.criterion);
@@ -166,6 +171,29 @@ export function planLiveRun(input: LivePlanInput): LiveFixturePlan[] {
     if (unfinished.length > 0) {
       throw new Error(
         `${input.packName}: --rerun-same-set cannot score the reworded ${unfinished.join(", ")}, because it would ask the decided criteria again; a rewording, also one whose run broke part way, is repeated by a normal live run without --rerun-same-set (EV-4 rule 5)`,
+      );
+    }
+    // A rerun overwrites each fixture's first answers file and deletes its later ones, so it would
+    // lose the answers to older questions, which stay in the saved files (EV-4 rule 5,
+    // crit-q25.23, crit-q25.24). It is refused while any fixture holds one (crit-q25.29).
+    const fixturesWithOlderAnswers = input.fixtures.filter(
+      (fixture) => fixture.olderAnswerCriteria.length > 0,
+    );
+    if (fixturesWithOlderAnswers.length > 0) {
+      const olderCriteria = new Set<string>();
+      for (const fixture of fixturesWithOlderAnswers) {
+        for (const criterion of fixture.olderAnswerCriteria) {
+          olderCriteria.add(criterion);
+        }
+      }
+      const firstFixture = (fixturesWithOlderAnswers[0] as PlanFixture).fixture;
+      let andMore = "";
+      if (fixturesWithOlderAnswers.length > 1) {
+        andMore = ` and ${String(fixturesWithOlderAnswers.length - 1)} more fixtures`;
+      }
+      const criteria = [...olderCriteria].sort().join(", ");
+      throw new Error(
+        `${input.packName}: --rerun-same-set cannot replace the saved answers of ${firstFixture}${andMore}, because they hold answers to older questions of ${criteria}, which stay in the saved files (EV-4 rule 5)`,
       );
     }
     return planRerun(input.fixtures, allCriteria);
@@ -423,7 +451,10 @@ export function olderAnswerCriteriaOf(
   return [...criteria].sort();
 }
 
-/** Plan a --rerun-same-set run: every criterion about every fixture, replacing every saved file. */
+/**
+ * Plan a --rerun-same-set run: every criterion about every fixture, replacing every saved file.
+ * planLiveRun calls it only when no saved file holds an answer to an older question.
+ */
 function planRerun(
   fixtures: readonly PlanFixture[],
   allCriteria: readonly string[],
