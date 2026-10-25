@@ -676,7 +676,7 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
     expect(hashFiles(answersDirectory)).toEqual(afterResume);
   });
 
-  it("repeats with --rerun-same-set a broken run on a changed set after a finished rewording", async () => {
+  it("refuses --rerun-same-set on a broken run on a changed set after a finished rewording", async () => {
     await writePack(packDirectory, [FIRST, SECOND]);
     await runHarness(["--live", "--pack", packDirectory], options);
     const reworded: TestCriterion = {
@@ -703,16 +703,79 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
     ).rejects.toThrow(/already scored this fixture set/);
     expect(askedQuestionIds).toEqual([]);
 
-    // No rewording pair is left, so --rerun-same-set repeats the broken run.
-    await runHarness(
-      ["--live", "--rerun-same-set", "--pack", packDirectory],
-      options,
-    );
-    expect(askedQuestionIds).toHaveLength(6);
-    expect(fixturesWithSecondFile()).toEqual([]);
-    expect(
-      questionIdsIn(join(answersDirectory, "first.positive.png.answers.json")),
-    ).toEqual(["demo/first", "demo/second", "demo/third"]);
+    // No rewording pair is left, but the first answers files hold the answers to the old question
+    // of demo/second, which a rerun would overwrite, so it is refused (EV-4 rule 5, crit-q25.29).
+    const beforeRerun = hashFiles(answersDirectory);
+    await expect(
+      runHarness(
+        ["--live", "--rerun-same-set", "--pack", packDirectory],
+        options,
+      ),
+    ).rejects.toThrow(/cannot replace the saved answers .*demo\/second/);
+    expect(askedQuestionIds).toEqual([]);
+    expect(hashFiles(answersDirectory)).toEqual(beforeRerun);
+  });
+
+  it("refuses --rerun-same-set after a finished respelling and rename", async () => {
+    // The British spellings in this test stand for the old question and id (CS-26).
+    const british: TestCriterion = {
+      id: "colour-check",
+      positiveColor: "#123456",
+      negativeColor: "#654321",
+      instructions: "In the image at screenshot: Is the colour wrong?",
+    };
+    const us: TestCriterion = {
+      id: "color-check",
+      positiveColor: british.positiveColor,
+      negativeColor: british.negativeColor,
+      instructions: "In the image at screenshot: Is the color wrong?",
+    };
+    await writePack(packDirectory, [british, SECOND]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+
+    // Rename the fixtures and their saved files, as git mv does, with the bytes unchanged.
+    const fixturesDirectory = join(packDirectory, "fixtures");
+    for (const kind of ["positive", "negative"]) {
+      renameSync(
+        join(fixturesDirectory, `colour-check.${kind}.png`),
+        join(fixturesDirectory, `color-check.${kind}.png`),
+      );
+      for (const suffix of ["answers.json", "answers.questions.json"]) {
+        renameSync(
+          join(answersDirectory, `colour-check.${kind}.png.${suffix}`),
+          join(answersDirectory, `color-check.${kind}.png.${suffix}`),
+        );
+      }
+    }
+    await writePack(packDirectory, [us, SECOND]);
+    const respelledOptions: HarnessOptions = {
+      ...options,
+      respelling: {
+        questions: [
+          {
+            criterion: "demo/color-check",
+            britishQuestionSha256: questionSha256Of(british),
+            usQuestionSha256: questionSha256Of(us),
+          },
+        ],
+        criterionIds: new Map([["demo/colour-check", "demo/color-check"]]),
+      },
+    };
+    await runHarness(["--live", "--pack", packDirectory], respelledOptions);
+    expect(fixturesWithSecondFile()).toHaveLength(4);
+
+    // The first answers files still hold the answers to the British question, so a rerun that
+    // would overwrite them is refused before any request (EV-4 rule 5, crit-q25.29).
+    const afterRespelling = hashFiles(answersDirectory);
+    askedQuestionIds.length = 0;
+    await expect(
+      runHarness(
+        ["--live", "--rerun-same-set", "--pack", packDirectory],
+        respelledOptions,
+      ),
+    ).rejects.toThrow(/cannot replace the saved answers .*demo\/color-check/);
+    expect(askedQuestionIds).toEqual([]);
+    expect(hashFiles(answersDirectory)).toEqual(afterRespelling);
   });
 
   it("resumes a respelled and renamed criterion whose run broke part way", async () => {

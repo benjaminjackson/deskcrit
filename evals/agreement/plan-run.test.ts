@@ -280,6 +280,25 @@ describe("planLiveRun", () => {
     });
     expect(plans[1]?.fileNamesToDelete).toEqual([]);
   });
+
+  it("refuses --rerun-same-set when a fixture has an answer to an older question and no rewording pair is left", () => {
+    const input = inputWithNewCriterion();
+    const first = input.fixtures[0] as PlanFixture;
+    const withOlderAnswer: PlanFixture = {
+      ...first,
+      olderAnswerCriteria: ["demo/A"],
+    };
+    expect(() =>
+      planLiveRun({
+        ...input,
+        fixtures: [withOlderAnswer, ...input.fixtures.slice(1)],
+        rewordedCriteria: [],
+        rerunSameSet: true,
+      }),
+    ).toThrow(
+      /--rerun-same-set cannot replace the saved answers of fixtures\/first\.positive\.png, because they hold answers to older questions of demo\/A, which stay in the saved files/,
+    );
+  });
 });
 
 describe("planReplay", () => {
@@ -716,21 +735,13 @@ describe("a reworded criterion (EV-4 rule 5, R-4, crit-q25.23)", () => {
     );
   });
 
-  it("plans --rerun-same-set as before once the reworded criterion is answered on every fixture", () => {
+  it("refuses --rerun-same-set once the rewording is finished, because the saved files hold B's older answers", () => {
+    // The rerun would overwrite each first file, which holds the answer to B's old question
+    // (EV-4 rule 5, crit-q25.29).
     const input = halfRewordedInput(4);
-    const plans = planLiveRun({ ...input, rerunSameSet: true });
-    expect(plans.map((plan) => plan.criteria)).toEqual([
-      ["demo/A", "demo/B"],
-      ["demo/A", "demo/B"],
-      ["demo/A", "demo/B"],
-      ["demo/A", "demo/B"],
-    ]);
-    expect(plans[0]).toEqual({
-      fixture: "fixtures/A.positive.png",
-      criteria: ["demo/A", "demo/B"],
-      answersFileName: "A.positive.png.answers.json",
-      fileNamesToDelete: ["A.positive.png.answers-2.json"],
-    });
+    expect(() => planLiveRun({ ...input, rerunSameSet: true })).toThrow(
+      /--rerun-same-set cannot replace the saved answers of fixtures\/A\.positive\.png and 3 more fixtures, because they hold answers to older questions of demo\/B,/,
+    );
   });
 
   it("refuses saved answers with no asked list, and allows a first run with neither", () => {

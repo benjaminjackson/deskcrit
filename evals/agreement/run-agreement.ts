@@ -22,7 +22,9 @@
 // every pair again and replaces the saved answers. Pass it only to repeat a run that broke for a
 // technical reason, never to score a decided criterion again. A reworded criterion needs no flag,
 // and the flag is refused while a fixture with an answer to an older question of a reworded
-// criterion and none to its new one is left.
+// criterion and none to its new one is left. It is also refused while any saved answers file of
+// the pack holds an answer to an older question, because the rerun would overwrite or delete it
+// (crit-q25.29).
 // Without --pack it measures every first-party pack under packs/. Exit 0 when every fixture agrees,
 // 1 when any EV-4 fixture disagrees, and 2 when the harness could not run (FR-24).
 
