@@ -57,9 +57,13 @@
           "minLength": 1
         },
         "source": {
-          "description": "Book, standard, or paper cited, which must state the rule. For a standard, include its version, for example W3C, WCAG 2.2, Success Criterion 1.4.3 (FR-57). The exact value Common sense marks a criterion with no published source: it then needs reason and warn_when, and may not have fail_when or pass_when (FR-45).",
+          "description": "Book, standard, or paper cited, which must state the rule. For a standard, include its version, for example W3C, WCAG 2.2, Success Criterion 1.4.3 (FR-57). The exact value Common sense marks a criterion with no published source: it then needs reason and warn_when, and may not have fail_when or pass_when (FR-45). A near miss, such as common sense, Common Sense, or Common sense. with a period, is refused, so a common-sense criterion cannot escape that rule by its spelling.",
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "if": {
+            "pattern": "^\\s*[Cc][Oo][Mm][Mm][Oo][Nn] [Ss][Ee][Nn][Ss][Ee]\\.?\\s*$"
+          },
+          "then": { "const": "Common sense" }
         },
         "link": {
           "description": "URL of the source.",

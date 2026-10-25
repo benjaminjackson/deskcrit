@@ -248,6 +248,12 @@ function convertSchemaError(error: ErrorObject, data: unknown): PackProblem {
       }
     }
   } else if (
+    error.keyword === "const" &&
+    pathSegments[pathSegments.length - 1] === "source"
+  ) {
+    // The only const rule on source refuses a near miss of Common sense (FR-45).
+    message = "write the source as exactly `Common sense` (FR-45)";
+  } else if (
     error.keyword === "minProperties" ||
     error.keyword === "maxProperties"
   ) {

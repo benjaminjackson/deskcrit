@@ -423,6 +423,23 @@ describe("checkPack", () => {
       },
     );
 
+    it.each(["common sense", "Common Sense", " Common sense", "Common sense."])(
+      "rejects the near miss %j of Common sense, so it cannot have fail_when",
+      (nearMiss) => {
+        const yamlText = (packHeader + noulCriterion).replace(
+          "    source: W3C, WCAG 2.2, Success Criterion 1.4.3\n",
+          `    source: ${JSON.stringify(nearMiss)}\n`,
+        );
+        expect(readProblems(yamlText)).toEqual([
+          {
+            criterion: "faint-body-text",
+            field: "source",
+            message: "write the source as exactly `Common sense` (FR-45)",
+          },
+        ]);
+      },
+    );
+
     it("rejects a common-sense criterion without a reason", () => {
       const yamlText = (packHeader + commonSenseCriterion).replace(
         "    reason: Faint text is hard to read.\n",
