@@ -1005,7 +1005,7 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 - **Rule:** Most of the ink in a chart encodes data; heavy gridlines, borders, fills, and decoration that carry no information are removed or muted.
 - **Source:** Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 23.2 "Background grids"; Edward Tufte, *The Visual Display of Quantitative Information* (Graphics Press, 2nd ed. 2001), chapter 5, section "The Grid", about p. 112, page unchecked.
 - **Link:** https://clauswilke.com/dataviz/
-- **Judged by:** askable. Question: "Is a chart drawn with dark, heavy gridlines, borders, or frames that stand out as strongly as the data marks themselves?"
+- **Judged by:** askable. Question: "Do the lines that only hold a chart together, such as its gridlines, axis lines, borders, or a box around the plot, look as bold and prominent as the bars, lines, or points that show the data?" Reworded once under R-4 on 2026-10-25 (crit-q25.9), written blind from this entry and its sources. The old question was "Is a chart drawn with dark, heavy gridlines, borders, or frames that stand out as strongly as the data marks themselves?"
 - **Defect range:** `heavy-gridlines-and-frames`: not measured. Gridlines, axis lines, and a plot frame in dark grey to near-black, 1 to 2 px, about as dark as the data marks.
 
 ### No chartjunk
