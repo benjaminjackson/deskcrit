@@ -395,6 +395,62 @@ describe("checkPack", () => {
     });
   });
 
+  describe("common-sense criteria (FR-45)", () => {
+    /** The noul test criterion with its source set to Common sense, a reason, and warn_when in place of fail_when. */
+    const commonSenseCriterion = noulCriterion
+      .replace(
+        "    source: W3C, WCAG 2.2, Success Criterion 1.4.3\n",
+        "    source: Common sense\n    reason: Faint text is hard to read.\n",
+      )
+      .replace("    fail_when:", "    warn_when:");
+
+    it("loads a common-sense criterion with a reason and only warn_when", () => {
+      expect(checkPack(packHeader + commonSenseCriterion).ok).toBe(true);
+    });
+
+    it.each(["fail_when", "pass_when"])(
+      "rejects a common-sense criterion that also has %s, because it may only warn",
+      (fieldName) => {
+        const yamlText = `${packHeader}${commonSenseCriterion}    ${fieldName}:\n      probability_at_least: 0.9\n`;
+        expect(readProblems(yamlText)).toEqual([
+          {
+            criterion: "faint-body-text",
+            field: fieldName,
+            message:
+              "is not allowed on a common-sense criterion, which may only warn (FR-45)",
+          },
+        ]);
+      },
+    );
+
+    it.each(["common sense", "Common Sense", " Common sense", "Common sense."])(
+      "rejects the near miss %j of Common sense, so it cannot have fail_when",
+      (nearMiss) => {
+        const yamlText = (packHeader + noulCriterion).replace(
+          "    source: W3C, WCAG 2.2, Success Criterion 1.4.3\n",
+          `    source: ${JSON.stringify(nearMiss)}\n`,
+        );
+        expect(readProblems(yamlText)).toEqual([
+          {
+            criterion: "faint-body-text",
+            field: "source",
+            message: "write the source as exactly `Common sense` (FR-45)",
+          },
+        ]);
+      },
+    );
+
+    it("rejects a common-sense criterion without a reason", () => {
+      const yamlText = (packHeader + commonSenseCriterion).replace(
+        "    reason: Faint text is hard to read.\n",
+        "",
+      );
+      expect(readPlaces(yamlText)).toEqual([
+        { criterion: "faint-body-text", field: "reason" },
+      ]);
+    });
+  });
+
   describe("predicates (verdict rule under FR-25)", () => {
     it("rejects a predicate with no keys", () => {
       const yamlText = (packHeader + noulCriterion).replace(
