@@ -1,0 +1,28 @@
+usage: crit report <image> [--pack <dir>...] [--context <key=value>...] [--facts <file>] [--json] [--save-answers <file>] [--answers <file>]
+
+Judge one image against the criteria packs and report each finding with its verdict, confidence, region, source, and fix.
+
+Flags:
+  --pack <dir>           Use the pack in this local directory. Repeat the flag for more packs. With no --pack and no packs in .crit.yaml, crit uses every bundled pack.
+  --context <key=value>  Give one piece of context: purpose, audience, platform. Give each pair its own flag. A flag overrides .crit.yaml.
+  --facts <file>         Read facts about the page from this JSON file. A criterion that needs a fact the file does not have is skipped.
+  --json                 Print one JSON document instead of the readable report.
+  --save-answers <file>  Also write the answers from TypeSafe to this file, so --answers can replay them later.
+  --answers <file>       Use the answers in this file instead of asking TypeSafe. Needs no key and makes no network call.
+  --help, -h             Print this help.
+
+Exit codes:
+  0  the report ran, whatever the verdicts.
+  2  could not run.
+
+Examples:
+  crit report shot.png --json
+    # Judge shot.png and print the report as one JSON document.
+  crit report shot.png --pack packs/my-pack --json
+    # Judge shot.png with the pack in the local directory packs/my-pack.
+  crit report shot.png --context platform=web --context audience=developers --json
+    # Give the platform and the audience, so criteria for other platforms are skipped.
+  crit report shot.png --save-answers shot.answers.json --json
+    # Judge shot.png and save the answers from TypeSafe in shot.answers.json.
+  crit report shot.png --answers shot.answers.json --json
+    # Replay the saved answers. Needs no key and makes no network call.

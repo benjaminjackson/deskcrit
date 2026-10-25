@@ -1,0 +1,26 @@
+usage: crit compare <before> <after> [--pack <dir>...] [--context <key=value>...] [--facts <file>] [--json] [--save-answers <file>] [--answers <file>]
+
+Judge a before and an after image with the same packs and context, and say for each criterion whether it got better, worse, stayed the same, or is uncertain.
+
+Flags:
+  --pack <dir>           Use the pack in this local directory. Repeat the flag for more packs. With no --pack and no packs in .crit.yaml, crit uses every bundled pack.
+  --context <key=value>  Give one piece of context: purpose, audience, platform. Give each pair its own flag. A flag overrides .crit.yaml.
+  --facts <file>         Read facts about the page from this JSON file. A criterion that needs a fact the file does not have is skipped.
+  --json                 Print one JSON document instead of the readable output.
+  --save-answers <file>  Also write the answers of both runs to this file, so --answers can replay them later.
+  --answers <file>       Use the answers of both runs in this file instead of asking TypeSafe. Needs no key and makes no network call.
+  --help, -h             Print this help.
+
+Exit codes:
+  0  the compare ran, even when every change is worse.
+  2  could not run.
+
+Examples:
+  crit compare before.png after.png --json
+    # Judge both images and print each change as one JSON document.
+  crit compare before.png after.png --pack packs/my-pack --json
+    # Compare the two images with the pack in the local directory packs/my-pack.
+  crit compare before.png after.png --save-answers compare.answers.json --json
+    # Compare the two images and save the answers of both runs in compare.answers.json.
+  crit compare before.png after.png --answers compare.answers.json --json
+    # Replay the saved answers of both runs. Needs no key and makes no network call.

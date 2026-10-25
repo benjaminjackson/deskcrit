@@ -1,4 +1,4 @@
-// Argument parsing for `crit report`, `crit compare`, `crit gate`, `crit packs validate`, and `crit packs test` (FR-40, FR-42, FR-49, FR-50, FR-60). It turns argv into typed values with Node's own
+// Argument parsing for `crit report`, `crit compare`, `crit gate`, `crit packs validate`, `crit packs test`, `--help`, and `--version` (FR-40, FR-42, FR-49, FR-50, FR-60, FR-75, FR-76). It turns argv into typed values with Node's own
 // parser and turns every bad argument into CouldNotRunError, so the run exits with code 2 (FR-4,
 // CS-3, CS-16). It reads no file; read-inputs.ts does that.
 
@@ -28,7 +28,7 @@ export const PACKS_TEST_USAGE = "usage: crit packs test <dir>";
 export const USAGE = `${REPORT_USAGE}\n${COMPARE_USAGE}\n${GATE_USAGE}\n${PACKS_VALIDATE_USAGE}\n${PACKS_TEST_USAGE}`;
 
 /** The context keys FR-2 allows. Any other key stops the run (OQ-25 c). */
-const CONTEXT_KEYS = ["purpose", "audience", "platform"] as const;
+export const CONTEXT_KEYS = ["purpose", "audience", "platform"] as const;
 
 /** One allowed context key. */
 type ContextKey = (typeof CONTEXT_KEYS)[number];
@@ -68,15 +68,34 @@ export type Command =
   | { readonly command: "compare"; readonly args: CompareArguments }
   | { readonly command: "gate"; readonly args: ReportArguments }
   | { readonly command: "packs-validate"; readonly directory: string }
-  | { readonly command: "packs-test"; readonly directory: string };
+  | { readonly command: "packs-test"; readonly directory: string }
+  | { readonly command: "help"; readonly topic: HelpTopic }
+  | { readonly command: "version" };
+
+/** Which help text `--help` asks for: the top-level help or the help of one command (FR-76). */
+export type HelpTopic =
+  | "top-level"
+  | "report"
+  | "compare"
+  | "gate"
+  | "packs-validate"
+  | "packs-test";
 
 /**
  * Parse argv into one command. A line that starts with `packs` is `crit packs validate` or
  * `crit packs test`, a line that starts with `gate` is `crit gate`, a line that starts with
  * `compare` is `crit compare`, and every other line goes to the `crit report` parser, which
- * rejects an unknown command (FR-40, FR-49, FR-50, FR-60).
+ * rejects an unknown command (FR-40, FR-49, FR-50, FR-60). Before any of that, `--help` or `-h`
+ * anywhere asks for help and wins over every other check (FR-76), and `crit --version` alone asks
+ * for the version line (FR-75).
  */
 export function parseCommand(argv: readonly string[]): Command {
+  if (asksForHelp(argv)) {
+    return { command: "help", topic: chooseHelpTopic(argv) };
+  }
+  if (argv.length === 1 && argv[0] === "--version") {
+    return { command: "version" };
+  }
   if (argv[0] === "packs") {
     const packsCommand = parsePacksArguments(argv);
     if (packsCommand.subcommand === "validate") {
@@ -94,6 +113,40 @@ export function parseCommand(argv: readonly string[]): Command {
     return { command: "compare", args: parseCompareArguments(argv) };
   }
   return { command: "report", args: parseReportArguments(argv) };
+}
+
+/**
+ * Return true when the command line holds `--help` or `-h` before any `--`, so help wins over every
+ * other check, even a missing image (FR-76). After `--`, every argument is a positional.
+ */
+function asksForHelp(argv: readonly string[]): boolean {
+  for (const argument of argv) {
+    if (argument === "--") {
+      return false;
+    }
+    if (argument === "--help" || argument === "-h") {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Return the help topic of a command line that asks for help: the command it starts with, or the
+ * top-level help when it starts with no known command (FR-76).
+ */
+function chooseHelpTopic(argv: readonly string[]): HelpTopic {
+  const command = argv[0];
+  if (command === "report" || command === "compare" || command === "gate") {
+    return command;
+  }
+  if (command === "packs" && argv[1] === "validate") {
+    return "packs-validate";
+  }
+  if (command === "packs" && argv[1] === "test") {
+    return "packs-test";
+  }
+  return "top-level";
 }
 
 /** The two packs subcommands and the one directory each takes (FR-49, FR-50). */

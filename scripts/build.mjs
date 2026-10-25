@@ -94,6 +94,35 @@ const bundledPacksPlugin = {
   },
 };
 
+/**
+ * Returns the short git commit id of the checkout this script runs in, or undefined when there is
+ * no git checkout or git is not installed, so `crit --version` can name the commit (FR-75).
+ */
+function readShortCommit() {
+  const result = spawnSync("git", ["rev-parse", "--short", "HEAD"], {
+    cwd: fileURLToPath(new URL("../", import.meta.url)),
+    encoding: "utf8",
+  });
+  if (result.error !== undefined || result.status !== 0) {
+    return undefined;
+  }
+  const commit = result.stdout.trim();
+  if (commit === "") {
+    return undefined;
+  }
+  return commit;
+}
+
+/**
+ * The text esbuild puts in place of the name CRIT_BUILD_COMMIT in src/cli/version.ts: the commit id
+ * as a JavaScript string, or the word undefined when the build has no commit (FR-75).
+ */
+const shortCommit = readShortCommit();
+let commitDefinition = "undefined";
+if (shortCommit !== undefined) {
+  commitDefinition = JSON.stringify(shortCommit);
+}
+
 await rm("dist", { recursive: true, force: true });
 
 /**
@@ -118,6 +147,9 @@ await build({
     js: `#!/usr/bin/env node\n${requireBanner}`,
   },
   plugins: [bundledPacksPlugin],
+  // Puts the commit id in place of the name CRIT_BUILD_COMMIT, so the bundle reads no git data at
+  // run time (FR-75).
+  define: { CRIT_BUILD_COMMIT: commitDefinition },
   // Keeps the two marker comments around the embedded pack list where the plugin put them.
   legalComments: "inline",
   logLevel: "info",

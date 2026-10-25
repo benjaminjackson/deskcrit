@@ -1,0 +1,47 @@
+crit (deskcrit) judges a picture of a design against criteria packs and reports what looks wrong.
+
+usage: crit <command> [arguments]
+usage: crit <command> --help
+usage: crit --version
+
+Commands:
+  report          Judge one image and report each finding with its verdict, confidence, region, source, and fix.
+  compare         Judge a before and an after image and say whether each criterion got better, worse, or stayed the same.
+  gate            Judge one image and pass or fail it against the gate policy. The exit code says which.
+  packs validate  Check one pack directory against the pack schema. Reads no key and makes no network call.
+  packs test      Ask Jev about each fixture image of one pack and compare each verdict with the fixture label.
+
+Run crit <command> --help for the flags of one command, for example crit report --help.
+
+Output:
+  stdout holds only the output. Errors go to stderr.
+  --json prints one JSON document. Use it when a program reads the output. Without --json, crit prints a readable report.
+
+Exit codes:
+  0  pass: the command ran. report and compare exit 0 whatever the verdicts.
+  1  fail: the gate failed, the pack is invalid, or a fixture disagreed with its label.
+  2  could not run: a bad command line, a file that cannot be read, no key, or a TypeSafe error.
+
+Settings:
+  .crit.yaml in the current directory holds optional settings. crit does not look in parent directories.
+  Its keys are packs, model, context, screenshot, warn_fails_gate.
+  The context keys, in .crit.yaml or with --context key=value, are purpose, audience, platform.
+
+Environment:
+  TYPESAFE_API_KEY  The TypeSafe API key. report, compare, gate, and packs test need it. With --answers, no key is needed. packs validate never reads it.
+
+Examples:
+  crit report shot.png --json
+    # Judge shot.png and print the report as one JSON document.
+  crit compare before.png after.png --json
+    # Judge the before and after images and print each change as JSON.
+  crit gate shot.png --json
+    # Pass or fail shot.png. Check the exit code: 0 pass, 1 fail, 2 could not run.
+  crit report shot.png --pack packs/my-pack --json
+    # Judge shot.png with the pack in the local directory packs/my-pack.
+  crit report shot.png --context platform=web --json
+    # Tell crit the design is for the web, so criteria for other platforms are skipped.
+  crit report shot.png --answers shot.answers.json --json
+    # Replay the answers saved with --save-answers. Needs no key and makes no network call.
+  crit packs validate packs/my-pack
+    # Check the pack in packs/my-pack before you use it.
