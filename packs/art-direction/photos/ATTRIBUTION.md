@@ -1,6 +1,6 @@
 # Photo attribution: art-direction
 
-The templates of the `mixed-rendering-styles` criterion show these photographs. Each one is dedicated to the public domain under CC0 1.0 by its author on Wikimedia Commons, so the rights basis is "public domain with the source named" (FR-54). Each file is the 960 px wide thumbnail that Wikimedia Commons serves, downloaded on 2026-10-25 and not edited. No photograph shows a face of a real person, personal data, or a brand mark.
+The templates of the `mixed-rendering-styles` criterion show these photographs. Each one is dedicated to the public domain under CC0 1.0 by its author on Wikimedia Commons, and none was first published on Unsplash, Pexels, or another stock site whose license is not CC0, so the rights basis is "public domain with the source named" (FR-54). Each file is the 960 px wide thumbnail that Wikimedia Commons serves, downloaded on 2026-10-25 and not edited. No photograph shows a face of a real person, personal data, or a brand mark.
 
 ## trail-bierstadt-lake.jpg
 
@@ -47,11 +47,11 @@ The templates of the `mixed-rendering-styles` criterion show these photographs. 
 - Source URL: https://commons.wikimedia.org/wiki/File:Frenchman_River_Valley_Jones_Peak.jpg
 - Capture date: 2026-10-25 (downloaded); photographed 2025-07-24
 
-## window-teapot.jpg
+## bay-window-ward-manor.jpg
 
 - Rights basis: public domain with the source named
-- Source: Wikimedia Commons, "Porcelain teapot on windowsill (Unsplash).jpg", by Nathan Fertig
+- Source: Wikimedia Commons, "Ward Manor parlor bay window.jpg", by Theodore Christopher, uploaded as own work
 - License: CC0 1.0
 - Attribution text: none
-- Source URL: https://commons.wikimedia.org/wiki/File:Porcelain_teapot_on_windowsill_(Unsplash).jpg
-- Capture date: 2026-10-25 (downloaded); photographed 2017-05-29
+- Source URL: https://commons.wikimedia.org/wiki/File:Ward_Manor_parlor_bay_window.jpg
+- Capture date: 2026-10-25 (downloaded); photographed 2025-03-31

@@ -2,7 +2,7 @@
 
 Pack license: MIT
 
-Every fixture here is rendered from a template in packs/art-direction/templates/ by the renderer in packs/_renderer/. packs/README.md defines the entry format. The fixtures mixed-rendering-styles.positive.png, mixed-rendering-styles--2.positive.png, mixed-rendering-styles--2.negative.png, and mixed-rendering-styles--4.positive.png show CC0 photographs from packs/art-direction/photos/, whose sources are in packs/art-direction/photos/ATTRIBUTION.md.
+Every fixture here is rendered from a template in packs/art-direction/templates/ by the renderer in packs/_renderer/. packs/README.md defines the entry format. An entry whose fixture shows a photograph names the photograph in its Attribution text line; packs/art-direction/photos/ATTRIBUTION.md records where each photograph comes from and its CC0 dedication.
 
 ## mixed-level-of-detail.positive.png
 
@@ -129,7 +129,7 @@ Every fixture here is rendered from a template in packs/art-direction/templates/
 - Rights basis: own work licensed under the pack license
 - Source: packs/art-direction/templates/mixed-rendering-styles.html, defect=on
 - License: MIT
-- Attribution text: none
+- Attribution text: none required; shows the CC0 photograph packs/art-direction/photos/bay-window-ward-manor.jpg, each recorded under its own heading in packs/art-direction/photos/ATTRIBUTION.md
 - Source URL: not applicable
 - Capture date: not applicable
 - Viewport: 1280x800
@@ -153,7 +153,7 @@ Every fixture here is rendered from a template in packs/art-direction/templates/
 - Rights basis: own work licensed under the pack license
 - Source: packs/art-direction/templates/mixed-rendering-styles--2.html, defect=on
 - License: MIT
-- Attribution text: none
+- Attribution text: none required; shows the CC0 photographs packs/art-direction/photos/trail-bierstadt-lake.jpg, packs/art-direction/photos/trail-forest-oberlibbach.jpg, packs/art-direction/photos/valley-belle-fourche.jpg, each recorded under its own heading in packs/art-direction/photos/ATTRIBUTION.md
 - Source URL: not applicable
 - Capture date: not applicable
 - Viewport: 1280x800
@@ -165,7 +165,7 @@ Every fixture here is rendered from a template in packs/art-direction/templates/
 - Rights basis: own work licensed under the pack license
 - Source: packs/art-direction/templates/mixed-rendering-styles--2.html, defect=off
 - License: MIT
-- Attribution text: none
+- Attribution text: none required; shows the CC0 photographs packs/art-direction/photos/trail-bierstadt-lake.jpg, packs/art-direction/photos/trail-forest-oberlibbach.jpg, packs/art-direction/photos/canyon-desert-view.jpg, packs/art-direction/photos/valley-belle-fourche.jpg, each recorded under its own heading in packs/art-direction/photos/ATTRIBUTION.md
 - Source URL: not applicable
 - Capture date: not applicable
 - Viewport: 1280x800
@@ -201,7 +201,7 @@ Every fixture here is rendered from a template in packs/art-direction/templates/
 - Rights basis: own work licensed under the pack license
 - Source: packs/art-direction/templates/mixed-rendering-styles--4.html, defect=on
 - License: MIT
-- Attribution text: none
+- Attribution text: none required; shows the CC0 photograph packs/art-direction/photos/prairie-frenchman-river.jpg, each recorded under its own heading in packs/art-direction/photos/ATTRIBUTION.md
 - Source URL: not applicable
 - Capture date: not applicable
 - Viewport: 1280x800
