@@ -101,6 +101,13 @@ describe("plugin manifest", () => {
   });
 });
 
+describe("no hook (FR-68 is removed)", () => {
+  it("plugin.json has no hooks key and plugin/hooks/ does not exist", () => {
+    expect(Object.hasOwn(MANIFEST, "hooks")).toBe(false);
+    expect(existsSync(join(PLUGIN_FOLDER, "hooks"))).toBe(false);
+  });
+});
+
 describe("plugin skills", () => {
   const skillsFolder = join(PLUGIN_FOLDER, "skills");
   const skillFolderNames = readdirSync(skillsFolder).filter((entry) =>

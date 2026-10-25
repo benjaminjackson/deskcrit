@@ -7,7 +7,7 @@ This plugin gives Claude Code the `crit-loop` skill. The skill tells a coding ag
 ## Install
 
 1. Install Node.js 22 or later.
-2. Make the `crit` command available. Until the `deskcrit` package is published to npm, build it from a clone of this repository:
+2. Make the `crit` command available. The repository `benjaminjackson/deskcrit` is private for now, so the clone below and `/plugin marketplace add` in step 5 need read access to it and git credentials for GitHub. Until the `deskcrit` package is published to npm, build it from a clone of this repository:
 
    ```sh
    git clone https://github.com/benjaminjackson/deskcrit.git
