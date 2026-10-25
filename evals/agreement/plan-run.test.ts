@@ -7,6 +7,7 @@ import {
   findRewordedCriteria,
   keepCurrentAnswers,
   type LivePlanInput,
+  olderAnswerCriteriaOf,
   type PlanCriterion,
   type PlanFixture,
   planLiveRun,
@@ -55,12 +56,18 @@ function scoredFixture(fixture: string, criteria: string[]): PlanFixture {
         questionIds: criteria,
       },
     ],
+    olderAnswerCriteria: [],
   };
 }
 
 /** A fixture with no saved answers file. */
 function newFixture(fixture: string): PlanFixture {
-  return { fixture, pngSha256: pngHashOf(fixture), savedFiles: [] };
+  return {
+    fixture,
+    pngSha256: pngHashOf(fixture),
+    savedFiles: [],
+    olderAnswerCriteria: [],
+  };
 }
 
 /** Every fixture path of these criteria. */
@@ -443,6 +450,7 @@ describe("a reworded criterion (EV-4 rule 5, R-4, crit-q25.23)", () => {
         fixture,
         pngSha256: pngHashOf(fixture),
         savedFiles: [current.savedFile],
+        olderAnswerCriteria: olderAnswerCriteriaOf(current.questionIdsToDrop),
       });
     }
     return {
@@ -619,9 +627,8 @@ describe("a reworded criterion (EV-4 rule 5, R-4, crit-q25.23)", () => {
     ];
     const planFixtures: PlanFixture[] = [];
     for (const [index, fixture] of fixtures.entries()) {
-      const savedFiles: SavedAnswersFile[] = [
-        keepCurrentAnswers(firstFile(fixture), currentQuestions).savedFile,
-      ];
+      const first = keepCurrentAnswers(firstFile(fixture), currentQuestions);
+      const savedFiles: SavedAnswersFile[] = [first.savedFile];
       if (index < answeredFixtures) {
         savedFiles.push(
           keepCurrentAnswers(secondFile(fixture), currentQuestions).savedFile,
@@ -631,6 +638,7 @@ describe("a reworded criterion (EV-4 rule 5, R-4, crit-q25.23)", () => {
         fixture,
         pngSha256: pngHashOf(fixture),
         savedFiles,
+        olderAnswerCriteria: olderAnswerCriteriaOf(first.questionIdsToDrop),
       });
     }
     return {
@@ -673,6 +681,39 @@ describe("a reworded criterion (EV-4 rule 5, R-4, crit-q25.23)", () => {
     expect(() =>
       planLiveRun({ ...halfRewordedInput(2), rerunSameSet: true }),
     ).toThrow(/--rerun-same-set cannot score the reworded demo\/B/);
+  });
+
+  it("still refuses a finished reworded criterion that lost every answer on its own scored fixture", () => {
+    // B's rewording is finished. B.positive.png lost all its files, so it has no answer to B at
+    // all, which is not a rewording pair. A new criterion C with a new fixture changes the set.
+    const finished = halfRewordedInput(4);
+    const withNewCriterion: PlanCriterion = {
+      criterion: "demo/C",
+      positive: ["fixtures/C.positive.png"],
+      negative: [],
+    };
+    const fixtures: PlanFixture[] = [];
+    for (const fixture of finished.fixtures) {
+      if (fixture.fixture === "fixtures/B.positive.png") {
+        fixtures.push(newFixture(fixture.fixture));
+      } else {
+        fixtures.push(fixture);
+      }
+    }
+    fixtures.push(newFixture("fixtures/C.positive.png"));
+    expect(() =>
+      planLiveRun({
+        ...finished,
+        criteria: [...criteria, withNewCriterion],
+        fixtures,
+        currentSetPngHashes: [
+          ...(finished.currentSetPngHashes ?? []),
+          pngHashOf("fixtures/C.positive.png"),
+        ],
+      }),
+    ).toThrow(
+      /demo\/B has never been scored on its own fixture fixtures\/B\.positive\.png/,
+    );
   });
 
   it("plans --rerun-same-set as before once the reworded criterion is answered on every fixture", () => {
@@ -876,6 +917,10 @@ describe("a criterion respelled from British to US spelling (R-4, crit-q25.24)",
         fixture,
         pngSha256: pngHashOf(fixture),
         savedFiles: [current.savedFile],
+        olderAnswerCriteria: olderAnswerCriteriaOf(
+          current.questionIdsToDrop,
+          respelling,
+        ),
       });
     }
     return {

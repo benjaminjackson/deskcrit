@@ -676,6 +676,45 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
     expect(hashFiles(answersDirectory)).toEqual(afterResume);
   });
 
+  it("repeats with --rerun-same-set a broken run on a changed set after a finished rewording", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+    const reworded: TestCriterion = {
+      ...SECOND,
+      instructions: "In the image at screenshot: Does the second defect show?",
+    };
+    await writePack(packDirectory, [FIRST, reworded]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+
+    // A new criterion changes the set, and the run that asks it breaks after 2 fixtures.
+    await writePack(packDirectory, [FIRST, reworded, THIRD]);
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], {
+        ...options,
+        runCrit: failAfterCalls(2),
+      }),
+    ).rejects.toThrow(/crit exited 2/);
+
+    // The set is now recorded as scored, so a normal live run is refused.
+    failure.fail = false;
+    askedQuestionIds.length = 0;
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], options),
+    ).rejects.toThrow(/already scored this fixture set/);
+    expect(askedQuestionIds).toEqual([]);
+
+    // No rewording pair is left, so --rerun-same-set repeats the broken run.
+    await runHarness(
+      ["--live", "--rerun-same-set", "--pack", packDirectory],
+      options,
+    );
+    expect(askedQuestionIds).toHaveLength(6);
+    expect(fixturesWithSecondFile()).toEqual([]);
+    expect(
+      questionIdsIn(join(answersDirectory, "first.positive.png.answers.json")),
+    ).toEqual(["demo/first", "demo/second", "demo/third"]);
+  });
+
   it("resumes a respelled and renamed criterion whose run broke part way", async () => {
     // The British spellings in this test stand for the old question and id (CS-26).
     const british: TestCriterion = {
