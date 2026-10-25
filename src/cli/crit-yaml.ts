@@ -12,7 +12,7 @@ export const CRIT_YAML_FILE_NAME = ".crit.yaml";
 
 /**
  * The checked `.crit.yaml` settings, with the wire field names (CS-10, OQ-25 a). `screenshot`
- * belongs to the hook (FR-68) and `warn_fails_gate` to gate (FR-41); report keeps them and does
+ * belongs to the plugin skill (FR-51, FR-66) and `warn_fails_gate` to gate (FR-41); report keeps them and does
  * not act on them.
  */
 export type CritYaml = {
