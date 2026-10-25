@@ -5,8 +5,9 @@
 # ("many-coloured" became "many-colored") before any scored run.
 # Four pre-screened candidates are not encoded: photos-graded-inconsistently, image-stretched-or-pixelated,
 # flat-value-structure, and busy-texture-behind-content. GUIDELINES.md records why.
-# mixed-level-of-detail cites Apple HIG "Icons", checked on 2026-10-25, and has pass_when and warn_when
-# and no fail_when until the EV-5 run (crit-q25.15). mixed-rendering-styles has no published source that
+# mixed-level-of-detail cites Apple HIG "Icons", checked on 2026-10-25, scored at or
+# above the agreement floor in the EV-5 run (crit-q25.15), so it has pass_when and fail_when (EV-5,
+# crit-q25.28). mixed-rendering-styles has no published source that
 # states its rule, so it is Common sense and may only warn (FR-45).
 # Benjamin Jackson approved the fix hints and the reason sentence on 2026-10-25 (G-4).
 name: art-direction
@@ -25,7 +26,7 @@ criteria:
         "true": 'Icons shown together as one set mix very different levels of detail, so some are simple and plain while others are detailed and elaborate, and the set does not look like one family.'
         "false": 'Icons shown together as one set share a similar level of detail and style, or the page shows no set of icons.'
     pass_when: { probability_at_most: 0.3 }
-    warn_when: { probability_at_least: 0.7 }
+    fail_when: { probability_at_least: 0.7 }
     fix: 'Redraw or replace the odd icons so the whole set shares one level of detail: all simple outline glyphs, or all detailed illustrations, at one stroke weight (Apple Human Interface Guidelines, "Icons").'
     fixtures:
       positive:

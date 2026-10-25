@@ -381,19 +381,19 @@ These checks were in the earlier catalog, but no source this section may cite ho
 - **Rule:** UI component boundaries and states (input borders, icons that carry meaning, focus rings) and meaningful chart graphics are at least 3:1 against adjacent colors.
 - **Source:** W3C, *WCAG 2.2*, Success Criterion 1.4.11 Non-text Contrast (2023)
 - **Link:** https://www.w3.org/TR/WCAG22/#non-text-contrast
-- **Judged by:** askable as a visual judgment only. Jev is asked about borders, icons, or focus rings that look too faint to find. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Judged by:** not encoded. The accessibility section's "Non-text contrast" entry owns this rule, and its criterion `non-text-contrast-faint` was cut after the pre-screen (crit-q25.17), so the color pack does not ask it again.
 
 ### Do not use color alone to carry meaning
 - **Rule:** Any information shown by color (error state, chart series, link, required field) has a second cue such as text, icon, pattern, underline, or position.
 - **Source:** W3C, *WCAG 2.2*, Success Criterion 1.4.1 Use of Color (2023)
 - **Link:** https://www.w3.org/TR/WCAG22/#use-of-color
-- **Judged by:** askable.
+- **Judged by:** owned by the accessibility criterion `meaning-by-color-only`, which asks only about links in running text, so the color pack does not ask it again.
 
 ### Links distinguishable from surrounding text
 - **Rule:** Inline links that differ from body text only by color need at least 3:1 contrast against the body text color, plus a non-color cue (underline) on hover and focus. Underlining by default is safest.
 - **Source:** W3C, *Techniques for WCAG 2.2*, G183 and F73 (G183 gives the 3:1 figure; its current text does not mention a hover or focus cue, which is the older WCAG 2.0 wording, and F73 covers the failure case)
 - **Link:** https://www.w3.org/WAI/WCAG22/Techniques/general/G183
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** owned by the accessibility criterion `meaning-by-color-only`, so the color pack does not ask it again.
 
 ### Do not rely on the 4.5:1 ratio for dark backgrounds blindly
 - **Rule:** Light text on dark backgrounds often looks lower in contrast than the WCAG 2.x ratio suggests, and mid-tone pairs can pass 4.5:1 yet read poorly. Check light-on-dark text with APCA as well, and prefer clearly lighter weights and sizes.
@@ -813,7 +813,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Rule:** Error messages are in plain language, say what went wrong, say how to fix it, and appear next to the problem field with a visible non-color cue (icon, text), never a bare code.
 - **Source:** Nielsen, *10 Usability Heuristics* (1994); see also NN/g, "Error-Message Guidelines" (Tim Neusesser and Evan Sunwall, 2023).
 - **Link:** https://www.nngroup.com/articles/error-message-guidelines/
-- **Judged by:** askable.
+- **Judged by:** owned by the accessibility criterion `error-without-text`, so the ux pack does not ask it again.
 
 ### Nielsen 10: Help and documentation
 - **Rule:** Where the task is complex, help is findable and contextual (tooltip, hint text, link near the field) and short and task-focused.
@@ -991,7 +991,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 - **Rule:** Each field has a persistent visible label, placed above (or very close to) the field; the placeholder is not used as the only label.
 - **Source:** Luke Wroblewski, *Web Form Design: Filling in the Blanks* (2008); Matteo Penzo, "Label Placement in Forms," UXmatters (2006); NN/g, "Placeholders in Form Fields Are Harmful" (Katie Sherwin, 2014).
 - **Link:** https://www.nngroup.com/articles/form-design-placeholders/
-- **Judged by:** askable.
+- **Judged by:** owned by the accessibility criterion `field-label-placeholder-only`, so the ux pack does not ask it again.
 
 ### Forms: single column layout
 - **Rule:** Forms are one column with a clear top-to-bottom order; multiple fields per row only for short, tightly related pairs (city and zip, month and year).
@@ -1044,7 +1044,7 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 
 ## Data visualization
 
-Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and Taylor) and, where one exists, a page of Tufte's *The Visual Display of Quantitative Information*. Benjamin Jackson has not yet decided whether a dataviz criterion may cite a practice reference under FR-45, and no Tufte page has been checked, so each Tufte page is marked "page unchecked". The source of each encoded entry below is awaiting that decision.
+Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and Taylor) and, where one exists, a page of Tufte's *The Visual Display of Quantitative Information*. FR-45 lets the dataviz pack cite the standard references of its field, among them Wilke and Few (changed 2026-10-25, crit-q25.25). No Tufte page has been checked, so each Tufte page is marked "page unchecked".
 
 ### Maximize the data-ink ratio
 - **Rule:** Most of the ink in a chart encodes data; heavy gridlines, borders, fills, and decoration that carry no information are removed or muted.
