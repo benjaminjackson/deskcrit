@@ -11,14 +11,16 @@
 // <image>.answers-N.questions.json, with the SHA-256 of the question each criterion was asked, and
 // it adds every question it asks to asked-question-sha256.txt (crit-q25.23). A criterion whose
 // question changed under the same id is reworded and is asked again about every fixture; a second
-// rewording is refused (R-4). Replay mode (`npm run eval:agreement`) scores every saved file with
+// rewording is refused (R-4). A rewording run that breaks part way is repeated by a normal live run,
+// which asks only the fixtures with no answer to the new question. Replay mode (`npm run eval:agreement`) scores every saved file with
 // --answers against a pack of only the criteria that file answers to their current question,
 // needs no key, and makes no network call (EV-4 rule 5, FR-42).
 //
 // Usage: node evals/agreement/run-agreement.ts [--live] [--rerun-same-set] [--pack <dir>]...
 // A live run with no pair left to ask is refused, unless --rerun-same-set is passed, which asks
 // every pair again and replaces the saved answers. Pass it only to repeat a run that broke for a
-// technical reason, never to score a decided criterion again. A reworded criterion needs no flag.
+// technical reason, never to score a decided criterion again. A reworded criterion needs no flag,
+// and the flag is refused while a reworded criterion has a fixture with no answer to its question.
 // Without --pack it measures every first-party pack under packs/. Exit 0 when every fixture agrees,
 // 1 when any EV-4 fixture disagrees, and 2 when the harness could not run (FR-24).
 
@@ -891,7 +893,10 @@ function askedQuestionListPath(
 /**
  * Add the current question of every criterion the plans ask to the asked list, before the first
  * request, so a run that stops part way still counts its questions as asked and a later rewording
- * is counted against the one that R-4 allows (EV-4 rule 5).
+ * is counted against the one that R-4 allows (EV-4 rule 5). It must run before the first request:
+ * a run killed between a request and this write would leave a question asked but not listed, and
+ * the next run could then ask a third question. The next normal live run still finds such a
+ * criterion reworded, because the list holds its old and new questions (findRewordedCriteria).
  */
 function recordAskedQuestions(
   context: HarnessContext,
