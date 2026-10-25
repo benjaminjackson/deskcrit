@@ -1,0 +1,22 @@
+# A common-sense criterion also has pass_when, which makes it fail when no predicate matches (FR-45).
+# expect: /criteria/0 not
+name: example
+version: 1.0.0
+title: Example pack
+license: MIT
+criteria:
+  - id: actions-look-like-plain-text
+    title: An action looks like plain text
+    source: Common sense
+    reason: A person cannot use an action they do not see as one.
+    question:
+      type: noul
+      instructions: Does the image at image show an action, such as a button or link, that looks like plain text?
+      criteria:
+        true: An action looks the same as the plain text around it.
+        false: Every action looks different from plain text.
+    warn_when:
+      probability_at_least: 0.7
+    pass_when:
+      probability_at_most: 0.3
+    fix: Give each action a shape, color, or underline that plain text does not have.

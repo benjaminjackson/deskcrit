@@ -1,6 +1,6 @@
 {
   "title": "deskcrit pack",
-  "description": "The pack.yaml format, from the pack schema table in docs/PRD.md section 7.8. Written for JSON Schema 2020-12 and checked with Ajv2020; the $schema keyword is left out on purpose. A pack is data only: every object rejects fields the table does not define (FR-44, NFR-13). YAML tags and duplicate keys are rejected when the YAML is parsed (CS-4), not here. The loader or pack review checks what JSON Schema cannot: unique names and ids, folk-rule criteria that define warn_when only (FR-56), pass_when and fail_when pointing in opposite directions (FR-36), option names in option_is and option_in that match question.criteria, and level indexes that fit question.levels. No field has a default: the min_confidence default is a named constant in code (OQ-10, CS-15). The version of a standard goes in the source text, so there is no field for it (FR-57).",
+  "description": "The pack.yaml format, from the pack schema table in docs/PRD.md section 7.8. Written for JSON Schema 2020-12 and checked with Ajv2020; the $schema keyword is left out on purpose. A pack is data only: every object rejects fields the table does not define (FR-44, NFR-13). YAML tags and duplicate keys are rejected when the YAML is parsed (CS-4), not here. The loader or pack review checks what JSON Schema cannot: unique names and ids, folk-rule criteria that define warn_when only (FR-56), whether a source states the rule it is cited for (FR-45), pass_when and fail_when pointing in opposite directions (FR-36), option names in option_is and option_in that match question.criteria, and level indexes that fit question.levels. A criterion whose source is Common sense needs a reason and warn_when, and has no fail_when or pass_when, so it can only warn (FR-45). No field has a default: the min_confidence default is a named constant in code (OQ-10, CS-15). The version of a standard goes in the source text, so there is no field for it (FR-57).",
   "type": "object",
   "required": ["name", "version", "title", "license", "criteria"],
   "additionalProperties": false,
@@ -57,7 +57,7 @@
           "minLength": 1
         },
         "source": {
-          "description": "Book, standard, or paper cited. For a standard, include its version, for example W3C, WCAG 2.2, Success Criterion 1.4.3 (FR-57).",
+          "description": "Book, standard, or paper cited, which must state the rule. For a standard, include its version, for example W3C, WCAG 2.2, Success Criterion 1.4.3 (FR-57). The exact value Common sense marks a criterion with no published source: it then needs reason and warn_when, and may not have fail_when or pass_when (FR-45).",
           "type": "string",
           "minLength": 1
         },
@@ -91,6 +91,11 @@
           "type": "array",
           "items": { "type": "string", "pattern": "^facts\\." }
         },
+        "reason": {
+          "description": "One plain sentence that says why a Common sense criterion holds, written by a person and approved with the fix hints (FR-45, G-4). Required when source is Common sense.",
+          "type": "string",
+          "minLength": 1
+        },
         "fix": {
           "description": "Fix hint written by a person.",
           "type": "string",
@@ -111,6 +116,20 @@
             "properties": { "locate": { "const": true } }
           },
           "then": { "required": ["locate_instructions"] }
+        },
+        {
+          "if": {
+            "type": "object",
+            "required": ["source"],
+            "properties": { "source": { "const": "Common sense" } }
+          },
+          "then": {
+            "required": ["reason", "warn_when"],
+            "allOf": [
+              { "not": { "required": ["fail_when"] } },
+              { "not": { "required": ["pass_when"] } }
+            ]
+          }
         },
         {
           "if": {

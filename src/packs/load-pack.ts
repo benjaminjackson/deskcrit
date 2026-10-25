@@ -241,6 +241,11 @@ function convertSchemaError(error: ErrorObject, data: unknown): PackProblem {
     if (forbiddenField !== undefined) {
       pathSegments.push(forbiddenField);
       message = "is not allowed for this question type";
+      // The only not rule on fail_when or pass_when is the common-sense rule: such a criterion may only warn (FR-45).
+      if (forbiddenField === "fail_when" || forbiddenField === "pass_when") {
+        message =
+          "is not allowed on a common-sense criterion, which may only warn (FR-45)";
+      }
     }
   } else if (
     error.keyword === "minProperties" ||
