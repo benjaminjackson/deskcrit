@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  findUnlabelledPairs,
+  findUnlabeledPairs,
   MINIMUM_PAIRS,
-  readLabelledPairs,
+  readLabeledPairs,
 } from "./compare-labels.ts";
 
 /** Build `count` valid label entries as plain objects, each with its own two images and a preference of same. */
@@ -30,11 +30,11 @@ function entriesWithFirst(
 }
 
 /** Check the entries as the label file text. */
-function read(entries: unknown): ReturnType<typeof readLabelledPairs> {
-  return readLabelledPairs("labels.json", JSON.stringify(entries));
+function read(entries: unknown): ReturnType<typeof readLabeledPairs> {
+  return readLabeledPairs("labels.json", JSON.stringify(entries));
 }
 
-describe("readLabelledPairs", () => {
+describe("readLabeledPairs", () => {
   it("accepts thirty valid pairs, a null preference, and an empty target list", () => {
     const entries = entriesWithFirst({ preference: null, targets: [] });
     const pairs = read(entries);
@@ -55,10 +55,10 @@ describe("readLabelledPairs", () => {
   });
 
   it("rejects text that is not JSON or not a list", () => {
-    expect(() => readLabelledPairs("labels.json", "{")).toThrow(
+    expect(() => readLabeledPairs("labels.json", "{")).toThrow(
       "not valid JSON",
     );
-    expect(() => readLabelledPairs("labels.json", "{}")).toThrow(
+    expect(() => readLabeledPairs("labels.json", "{}")).toThrow(
       "must hold a JSON list",
     );
   });
@@ -133,11 +133,11 @@ describe("readLabelledPairs", () => {
   });
 });
 
-describe("findUnlabelledPairs", () => {
+describe("findUnlabeledPairs", () => {
   it("names every pair whose preference is null, in file order", () => {
     const entries = validEntries(MINIMUM_PAIRS);
     entries[2] = { ...entries[2], preference: null };
     entries[0] = { ...entries[0], preference: null };
-    expect(findUnlabelledPairs(read(entries))).toEqual(["pair-1", "pair-3"]);
+    expect(findUnlabeledPairs(read(entries))).toEqual(["pair-1", "pair-3"]);
   });
 });

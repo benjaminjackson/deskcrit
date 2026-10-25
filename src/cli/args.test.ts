@@ -19,7 +19,7 @@ describe("parseReportArguments", () => {
       "--pack",
       "./b",
       "--context",
-      "purpose=poster seen from three metres",
+      "purpose=poster seen from three meters",
       "--context",
       "platform=web",
       "--facts",
@@ -30,7 +30,7 @@ describe("parseReportArguments", () => {
       imagePath: "home.png",
       packDirectories: ["./a", "./b"],
       contextFlags: {
-        purpose: "poster seen from three metres",
+        purpose: "poster seen from three meters",
         platform: "web",
       },
       factsPath: "facts.json",
@@ -86,13 +86,13 @@ describe("parseReportArguments", () => {
     },
     {
       name: "an unknown flag",
-      argv: ["report", "x.png", "--colour"],
-      message: "--colour",
+      argv: ["report", "x.png", "--color"],
+      message: "--color",
     },
     {
       name: "an unknown flag, in crit's own words (NFR-1)",
-      argv: ["report", "x.png", "--colour=red"],
-      message: "unknown option --colour\nusage: crit report <image>",
+      argv: ["report", "x.png", "--color=red"],
+      message: "unknown option --color\nusage: crit report <image>",
     },
     {
       name: "an unknown short flag",
@@ -132,8 +132,8 @@ describe("parseReportArguments", () => {
     },
     {
       name: "an unknown context key",
-      argv: ["report", "x.png", "--context", "colour=red"],
-      message: "unknown key colour",
+      argv: ["report", "x.png", "--context", "color=red"],
+      message: "unknown key color",
     },
   ];
   for (const badCommandLine of badCommandLines) {
@@ -322,8 +322,8 @@ describe("parseCompareArguments (FR-42, FR-60)", () => {
     expect(compareError(["compare", "a.png", "b.png", "c.png"])).toBe(
       `unexpected argument c.png; give each --context pair its own flag\n${COMPARE_USAGE}`,
     );
-    expect(compareError(["compare", "a.png", "b.png", "--colour"])).toBe(
-      `unknown option --colour\n${COMPARE_USAGE}`,
+    expect(compareError(["compare", "a.png", "b.png", "--color"])).toBe(
+      `unknown option --color\n${COMPARE_USAGE}`,
     );
     expect(
       compareError([

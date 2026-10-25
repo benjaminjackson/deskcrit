@@ -9,6 +9,7 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
+  renameSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -18,6 +19,7 @@ import sharp from "sharp";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createStubAdapter } from "../../src/ask/stub.ts";
 import { main as critMain } from "../../src/cli/main.ts";
+import { hashCriterionQuestion } from "./question-hash.ts";
 import {
   type CritRun,
   type CritRunner,
@@ -27,14 +29,14 @@ import {
 } from "./run-agreement.ts";
 
 /**
- * One criterion of the test pack: its id, a background colour for each of its two fixtures, the
+ * One criterion of the test pack: its id, a background color for each of its two fixtures, the
  * start of its fixture file names, which is the id unless a test renames the criterion, and its
  * question text, which a test changes to reword the criterion.
  */
 type TestCriterion = {
   readonly id: string;
-  readonly positiveColour: string;
-  readonly negativeColour: string;
+  readonly positiveColor: string;
+  readonly negativeColor: string;
   readonly fixtureStem?: string;
   readonly instructions?: string;
 };
@@ -46,18 +48,18 @@ function fixtureStemOf(criterion: TestCriterion): string {
 
 const FIRST: TestCriterion = {
   id: "first",
-  positiveColour: "#ff0000",
-  negativeColour: "#00ff00",
+  positiveColor: "#ff0000",
+  negativeColor: "#00ff00",
 };
 const SECOND: TestCriterion = {
   id: "second",
-  positiveColour: "#0000ff",
-  negativeColour: "#ffff00",
+  positiveColor: "#0000ff",
+  negativeColor: "#ffff00",
 };
 const THIRD: TestCriterion = {
   id: "third",
-  positiveColour: "#ff00ff",
-  negativeColour: "#00ffff",
+  positiveColor: "#ff00ff",
+  negativeColor: "#00ffff",
 };
 
 /** Return the pack.yaml text of a pack named demo with these criteria (FR-44, PRD 7.8). */
@@ -109,8 +111,8 @@ async function writePack(
   const records: { fixture: string; png_sha256: string }[] = [];
   for (const criterion of criteria) {
     const images = [
-      { kind: "positive", colour: criterion.positiveColour },
-      { kind: "negative", colour: criterion.negativeColour },
+      { kind: "positive", color: criterion.positiveColor },
+      { kind: "negative", color: criterion.negativeColor },
     ];
     for (const image of images) {
       const fileName = `${fixtureStemOf(criterion)}.${image.kind}.png`;
@@ -119,7 +121,7 @@ async function writePack(
           width: 400,
           height: 300,
           channels: 3,
-          background: image.colour,
+          background: image.color,
         },
       })
         .png()
@@ -181,6 +183,22 @@ function hashFiles(directory: string): Map<string, string> {
     hashes.set(fileName, createHash("sha256").update(bytes).digest("hex"));
   }
   return hashes;
+}
+
+/** Return the hash of a test criterion's question as packYaml writes it (EV-4 rule 5, crit-q25.23). */
+function questionSha256Of(criterion: TestCriterion): string {
+  return hashCriterionQuestion({
+    question: {
+      type: "noul",
+      instructions:
+        criterion.instructions ??
+        `In the image at screenshot: Is the ${criterion.id} defect there?`,
+      criteria: {
+        true: `The ${criterion.id} defect is there.`,
+        false: `The ${criterion.id} defect is not there.`,
+      },
+    },
+  });
 }
 
 /** Return the question ids recorded in one answers file. */
@@ -482,6 +500,86 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
       /demo\/second .*R-4 allows one rewording per criterion id/,
     );
     expect(askedQuestionIds).toEqual([]);
+    expect(hashFiles(answersDirectory)).toEqual(after);
+  });
+
+  it("asks a respelled and renamed criterion again on every fixture and replays only its new answers", async () => {
+    // The British spellings in this test stand for the old question and id (CS-26).
+    const british: TestCriterion = {
+      id: "colour-check",
+      positiveColor: "#123456",
+      negativeColor: "#654321",
+      instructions: "In the image at screenshot: Is the colour wrong?",
+    };
+    const us: TestCriterion = {
+      id: "color-check",
+      positiveColor: british.positiveColor,
+      negativeColor: british.negativeColor,
+      instructions: "In the image at screenshot: Is the color wrong?",
+    };
+    await writePack(packDirectory, [british, SECOND]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+
+    // Rename the fixtures and their saved files, as git mv does, with the bytes unchanged.
+    const fixturesDirectory = join(packDirectory, "fixtures");
+    for (const kind of ["positive", "negative"]) {
+      renameSync(
+        join(fixturesDirectory, `colour-check.${kind}.png`),
+        join(fixturesDirectory, `color-check.${kind}.png`),
+      );
+      for (const suffix of ["answers.json", "answers.questions.json"]) {
+        renameSync(
+          join(answersDirectory, `colour-check.${kind}.png.${suffix}`),
+          join(answersDirectory, `color-check.${kind}.png.${suffix}`),
+        );
+      }
+    }
+    await writePack(packDirectory, [us, SECOND]);
+    const before = hashFiles(answersDirectory);
+    const respelledOptions: HarnessOptions = {
+      ...options,
+      respelling: {
+        questions: [
+          {
+            criterion: "demo/color-check",
+            britishQuestionSha256: questionSha256Of(british),
+            usQuestionSha256: questionSha256Of(us),
+          },
+        ],
+        criterionIds: new Map([["demo/colour-check", "demo/color-check"]]),
+      },
+    };
+
+    // Without the map the rename is refused before any request.
+    askedQuestionIds.length = 0;
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], options),
+    ).rejects.toThrow(/already scored this fixture set/);
+    expect(askedQuestionIds).toEqual([]);
+
+    await runHarness(["--live", "--pack", packDirectory], respelledOptions);
+    expect(askedQuestionIds).toEqual([
+      ["demo/color-check"],
+      ["demo/color-check"],
+      ["demo/color-check"],
+      ["demo/color-check"],
+    ]);
+    const after = hashFiles(answersDirectory);
+    for (const [fileName, hash] of before) {
+      expect(after.get(fileName)).toBe(hash);
+    }
+
+    askedQuestionIds.length = 0;
+    const replay = await runHarness(
+      ["--pack", packDirectory],
+      respelledOptions,
+    );
+    expect(askedQuestionIds).toEqual([]);
+    expect(replay.text).not.toContain("not asked  ");
+    expect(replay.text).not.toContain("demo/colour-check");
+    expect(
+      replay.text.match(/demo\/color-check +(positive|negative)/g),
+    ).toHaveLength(2);
     expect(hashFiles(answersDirectory)).toEqual(after);
   });
 

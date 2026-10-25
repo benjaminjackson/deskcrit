@@ -97,7 +97,7 @@ export async function prepareImage(
   if (fitted.scaleFactor < MIN_SCALE_FACTOR) {
     throw new CouldNotRunError(TOO_LARGE_MESSAGE);
   }
-  // Pad a side under MIN_SIDE_PIXELS with the page's top-left colour at the
+  // Pad a side under MIN_SIDE_PIXELS with the page's top-left color at the
   // bottom and right (FR-8).
   const finalWidth = Math.max(fitted.width, MIN_SIDE_PIXELS);
   const finalHeight = Math.max(fitted.height, MIN_SIDE_PIXELS);
@@ -126,7 +126,7 @@ export async function prepareImage(
       left: 0,
       right: finalWidth - fitted.width,
       bottom: finalHeight - fitted.height,
-      background: readTopLeftColour(upright),
+      background: readTopLeftColor(upright),
     });
   }
   const encoded = await encodeImage(pipeline, format);
@@ -182,7 +182,7 @@ async function decodeUpright(imageBytes: Uint8Array): Promise<UprightPixels> {
   try {
     const result = await sharp(imageBytes, { failOn: "warning" })
       .autoOrient()
-      .toColourspace("srgb")
+      .toColorspace("srgb")
       .raw({ depth: "uchar" })
       .toBuffer({ resolveWithObject: true });
     return {
@@ -217,11 +217,11 @@ function fitWithinLimits(width: number, height: number): FittedSize {
 }
 
 /**
- * Reads the colour of the top-left pixel from the upright pixels, before any
- * resize blends it with its neighbours, for use as the flat padding colour.
+ * Reads the color of the top-left pixel from the upright pixels, before any
+ * resize blends it with its neighbors, for use as the flat padding color.
  * A PNG keeps its alpha, so the padding uses the pixel's alpha too (FR-8).
  */
-function readTopLeftColour(upright: UprightPixels): {
+function readTopLeftColor(upright: UprightPixels): {
   r: number;
   g: number;
   b: number;
@@ -231,7 +231,7 @@ function readTopLeftColour(upright: UprightPixels): {
   const second = upright.pixels[1] ?? 0;
   const third = upright.pixels[2] ?? 0;
   const fourth = upright.pixels[3] ?? 255;
-  // After the sRGB conversion there are 3 channels (colour) or 4 (colour and
+  // After the sRGB conversion there are 3 channels (color) or 4 (color and
   // alpha). sharp takes the background alpha from 0 to 1, not 0 to 255.
   if (upright.channels === 4) {
     return { r: first, g: second, b: third, alpha: fourth / 255 };
@@ -270,7 +270,7 @@ async function encodeImage(
           chromaSubsampling: "4:2:0",
           progressive: false,
           mozjpeg: false,
-          optimiseCoding: true,
+          optimizeCoding: true,
         })
         .toBuffer();
     default: {

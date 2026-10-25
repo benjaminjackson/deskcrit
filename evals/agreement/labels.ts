@@ -74,7 +74,7 @@ export function readLabels(
     const pair = `${fixture},${criterion}`;
     if (seenPairs.has(pair)) {
       throw new Error(
-        `${where}: ${fixture} and ${criterion} are already labelled`,
+        `${where}: ${fixture} and ${criterion} are already labeled`,
       );
     }
     seenPairs.add(pair);

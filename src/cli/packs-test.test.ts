@@ -40,7 +40,7 @@ function criterionYaml(
         false: The image is not red.
     fail_when:
       probability_at_least: 0.7
-    fix: Make it another colour.
+    fix: Make it another color.
 ${extraLines}    fixtures:
       positive:
 ${positive.map((path) => `        - ${path}`).join("\n")}
@@ -122,7 +122,7 @@ function makeSequenceAdapter(
   };
 }
 
-/** Write a 300 by 300 px PNG of one colour, so prepare accepts it. */
+/** Write a 300 by 300 px PNG of one color, so prepare accepts it. */
 async function writePng(path: string): Promise<void> {
   const bytes = await sharp({
     create: {

@@ -176,14 +176,14 @@ describe("min_confidence for choice and score (FR-27, OQ-10)", () => {
   });
 
   test("with no min_confidence, confidence 0.49 gives uncertain and 0.5 does not", () => {
-    const criterion = choiceCriterion(["left", "centre"], {
+    const criterion = choiceCriterion(["left", "center"], {
       pass_when: { option_is: "left" },
     });
     expect(
-      decideVerdict(criterion, choiceAnswer({ left: 0.9, centre: 0.1 }, 0.49)),
+      decideVerdict(criterion, choiceAnswer({ left: 0.9, center: 0.1 }, 0.49)),
     ).toBe("uncertain");
     expect(
-      decideVerdict(criterion, choiceAnswer({ left: 0.9, centre: 0.1 }, 0.5)),
+      decideVerdict(criterion, choiceAnswer({ left: 0.9, center: 0.1 }, 0.5)),
     ).toBe("pass");
   });
 
@@ -227,7 +227,7 @@ describe("each predicate at its boundary (FR-25 predicate table)", () => {
   }
   const noul = noulCriterion({});
   const score = scoreCriterion({});
-  const choice = choiceCriterion(["left", "centre", "right"], {});
+  const choice = choiceCriterion(["left", "center", "right"], {});
 
   test("probability_at_least matches at and above n, not below", () => {
     const predicate = { probability_at_least: 0.8 };
@@ -258,37 +258,37 @@ describe("each predicate at its boundary (FR-25 predicate table)", () => {
   });
 
   test("option_is matches only the named option", () => {
-    const predicate = { option_is: "centre" };
+    const predicate = { option_is: "center" };
     expect(
       failVerdict(
         choice,
         predicate,
-        choiceAnswer({ left: 0.1, centre: 0.8, right: 0.1 }),
+        choiceAnswer({ left: 0.1, center: 0.8, right: 0.1 }),
       ),
     ).toBe("fail");
     expect(
       failVerdict(
         choice,
         predicate,
-        choiceAnswer({ left: 0.8, centre: 0.1, right: 0.1 }),
+        choiceAnswer({ left: 0.8, center: 0.1, right: 0.1 }),
       ),
     ).toBe("pass");
   });
 
   test("option_in matches any of the named options", () => {
-    const predicate = { option_in: ["centre", "right"] };
+    const predicate = { option_in: ["center", "right"] };
     expect(
       failVerdict(
         choice,
         predicate,
-        choiceAnswer({ left: 0.1, centre: 0.1, right: 0.8 }),
+        choiceAnswer({ left: 0.1, center: 0.1, right: 0.8 }),
       ),
     ).toBe("fail");
     expect(
       failVerdict(
         choice,
         predicate,
-        choiceAnswer({ left: 0.8, centre: 0.1, right: 0.1 }),
+        choiceAnswer({ left: 0.8, center: 0.1, right: 0.1 }),
       ),
     ).toBe("pass");
   });
@@ -311,8 +311,8 @@ describe("readVerdictValue (FR-25 step 2)", () => {
   });
 
   test("choice reads the most probable option", () => {
-    const criterion = choiceCriterion(["left", "centre", "right"], {});
-    const answer = choiceAnswer({ left: 0.2, centre: 0.3, right: 0.5 });
+    const criterion = choiceCriterion(["left", "center", "right"], {});
+    const answer = choiceAnswer({ left: 0.2, center: 0.3, right: 0.5 });
     expect(readVerdictValue(criterion, answer)).toEqual({
       type: "choice",
       option: "right",
@@ -350,10 +350,10 @@ describe("readVerdictValue (FR-25 step 2)", () => {
     expect(() =>
       readVerdictValue(scoreCriterion({}), scoreAnswer({ "0": 0.5, "1": 0.5 })),
     ).toThrow(/level 2/);
-    const criterion = choiceCriterion(["left", "centre"], {});
+    const criterion = choiceCriterion(["left", "center"], {});
     expect(() =>
       readVerdictValue(criterion, choiceAnswer({ left: 1 })),
-    ).toThrow(/centre/);
+    ).toThrow(/center/);
   });
 });
 
@@ -416,7 +416,7 @@ describe("determinism and inputs", () => {
   });
 
   test("a mismatched answer below min_confidence throws instead of giving uncertain", () => {
-    const criterion = choiceCriterion(["left", "centre"], {
+    const criterion = choiceCriterion(["left", "center"], {
       pass_when: { option_is: "left" },
     });
     expect(() =>

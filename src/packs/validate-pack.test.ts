@@ -161,7 +161,7 @@ describe("validatePackText", () => {
 
   it("returns the schema phase for an unknown field, and no fixture problems", () => {
     const result = validatePackText(
-      writePack([writeCriterion("faint", ["    colour: red"])]),
+      writePack([writeCriterion("faint", ["    color: red"])]),
       existingFiles,
     );
     expect(result.phase).toBe("schema");

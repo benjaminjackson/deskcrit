@@ -8,26 +8,26 @@ import {
   prepareImage,
 } from "./prepare.js";
 
-const GREY = { r: 128, g: 128, b: 128, alpha: 1 };
+const GRAY = { r: 128, g: 128, b: 128, alpha: 1 };
 const TOP_LEFT_RED = { r: 200, g: 10, b: 20, alpha: 1 };
 
-/** Makes a PNG of one flat colour, for tests that only care about size. */
+/** Makes a PNG of one flat color, for tests that only care about size. */
 async function makeFlatPng(width: number, height: number): Promise<Uint8Array> {
   const buffer = await sharp({
-    create: { width, height, channels: 3, background: GREY },
+    create: { width, height, channels: 3, background: GRAY },
   })
     .png()
     .toBuffer();
   return new Uint8Array(buffer);
 }
 
-/** Makes a JPEG of one flat colour, for tests that only care about size. */
+/** Makes a JPEG of one flat color, for tests that only care about size. */
 async function makeFlatJpeg(
   width: number,
   height: number,
 ): Promise<Uint8Array> {
   const buffer = await sharp({
-    create: { width, height, channels: 3, background: GREY },
+    create: { width, height, channels: 3, background: GRAY },
   })
     .jpeg()
     .toBuffer();
@@ -35,8 +35,8 @@ async function makeFlatJpeg(
 }
 
 /**
- * Makes a grey PNG whose top-left 4 by 4 block is red, so a test can tell
- * the padding colour came from the top-left pixel and not from the rest.
+ * Makes a gray PNG whose top-left 4 by 4 block is red, so a test can tell
+ * the padding color came from the top-left pixel and not from the rest.
  */
 async function makePngWithRedCorner(
   width: number,
@@ -48,7 +48,7 @@ async function makePngWithRedCorner(
     .png()
     .toBuffer();
   const buffer = await sharp({
-    create: { width, height, channels: 3, background: GREY },
+    create: { width, height, channels: 3, background: GRAY },
   })
     .composite([{ input: corner, top: 0, left: 0 }])
     .png()
@@ -59,7 +59,7 @@ async function makePngWithRedCorner(
   return new Uint8Array(opaque);
 }
 
-/** Reads the colour of one pixel of an encoded image as [r, g, b, ...]. */
+/** Reads the color of one pixel of an encoded image as [r, g, b, ...]. */
 async function readPixel(
   imageBytes: Uint8Array,
   x: number,
@@ -117,7 +117,7 @@ describe("validation (FR-5)", () => {
 
   test("rejects a GIF", async () => {
     const gif = await sharp({
-      create: { width: 400, height: 300, channels: 3, background: GREY },
+      create: { width: 400, height: 300, channels: 3, background: GRAY },
     })
       .gif()
       .toBuffer();
@@ -128,7 +128,7 @@ describe("validation (FR-5)", () => {
 
   test("rejects a WebP", async () => {
     const webp = await sharp({
-      create: { width: 400, height: 300, channels: 3, background: GREY },
+      create: { width: 400, height: 300, channels: 3, background: GRAY },
     })
       .webp()
       .toBuffer();
@@ -147,7 +147,7 @@ describe("validation (FR-5)", () => {
 describe("rotation and metadata (FR-6, NFR-7)", () => {
   test("turns a JPEG with orientation 6 upright and removes its EXIF", async () => {
     const rotatedJpeg = await sharp({
-      create: { width: 400, height: 300, channels: 3, background: GREY },
+      create: { width: 400, height: 300, channels: 3, background: GRAY },
     })
       .jpeg()
       .withMetadata({ orientation: 6 })
@@ -168,9 +168,9 @@ describe("rotation and metadata (FR-6, NFR-7)", () => {
     expect(outputMetadata.orientation).toBeUndefined();
   });
 
-  test("removes an embedded colour profile and XMP from a PNG", async () => {
+  test("removes an embedded color profile and XMP from a PNG", async () => {
     const pngWithMetadata = await sharp({
-      create: { width: 400, height: 300, channels: 3, background: GREY },
+      create: { width: 400, height: 300, channels: 3, background: GRAY },
     })
       .png()
       .withMetadata({ icc: "p3" })
@@ -226,7 +226,7 @@ describe("resize and scale factor (FR-7, FR-8)", () => {
 });
 
 describe("padding (FR-8)", () => {
-  test("pads a 1568 by 100 strip to a height of 280 with the top-left colour", async () => {
+  test("pads a 1568 by 100 strip to a height of 280 with the top-left color", async () => {
     const prepared = await prepareImage(await makePngWithRedCorner(1568, 100));
     expect(prepared.width).toBe(1568);
     expect(prepared.height).toBe(MIN_SIDE_PIXELS);
@@ -234,9 +234,9 @@ describe("padding (FR-8)", () => {
     expect(prepared.padded).toBe(true);
     // The page stays at the top-left, so its red corner is still there.
     expect(await readPixel(prepared.bytes, 0, 0)).toEqual([200, 10, 20]);
-    // A pixel of the page that is not in the corner stays grey.
+    // A pixel of the page that is not in the corner stays gray.
     expect(await readPixel(prepared.bytes, 1000, 50)).toEqual([128, 128, 128]);
-    // The padding below the page has the top-left colour.
+    // The padding below the page has the top-left color.
     expect(await readPixel(prepared.bytes, 1567, 279)).toEqual([200, 10, 20]);
     expect(await readPixel(prepared.bytes, 1000, 150)).toEqual([200, 10, 20]);
   });
@@ -259,7 +259,7 @@ describe("padding (FR-8)", () => {
     expect(await readPixel(prepared.bytes, 279, 279)).toEqual([200, 10, 20]);
   });
 
-  test("pads a transparent PNG with the top-left colour and alpha", async () => {
+  test("pads a transparent PNG with the top-left color and alpha", async () => {
     const transparentPng = await sharp({
       create: {
         width: 600,

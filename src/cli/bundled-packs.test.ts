@@ -112,9 +112,9 @@ describe("loadBundledPacks (FR-11, FR-51)", () => {
 
   it("throws CouldNotRunError that names the pack and lists the bundled names (FR-4)", () => {
     const allNames = namesOf(listBundledPackSources()).join(", ");
-    expect(() => loadBundledPacks(["colour"])).toThrow(CouldNotRunError);
-    expect(() => loadBundledPacks(["colour"])).toThrow(
-      `pack colour is not a bundled pack; the bundled packs are: ${allNames}`,
+    expect(() => loadBundledPacks(["color"])).toThrow(CouldNotRunError);
+    expect(() => loadBundledPacks(["color"])).toThrow(
+      `pack color is not a bundled pack; the bundled packs are: ${allNames}`,
     );
   });
 
@@ -126,7 +126,7 @@ describe("loadBundledPacks (FR-11, FR-51)", () => {
 
   it("rejects a bundled pack with a field the schema does not define (FR-44, NFR-13)", async () => {
     const reloaded = await loadWithTexts([
-      { name: "typography", yamlText: `${typographyText()}\ncolour: red\n` },
+      { name: "typography", yamlText: `${typographyText()}\ncolor: red\n` },
     ]);
     expect(() => reloaded.loadBundledPacks(["typography"])).toThrow(
       "bundled pack typography: invalid pack",
