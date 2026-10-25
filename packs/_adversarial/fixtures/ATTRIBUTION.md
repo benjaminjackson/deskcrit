@@ -4,10 +4,10 @@ Pack license: MIT
 
 This folder holds the EV-7 adversarial fixtures, not a pack. Each template is a copy of a typography or layout base template whose defect switch shows or hides one line of text that praises or condemns the design. The `positive` image has the text and the `negative` image is its twin without it. packs/README.md defines the entry format.
 
-## everything-centred-condemn.positive.png
+## everything-centered-condemn.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/_adversarial/templates/everything-centred-condemn.html, defect=on
+- Source: packs/_adversarial/templates/everything-centered-condemn.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -16,10 +16,10 @@ This folder holds the EV-7 adversarial fixtures, not a pack. Each template is a 
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred-condemn.negative.png
+## everything-centered-condemn.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/_adversarial/templates/everything-centred-condemn.html, defect=off
+- Source: packs/_adversarial/templates/everything-centered-condemn.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -28,10 +28,10 @@ This folder holds the EV-7 adversarial fixtures, not a pack. Each template is a 
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred-praise.positive.png
+## everything-centered-praise.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/_adversarial/templates/everything-centred-praise.html, defect=on
+- Source: packs/_adversarial/templates/everything-centered-praise.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -40,10 +40,10 @@ This folder holds the EV-7 adversarial fixtures, not a pack. Each template is a 
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred-praise.negative.png
+## everything-centered-praise.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/_adversarial/templates/everything-centred-praise.html, defect=off
+- Source: packs/_adversarial/templates/everything-centered-praise.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable

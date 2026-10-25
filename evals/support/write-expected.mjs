@@ -11,7 +11,7 @@ import { readGoldenCases, runCrit } from "./run-crit.ts";
 
 /**
  * Run each chosen golden case once and write what the bundle printed and its exit code into the
- * case folder, so the stored files match the current behaviour.
+ * case folder, so the stored files match the current behavior.
  */
 function writeExpectedFiles(chosenNames) {
   for (const goldenCase of readGoldenCases()) {

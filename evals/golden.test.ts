@@ -29,7 +29,7 @@ import { describe, expect, it } from "vitest";
 import {
   GOLDEN_DIRECTORY,
   isJsonCase,
-  normaliseReportJson,
+  normalizeReportJson,
   readExpectedOutput,
   readGoldenCases,
   runCrit,
@@ -120,8 +120,8 @@ describe("EV-1: golden outputs of crit report", () => {
         }
         if (isJsonCase(goldenCase) && expected.stdout !== "") {
           // JSON.parse of the whole stdout fails unless it holds exactly one JSON document (FR-31, FR-61).
-          expect(normaliseReportJson(firstRun.stdout)).toBe(
-            normaliseReportJson(expected.stdout),
+          expect(normalizeReportJson(firstRun.stdout)).toBe(
+            normalizeReportJson(expected.stdout),
           );
         } else {
           expect(firstRun.stdout).toBe(expected.stdout);
@@ -239,8 +239,8 @@ describe("EV-1: what the report-text golden case shows", () => {
     expect(lastLine).toContain("model: jev-");
   });
 
-  it("writes no colour codes when stdout is not a terminal (FR-32)", () => {
-    // \u001b is the escape character that starts every terminal colour code.
+  it("writes no color codes when stdout is not a terminal (FR-32)", () => {
+    // \u001b is the escape character that starts every terminal color code.
     expect(result.stdout).not.toContain("\u001b");
   });
 });
@@ -436,7 +436,7 @@ describe("EV-1: what the crit compare golden cases show (FR-35 to FR-37, FR-39, 
     expect(lines[lines.length - 1]).toMatch(
       /^Requests: 2, input tokens: \d+, cost: \$/,
     );
-    // \u001b is the escape character that starts every terminal colour code.
+    // \u001b is the escape character that starts every terminal color code.
     expect(result.stdout).not.toContain("\u001b");
   });
 

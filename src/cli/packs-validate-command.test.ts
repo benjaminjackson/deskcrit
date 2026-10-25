@@ -103,13 +103,13 @@ describe("crit packs validate", () => {
   });
 
   it("reports a schema problem with exit 1", async () => {
-    writePackDirectory("    colour: red\n", []);
+    writePackDirectory("    color: red\n", []);
     const result = await runValidate("my-pack", workingDirectory);
     expect(result.stdout).toBe("");
     expect(result.stderr).toContain(
       "crit: my-pack/pack.yaml: criterion faint-body-text, field ",
     );
-    expect(result.stderr).toContain("colour");
+    expect(result.stderr).toContain("color");
     expect(result.exitCode).toBe(1);
   });
 

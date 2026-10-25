@@ -52,10 +52,10 @@ This folder holds the EV-9 before-and-after pairs, not a pack. Each template dra
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs.positive.png
+## centered-or-right-paragraphs.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/_compare-pairs/templates/centred-or-right-paragraphs.html, defect=on
+- Source: packs/_compare-pairs/templates/centered-or-right-paragraphs.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -64,10 +64,10 @@ This folder holds the EV-9 before-and-after pairs, not a pack. Each template dra
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs.negative.png
+## centered-or-right-paragraphs.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/_compare-pairs/templates/centred-or-right-paragraphs.html, defect=off
+- Source: packs/_compare-pairs/templates/centered-or-right-paragraphs.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -76,10 +76,10 @@ This folder holds the EV-9 before-and-after pairs, not a pack. Each template dra
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--2.positive.png
+## centered-or-right-paragraphs--2.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/_compare-pairs/templates/centred-or-right-paragraphs--2.html, defect=on
+- Source: packs/_compare-pairs/templates/centered-or-right-paragraphs--2.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -88,10 +88,10 @@ This folder holds the EV-9 before-and-after pairs, not a pack. Each template dra
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--2.negative.png
+## centered-or-right-paragraphs--2.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/_compare-pairs/templates/centred-or-right-paragraphs--2.html, defect=off
+- Source: packs/_compare-pairs/templates/centered-or-right-paragraphs--2.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -196,10 +196,10 @@ This folder holds the EV-9 before-and-after pairs, not a pack. Each template dra
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred.positive.png
+## everything-centered.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/_compare-pairs/templates/everything-centred.html, defect=on
+- Source: packs/_compare-pairs/templates/everything-centered.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -208,10 +208,10 @@ This folder holds the EV-9 before-and-after pairs, not a pack. Each template dra
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred.negative.png
+## everything-centered.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/_compare-pairs/templates/everything-centred.html, defect=off
+- Source: packs/_compare-pairs/templates/everything-centered.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -220,10 +220,10 @@ This folder holds the EV-9 before-and-after pairs, not a pack. Each template dra
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred--2.positive.png
+## everything-centered--2.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/_compare-pairs/templates/everything-centred--2.html, defect=on
+- Source: packs/_compare-pairs/templates/everything-centered--2.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -232,10 +232,10 @@ This folder holds the EV-9 before-and-after pairs, not a pack. Each template dra
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred--2.negative.png
+## everything-centered--2.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/_compare-pairs/templates/everything-centred--2.html, defect=off
+- Source: packs/_compare-pairs/templates/everything-centered--2.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable

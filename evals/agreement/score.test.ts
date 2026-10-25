@@ -169,7 +169,7 @@ describe("scoreAgreement", () => {
     expect(results).toEqual([
       {
         criterion: "typography/faint-body-text",
-        labelled: 10,
+        labeled: 10,
         agreed: 8,
         agreement: 0.8,
         uncertain: 1,
@@ -246,7 +246,7 @@ describe("scoreAgreement", () => {
     );
     expect(results[0]).toEqual({
       criterion: "typography/faint-body-text",
-      labelled: 1,
+      labeled: 1,
       agreed: 1,
       agreement: 1,
       uncertain: 0,
@@ -257,7 +257,7 @@ describe("scoreAgreement", () => {
   });
 
   it("gives null agreement and null meets_floor to a criterion with no scored labels", () => {
-    const results = scoreAgreement("typography", ["unlabelled"], [], new Map());
+    const results = scoreAgreement("typography", ["unlabeled"], [], new Map());
     expect(results[0]?.agreement).toBeNull();
     expect(results[0]?.meets_floor).toBeNull();
   });

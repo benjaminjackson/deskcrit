@@ -12,8 +12,10 @@ import {
   planLiveRun,
   planReplay,
   type RecordedAnswersFile,
+  type SavedAnswersFile,
 } from "./plan-run.ts";
 import type { AskedQuestionHash } from "./question-hash.ts";
+import { NO_RESPELLING, type Respelling } from "./spelling.ts";
 
 /** Two criteria, each with one positive and one negative fixture of its own. */
 const OLD_CRITERIA: PlanCriterion[] = [
@@ -599,5 +601,271 @@ describe("a reworded criterion (EV-4 rule 5, R-4, crit-q25.23)", () => {
     expect(
       answersFileNumber("a.png", "a.png.answers-2.questions.json"),
     ).toBeNull();
+  });
+});
+
+describe("a criterion respelled from British to US spelling (R-4, crit-q25.24)", () => {
+  // The British spellings in this block stand for the old question and id (CS-26).
+  const questionA = hashPngHashes(["question A"]);
+  const britishQuestionB = hashPngHashes(["Is the colour of B wrong?"]);
+  const usQuestionB = hashPngHashes(["Is the color of B wrong?"]);
+  const rewordedQuestionB = hashPngHashes(["Does B use the wrong color?"]);
+  const secondRewordingB = hashPngHashes(["Is B the wrong color?"]);
+
+  /** A respelled under its own id: B's question changed spelling only. */
+  const respelledInPlace: Respelling = {
+    questions: [
+      {
+        criterion: "demo/B",
+        britishQuestionSha256: britishQuestionB,
+        usQuestionSha256: usQuestionB,
+      },
+    ],
+    criterionIds: new Map<string, string>(),
+  };
+
+  /** B renamed from demo/colour-B to demo/color-B, and its question respelled. */
+  const respelledAndRenamed: Respelling = {
+    questions: [
+      {
+        criterion: "demo/color-B",
+        britishQuestionSha256: britishQuestionB,
+        usQuestionSha256: usQuestionB,
+      },
+    ],
+    criterionIds: new Map<string, string>([["demo/colour-B", "demo/color-B"]]),
+  };
+
+  /** The asked list after the first run, with B asked in British spelling under the given id. */
+  function askedBefore(criterionB: string): AskedQuestionHash[] {
+    return [
+      { questionSha256: questionA, criterion: "demo/A" },
+      { questionSha256: britishQuestionB, criterion: criterionB },
+    ];
+  }
+
+  it("asks a respelled question again without counting the British question as a rewording", () => {
+    const current = new Map<string, string>([
+      ["demo/A", questionA],
+      ["demo/B", usQuestionB],
+    ]);
+    expect(
+      findRewordedCriteria(
+        "demo",
+        current,
+        askedBefore("demo/B"),
+        true,
+        respelledInPlace,
+      ),
+    ).toEqual(["demo/B"]);
+  });
+
+  it("allows one real rewording after the respelling, then refuses the next", () => {
+    const askedAfterRespelling: AskedQuestionHash[] = [
+      ...askedBefore("demo/B"),
+      { questionSha256: usQuestionB, criterion: "demo/B" },
+    ];
+    const reworded = new Map<string, string>([
+      ["demo/A", questionA],
+      ["demo/B", rewordedQuestionB],
+    ]);
+    expect(
+      findRewordedCriteria(
+        "demo",
+        reworded,
+        askedAfterRespelling,
+        true,
+        respelledInPlace,
+      ),
+    ).toEqual(["demo/B"]);
+    // Without the respelling entry the same history already holds two questions, so it is refused.
+    expect(() =>
+      findRewordedCriteria("demo", reworded, askedAfterRespelling, true),
+    ).toThrow(/demo\/B .*R-4 allows one rewording per criterion id/);
+
+    const askedAfterRewording: AskedQuestionHash[] = [
+      ...askedAfterRespelling,
+      { questionSha256: rewordedQuestionB, criterion: "demo/B" },
+    ];
+    const rewordedAgain = new Map<string, string>([
+      ["demo/A", questionA],
+      ["demo/B", secondRewordingB],
+    ]);
+    expect(() =>
+      findRewordedCriteria(
+        "demo",
+        rewordedAgain,
+        askedAfterRewording,
+        true,
+        respelledInPlace,
+      ),
+    ).toThrow(/demo\/B .*R-4 allows one rewording per criterion id/);
+  });
+
+  it("counts the British question when the listed US question was never asked", () => {
+    // The current question is a real rewording, not the listed US question, so the British
+    // question and the earlier rewording both count, and a second rewording is refused.
+    const askedWithRewording: AskedQuestionHash[] = [
+      ...askedBefore("demo/B"),
+      { questionSha256: rewordedQuestionB, criterion: "demo/B" },
+    ];
+    const rewordedAgain = new Map<string, string>([
+      ["demo/A", questionA],
+      ["demo/B", secondRewordingB],
+    ]);
+    expect(() =>
+      findRewordedCriteria(
+        "demo",
+        rewordedAgain,
+        askedWithRewording,
+        true,
+        respelledInPlace,
+      ),
+    ).toThrow(/demo\/B .*R-4 allows one rewording per criterion id/);
+  });
+
+  /** Criteria A and the renamed B, each with one positive and one negative fixture of its own. */
+  const renamedCriteria: PlanCriterion[] = [
+    {
+      criterion: "demo/A",
+      positive: ["fixtures/A.positive.png"],
+      negative: ["fixtures/A.negative.png"],
+    },
+    {
+      criterion: "demo/color-B",
+      positive: ["fixtures/color-B.positive.png"],
+      negative: ["fixtures/color-B.negative.png"],
+    },
+  ];
+  const renamedCurrent = new Map<string, string>([
+    ["demo/A", questionA],
+    ["demo/color-B", usQuestionB],
+  ]);
+
+  /** The first answers file of a fixture: A, and B under its old id in British spelling. */
+  function firstFileBeforeRename(fixture: string): RecordedAnswersFile {
+    return {
+      fileName: `${fixture.slice("fixtures/".length)}.answers.json`,
+      imageSha256: pngHashOf(fixture),
+      questionIds: ["demo/A", "demo/colour-B"],
+      questionSha256ByCriterion: new Map([
+        ["demo/A", questionA],
+        ["demo/colour-B", britishQuestionB],
+      ]),
+    };
+  }
+
+  /** The live plan input after the rename, with every fixture scored once under the old id. */
+  function renamedInput(respelling: Respelling): LivePlanInput {
+    const fixtures = fixturesOf(renamedCriteria);
+    const planFixtures: PlanFixture[] = [];
+    for (const fixture of fixtures) {
+      const current = keepCurrentAnswers(
+        firstFileBeforeRename(fixture),
+        renamedCurrent,
+        respelling,
+      );
+      planFixtures.push({
+        fixture,
+        pngSha256: pngHashOf(fixture),
+        savedFiles: [current.savedFile],
+      });
+    }
+    return {
+      packName: "demo",
+      criteria: renamedCriteria,
+      fixtures: planFixtures,
+      currentSetPngHashes: fixtures.map(pngHashOf),
+      storedSetHash: hashPngHashes(fixtures.map(pngHashOf)),
+      scoredPngHashes: fixtures.map(pngHashOf),
+      rewordedCriteria: findRewordedCriteria(
+        "demo",
+        renamedCurrent,
+        askedBefore("demo/colour-B"),
+        true,
+        respelling,
+      ),
+      rerunSameSet: false,
+    };
+  }
+
+  it("lets a renamed id inherit the old id's question and asks it on every scored fixture", () => {
+    const input = renamedInput(respelledAndRenamed);
+    expect(input.rewordedCriteria).toEqual(["demo/color-B"]);
+    const plans = planLiveRun(input);
+    expect(plans.map((plan) => plan.criteria)).toEqual([
+      ["demo/color-B"],
+      ["demo/color-B"],
+      ["demo/color-B"],
+      ["demo/color-B"],
+    ]);
+    expect(plans.map((plan) => plan.answersFileName)).toEqual([
+      "A.positive.png.answers-2.json",
+      "A.negative.png.answers-2.json",
+      "color-B.positive.png.answers-2.json",
+      "color-B.negative.png.answers-2.json",
+    ]);
+  });
+
+  it("leaves the answers under the old id out of the replay", () => {
+    const currentFirst = keepCurrentAnswers(
+      firstFileBeforeRename("fixtures/A.positive.png"),
+      renamedCurrent,
+      respelledAndRenamed,
+    );
+    expect(currentFirst.questionIdsToDrop).toEqual(["demo/colour-B"]);
+    const secondFile: SavedAnswersFile = {
+      fileName: "A.positive.png.answers-2.json",
+      imageSha256: pngHashOf("fixtures/A.positive.png"),
+      questionIds: ["demo/color-B"],
+    };
+    expect(
+      planReplay(
+        "demo",
+        ["demo/A", "demo/color-B"],
+        "fixtures/A.positive.png",
+        [currentFirst.savedFile, secondFile],
+      ),
+    ).toEqual([
+      {
+        fileName: "A.positive.png.answers.json",
+        criteria: ["demo/A"],
+        coversWholePack: false,
+      },
+      {
+        fileName: "A.positive.png.answers-2.json",
+        criteria: ["demo/color-B"],
+        coversWholePack: false,
+      },
+    ]);
+  });
+
+  it("still refuses a rename that is not in the map", () => {
+    const input = renamedInput(NO_RESPELLING);
+    expect(input.rewordedCriteria).toEqual([]);
+    // The whole set is scored and no criterion is reworded, so the set guard refuses the run.
+    expect(() => planLiveRun(input)).toThrow(/already scored this fixture set/);
+    // With no stored set, the rule about a criterion's own scored fixtures refuses it.
+    expect(() =>
+      planLiveRun({
+        ...input,
+        currentSetPngHashes: null,
+        storedSetHash: null,
+      }),
+    ).toThrow(
+      /demo\/color-B has never been scored on its own fixture .*looks like a rewording/,
+    );
+    const currentFirst = keepCurrentAnswers(
+      firstFileBeforeRename("fixtures/A.positive.png"),
+      renamedCurrent,
+    );
+    expect(() =>
+      planReplay(
+        "demo",
+        ["demo/A", "demo/color-B"],
+        "fixtures/A.positive.png",
+        [currentFirst.savedFile],
+      ),
+    ).toThrow(/demo\/colour-B is not in the pack/);
   });
 });

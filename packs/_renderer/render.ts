@@ -348,7 +348,7 @@ async function takePageSnapshot(page: Page): Promise<PageSnapshot> {
       }
       // computedStyleMap does not reach pseudo-elements, so their styles come
       // from getComputedStyle. A defect drawn as a ::before stripe or a
-      // ::first-line grey is then compared too (FR-54 rule 3). A
+      // ::first-line gray is then compared too (FR-54 rule 3). A
       // pseudo-element that draws nothing is recorded as null: ::before and
       // ::after with no content, ::marker on an element that is not a list
       // item, and ::placeholder on anything but a field with a placeholder.
@@ -476,7 +476,7 @@ function readPackJobs(packFolder: string): RenderJob[] {
 /**
  * Splits the job list into positive and negative pairs. buildRenderJobs
  * writes each template's "on" job just before its "off" job, so the pairs are
- * neighbours; anything else is a bug in the job list.
+ * neighbors; anything else is a bug in the job list.
  */
 function pairJobs(jobs: RenderJob[]): [RenderJob, RenderJob][] {
   const pairs: [RenderJob, RenderJob][] = [];

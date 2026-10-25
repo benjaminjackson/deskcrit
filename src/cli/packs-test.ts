@@ -132,19 +132,19 @@ function verdictFired(verdict: Verdict): boolean {
 export function listFixtureJobs(pack: Pack): FixtureImageJob[] {
   const entriesByPath = new Map<string, FixtureEntry[]>();
   for (const criterion of pack.criteria) {
-    const labelledLists: { label: FixtureLabel; paths: readonly string[] }[] = [
+    const labeledLists: { label: FixtureLabel; paths: readonly string[] }[] = [
       // `?.` reads the list only when `fixtures` is present, and `??` gives [] when it is not.
       { label: "positive", paths: criterion.fixtures?.positive ?? [] },
       { label: "negative", paths: criterion.fixtures?.negative ?? [] },
     ];
-    for (const labelledList of labelledLists) {
-      for (const fixturePath of labelledList.paths) {
+    for (const labeledList of labeledLists) {
+      for (const fixturePath of labeledList.paths) {
         let entries = entriesByPath.get(fixturePath);
         if (entries === undefined) {
           entries = [];
           entriesByPath.set(fixturePath, entries);
         }
-        entries.push({ criterionId: criterion.id, label: labelledList.label });
+        entries.push({ criterionId: criterion.id, label: labeledList.label });
       }
     }
   }

@@ -9,7 +9,7 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { readLabelledPairs } from "./compare-labels.ts";
+import { readLabeledPairs } from "./compare-labels.ts";
 
 /** The repository root. Every image path in the label file is relative to it. */
 const REPOSITORY_ROOT = fileURLToPath(new URL("../../", import.meta.url));
@@ -32,7 +32,7 @@ const COMPARE_PAIRS_PACK_DIRECTORY = join(
 /** The largest fixture file FR-54 allows, in bytes. */
 const MAX_FIXTURE_BYTES = 2 * 1024 * 1024;
 
-const pairs = readLabelledPairs(
+const pairs = readLabeledPairs(
   "labels.json",
   readFileSync(LABELS_PATH, "utf8"),
 );

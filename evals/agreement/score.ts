@@ -11,7 +11,7 @@ import type { FixtureLabel } from "./labels.ts";
  */
 export const AGREEMENT_FLOOR = 0.8;
 
-/** The minimum number of labelled designs EV-5 needs across the first-party domains (EV-5, M-3). */
+/** The minimum number of labeled designs EV-5 needs across the first-party domains (EV-5, M-3). */
 export const EV5_MINIMUM_DESIGNS = 100;
 
 /** The seven first-party domains, one per pack (FR-55). EV-5 needs designs in each of them. */
@@ -68,9 +68,9 @@ export type FixtureTestRow = {
 export type CriterionAgreement = {
   readonly criterion: string;
   /** Labels of yes or no that have a verdict, so they are scored. */
-  readonly labelled: number;
+  readonly labeled: number;
   readonly agreed: number;
-  /** agreed / labelled, unrounded, or null when nothing was scored (CS-18). */
+  /** agreed / labeled, unrounded, or null when nothing was scored (CS-18). */
   readonly agreement: number | null;
   /** Scored labels whose verdict was uncertain, on a defect or a clean fixture (FR-27). */
   readonly uncertain: number;
@@ -82,14 +82,14 @@ export type CriterionAgreement = {
   readonly meets_floor: boolean | null;
 };
 
-/** The labelled designs in one domain: fixtures with at least one yes or no label (EV-5). */
+/** The labeled designs in one domain: fixtures with at least one yes or no label (EV-5). */
 export type DomainCoverage = {
   readonly domain: string;
   readonly designs: number;
   readonly cannot_tell: number;
 };
 
-/** How far the labelled set reaches toward the EV-5 minimum of 100 designs in seven domains. */
+/** How far the labeled set reaches toward the EV-5 minimum of 100 designs in seven domains. */
 export type Coverage = {
   readonly domains: readonly DomainCoverage[];
   readonly total_designs: number;
@@ -209,7 +209,7 @@ export function scoreAgreement(
   const results: CriterionAgreement[] = [];
   for (const criterionId of criterionIds) {
     const fullCriterion = `${packName}/${criterionId}`;
-    let labelled = 0;
+    let labeled = 0;
     let agreed = 0;
     let uncertain = 0;
     let cannotTell = 0;
@@ -227,7 +227,7 @@ export function scoreAgreement(
         notAsked += 1;
         continue;
       }
-      labelled += 1;
+      labeled += 1;
       if (verdict === "uncertain") {
         uncertain += 1;
       }
@@ -237,13 +237,13 @@ export function scoreAgreement(
     }
     let agreement: number | null = null;
     let meetsFloor: boolean | null = null;
-    if (labelled > 0) {
-      agreement = agreed / labelled;
+    if (labeled > 0) {
+      agreement = agreed / labeled;
       meetsFloor = agreement >= AGREEMENT_FLOOR;
     }
     results.push({
       criterion: fullCriterion,
-      labelled,
+      labeled,
       agreed,
       agreement,
       uncertain,
@@ -256,7 +256,7 @@ export function scoreAgreement(
 }
 
 /**
- * Count the labelled designs per domain and check them against the EV-5 minimum: at least 100
+ * Count the labeled designs per domain and check them against the EV-5 minimum: at least 100
  * designs in total, with designs in each of the seven first-party domains. A design counts when
  * it has at least one yes or no label (EV-5, M-2, M-3).
  */

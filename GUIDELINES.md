@@ -46,17 +46,17 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Not encoded (R-4):** `too-many-typefaces` was removed under R-4: 1 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Weak contrast is worse than none
-- **Rule:** When two elements are meant to differ, the difference must be obvious at a glance in at least one of Dair's seven kinds of contrast: size, weight, structure, form, colour, direction, and texture. A heading one step bolder or one size larger than its text looks like an accident, not a choice.
+- **Rule:** When two elements are meant to differ, the difference must be obvious at a glance in at least one of Dair's seven kinds of contrast: size, weight, structure, form, color, direction, and texture. A heading one step bolder or one size larger than its text looks like an accident, not a choice.
 - **Source:** Dair, *Design with Type*, chapter 8 "Relationships of concord and contrast" and chapters 8a to 8g, one for each kind of contrast. Dair's point that a contrast must be obvious is confirmed in his booklet *A Typographic Quest No. 5: Typographic Contrast* (Westvaco, 1967), through John D. Berry's account of it. Arnheim, *Art and Visual Perception* (1954, rev. 1974), chapter I "Balance", makes the same point about perception: small differences leave the eye unsure whether two things are equal or unequal.
 - **Link:** https://creativepro.com/dot-font-seven-principles-of-typographic-contrast/
-- **Judged by:** askable. Question: "Is there a short line standing on its own above a paragraph, where a heading would go, that is set in the same size, weight, and colour as the paragraph text under it?" A difference of one or two pixels in size will likely be missed.
-- **Defect range:** `heading-indistinct`: not measured. Headings set in the size, weight, and colour of the text, or within a pixel or two of its size.
+- **Judged by:** askable. Question: "Is there a short line standing on its own above a paragraph, where a heading would go, that is set in the same size, weight, and color as the paragraph text under it?" A difference of one or two pixels in size will likely be missed.
+- **Defect range:** `heading-indistinct`: not measured. Headings set in the size, weight, and color of the text, or within a pixel or two of its size.
 
 ### Contrast from more than size
-- **Rule:** Average work builds every level of the hierarchy from size alone, so headings grow very large while their weight, form, and colour stay the same as the text. Considered work pairs a smaller step in size with a change of weight, of form (capitals, italic), of structure (serif against sans serif), or of colour.
+- **Rule:** Average work builds every level of the hierarchy from size alone, so headings grow very large while their weight, form, and color stay the same as the text. Considered work pairs a smaller step in size with a change of weight, of form (capitals, italic), of structure (serif against sans serif), or of color.
 - **Source:** Dair, *Design with Type*, chapters 8a to 8g and chapter 9 "Multiplying the contrasts".
-- **Judged by:** askable, as a warning only, because a hierarchy built on size alone is weak rather than wrong. Question: "Are the headings set in the same weight, style, and colour as the body text, so that they differ from it only in size?"
-- **Defect range:** `headings-differ-only-in-size`: not measured. Headings in the same face, weight, style, and colour as the text, larger than it by a clear step.
+- **Judged by:** askable, as a warning only, because a hierarchy built on size alone is weak rather than wrong. Question: "Are the headings set in the same weight, style, and color as the body text, so that they differ from it only in size?"
+- **Defect range:** `headings-differ-only-in-size`: not measured. Headings in the same face, weight, style, and color as the text, larger than it by a clear step.
 
 ### Sizes come from a scale
 - **Rule:** Text sizes come from a small, deliberate scale, so that each size reads as its own level. Many sizes that are almost the same show that sizes were picked one at a time.
@@ -65,13 +65,13 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Not encoded (R-4):** `near-identical-sizes` was removed under R-4: 5 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### One change at a time for emphasis
-- **Rule:** Emphasis inside text changes one thing: italic, or bold, or small capitals. A phrase that is bold, italic, underlined, and coloured at once shouts, and considered work never stacks them.
-- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.5.1 "Change one parameter at a time" (partly supported: p. 60 (from the scan's OCR text) is about headings, not stacked emphasis inside text); Lupton, *Thinking with Type* (1st ed. 2004), p. 94: "Emphasizing a word or phrase within a body of text usually requires only one signal." The same page shows "bold, italic, underlined caps!" as a type crime; Hochuli, *Detail in Typography* (2008), p. 44: "Other forms of emphasis – text set in capitals, the semi-bold or bold versions of the text type, underlining, a larger size of type, a different typeface, the use of a second colour or tones – produce a restless effect, and hinder linear reading." Hochuli supports this in part only: the book does not discuss stacking several signals.
+- **Rule:** Emphasis inside text changes one thing: italic, or bold, or small capitals. A phrase that is bold, italic, underlined, and colored at once shouts, and considered work never stacks them.
+- **Source:** Bringhurst, *The Elements of Typographic Style*, section 3.5.1 "Change one parameter at a time" (partly supported: p. 60 (from the scan's OCR text) is about headings, not stacked emphasis inside text); Lupton, *Thinking with Type* (1st ed. 2004), p. 94: "Emphasizing a word or phrase within a body of text usually requires only one signal." The same page shows "bold, italic, underlined caps!" as a type crime; Hochuli, *Detail in Typography* (2008), p. 44: "Other forms of emphasis – text set in capitals, the semi-bold or bold versions of the text type, underlining, a larger size of type, a different typeface, the use of a second color or tones – produce a restless effect, and hinder linear reading." Hochuli supports this in part only: the book does not discuss stacking several signals.
 - **Judged by:** not encoded. Question tried: "Inside a paragraph, is there a word or phrase that is both bold and underlined, both bold and italic, both italic and underlined, or bold or underlined and also in a different colour from the text around it?"
 - **Not encoded (R-4):** `stacked-emphasis` was removed under R-4: 1 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
 
 ### Even word spacing in justified text
-- **Rule:** Justified lines keep their word spaces even. Lines with holes between the words break the even grey of the column, so justify only where the measure is wide enough and hyphenation is on.
+- **Rule:** Justified lines keep their word spaces even. Lines with holes between the words break the even gray of the column, so justify only where the measure is wide enough and hyphenation is on.
 - **Source:** Bringhurst, *The Elements of Typographic Style*, sections 2.1.1 and 2.1.2, pp. 26-27 (from the scan's OCR text): "A reasonable maximum in justified text is M/2", and short justified lines "will lead to white acne or pig bristles"; Hochuli, *Detail in Typography* (2008), chapter "The line", p. 34: "If the measure is too narrow – with less than around 50 characters per line – even wordspacing becomes difficult, if not impossible. The wordspaces become obviously uneven and large 'holes' appear."
 - **Judged by:** not encoded. Question tried: "In a paragraph whose lines all end at the same right edge, do some lines look stretched, with holes between the words that break the even texture of the text?" Reworded once under R-4 on 2026-10-24, after the old question ("In justified text, do some lines have gaps between words that are much wider than the gaps in the lines around them?") left all 5 positives quiet in its first run (a482a92).
 - **Not encoded (R-4):** `justified-word-gaps` was removed under R-4: 5 of 5 positives quiet after one rewording (87d2a2a), 2026-10-24.
@@ -109,7 +109,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Not encoded (FR-45):** Bringhurst allows more space above a subhead than below it but does not require it, and no other checked source states the rule, so the `heading-floats` criterion came out of the pack on 2026-10-24.
 
 ### Lines of text align across columns
-- **Rule:** In a considered grid the lines of text in neighbouring columns sit on the same baselines, and the top and bottom of each picture line up with lines of text. In a refined grid, captions, titles, and subtitles keep to the same line intervals.
+- **Rule:** In a considered grid the lines of text in neighboring columns sit on the same baselines, and the top and bottom of each picture line up with lines of text. In a refined grid, captions, titles, and subtitles keep to the same line intervals.
 - **Source:** Müller-Brockmann, *Grid Systems in Graphic Design* (1981), section "Construction of the grid" (each grid field holds a set number of lines; the first line stands at the top of the field and the last on its bottom; picture edges align with the ascenders and descenders of the text).
 - **Judged by:** not encoded. Question tried: "Look across the gap between two columns of text that sit side by side. Is a line of text in one column level with the blank space between two lines in the other column, so that the lines of the two columns do not form straight rows across the gap?"
 - **Not encoded (R-4):** `baselines-misaligned` was removed under R-4: 5 of 5 positives quiet after one rewording (a482a92), 2026-10-24.
@@ -242,7 +242,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Not encoded (R-4):** `figure-merges-with-ground` was removed under R-4: 3 of 5 positives quiet after two rewordings, 2026-10-24.
 
 ### Balance
-- **Rule:** Visual weight comes from size, darkness, colour, and isolation, and where an element sits changes its weight. A layout may be symmetrical or not, but a heavy side needs a counterweight.
+- **Rule:** Visual weight comes from size, darkness, color, and isolation, and where an element sits changes its weight. A layout may be symmetrical or not, but a heavy side needs a counterweight.
 - **Source:** Arnheim, *Art and Visual Perception*, chapter I "Balance", sections "Weight" and "Psychological and physical balance".
 - **Judged by:** not encoded. Question tried: "Does one side of the page carry much more visual weight than the other, with nothing on the lighter side strong enough to balance it?"
 - **Not encoded (R-4):** `lopsided-balance` was removed under R-4: 1 of 5 positives quiet (--4) after one rewording, 2026-10-24.
@@ -252,7 +252,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Source:** Tschichold, *The New Typography* (1928), chapter "The principles of the new typography"; Hofmann, *Graphic Design Manual* (1965), the text chapters "The line" and "Confrontation".
 - **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
 - **Judged by:** askable. Question: "Are there three or more elements of the same size and weight competing to be seen first, with none clearly stronger than the others?"
-- **Defect range:** `no-dominant-element`: not measured. Three or more elements given the same size, weight, and strength of colour, with none clearly stronger than the others.
+- **Defect range:** `no-dominant-element`: not measured. Three or more elements given the same size, weight, and strength of color, with none clearly stronger than the others.
 
 ### Contrast of scale gives the page tension
 - **Rule:** Considered layouts set strong contrasts against each other: one very large element against small ones, a vertical against horizontals, dense against open. Hofmann finds the strongest tension where one element comes close to overpowering another. Average layouts make every image, card, and heading about the same size.
@@ -261,14 +261,14 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Defect range:** `uniform-scale`: not measured. All the main elements of a page, such as images, cards, and headings, set to about the same size.
 
 ### No central axis by default
-- **Rule:** Tschichold rejects the habit of centring everything on one axis, because it fixes the form before the content is read and makes the layout rigid. An asymmetric arrangement that follows the order of the content is the considered default; centring is a choice for a few short lines.
+- **Rule:** Tschichold rejects the habit of centering everything on one axis, because it fixes the form before the content is read and makes the layout rigid. An asymmetric arrangement that follows the order of the content is the considered default; centering is a choice for a few short lines.
 - **Source:** Tschichold, *The New Typography*, chapter "The principles of the new typography" (central-axis setting and asymmetry).
 - **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
-- **Judged by:** askable, as a warning only, because a centred layout is a style and not an error. Question: "Is every block on the page, including headings, paragraphs of several lines, and buttons, centred on one vertical axis?"
-- **Defect range:** `everything-centred`: not measured. Every block on the page, including headings, paragraphs of several lines, and buttons, centred on one vertical axis.
+- **Judged by:** askable, as a warning only, because a centered layout is a style and not an error. Question: "Is every block on the page, including headings, paragraphs of several lines, and buttons, centered on one vertical axis?"
+- **Defect range:** `everything-centered`: not measured. Every block on the page, including headings, paragraphs of several lines, and buttons, centered on one vertical axis.
 
-### Repeated elements follow one programme
-- **Rule:** Gerstner treats design as a programme: a set of rules from which each solution is chosen. Elements of one kind (cards, buttons, section headings) therefore share one style and one spacing, and a variant appears only where the rules call for it.
+### Repeated elements follow one program
+- **Rule:** Gerstner treats design as a program: a set of rules from which each solution is chosen. Elements of one kind (cards, buttons, section headings) therefore share one style and one spacing, and a variant appears only where the rules call for it.
 - **Source:** Gerstner, *Designing Programmes* (1964), the introduction ("instead of solutions for problems, programmes for solutions"); Müller-Brockmann, *Grid Systems in Graphic Design*, section "Grid and design philosophy" (the grid as the will to systematize).
 - **Judged by:** not encoded. Question tried: "Among elements that are meant to match, such as a row of cards, a set of buttons, or the section headings, does one look as if it came from a different design, breaking the pattern the others set?"
 - **Not encoded (R-4):** `inconsistent-repeated-styles` was removed under R-4: 2 of 5 positives quiet after two rewordings, 2026-10-24.
@@ -280,7 +280,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Defect range:** `heavy-rules-and-boxes`: not measured. Every cell, card, or section enclosed in a near-black border or rule 1 to 2 px wide.
 
 ### Optical alignment over mathematical alignment
-- **Rule:** Round and pointed shapes overshoot, and icons centre by visual mass rather than by bounding box, so that they look aligned.
+- **Rule:** Round and pointed shapes overshoot, and icons center by visual mass rather than by bounding box, so that they look aligned.
 - **Source:** UNVERIFIED: no section on optical correction was found. Kunz, *Typography: Macro- and Microaesthetics*, part one, on the microaesthetic qualities of letters and signs.
 - **Judged by:** not encoded.
 - **Not encoded (NG-10):** optical offsets are a pixel or two, too fine to see.
@@ -311,15 +311,15 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 - **Rule:** Text has a contrast ratio of at least 4.5:1 against its background, or 3:1 for large text. The ratio is not checked; Jev is asked only whether text looks pale against its background.
 - **Source:** W3C, *WCAG 2.2*, SC 1.4.3 Contrast (Minimum).
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
-- **Judged by:** askable as a visual judgment. Question: "Is there text that is pale against its background, such as light grey text on white?"
+- **Judged by:** askable as a visual judgment. Question: "Is there text that is pale against its background, such as light gray text on white?"
 - **Defect range:** `text-reads-faint`: contrast ratio from 2.5 to 4.4, clean above.
 
-### Paragraphs are not centred or right-aligned
-- **Rule:** Paragraphs of several lines are set flush left. Centring is for a few short lines. Tschichold rejects central-axis setting as rigid, and Bringhurst makes ragged setting conditional on the text and the page.
+### Paragraphs are not centered or right-aligned
+- **Rule:** Paragraphs of several lines are set flush left. Centering is for a few short lines. Tschichold rejects central-axis setting as rigid, and Bringhurst makes ragged setting conditional on the text and the page.
 - **Source:** Tschichold, *The New Typography* (1928), chapter "The principles of the new typography"; Bringhurst, *The Elements of Typographic Style*, section 2.1.3 "Set ragged if ragged setting suits the text and the page" (the rule is conditional, so flush left as a default is overstated).
 - **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
-- **Judged by:** askable. Question: "Is a paragraph of four or more lines centred or right-aligned?"
-- **Defect range:** `centred-or-right-paragraphs`: not measured. A paragraph of four or more lines set centred or flush right.
+- **Judged by:** askable. Question: "Is a paragraph of four or more lines centered or right-aligned?"
+- **Defect range:** `centered-or-right-paragraphs`: not measured. A paragraph of four or more lines set centered or flush right.
 
 ### Content keeps clear of the page edge
 - **Rule:** Text and boxes sit inside the type area, with a margin between them and the edge of the page.
@@ -1026,12 +1026,12 @@ NNG heuristics URL base: https://www.nngroup.com/articles/ten-usability-heuristi
 
 Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and Taylor) and, where one exists, a page of Tufte's *The Visual Display of Quantitative Information*. Benjamin Jackson has not yet decided whether a dataviz criterion may cite a practice reference under FR-45, and no Tufte page has been checked, so each Tufte page is marked "page unchecked". The source of each encoded entry below is awaiting that decision.
 
-### Maximise the data-ink ratio
+### Maximize the data-ink ratio
 - **Rule:** Most of the ink in a chart encodes data; heavy gridlines, borders, fills, and decoration that carry no information are removed or muted.
 - **Source:** Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 23.2 "Background grids"; Edward Tufte, *The Visual Display of Quantitative Information* (Graphics Press, 2nd ed. 2001), chapter 5, section "The Grid", about p. 112, page unchecked.
 - **Link:** https://clauswilke.com/dataviz/
 - **Judged by:** askable. Question: "Do the lines that only hold a chart together, such as its gridlines, axis lines, borders, or a box around the plot, look as bold and prominent as the bars, lines, or points that show the data?" Reworded once under R-4 on 2026-10-25 (crit-q25.9), written blind from this entry and its sources. The old question was "Is a chart drawn with dark, heavy gridlines, borders, or frames that stand out as strongly as the data marks themselves?"
-- **Defect range:** `heavy-gridlines-and-frames`: not measured. Gridlines, axis lines, and a plot frame in dark grey to near-black, 1 to 2 px, about as dark as the data marks.
+- **Defect range:** `heavy-gridlines-and-frames`: not measured. Gridlines, axis lines, and a plot frame in dark gray to near-black, 1 to 2 px, about as dark as the data marks.
 
 ### No chartjunk
 - **Rule:** Charts have no ornamental moire patterns, heavy textures, clip art, 3D effects, drop shadows, or decorative backgrounds that compete with the data.
@@ -1046,7 +1046,7 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 - **Judged by:** not encoded. The lie factor is a measured size, not a plain all-or-nothing feature; `bar-axis-not-at-zero` asks about its most common case.
 
 ### Bar charts start at zero
-- **Rule:** Bar and area charts have a value axis that begins at zero because bar length encodes value; truncated bar axes are flagged. (Line and dot charts may use a non-zero baseline if labelled.)
+- **Rule:** Bar and area charts have a value axis that begins at zero because bar length encodes value; truncated bar axes are flagged. (Line and dot charts may use a non-zero baseline if labeled.)
 - **Source:** Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 17.1 "The principle of proportional ink"; Stephen Few, "Common Pitfalls in Dashboard Design" (Perceptual Edge, 2006), pitfall 8; Edward Tufte, *The Visual Display of Quantitative Information* (Graphics Press, 2nd ed. 2001), chapter 2, the Lie Factor, about p. 57, page unchecked, in part.
 - **Link:** https://clauswilke.com/dataviz/
 - **Judged by:** askable. Question: "Does a bar chart's value axis start above zero, so the bars are cut off at the bottom and the differences between them look larger than they are?"
@@ -1060,7 +1060,7 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 - **Defect range:** `three-d-chart`: not measured. A moderate extrusion of about 8 to 16 px, or a pie tilted to an ellipse, as office chart defaults draw it.
 
 ### Rank encodings by perceptual accuracy
-- **Rule:** The most important comparison uses the most accurate encoding: position on a common scale, then length, then angle or slope, then area, then volume, then colour saturation or hue.
+- **Rule:** The most important comparison uses the most accurate encoding: position on a common scale, then length, then angle or slope, then area, then volume, then color saturation or hue.
 - **Source:** William Cleveland and Robert McGill, *Graphical Perception: Theory, Experimentation, and Application to the Development of Graphical Methods*, Journal of the American Statistical Association 79(387), 531-554 (1984)
 - **Link:** https://www.jstor.org/stable/2288400
 - **Judged by:** not encoded. Which comparison matters most depends on what the data says (NG-10).
@@ -1079,30 +1079,30 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 - **Defect range:** `pie-too-many-slices`: not measured. One pie or donut of 9 to 14 slices, four or more of them thin slivers; the clean side groups the slivers into one Other slice, leaving 4 to 6.
 
 ### Label directly instead of using a legend
-- **Rule:** Series, bars, and lines are labelled at the data itself; if a legend is needed the reader should not have to look back and forth to decode colours.
+- **Rule:** Series, bars, and lines are labeled at the data itself; if a legend is needed the reader should not have to look back and forth to decode colors.
 - **Source:** Edward Tufte, *The Visual Display of Quantitative Information* (1983) (labels placed on the graphic itself); Cole Nussbaumer Knaflic, *Storytelling with Data* (2015); Wilke, *Fundamentals of Data Visualization* (2019)
 - **Judged by:** not encoded. A legend is often acceptable, so this is a matter of degree and not a plain all-or-nothing feature.
 
-### Use colour type that matches the data
+### Use color type that matches the data
 - **Rule:** Ordered values use a sequential (single-hue lightness) palette, values with a meaningful midpoint use a diverging palette, and unordered categories use a qualitative palette of distinct hues, limited to about 5 to 7 categories.
 - **Source:** Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapters 19.2 and 4.2; David Borland and Russell M. Taylor II, "Rainbow Color Map (Still) Considered Harmful", *IEEE Computer Graphics and Applications* 27(2), 2007; Edward Tufte, *The Visual Display of Quantitative Information* (Graphics Press, 2nd ed. 2001), about p. 154, page unchecked, in part.
 - **Link:** https://clauswilke.com/dataviz/
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked. Question: "Does a chart or map show values that run from low to high with a rainbow of unrelated hues, such as red, yellow, green, and blue, instead of one colour that grows lighter or darker?"
+- **Judged by:** askable as a visual judgment; the figure in the rule is not checked. Question: "Does a chart or map show values that run from low to high with a rainbow of unrelated hues, such as red, yellow, green, and blue, instead of one color that grows lighter or darker?"
 - **Defect range:** `rainbow-for-ordered-values`: not measured. A ramp through 5 to 7 spectrum hues; the clean side is a single-hue light-to-dark ramp with the same steps.
 
-### Do not rely on colour alone and avoid red-green pairs
-- **Rule:** Meaning conveyed by colour is also carried by label, shape, or position, and palettes are distinguishable under common colour-vision deficiency; contrast of marks against background is at least 3:1.
+### Do not rely on color alone and avoid red-green pairs
+- **Rule:** Meaning conveyed by color is also carried by label, shape, or position, and palettes are distinguishable under common color-vision deficiency; contrast of marks against background is at least 3:1.
 - **Source:** WCAG 2.2, SC 1.4.1 *Use of Color* and SC 1.4.11 *Non-text Contrast*
 - **Link:** https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html
 - **Judged by:** not encoded. Question tried in the pre-screen: "Does a chart tell two series or categories apart only by red and green, with no other difference such as labels, shape, pattern, or lightness?"
 - **Not encoded:** `series-split-only-by-red-green` was cut after the pre-screen (crit-q25.17, jev-1.14.0), with pre-screen figures 0.06, 0.50 / 0.00, 0.00.
 
-### Use colour with restraint and emphasis
-- **Rule:** Neutral grey carries context and one accent colour highlights the point; a rainbow of colours without meaning is flagged.
+### Use color with restraint and emphasis
+- **Rule:** Neutral gray carries context and one accent color highlights the point; a rainbow of colors without meaning is flagged.
 - **Source:** Stephen Few, "Common Pitfalls in Dashboard Design" (Perceptual Edge, 2006), pitfall 12; Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 19.1.
 - **Link:** https://www.perceptualedge.com/articles/Whitepapers/Common_Pitfalls.pdf
-- **Judged by:** askable. Question: "Are the bars or marks of a single series drawn in many different colours that encode nothing, when one colour would show the same data?"
-- **Defect range:** `colour-without-meaning`: not measured. One series of 5 to 10 bars, each a different hue from a common categorical palette at the saturation of the clean side's single colour.
+- **Judged by:** askable. Question: "Are the bars or marks of a single series drawn in many different colors that encode nothing, when one color would show the same data?"
+- **Defect range:** `color-without-meaning`: not measured. One series of 5 to 10 bars, each a different hue from a common categorical palette at the saturation of the clean side's single color.
 
 ### Titles and annotations state the takeaway
 - **Rule:** The chart title or a caption states the finding ("Sales fell 20% after March"), not only the topic ("Sales by month"), and key points are annotated on the chart.
@@ -1110,8 +1110,8 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 - **Judged by:** not encoded. It asks what the title says (NG-10).
 
 ### Label axes, units, and sources
-- **Rule:** Every chart has labelled axes (or direct labels) with units, a readable scale, and a data source or date where relevant; the reader should never need to guess what a number measures.
-- **Source:** Edward Tufte, *The Visual Display of Quantitative Information* (1983), ch. 2 (clear labelling); Few, *Show Me the Numbers* (2004)
+- **Rule:** Every chart has labeled axes (or direct labels) with units, a readable scale, and a data source or date where relevant; the reader should never need to guess what a number measures.
+- **Source:** Edward Tufte, *The Visual Display of Quantitative Information* (1983), ch. 2 (clear labeling); Few, *Show Me the Numbers* (2004)
 - **Judged by:** owned by the accessibility criterion `chart-without-text`, so the dataviz pack does not ask it again.
 
 ### Keep scales honest and consistent
@@ -1136,7 +1136,7 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 - **Judged by:** not encoded. Whether an order is natural depends on what the labels say (NG-10).
 
 ### Dashboards fit on one screen and are glanceable
-- **Rule:** A dashboard shows its most important metrics on one screen without scrolling, in a prioritised layout, with the key figures in the top left or the most prominent area.
+- **Rule:** A dashboard shows its most important metrics on one screen without scrolling, in a prioritized layout, with the key figures in the top left or the most prominent area.
 - **Source:** Stephen Few, *Information Dashboard Design* (2006, 2nd ed. 2013), ch. 3 ("Thirteen Common Mistakes in Dashboard Design" in the 2006 edition), and his white paper "Common Pitfalls in Dashboard Design" (the thirteen mistakes, first of which is exceeding a single screen)
 - **Link:** https://www.perceptualedge.com/articles/Whitepapers/Common_Pitfalls.pdf
 - **Judged by:** not encoded. One screenshot does not show whether the page scrolls, and "glanceable" is not a plain all-or-nothing feature.
@@ -1415,10 +1415,10 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 
 These rules come from the same reading list but fall outside typography and layout. They are listed for a later ticket and are not yet checked against the books.
 
-- Colour: Albers, *Interaction of Color* (1963). The same colour looks different on different grounds, and two colours meant to match can look different next to each other. A visible question asks whether one colour, used for one role, looks like two different colours in two places.
-- Colour: Albers, *Interaction of Color*. Two strong colours of equal lightness side by side make their edge seem to vibrate.
+- Color: Albers, *Interaction of Color* (1963). The same color looks different on different grounds, and two colors meant to match can look different next to each other. A visible question asks whether one color, used for one role, looks like two different colors in two places.
+- Color: Albers, *Interaction of Color*. Two strong colors of equal lightness side by side make their edge seem to vibrate.
 - Charts: Tufte, *The Visual Display of Quantitative Information*, chapter 5. Moiré hatching, heavy grid lines, and three-dimensional effects in a chart are chartjunk.
 - Charts: Tufte, *The Visual Display of Quantitative Information*, chapter 4. Ink that can be erased without loss of data, such as a background fill or a frame, is removed.
 - Composition: Arnheim, *Art and Visual Perception*, chapter IX "Dynamics". Oblique lines and shapes create directed tension, and a layout that is all horizontals and verticals reads as static.
-- Composition: Hofmann, *Graphic Design Manual*, chapter "The dot". A single element placed exactly at the centre of a field reads as still, and one placed off centre gives the field movement.
-- Systems: Gerstner, *Designing Programmes*. Pieces of one series (slides, posters, screens) follow one programme of grid, type, and colour.
+- Composition: Hofmann, *Graphic Design Manual*, chapter "The dot". A single element placed exactly at the center of a field reads as still, and one placed off center gives the field movement.
+- Systems: Gerstner, *Designing Programmes*. Pieces of one series (slides, posters, screens) follow one program of grid, type, and color.

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dataviz fixture: color without meaning, dashboard tile</title>
+    <!-- base.js sets html[data-defect] from ?defect=on|off before the page draws (OQ-17). -->
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion color-without-meaning. A fulfilment dashboard with KPI tiles, a line chart, and a tile of ranked
+ * bars for orders shipped by eight warehouses, one series. The warehouses are named beside the bars. The clean
+ * side draws every bar in one blue. The defect switch only changes the fill of each bar in that tile (.b1 to
+ * .b8) to a different hue from a common categorical palette, which encodes nothing. Nothing else changes (OQ-17).
+ */
+body { background: #f5f6f8; }
+header { height: 56px; background: #ffffff; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; border-bottom: 1px solid #e6e9ed; }
+.brand { font-weight: 700; font-size: 17px; }
+nav { display: flex; gap: 22px; font-size: 14px; color: var(--color-muted); }
+nav .on { color: var(--color-text); font-weight: 700; }
+.range { font-size: 13px; color: var(--color-muted); }
+main { padding: 22px 32px 0; }
+h1 { font-size: 22px; font-weight: 700; margin-bottom: 16px; }
+.kpis { display: flex; gap: 16px; margin-bottom: 16px; }
+.tile { background: #ffffff; border-radius: 8px; border: 1px solid #e9ecef; padding: 16px 20px; }
+.kpis .tile { flex: 1; }
+.label { font-size: 13px; color: var(--color-muted); }
+.value-big { font-size: 28px; font-weight: 700; line-height: 1.25; }
+.note { font-size: 13px; color: var(--color-muted); }
+.tiles { display: flex; gap: 16px; }
+.tile h2 { font-size: 15px; font-weight: 700; }
+.tile .sub { font-size: 13px; color: var(--color-muted); margin-bottom: 6px; }
+svg text { font-family: var(--font-sans); }
+.grid { stroke: #eceef1; stroke-width: 1; }
+.baseline { stroke: #8a929b; stroke-width: 1; }
+.axis { font-size: 12px; fill: #59636e; }
+.cat { font-size: 13px; fill: #1f2328; }
+.value { font-size: 12px; fill: #1f2328; font-weight: 700; }
+.line { fill: none; stroke: #2f7ec0; stroke-width: 2.5; }
+.footer { margin-top: 12px; font-size: 12px; color: var(--color-muted); }
+.bar { fill: #2f7ec0; }
+
+[data-defect="on"] .b1 { fill: #4e79a7; }
+[data-defect="on"] .b2 { fill: #f28e2b; }
+[data-defect="on"] .b3 { fill: #e15759; }
+[data-defect="on"] .b4 { fill: #76b7b2; }
+[data-defect="on"] .b5 { fill: #59a14f; }
+[data-defect="on"] .b6 { fill: #b07aa1; }
+[data-defect="on"] .b7 { fill: #edc948; }
+[data-defect="on"] .b8 { fill: #86bcb6; }
+    </style>
+  </head>
+  <body>
+<header><span class="brand">Larkspur Fulfilment</span><nav><span class="on">Overview</span><span>Orders</span><span>Stock</span><span>Returns</span></nav><span class="range">Last 7 days · to 23 October</span></header>
+    <main>
+      <h1>Operations overview</h1>
+      <div class="kpis">
+        <div class="tile"><div class="label">Orders shipped, last 7 days</div><div class="value-big">27,240</div><div class="note">Up 6% on the previous 7 days</div></div>
+        <div class="tile"><div class="label">Shipped on the day ordered, last 7 days</div><div class="value-big">88%</div><div class="note">Down 2 points on the previous 7 days</div></div>
+        <div class="tile"><div class="label">Average pick time per order, last 7 days</div><div class="value-big">3.4 min</div><div class="note">Down 0.3 min on the previous 7 days</div></div>
+      </div>
+      <div class="tiles">
+        <div class="tile">
+          <h2>Orders shipped by warehouse</h2>
+          <p class="sub">Last 7 days, ranked</p>
+          <svg width="560" height="360" viewBox="0 0 560 360">
+<line class="baseline" x1="140" x2="140" y1="20" y2="346"/><text class="axis" x="140" y="14" text-anchor="middle">0k</text><line class="grid" x1="208" x2="208" y1="20" y2="346"/><text class="axis" x="208" y="14" text-anchor="middle">1k</text><line class="grid" x1="276" x2="276" y1="20" y2="346"/><text class="axis" x="276" y="14" text-anchor="middle">2k</text><line class="grid" x1="344" x2="344" y1="20" y2="346"/><text class="axis" x="344" y="14" text-anchor="middle">3k</text><line class="grid" x1="412" x2="412" y1="20" y2="346"/><text class="axis" x="412" y="14" text-anchor="middle">4k</text><line class="grid" x1="480" x2="480" y1="20" y2="346"/><text class="axis" x="480" y="14" text-anchor="middle">5k</text>
+<text class="cat" x="130" y="51" text-anchor="end">Thornbury East</text><rect class="bar b1" x="140" y="34" width="327.8" height="24" rx="2"/><text class="value" x="473.8" y="51">4,820</text>
+<text class="cat" x="130" y="91" text-anchor="end">Gisla Park</text><rect class="bar b2" x="140" y="74" width="293.1" height="24" rx="2"/><text class="value" x="439.1" y="91">4,310</text>
+<text class="cat" x="130" y="131" text-anchor="end">Kellow North</text><rect class="bar b3" x="140" y="114" width="268.6" height="24" rx="2"/><text class="value" x="414.6" y="131">3,950</text>
+<text class="cat" x="130" y="171" text-anchor="end">Ashby Wharf</text><rect class="bar b4" x="140" y="154" width="232.6" height="24" rx="2"/><text class="value" x="378.6" y="171">3,420</text>
+<text class="cat" x="130" y="211" text-anchor="end">Linden Road</text><rect class="bar b5" x="140" y="194" width="202.6" height="24" rx="2"/><text class="value" x="348.6" y="211">2,980</text>
+<text class="cat" x="130" y="251" text-anchor="end">Oakhurst</text><rect class="bar b6" x="140" y="234" width="168.0" height="24" rx="2"/><text class="value" x="314.0" y="251">2,470</text>
+<text class="cat" x="130" y="291" text-anchor="end">Saltmarsh</text><rect class="bar b7" x="140" y="274" width="131.2" height="24" rx="2"/><text class="value" x="277.2" y="291">1,930</text>
+<text class="cat" x="130" y="331" text-anchor="end">Quarry Hill</text><rect class="bar b8" x="140" y="314" width="92.5" height="24" rx="2"/><text class="value" x="238.5" y="331">1,360</text>
+
+          </svg>
+        </div>
+        <div class="tile">
+          <h2>Orders shipped per day</h2>
+          <p class="sub">All warehouses, last 14 days</p>
+          <svg width="540" height="290" viewBox="0 0 540 290">
+<line class="baseline" x1="48" x2="518" y1="244" y2="244"/><text class="axis" x="40" y="248" text-anchor="end">0k</text><line class="grid" x1="48" x2="518" y1="186.5" y2="186.5"/><text class="axis" x="40" y="190.5" text-anchor="end">2k</text><line class="grid" x1="48" x2="518" y1="129" y2="129"/><text class="axis" x="40" y="133" text-anchor="end">4k</text><line class="grid" x1="48" x2="518" y1="71.5" y2="71.5"/><text class="axis" x="40" y="75.5" text-anchor="end">6k</text><line class="grid" x1="48" x2="518" y1="14" y2="14"/><text class="axis" x="40" y="18" text-anchor="end">8k</text>
+<polyline class="line" points="48.0,68.0 84.2,60.6 120.3,63.2 156.5,51.1 192.6,44.5 228.8,86.4 264.9,94.2 301.1,58.6 337.2,54.3 373.4,47.9 409.5,42.5 445.7,37.6 481.8,80.4 518.0,88.2"/>
+<text class="axis" x="48" y="266">10 Oct</text><text class="axis" x="518" y="266" text-anchor="end">23 Oct</text>
+          </svg>
+          <p class="footer">Dips are weekends, when two warehouses run one shift.</p>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

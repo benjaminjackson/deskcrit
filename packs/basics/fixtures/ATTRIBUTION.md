@@ -244,10 +244,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs.positive.png
+## centered-or-right-paragraphs.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs.html, defect=on
+- Source: packs/basics/templates/centered-or-right-paragraphs.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -256,10 +256,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs.negative.png
+## centered-or-right-paragraphs.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs.html, defect=off
+- Source: packs/basics/templates/centered-or-right-paragraphs.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -268,10 +268,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--2.positive.png
+## centered-or-right-paragraphs--2.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--2.html, defect=on
+- Source: packs/basics/templates/centered-or-right-paragraphs--2.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -280,10 +280,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--2.negative.png
+## centered-or-right-paragraphs--2.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--2.html, defect=off
+- Source: packs/basics/templates/centered-or-right-paragraphs--2.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -292,10 +292,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--3.positive.png
+## centered-or-right-paragraphs--3.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--3.html, defect=on
+- Source: packs/basics/templates/centered-or-right-paragraphs--3.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -304,10 +304,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--3.negative.png
+## centered-or-right-paragraphs--3.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--3.html, defect=off
+- Source: packs/basics/templates/centered-or-right-paragraphs--3.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -316,10 +316,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--4.positive.png
+## centered-or-right-paragraphs--4.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--4.html, defect=on
+- Source: packs/basics/templates/centered-or-right-paragraphs--4.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -328,10 +328,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--4.negative.png
+## centered-or-right-paragraphs--4.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--4.html, defect=off
+- Source: packs/basics/templates/centered-or-right-paragraphs--4.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -340,10 +340,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--5.positive.png
+## centered-or-right-paragraphs--5.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--5.html, defect=on
+- Source: packs/basics/templates/centered-or-right-paragraphs--5.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -352,10 +352,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--5.negative.png
+## centered-or-right-paragraphs--5.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--5.html, defect=off
+- Source: packs/basics/templates/centered-or-right-paragraphs--5.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -364,10 +364,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--6.positive.png
+## centered-or-right-paragraphs--6.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--6.html, defect=on
+- Source: packs/basics/templates/centered-or-right-paragraphs--6.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -376,10 +376,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--6.negative.png
+## centered-or-right-paragraphs--6.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--6.html, defect=off
+- Source: packs/basics/templates/centered-or-right-paragraphs--6.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -388,10 +388,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--7.positive.png
+## centered-or-right-paragraphs--7.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--7.html, defect=on
+- Source: packs/basics/templates/centered-or-right-paragraphs--7.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -400,10 +400,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--7.negative.png
+## centered-or-right-paragraphs--7.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--7.html, defect=off
+- Source: packs/basics/templates/centered-or-right-paragraphs--7.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -412,10 +412,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--8.positive.png
+## centered-or-right-paragraphs--8.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--8.html, defect=on
+- Source: packs/basics/templates/centered-or-right-paragraphs--8.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -424,10 +424,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--8.negative.png
+## centered-or-right-paragraphs--8.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--8.html, defect=off
+- Source: packs/basics/templates/centered-or-right-paragraphs--8.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -436,10 +436,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--9.positive.png
+## centered-or-right-paragraphs--9.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--9.html, defect=on
+- Source: packs/basics/templates/centered-or-right-paragraphs--9.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -448,10 +448,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--9.negative.png
+## centered-or-right-paragraphs--9.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--9.html, defect=off
+- Source: packs/basics/templates/centered-or-right-paragraphs--9.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -460,10 +460,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--10.positive.png
+## centered-or-right-paragraphs--10.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--10.html, defect=on
+- Source: packs/basics/templates/centered-or-right-paragraphs--10.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -472,10 +472,10 @@ Every image here is rendered from a template under packs/basics/templates/. pack
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## centred-or-right-paragraphs--10.negative.png
+## centered-or-right-paragraphs--10.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/basics/templates/centred-or-right-paragraphs--10.html, defect=off
+- Source: packs/basics/templates/centered-or-right-paragraphs--10.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
