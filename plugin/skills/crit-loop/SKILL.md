@@ -9,7 +9,7 @@ crit judges a picture of a design and tells you what looks wrong. This skill tel
 
 ## Before you start
 
-- `.crit.yaml` names a screenshot path. Always keep your latest screenshot at that path, because the plugin hook runs crit gate on the image there.
+- `.crit.yaml` names a screenshot path. Always keep your latest screenshot at that path, so each round compares the same file.
 - In the commands below, `after.png` stands for the image at the screenshot path, and `before.png` is the screenshot from the round before.
 - If you give crit report options such as `--pack` or `--context`, give the same options to crit compare and crit gate.
 - Read the JSON from stdout only. Errors go to stderr.
