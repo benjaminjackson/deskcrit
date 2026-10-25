@@ -24,7 +24,7 @@ const REPOSITORY_ROOT = join(import.meta.dirname, "..", "..");
 
 /**
  * A valid compare document from the golden cases. Its changes are worse for
- * compare/faint-body-text, uncertain for compare/faint-chart-labels, same for compare/line-length,
+ * compare/faint-body-text, same for compare/faint-chart-labels, uncertain for compare/line-length,
  * and better for compare/single-focal-point (FR-36, FR-37).
  */
 const GOLDEN_COMPARE_STDOUT = readFileSync(
@@ -206,7 +206,7 @@ describe("runCompareHarness", () => {
     writeSavedAnswers(pairs);
     const output = await runCompareHarness([], writeLabels(pairs, []));
     expect(output.text).toContain(
-      "compare/faint-body-text: worse, compare/faint-chart-labels: uncertain, compare/single-focal-point: better",
+      "compare/faint-body-text: worse, compare/line-length: uncertain, compare/single-focal-point: better",
     );
     expect(output.text).toContain(
       "Agreed: 29, disagreed: 1, uncertain: 0, total: 30",
