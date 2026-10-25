@@ -11,6 +11,7 @@ import { CouldNotRunError } from "../shared/could-not-run-error.js";
 import { parseCommand } from "./args.js";
 import { runCompare } from "./compare-command.js";
 import { runGate } from "./gate-command.js";
+import { renderHelp } from "./help.js";
 import { runPacksTest } from "./packs-test.js";
 import { runPacksValidate } from "./packs-validate-command.js";
 import {
@@ -21,6 +22,7 @@ import {
   readReportInputs,
 } from "./read-inputs.js";
 import { type AnswerSource, runReport } from "./report-command.js";
+import { describeVersion } from "./version.js";
 
 /** Exit code 0: the command ran (FR-43). */
 const EXIT_CODE_RAN = 0;
@@ -37,7 +39,9 @@ export type CreateAdapter = (
 ) => TypeSafeAdapter;
 
 /**
- * Run the command argv names. `crit packs validate <dir>` checks one pack, reads no key, and exits
+ * Run the command argv names. `--help` or `-h` anywhere writes the help to stdout and exits 0, and
+ * `crit --version` writes the version line and exits 0; neither reads a file or the environment
+ * (FR-75, FR-76). `crit packs validate <dir>` checks one pack, reads no key, and exits
  * 0 for a valid pack and 1 for an invalid one (FR-49, FR-60, US-6). `crit packs test <dir>` checks
  * every input first, then reads the key and asks Jev about each fixture, and exits 0 when every
  * fixture agrees with its label and 1 when any disagrees (FR-50, FR-53, EV-4). `crit gate` reads the
@@ -60,6 +64,17 @@ export async function main(
 ): Promise<void> {
   try {
     const command = parseCommand(argv);
+    if (command.command === "help") {
+      // Help reads no file and no environment variable, and exits 0 (FR-76).
+      process.stdout.write(renderHelp(command.topic));
+      process.exitCode = EXIT_CODE_RAN;
+      return;
+    }
+    if (command.command === "version") {
+      process.stdout.write(`${describeVersion()}\n`);
+      process.exitCode = EXIT_CODE_RAN;
+      return;
+    }
     if (command.command === "packs-validate") {
       const output = await runPacksValidate(
         command.directory,

@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs";
 import { chmod, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -94,6 +94,60 @@ const bundledPacksPlugin = {
   },
 };
 
+/** The project root, one folder above this script. realpathSync resolves symbolic links. */
+const PROJECT_ROOT = realpathSync(
+  fileURLToPath(new URL("../", import.meta.url)),
+);
+
+/**
+ * Runs git with these arguments in the project root and returns its trimmed stdout, or undefined
+ * when git is not installed or exits with an error, for example outside a git checkout.
+ */
+function runGitInProjectRoot(gitArguments) {
+  const result = spawnSync("git", gitArguments, {
+    cwd: PROJECT_ROOT,
+    encoding: "utf8",
+  });
+  if (result.error !== undefined || result.status !== 0) {
+    return undefined;
+  }
+  return result.stdout.trim();
+}
+
+/**
+ * Returns the short git commit id of the checkout this script runs in, or undefined, so `crit
+ * --version` can name the commit (FR-75). It gives undefined when there is no git checkout, when
+ * git is not installed, and when the top of the checkout is not the project root. Reason: a source
+ * tree unpacked inside another git repository would otherwise get that repository's commit.
+ */
+function readShortCommit() {
+  const topLevel = runGitInProjectRoot(["rev-parse", "--show-toplevel"]);
+  if (topLevel === undefined || topLevel === "") {
+    return undefined;
+  }
+  if (realpathSync(topLevel) !== PROJECT_ROOT) {
+    return undefined;
+  }
+  const commit = runGitInProjectRoot(["rev-parse", "--short", "HEAD"]);
+  if (commit === undefined) {
+    return undefined;
+  }
+  if (commit === "") {
+    return undefined;
+  }
+  return commit;
+}
+
+/**
+ * The text esbuild puts in place of the name CRIT_BUILD_COMMIT in src/cli/version.ts: the commit id
+ * as a JavaScript string, or the word undefined when the build has no commit (FR-75).
+ */
+const shortCommit = readShortCommit();
+let commitDefinition = "undefined";
+if (shortCommit !== undefined) {
+  commitDefinition = JSON.stringify(shortCommit);
+}
+
 await rm("dist", { recursive: true, force: true });
 
 /**
@@ -118,6 +172,9 @@ await build({
     js: `#!/usr/bin/env node\n${requireBanner}`,
   },
   plugins: [bundledPacksPlugin],
+  // Puts the commit id in place of the name CRIT_BUILD_COMMIT, so the bundle reads no git data at
+  // run time (FR-75).
+  define: { CRIT_BUILD_COMMIT: commitDefinition },
   // Keeps the two marker comments around the embedded pack list where the plugin put them.
   legalComments: "inline",
   logLevel: "info",

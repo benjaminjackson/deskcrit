@@ -42,6 +42,34 @@ function expectUsageRun(command, commandArguments, workingDirectory) {
 }
 
 /**
+ * Runs `--version` and throws unless it exits 0, writes nothing to stderr, and prints one line
+ * `deskcrit <version> <commit>` on stdout, so the built bundle and the packed tarball both carry
+ * the commit id (FR-75).
+ */
+function expectVersionRun(command, commandPrefix, workingDirectory) {
+  const commandArguments = [...commandPrefix, "--version"];
+  const description = [command, ...commandArguments].join(" ");
+  const result = spawnSync(command, commandArguments, {
+    cwd: workingDirectory,
+    encoding: "utf8",
+  });
+  if (result.status !== 0) {
+    throw new Error(
+      `${description} exited with ${result.status}, expected 0\n${result.stderr}`,
+    );
+  }
+  if (result.stderr !== "") {
+    throw new Error(`${description} wrote to stderr\n${result.stderr}`);
+  }
+  if (!/^deskcrit \S+ [0-9a-f]{7,}\n$/.test(result.stdout)) {
+    throw new Error(
+      `${description} printed ${JSON.stringify(result.stdout)}, expected deskcrit <version> <commit>`,
+    );
+  }
+  console.log(`ok: ${description}`);
+}
+
+/**
  * Runs `packs validate` on each first-party pack with TYPESAFE_API_KEY unset, and throws unless
  * each run exits 0, prints the valid line on stdout, and writes nothing to stderr (FR-49, FR-59,
  * FR-60).
@@ -515,6 +543,7 @@ async function runSmokeChecks() {
   console.log(`ok: dist/ holds only ${expectedDistFiles.join(", ")}`);
 
   expectUsageRun("node", ["dist/crit.js"], process.cwd());
+  expectVersionRun("node", ["dist/crit.js"], process.cwd());
   expectPackLoadsInBundle();
   expectFirstPartyPacksValidate("node", ["dist/crit.js"], process.cwd());
   expectBundledPacksLoad();
@@ -542,6 +571,11 @@ async function runSmokeChecks() {
     const tarballPath = resolve(packDirectory, tarballName);
     for (const binName of ["crit", "deskcrit"]) {
       expectUsageRun(
+        "npx",
+        ["--yes", "--package", tarballPath, binName],
+        emptyDirectory,
+      );
+      expectVersionRun(
         "npx",
         ["--yes", "--package", tarballPath, binName],
         emptyDirectory,

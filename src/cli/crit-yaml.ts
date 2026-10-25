@@ -24,7 +24,7 @@ export type CritYaml = {
 };
 
 /** The top-level keys `.crit.yaml` may hold. Any other key stops the run (OQ-25 a). */
-const CRIT_YAML_KEYS: readonly string[] = [
+export const CRIT_YAML_KEYS: readonly string[] = [
   "packs",
   "model",
   "context",
