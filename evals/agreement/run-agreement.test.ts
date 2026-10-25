@@ -583,6 +583,226 @@ describe("the agreement harness with a criterion added to a scored pack", () => 
     expect(hashFiles(answersDirectory)).toEqual(after);
   });
 
+  /**
+   * Return a crit runner that works like makeStubCritRunner for the first callsBeforeFailure
+   * calls and then makes every request fail, as a TypeSafe timeout part way through a run does.
+   */
+  function failAfterCalls(callsBeforeFailure: number): CritRunner {
+    const stubRunner = makeStubCritRunner(askedQuestionIds, failure);
+    let calls = 0;
+    return async (critArguments, environment, workingDirectory) => {
+      if (calls >= callsBeforeFailure) {
+        failure.fail = true;
+      }
+      calls += 1;
+      return await stubRunner(critArguments, environment, workingDirectory);
+    };
+  }
+
+  /** Return the names of the fixtures that have a second answers file, sorted. */
+  function fixturesWithSecondFile(): string[] {
+    const names: string[] = [];
+    for (const fileName of readdirSync(answersDirectory)) {
+      if (fileName.endsWith(".answers-2.json")) {
+        names.push(fileName.slice(0, -".answers-2.json".length));
+      }
+    }
+    return names.sort();
+  }
+
+  it("resumes a rewording run that broke part way with a normal live run, and refuses --rerun-same-set", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+
+    const reworded: TestCriterion = {
+      ...SECOND,
+      instructions: "In the image at screenshot: Does the second defect show?",
+    };
+    await writePack(packDirectory, [FIRST, reworded]);
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], {
+        ...options,
+        runCrit: failAfterCalls(2),
+      }),
+    ).rejects.toThrow(/crit exited 2/);
+    expect(fixturesWithSecondFile()).toHaveLength(2);
+    const afterBrokenRun = hashFiles(answersDirectory);
+
+    // --rerun-same-set would ask the decided criterion again, so it is refused before any request.
+    failure.fail = false;
+    askedQuestionIds.length = 0;
+    await expect(
+      runHarness(
+        ["--live", "--rerun-same-set", "--pack", packDirectory],
+        options,
+      ),
+    ).rejects.toThrow(
+      /--rerun-same-set cannot score the reworded demo\/second/,
+    );
+    expect(askedQuestionIds).toEqual([]);
+    expect(hashFiles(answersDirectory)).toEqual(afterBrokenRun);
+
+    // A normal live run asks only the two fixtures with no answer to the new question.
+    await runHarness(["--live", "--pack", packDirectory], options);
+    expect(askedQuestionIds).toEqual([["demo/second"], ["demo/second"]]);
+    expect(fixturesWithSecondFile()).toEqual([
+      "first.negative.png",
+      "first.positive.png",
+      "second.negative.png",
+      "second.positive.png",
+    ]);
+    const afterResume = hashFiles(answersDirectory);
+    for (const [fileName, hash] of afterBrokenRun) {
+      expect(afterResume.get(fileName)).toBe(hash);
+    }
+
+    askedQuestionIds.length = 0;
+    const replay = await runHarness(["--pack", packDirectory], options);
+    expect(askedQuestionIds).toEqual([]);
+    expect(replay.text).not.toContain("not asked  ");
+
+    // A third question for the same id is still refused before any request (R-4).
+    const rewordedAgain: TestCriterion = {
+      ...SECOND,
+      instructions: "In the image at screenshot: Is there a second defect?",
+    };
+    await writePack(packDirectory, [FIRST, rewordedAgain]);
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], options),
+    ).rejects.toThrow(
+      /demo\/second .*R-4 allows one rewording per criterion id/,
+    );
+    expect(askedQuestionIds).toEqual([]);
+    expect(hashFiles(answersDirectory)).toEqual(afterResume);
+  });
+
+  it("repeats with --rerun-same-set a broken run on a changed set after a finished rewording", async () => {
+    await writePack(packDirectory, [FIRST, SECOND]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+    const reworded: TestCriterion = {
+      ...SECOND,
+      instructions: "In the image at screenshot: Does the second defect show?",
+    };
+    await writePack(packDirectory, [FIRST, reworded]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+
+    // A new criterion changes the set, and the run that asks it breaks after 2 fixtures.
+    await writePack(packDirectory, [FIRST, reworded, THIRD]);
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], {
+        ...options,
+        runCrit: failAfterCalls(2),
+      }),
+    ).rejects.toThrow(/crit exited 2/);
+
+    // The set is now recorded as scored, so a normal live run is refused.
+    failure.fail = false;
+    askedQuestionIds.length = 0;
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], options),
+    ).rejects.toThrow(/already scored this fixture set/);
+    expect(askedQuestionIds).toEqual([]);
+
+    // No rewording pair is left, so --rerun-same-set repeats the broken run.
+    await runHarness(
+      ["--live", "--rerun-same-set", "--pack", packDirectory],
+      options,
+    );
+    expect(askedQuestionIds).toHaveLength(6);
+    expect(fixturesWithSecondFile()).toEqual([]);
+    expect(
+      questionIdsIn(join(answersDirectory, "first.positive.png.answers.json")),
+    ).toEqual(["demo/first", "demo/second", "demo/third"]);
+  });
+
+  it("resumes a respelled and renamed criterion whose run broke part way", async () => {
+    // The British spellings in this test stand for the old question and id (CS-26).
+    const british: TestCriterion = {
+      id: "colour-check",
+      positiveColor: "#123456",
+      negativeColor: "#654321",
+      instructions: "In the image at screenshot: Is the colour wrong?",
+    };
+    const us: TestCriterion = {
+      id: "color-check",
+      positiveColor: british.positiveColor,
+      negativeColor: british.negativeColor,
+      instructions: "In the image at screenshot: Is the color wrong?",
+    };
+    await writePack(packDirectory, [british, SECOND]);
+    await runHarness(["--live", "--pack", packDirectory], options);
+
+    // Rename the fixtures and their saved files, as git mv does, with the bytes unchanged.
+    const fixturesDirectory = join(packDirectory, "fixtures");
+    for (const kind of ["positive", "negative"]) {
+      renameSync(
+        join(fixturesDirectory, `colour-check.${kind}.png`),
+        join(fixturesDirectory, `color-check.${kind}.png`),
+      );
+      for (const suffix of ["answers.json", "answers.questions.json"]) {
+        renameSync(
+          join(answersDirectory, `colour-check.${kind}.png.${suffix}`),
+          join(answersDirectory, `color-check.${kind}.png.${suffix}`),
+        );
+      }
+    }
+    await writePack(packDirectory, [us, SECOND]);
+    const respelledOptions: HarnessOptions = {
+      ...options,
+      respelling: {
+        questions: [
+          {
+            criterion: "demo/color-check",
+            britishQuestionSha256: questionSha256Of(british),
+            usQuestionSha256: questionSha256Of(us),
+          },
+        ],
+        criterionIds: new Map([["demo/colour-check", "demo/color-check"]]),
+      },
+    };
+
+    await expect(
+      runHarness(["--live", "--pack", packDirectory], {
+        ...respelledOptions,
+        runCrit: failAfterCalls(2),
+      }),
+    ).rejects.toThrow(/crit exited 2/);
+    expect(fixturesWithSecondFile()).toHaveLength(2);
+    const afterBrokenRun = hashFiles(answersDirectory);
+
+    failure.fail = false;
+    askedQuestionIds.length = 0;
+    await expect(
+      runHarness(
+        ["--live", "--rerun-same-set", "--pack", packDirectory],
+        respelledOptions,
+      ),
+    ).rejects.toThrow(
+      /--rerun-same-set cannot score the reworded demo\/color-check/,
+    );
+    expect(askedQuestionIds).toEqual([]);
+
+    await runHarness(["--live", "--pack", packDirectory], respelledOptions);
+    expect(askedQuestionIds).toEqual([
+      ["demo/color-check"],
+      ["demo/color-check"],
+    ]);
+    expect(fixturesWithSecondFile()).toHaveLength(4);
+    const afterResume = hashFiles(answersDirectory);
+    for (const [fileName, hash] of afterBrokenRun) {
+      expect(afterResume.get(fileName)).toBe(hash);
+    }
+
+    askedQuestionIds.length = 0;
+    const replay = await runHarness(
+      ["--pack", packDirectory],
+      respelledOptions,
+    );
+    expect(askedQuestionIds).toEqual([]);
+    expect(replay.text).not.toContain("not asked  ");
+    expect(replay.text).not.toContain("demo/colour-check");
+  });
+
   it("keeps the new record when crit wrote the answers file and the harness then failed", async () => {
     await writePack(packDirectory, [FIRST, SECOND]);
     // crit runs and saves its answers, but the report it prints is not JSON.

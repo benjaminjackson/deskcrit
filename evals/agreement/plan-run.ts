@@ -4,8 +4,9 @@
 // criterion's current question, as the record file next to it says. A live run asks only the
 // pairs that are not scored and writes them to a new file, so a saved file is never written
 // again. A criterion whose question changed under the same id is reworded, and a live run asks it
-// again about every fixture; a second rewording is refused (R-4). It does no I/O;
-// run-agreement.ts reads and writes the files.
+// again about every fixture; when that run stops part way, the next normal live run asks only the
+// fixtures with an answer to an older question and none to the new one. A second rewording is
+// refused (R-4). It does no I/O; run-agreement.ts reads and writes the files.
 
 import { decideLiveRun } from "./frozen-set.ts";
 import type { AskedQuestionHash } from "./question-hash.ts";
@@ -39,11 +40,21 @@ export type RecordedAnswersFile = SavedAnswersFile & {
   readonly questionSha256ByCriterion: ReadonlyMap<string, string>;
 };
 
-/** One fixture image of a pack: its path in the pack, the SHA-256 of its bytes, and its saved files. */
+/**
+ * One fixture image of a pack: its path in the pack, the SHA-256 of its bytes, its saved files
+ * with only the answers to current questions, and the criteria it has an answer to under an
+ * older question.
+ */
 export type PlanFixture = {
   readonly fixture: string;
   readonly pngSha256: string;
   readonly savedFiles: readonly SavedAnswersFile[];
+  /**
+   * The full criterion ids (old ids mapped by the respelling) whose answer in a saved file of this
+   * fixture was to another question than the current one, as keepCurrentAnswers leaves it out
+   * (olderAnswerCriteriaOf). A British question that a respelling lists counts as older.
+   */
+  readonly olderAnswerCriteria: readonly string[];
 };
 
 /** What the live run does with one fixture. */
@@ -69,9 +80,10 @@ export type LivePlanInput = {
   /** The scored PNG list, or null when there is none. */
   readonly scoredPngHashes: readonly string[] | null;
   /**
-   * The criteria whose current question differs from every question asked for them before
-   * (findRewordedCriteria). Their pairs are not scored, and asking them is allowed on a set whose
-   * PNGs were all scored (EV-4 rule 5, R-4).
+   * The criteria that findRewordedCriteria counts as reworded: a new or respelled question, or a
+   * question asked already together with another question for the same id. Only a rewording pair
+   * of one of them, a fixture with an answer to an older question and none to the current one,
+   * may be asked on a set whose PNGs were all scored (EV-4 rule 5, R-4).
    */
   readonly rewordedCriteria: readonly string[];
   readonly rerunSameSet: boolean;
@@ -147,11 +159,13 @@ function imageFileNameOf(fixture: string): string {
 export function planLiveRun(input: LivePlanInput): LiveFixturePlan[] {
   const allCriteria = input.criteria.map((criterion) => criterion.criterion);
   if (input.rerunSameSet) {
-    // A rerun asks every pair again, so with a rewording it would rewrite the answers of criteria
-    // already decided. A rewording is scored by a normal live run (EV-4 rule 5, R-4).
-    if (input.rewordedCriteria.length > 0) {
+    // A rerun asks every pair again, so while a rewording still has pairs to ask it would rewrite
+    // the answers of criteria already decided. A rewording, also one whose run broke, is scored by
+    // a normal live run that asks only the missing pairs (EV-4 rule 5, R-4).
+    const unfinished = criteriaWithRewordingPairs(input);
+    if (unfinished.length > 0) {
       throw new Error(
-        `${input.packName}: --rerun-same-set cannot score the reworded ${input.rewordedCriteria.join(", ")}, because it would ask the decided criteria again; a rewording is scored by a normal live run without --rerun-same-set (EV-4 rule 5)`,
+        `${input.packName}: --rerun-same-set cannot score the reworded ${unfinished.join(", ")}, because it would ask the decided criteria again; a rewording, also one whose run broke part way, is repeated by a normal live run without --rerun-same-set (EV-4 rule 5)`,
       );
     }
     return planRerun(input.fixtures, allCriteria);
@@ -162,7 +176,7 @@ export function planLiveRun(input: LivePlanInput): LiveFixturePlan[] {
       input.storedSetHash,
       input.scoredPngHashes,
     );
-    // A run that asks only reworded criteria may score a set whose PNGs were all scored (R-4).
+    // A run that asks only rewording pairs may score a set whose PNGs were all scored (R-4).
     const asksOnlyRewordedCriteria = isRewordingRun(input);
     if (decision === "refuse-same-set" && !asksOnlyRewordedCriteria) {
       throw new Error(
@@ -187,8 +201,13 @@ export function planLiveRun(input: LivePlanInput): LiveFixturePlan[] {
       const isOwnFixture =
         criterion.positive.includes(fixture.fixture) ||
         criterion.negative.includes(fixture.fixture);
-      const isReworded = input.rewordedCriteria.includes(criterion.criterion);
-      if (isOwnFixture && scoredPngs.has(fixture.pngSha256) && !isReworded) {
+      const isRewording = isRewordingPair(
+        input,
+        fixture,
+        criterion.criterion,
+        answered,
+      );
+      if (isOwnFixture && scoredPngs.has(fixture.pngSha256) && !isRewording) {
         throw new Error(
           `${input.packName}: ${criterion.criterion} has never been scored on its own fixture ${fixture.fixture}, but that PNG is in the scored PNG list, so the criterion looks like a rewording on fixtures already scored`,
         );
@@ -214,8 +233,45 @@ export function planLiveRun(input: LivePlanInput): LiveFixturePlan[] {
 }
 
 /**
- * Say whether every pair the run would ask belongs to a reworded criterion, and there is at least
- * one such pair. Only then may the run ask about a set whose PNGs were all scored (R-4).
+ * Say whether a pair of a fixture and a criterion is a rewording pair: the criterion is reworded,
+ * the fixture has an answer to it under an older question, and none to its current question
+ * (answered holds the criteria the fixture answers now). A fixture with no answer to the criterion
+ * at all, such as a new fixture, is an ordinary missing pair (EV-4 rule 5, R-4).
+ */
+function isRewordingPair(
+  input: LivePlanInput,
+  fixture: PlanFixture,
+  criterion: string,
+  answered: ReadonlySet<string>,
+): boolean {
+  return (
+    input.rewordedCriteria.includes(criterion) &&
+    fixture.olderAnswerCriteria.includes(criterion) &&
+    !answered.has(criterion)
+  );
+}
+
+/**
+ * Return the criteria, in pack order, that have a rewording pair left, so a rewording run that
+ * stopped part way is not finished.
+ */
+function criteriaWithRewordingPairs(input: LivePlanInput): string[] {
+  const unfinished: string[] = [];
+  for (const criterion of input.criteria) {
+    for (const fixture of input.fixtures) {
+      const answered = answeredCriteria(input.packName, fixture);
+      if (isRewordingPair(input, fixture, criterion.criterion, answered)) {
+        unfinished.push(criterion.criterion);
+        break;
+      }
+    }
+  }
+  return unfinished;
+}
+
+/**
+ * Say whether every pair the run would ask is a rewording pair (isRewordingPair), and there is at
+ * least one such pair. Only then may the run ask about a set whose PNGs were all scored (R-4).
  */
 function isRewordingRun(input: LivePlanInput): boolean {
   let anyPair = false;
@@ -225,7 +281,7 @@ function isRewordingRun(input: LivePlanInput): boolean {
       if (answered.has(criterion.criterion)) {
         continue;
       }
-      if (!input.rewordedCriteria.includes(criterion.criterion)) {
+      if (!isRewordingPair(input, fixture, criterion.criterion, answered)) {
         return false;
       }
       anyPair = true;
@@ -235,8 +291,11 @@ function isRewordingRun(input: LivePlanInput): boolean {
 }
 
 /**
- * Return the criteria of a pack that are reworded: the asked list holds a question for the
- * criterion and its current question is not one of them (EV-4 rule 5, R-4). Throw when the list
+ * Return the criteria of a pack that are reworded (EV-4 rule 5, R-4). A criterion is reworded when
+ * the asked list holds a question for it and its current question is not one of them (a new
+ * rewording or respelling), and also when the list holds its current question together with
+ * another question for its id (a rewording that a run began, which may have stopped part way).
+ * Only when the current question is not in the list can it be a third question. Throw when the list
  * already holds two counted questions for a criterion and its current question is a third, because
  * R-4 allows one rewording per criterion id, and throw when saved answers exist but the list does
  * not, because then no one can tell which questions were asked. askedQuestionHashes is null when
@@ -266,7 +325,17 @@ export function findRewordedCriteria(
         askedHashes.add(entry.questionSha256);
       }
     }
-    if (askedHashes.size === 0 || askedHashes.has(currentHash)) {
+    if (askedHashes.size === 0) {
+      continue;
+    }
+    if (askedHashes.has(currentHash)) {
+      // The current question was asked already. With another question for the same id, it is a
+      // rewording that a run began, maybe one that stopped part way, so the criterion stays
+      // reworded and a normal live run asks the fixtures that still have no answer to it. A
+      // respelling counts too: its British and US questions are two hashes for the one id.
+      if (askedHashes.size >= 2) {
+        reworded.push(criterion);
+      }
       continue;
     }
     // A question that changed spelling only is not a rewording, so its British form is not counted.
@@ -334,6 +403,24 @@ export function keepCurrentAnswers(
     },
     questionIdsToDrop,
   };
+}
+
+/**
+ * Return the full criterion ids of the answers that keepCurrentAnswers left out of a fixture's
+ * files, with old ids mapped to their new ids by the respelling, sorted and without repeats. These
+ * are the criteria the fixture has an answer to under an older question.
+ */
+export function olderAnswerCriteriaOf(
+  questionIdsToDrop: readonly string[],
+  respelling: Respelling = NO_RESPELLING,
+): string[] {
+  const criteria = new Set<string>();
+  for (const questionId of questionIdsToDrop) {
+    criteria.add(
+      currentCriterionIdFor(criterionForQuestionId(questionId), respelling),
+    );
+  }
+  return [...criteria].sort();
 }
 
 /** Plan a --rerun-same-set run: every criterion about every fixture, replacing every saved file. */

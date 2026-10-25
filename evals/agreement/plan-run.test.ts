@@ -7,6 +7,7 @@ import {
   findRewordedCriteria,
   keepCurrentAnswers,
   type LivePlanInput,
+  olderAnswerCriteriaOf,
   type PlanCriterion,
   type PlanFixture,
   planLiveRun,
@@ -55,12 +56,18 @@ function scoredFixture(fixture: string, criteria: string[]): PlanFixture {
         questionIds: criteria,
       },
     ],
+    olderAnswerCriteria: [],
   };
 }
 
 /** A fixture with no saved answers file. */
 function newFixture(fixture: string): PlanFixture {
-  return { fixture, pngSha256: pngHashOf(fixture), savedFiles: [] };
+  return {
+    fixture,
+    pngSha256: pngHashOf(fixture),
+    savedFiles: [],
+    olderAnswerCriteria: [],
+  };
 }
 
 /** Every fixture path of these criteria. */
@@ -443,6 +450,7 @@ describe("a reworded criterion (EV-4 rule 5, R-4, crit-q25.23)", () => {
         fixture,
         pngSha256: pngHashOf(fixture),
         savedFiles: [current.savedFile],
+        olderAnswerCriteria: olderAnswerCriteriaOf(current.questionIdsToDrop),
       });
     }
     return {
@@ -575,14 +583,154 @@ describe("a reworded criterion (EV-4 rule 5, R-4, crit-q25.23)", () => {
     ).toThrow(/demo\/B .*R-4 allows one rewording per criterion id/);
   });
 
-  it("counts a criterion as not reworded when its current question was asked before", () => {
+  it("keeps a criterion reworded when its new question was already asked in part", () => {
     const askedTwice: AskedQuestionHash[] = [
       ...askedOnce,
       { questionSha256: newQuestionB, criterion: "demo/B" },
     ];
     expect(
       findRewordedCriteria("demo", currentQuestions, askedTwice, true),
+    ).toEqual(["demo/B"]);
+    // With one question per id, the current question is the first one and nothing is reworded.
+    const firstQuestions = new Map<string, string>([
+      ["demo/A", questionA],
+      ["demo/B", oldQuestionB],
+    ]);
+    expect(
+      findRewordedCriteria("demo", firstQuestions, askedOnce, true),
     ).toEqual([]);
+  });
+
+  it("refuses a third question after a rewording run that stopped part way", () => {
+    const askedTwice: AskedQuestionHash[] = [
+      ...askedOnce,
+      { questionSha256: newQuestionB, criterion: "demo/B" },
+    ];
+    const thirdQuestions = new Map<string, string>([
+      ["demo/A", questionA],
+      ["demo/B", thirdQuestionB],
+    ]);
+    expect(() =>
+      findRewordedCriteria("demo", thirdQuestions, askedTwice, true),
+    ).toThrow(/R-4 allows one rewording per criterion id/);
+  });
+
+  /**
+   * The plan input after a rewording run of B that stopped part way: the asked list holds B's old
+   * and new questions, and the first two fixtures already have a second file with B's new answer.
+   */
+  function halfRewordedInput(answeredFixtures: number): LivePlanInput {
+    const fixtures = fixturesOf(criteria);
+    const askedTwice: AskedQuestionHash[] = [
+      ...askedOnce,
+      { questionSha256: newQuestionB, criterion: "demo/B" },
+    ];
+    const planFixtures: PlanFixture[] = [];
+    for (const [index, fixture] of fixtures.entries()) {
+      const first = keepCurrentAnswers(firstFile(fixture), currentQuestions);
+      const savedFiles: SavedAnswersFile[] = [first.savedFile];
+      if (index < answeredFixtures) {
+        savedFiles.push(
+          keepCurrentAnswers(secondFile(fixture), currentQuestions).savedFile,
+        );
+      }
+      planFixtures.push({
+        fixture,
+        pngSha256: pngHashOf(fixture),
+        savedFiles,
+        olderAnswerCriteria: olderAnswerCriteriaOf(first.questionIdsToDrop),
+      });
+    }
+    return {
+      packName: "demo",
+      criteria,
+      fixtures: planFixtures,
+      currentSetPngHashes: fixtures.map(pngHashOf),
+      storedSetHash: hashPngHashes(fixtures.map(pngHashOf)),
+      scoredPngHashes: fixtures.map(pngHashOf),
+      rewordedCriteria: findRewordedCriteria(
+        "demo",
+        currentQuestions,
+        askedTwice,
+        true,
+      ),
+      rerunSameSet: false,
+    };
+  }
+
+  it("resumes a rewording run that stopped part way and asks only the fixtures left", () => {
+    const input = halfRewordedInput(2);
+    expect(input.rewordedCriteria).toEqual(["demo/B"]);
+    expect(planLiveRun(input)).toEqual([
+      {
+        fixture: "fixtures/B.positive.png",
+        criteria: ["demo/B"],
+        answersFileName: "B.positive.png.answers-2.json",
+        fileNamesToDelete: [],
+      },
+      {
+        fixture: "fixtures/B.negative.png",
+        criteria: ["demo/B"],
+        answersFileName: "B.negative.png.answers-2.json",
+        fileNamesToDelete: [],
+      },
+    ]);
+  });
+
+  it("refuses --rerun-same-set while the reworded criterion has fixtures left to ask", () => {
+    expect(() =>
+      planLiveRun({ ...halfRewordedInput(2), rerunSameSet: true }),
+    ).toThrow(/--rerun-same-set cannot score the reworded demo\/B/);
+  });
+
+  it("still refuses a finished reworded criterion that lost every answer on its own scored fixture", () => {
+    // B's rewording is finished. B.positive.png lost all its files, so it has no answer to B at
+    // all, which is not a rewording pair. A new criterion C with a new fixture changes the set.
+    const finished = halfRewordedInput(4);
+    const withNewCriterion: PlanCriterion = {
+      criterion: "demo/C",
+      positive: ["fixtures/C.positive.png"],
+      negative: [],
+    };
+    const fixtures: PlanFixture[] = [];
+    for (const fixture of finished.fixtures) {
+      if (fixture.fixture === "fixtures/B.positive.png") {
+        fixtures.push(newFixture(fixture.fixture));
+      } else {
+        fixtures.push(fixture);
+      }
+    }
+    fixtures.push(newFixture("fixtures/C.positive.png"));
+    expect(() =>
+      planLiveRun({
+        ...finished,
+        criteria: [...criteria, withNewCriterion],
+        fixtures,
+        currentSetPngHashes: [
+          ...(finished.currentSetPngHashes ?? []),
+          pngHashOf("fixtures/C.positive.png"),
+        ],
+      }),
+    ).toThrow(
+      /demo\/B has never been scored on its own fixture fixtures\/B\.positive\.png/,
+    );
+  });
+
+  it("plans --rerun-same-set as before once the reworded criterion is answered on every fixture", () => {
+    const input = halfRewordedInput(4);
+    const plans = planLiveRun({ ...input, rerunSameSet: true });
+    expect(plans.map((plan) => plan.criteria)).toEqual([
+      ["demo/A", "demo/B"],
+      ["demo/A", "demo/B"],
+      ["demo/A", "demo/B"],
+      ["demo/A", "demo/B"],
+    ]);
+    expect(plans[0]).toEqual({
+      fixture: "fixtures/A.positive.png",
+      criteria: ["demo/A", "demo/B"],
+      answersFileName: "A.positive.png.answers.json",
+      fileNamesToDelete: ["A.positive.png.answers-2.json"],
+    });
   });
 
   it("refuses saved answers with no asked list, and allows a first run with neither", () => {
@@ -769,6 +917,10 @@ describe("a criterion respelled from British to US spelling (R-4, crit-q25.24)",
         fixture,
         pngSha256: pngHashOf(fixture),
         savedFiles: [current.savedFile],
+        olderAnswerCriteria: olderAnswerCriteriaOf(
+          current.questionIdsToDrop,
+          respelling,
+        ),
       });
     }
     return {
@@ -788,6 +940,22 @@ describe("a criterion respelled from British to US spelling (R-4, crit-q25.24)",
       rerunSameSet: false,
     };
   }
+
+  it("keeps a respelled and renamed criterion reworded after its run stopped part way", () => {
+    const askedAfterBrokenRun: AskedQuestionHash[] = [
+      ...askedBefore("demo/colour-B"),
+      { questionSha256: usQuestionB, criterion: "demo/color-B" },
+    ];
+    expect(
+      findRewordedCriteria(
+        "demo",
+        renamedCurrent,
+        askedAfterBrokenRun,
+        true,
+        respelledAndRenamed,
+      ),
+    ).toEqual(["demo/color-B"]);
+  });
 
   it("lets a renamed id inherit the old id's question and asks it on every scored fixture", () => {
     const input = renamedInput(respelledAndRenamed);
