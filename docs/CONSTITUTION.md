@@ -107,7 +107,7 @@ Why: unit tests are disposable (PRD 12.1), and a fake of anything else tests the
 
 ## Pull requests
 
-CS-23. Each pull request implements one beads ticket. Do not mix a refactor with a behaviour change.
+CS-23. Each pull request implements one beads ticket. Do not mix a refactor with a behavior change.
 Why: many agents work in parallel, and a reviewer can only keep up if each pull request has one purpose.
 
 CS-24. The body of each commit has a line `Ticket: <beads id>` and a line `PRD: <IDs>` (OQ-14).
