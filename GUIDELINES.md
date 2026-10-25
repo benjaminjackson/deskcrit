@@ -50,13 +50,13 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Source:** Dair, *Design with Type*, chapter 8 "Relationships of concord and contrast" and chapters 8a to 8g, one for each kind of contrast. Dair's point that a contrast must be obvious is confirmed in his booklet *A Typographic Quest No. 5: Typographic Contrast* (Westvaco, 1967), through John D. Berry's account of it. Arnheim, *Art and Visual Perception* (1954, rev. 1974), chapter I "Balance", makes the same point about perception: small differences leave the eye unsure whether two things are equal or unequal.
 - **Link:** https://creativepro.com/dot-font-seven-principles-of-typographic-contrast/
 - **Judged by:** askable. Question: "Is there a short line standing on its own above a paragraph, where a heading would go, that is set in the same size, weight, and colour as the paragraph text under it?" A difference of one or two pixels in size will likely be missed.
-- **Defect range:** `heading-indistinct`: not measured. Headings set in the size, weight, and colour of the text, or within a pixel or two of its size.
+- **Defect range:** `heading-indistinct`: not measured. Headings set in the size, weight, and color of the text, or within a pixel or two of its size.
 
 ### Contrast from more than size
 - **Rule:** Average work builds every level of the hierarchy from size alone, so headings grow very large while their weight, form, and colour stay the same as the text. Considered work pairs a smaller step in size with a change of weight, of form (capitals, italic), of structure (serif against sans serif), or of colour.
 - **Source:** Dair, *Design with Type*, chapters 8a to 8g and chapter 9 "Multiplying the contrasts".
 - **Judged by:** askable, as a warning only, because a hierarchy built on size alone is weak rather than wrong. Question: "Are the headings set in the same weight, style, and colour as the body text, so that they differ from it only in size?"
-- **Defect range:** `headings-differ-only-in-size`: not measured. Headings in the same face, weight, style, and colour as the text, larger than it by a clear step.
+- **Defect range:** `headings-differ-only-in-size`: not measured. Headings in the same face, weight, style, and color as the text, larger than it by a clear step.
 
 ### Sizes come from a scale
 - **Rule:** Text sizes come from a small, deliberate scale, so that each size reads as its own level. Many sizes that are almost the same show that sizes were picked one at a time.
@@ -265,7 +265,7 @@ The question in each **Judged by** line follows two rules. Yes always means the 
 - **Source:** Tschichold, *The New Typography*, chapter "The principles of the new typography" (central-axis setting and asymmetry).
 - **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
 - **Judged by:** askable, as a warning only, because a centred layout is a style and not an error. Question: "Is every block on the page, including headings, paragraphs of several lines, and buttons, centred on one vertical axis?"
-- **Defect range:** `everything-centred`: not measured. Every block on the page, including headings, paragraphs of several lines, and buttons, centred on one vertical axis.
+- **Defect range:** `everything-centered`: not measured. Every block on the page, including headings, paragraphs of several lines, and buttons, centered on one vertical axis.
 
 ### Repeated elements follow one programme
 - **Rule:** Gerstner treats design as a programme: a set of rules from which each solution is chosen. Elements of one kind (cards, buttons, section headings) therefore share one style and one spacing, and a variant appears only where the rules call for it.
@@ -319,7 +319,7 @@ Sources: Benjamin Jackson decided on 2026-10-24 that this section, and only this
 - **Source:** Tschichold, *The New Typography* (1928), chapter "The principles of the new typography"; Bringhurst, *The Elements of Typographic Style*, section 2.1.3 "Set ragged if ragged setting suits the text and the page" (the rule is conditional, so flush left as a default is overstated).
 - **Link:** https://www.neugraphic.com/tschichold/tschichold-text5.html
 - **Judged by:** askable. Question: "Is a paragraph of four or more lines centred or right-aligned?"
-- **Defect range:** `centred-or-right-paragraphs`: not measured. A paragraph of four or more lines set centred or flush right.
+- **Defect range:** `centered-or-right-paragraphs`: not measured. A paragraph of four or more lines set centered or flush right.
 
 ### Content keeps clear of the page edge
 - **Rule:** Text and boxes sit inside the type area, with a margin between them and the edge of the page.
@@ -1081,7 +1081,7 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 - **Source:** Stephen Few, "Common Pitfalls in Dashboard Design" (Perceptual Edge, 2006), pitfall 12; Claus O. Wilke, *Fundamentals of Data Visualization* (O'Reilly, 1st ed. 2019), chapter 19.1.
 - **Link:** https://www.perceptualedge.com/articles/Whitepapers/Common_Pitfalls.pdf
 - **Judged by:** askable. Question: "Are the bars or marks of a single series drawn in many different colours that encode nothing, when one colour would show the same data?"
-- **Defect range:** `colour-without-meaning`: not measured. One series of 5 to 10 bars, each a different hue from a common categorical palette at the saturation of the clean side's single colour.
+- **Defect range:** `color-without-meaning`: not measured. One series of 5 to 10 bars, each a different hue from a common categorical palette at the saturation of the clean side's single color.
 
 ### Titles and annotations state the takeaway
 - **Rule:** The chart title or a caption states the finding ("Sales fell 20% after March"), not only the topic ("Sales by month"), and key points are annotated on the chart.

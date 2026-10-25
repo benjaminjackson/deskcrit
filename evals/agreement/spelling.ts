@@ -24,13 +24,67 @@ export type Respelling = {
 };
 
 /** The questions that changed spelling only (R-4, crit-q25.24). */
-export const RESPELLED_QUESTIONS: readonly RespelledQuestion[] = [];
+export const RESPELLED_QUESTIONS: readonly RespelledQuestion[] = [
+  {
+    criterion: "basics/text-reads-faint",
+    britishQuestionSha256:
+      "aa7e0e517c8d1d078161b29fc927850dfe065605da3f74d5b62c4b5a7ec68e3a",
+    usQuestionSha256:
+      "6301cf08aa6a0e84bf20590003f16437e2e8848d13cad28b309c925eeb2ae327",
+  },
+  {
+    criterion: "basics/centered-or-right-paragraphs",
+    britishQuestionSha256:
+      "a8705b88a639af28e4bb338cf93c9b04f09114ea1428ad8fc60fb4e3322c693d",
+    usQuestionSha256:
+      "23c658dd53e918e0c6607851bf44bbfa296a09bc90e7e2aaae907d3e1d202a25",
+  },
+  {
+    criterion: "dataviz/rainbow-for-ordered-values",
+    britishQuestionSha256:
+      "3e2d7d56666f38aa332982a92991364cf60709ab7f0eeb6fb1e84fabb885ee3c",
+    usQuestionSha256:
+      "5dd253eb5fc5e2399a81e1adf127e8a798b65fe928bdbc6529d52ef4735ff7b3",
+  },
+  {
+    criterion: "dataviz/color-without-meaning",
+    britishQuestionSha256:
+      "5d7334f6c0baa6144157607cbf0282a0ef13cf95ee3ef574eb94914901480e42",
+    usQuestionSha256:
+      "8f183b6b644bf6770bd9de96a948a00adcf80e3e9954fd673e1b35be03ca09e9",
+  },
+  {
+    criterion: "layout/everything-centered",
+    britishQuestionSha256:
+      "93f00813dbca920369dbe6bbc3ce6071d792ed1de91855fb1e631e853e95fc2d",
+    usQuestionSha256:
+      "51b9ad979bf1d19652d6dbd687b8a28f9899ee2f8d562bb3607bc136d01eeafe",
+  },
+  {
+    criterion: "typography/heading-indistinct",
+    britishQuestionSha256:
+      "f5a9219212822cdfacfe6e9fd0dd0a8138f2edd1febc2e789177b6a3c1093a2d",
+    usQuestionSha256:
+      "82abce7b2925384d9453e5555d8e8523a59793c3bb5d23ddf95b1ed64bda4bd1",
+  },
+  {
+    criterion: "typography/headings-differ-only-in-size",
+    britishQuestionSha256:
+      "54913596b574e25e211a3926bb163f89f50efe1d382272cfe1e63583273034e2",
+    usQuestionSha256:
+      "8767fcd6a486f1b8c177c3faef6e29ba66af342bf2069f9c150e8f1dc8be57ef",
+  },
+];
 
 /** The criterion ids that changed spelling only, old id to new id (R-4, crit-q25.24). */
 export const RESPELLED_CRITERION_IDS: ReadonlyMap<string, string> = new Map<
   string,
   string
->();
+>([
+  ["basics/centred-or-right-paragraphs", "basics/centered-or-right-paragraphs"],
+  ["dataviz/colour-without-meaning", "dataviz/color-without-meaning"],
+  ["layout/everything-centred", "layout/everything-centered"],
+]);
 
 /** The spelling changes the real harness applies. */
 export const RESPELLING: Respelling = {

@@ -364,10 +364,10 @@ Every fixture here is rendered from a template in packs/dataviz/templates/ by th
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## colour-without-meaning.positive.png
+## color-without-meaning.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/dataviz/templates/colour-without-meaning.html, defect=on
+- Source: packs/dataviz/templates/color-without-meaning.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -376,10 +376,10 @@ Every fixture here is rendered from a template in packs/dataviz/templates/ by th
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## colour-without-meaning.negative.png
+## color-without-meaning.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/dataviz/templates/colour-without-meaning.html, defect=off
+- Source: packs/dataviz/templates/color-without-meaning.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -388,10 +388,10 @@ Every fixture here is rendered from a template in packs/dataviz/templates/ by th
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## colour-without-meaning--2.positive.png
+## color-without-meaning--2.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/dataviz/templates/colour-without-meaning--2.html, defect=on
+- Source: packs/dataviz/templates/color-without-meaning--2.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -400,10 +400,10 @@ Every fixture here is rendered from a template in packs/dataviz/templates/ by th
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## colour-without-meaning--2.negative.png
+## color-without-meaning--2.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/dataviz/templates/colour-without-meaning--2.html, defect=off
+- Source: packs/dataviz/templates/color-without-meaning--2.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -412,10 +412,10 @@ Every fixture here is rendered from a template in packs/dataviz/templates/ by th
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## colour-without-meaning--3.positive.png
+## color-without-meaning--3.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/dataviz/templates/colour-without-meaning--3.html, defect=on
+- Source: packs/dataviz/templates/color-without-meaning--3.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -424,10 +424,10 @@ Every fixture here is rendered from a template in packs/dataviz/templates/ by th
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## colour-without-meaning--3.negative.png
+## color-without-meaning--3.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/dataviz/templates/colour-without-meaning--3.html, defect=off
+- Source: packs/dataviz/templates/color-without-meaning--3.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -436,10 +436,10 @@ Every fixture here is rendered from a template in packs/dataviz/templates/ by th
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## colour-without-meaning--4.positive.png
+## color-without-meaning--4.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/dataviz/templates/colour-without-meaning--4.html, defect=on
+- Source: packs/dataviz/templates/color-without-meaning--4.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -448,10 +448,10 @@ Every fixture here is rendered from a template in packs/dataviz/templates/ by th
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## colour-without-meaning--4.negative.png
+## color-without-meaning--4.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/dataviz/templates/colour-without-meaning--4.html, defect=off
+- Source: packs/dataviz/templates/color-without-meaning--4.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -460,10 +460,10 @@ Every fixture here is rendered from a template in packs/dataviz/templates/ by th
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## colour-without-meaning--5.positive.png
+## color-without-meaning--5.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/dataviz/templates/colour-without-meaning--5.html, defect=on
+- Source: packs/dataviz/templates/color-without-meaning--5.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -472,10 +472,10 @@ Every fixture here is rendered from a template in packs/dataviz/templates/ by th
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## colour-without-meaning--5.negative.png
+## color-without-meaning--5.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/dataviz/templates/colour-without-meaning--5.html, defect=off
+- Source: packs/dataviz/templates/color-without-meaning--5.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
