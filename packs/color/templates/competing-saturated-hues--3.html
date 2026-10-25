@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Color fixture: competing saturated hues, event page</title>
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion competing-saturated-hues. An event page for a two-day food festival on a white page. A bento grid
+ * holds a tall ticket block, a venue illustration block and a schedule block. The clean side draws the ticket
+ * block in vivid magenta-red and the other two in light tints with dark text. The defect switch changes the
+ * background-color and color of the venue and schedule blocks to vivid teal and vivid blue, and the fill of the
+ * venue drawing. Nothing else changes.
+ */
+header { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 52px; }
+.brand { font-weight: 700; font-size: 19px; }
+nav { display: flex; gap: 24px; font-size: 15px; color: var(--color-muted); }
+h1 { font-size: 44px; font-weight: 700; padding: 8px 52px 0; letter-spacing: -0.01em; }
+.when { font-size: 18px; color: #3a424a; padding: 8px 52px 24px; }
+.grid { display: grid; grid-template-columns: 1.05fr 1fr; grid-template-rows: 250px 250px; gap: 22px; padding: 0 52px; }
+.block { border-radius: 16px; padding: 28px 30px; overflow: hidden; }
+.ticket { grid-row: 1 / 3; background-color: #c4175f; color: #fff; display: flex; flex-direction: column; }
+.venue { background-color: #fdeaf1; color: #1f2328; position: relative; }
+.sched { background-color: #fdeaf1; color: #1f2328; }
+.block h2 { font-size: 26px; font-weight: 700; }
+.block p { font-size: 17px; line-height: 1.5; margin-top: 10px; }
+.price { font-size: 64px; font-weight: 700; margin-top: 26px; line-height: 1; }
+.price small { font-size: 18px; font-weight: 400; }
+.buy { margin-top: auto; align-self: flex-start; background: #fff; color: #1f2328; font-weight: 700; font-size: 17px; padding: 14px 28px; border-radius: 8px; }
+.venue svg { position: absolute; right: 18px; bottom: 14px; }
+.venue .tent { fill: #f6b3cd; }
+.venue .flag { fill: #c4175f; }
+.sched .slot { display: flex; justify-content: space-between; font-size: 16px; padding: 9px 0; border-top: 1px solid rgba(0,0,0,0.12); margin-top: 0; }
+.sched h2 { margin-bottom: 8px; }
+
+[data-defect="on"] .venue { background-color: #0f8a8a; color: #fff; }
+[data-defect="on"] .sched { background-color: #1f5fd1; color: #fff; }
+[data-defect="on"] .venue .tent { fill: #7fd1d1; }
+[data-defect="on"] .venue .flag { fill: #ffffff; }
+[data-defect="on"] .sched .slot { border-top-color: rgba(255,255,255,0.4); }
+    </style>
+  </head>
+  <body>
+<header><span class="brand">Harvest Row Festival</span><nav><span>Vendors</span><span>Getting there</span><span>FAQ</span></nav></header>
+<h1>Two days of street food by the river</h1>
+<p class="when">October 11 and 12, Riverside Park, 11 AM to 9 PM</p>
+<section class="grid">
+  <div class="block ticket"><h2>Weekend pass</h2><p>Entry both days and eight food tokens.</p><div class="price">$38 <small>per adult</small></div><span class="buy">Buy tickets</span></div>
+  <div class="block venue"><h2>The grounds</h2><p>Sixty vendors in four zones.</p><svg width="230" height="120" viewBox="0 0 230 120"><path class="tent" d="M10 110 L60 40 L110 110Z"/><path class="tent" d="M90 110 L150 30 L210 110Z"/><path class="flag" d="M150 30 L150 8 L172 16 L150 22Z"/><rect class="flag" x="55" y="80" width="12" height="30"/></svg></div>
+  <div class="block sched"><h2>Saturday schedule</h2><div class="slot"><span>11:00</span><span>Gates open</span></div><div class="slot"><span>1:30</span><span>Noodle cook-off</span></div><div class="slot"><span>4:00</span><span>Brass band on the lawn</span></div></div>
+</section>
+  </body>
+</html>

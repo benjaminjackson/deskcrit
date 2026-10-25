@@ -1,0 +1,185 @@
+# The first-party color pack (crit-q25.6, FR-55). It encodes six askable entries in the "Color
+# guidelines for deskcrit" section of GUIDELINES.md. Every question is noul, and true is the defect
+# (JC-5). Each question is the pre-screen wording in spike/prescreen/color/questions.json with US
+# spelling, and same-role-different-colors is narrowed to elements outside charts, which the dataviz
+# pack covers. The pre-screened criterion many-unrelated-hues is not encoded; GUIDELINES.md records why.
+# The other entries of the color section belong to the accessibility, basics, and dataviz packs, or
+# stay as research. Three criteria cite a source whose text was checked (FR-45): W3C F83 for one, and
+# the Apple Human Interface Guidelines for two. Three cite Common sense, because the text of Albers,
+# Itten, and Refactoring UI could not be opened; they have a reason and warn_when only. The cited criteria have pass_when and warn_when
+# and no fail_when until the EV-5 run (crit-q25.11). Fix hints and reason sentences are DRAFT,
+# awaiting Benjamin Jackson (G-4).
+name: color
+version: 0.1.0
+title: Color
+license: MIT
+criteria:
+  - id: text-over-busy-image
+    title: 'Text sits directly on a busy image'
+    source: 'W3C, *Techniques for WCAG 2.2*, F83 "Failure of Success Criterion 1.4.3 and 1.4.6 due to using background images that do not provide sufficient contrast with foreground text (or images of text)".'
+    link: https://www.w3.org/WAI/WCAG22/Techniques/failures/F83
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Is there text set directly on a busy photo or pattern, where the detail behind the letters makes the text hard to pick out?'
+      criteria:
+        "true": 'Some text sits directly on a busy, detailed photo or pattern with no panel, overlay, or shadow behind it, so the detail behind the letters breaks them up and makes the text hard to pick out.'
+        "false": 'Text over images sits on a calm area of the image, or on a panel, overlay, or shadow that keeps it easy to read, or no text is set over an image or pattern.'
+    locate: true
+    locate_instructions: 'The text that sits directly on a busy photo or pattern.'
+    pass_when: { probability_at_most: 0.3 }
+    warn_when: { probability_at_least: 0.7 }
+    # DRAFT fix hint (G-4)
+    fix: 'Put a dark scrim, a see-through overlay, or a solid panel behind the text, or move the text to a calm part of the image, so that every letter stands out from what is directly behind it (W3C, Techniques for WCAG 2.2, F83).'
+    fixtures:
+      positive:
+        - fixtures/text-over-busy-image.positive.png
+        - fixtures/text-over-busy-image--2.positive.png
+        - fixtures/text-over-busy-image--3.positive.png
+        - fixtures/text-over-busy-image--4.positive.png
+        - fixtures/text-over-busy-image--5.positive.png
+      negative:
+        - fixtures/text-over-busy-image.negative.png
+        - fixtures/text-over-busy-image--2.negative.png
+        - fixtures/text-over-busy-image--3.negative.png
+        - fixtures/text-over-busy-image--4.negative.png
+        - fixtures/text-over-busy-image--5.negative.png
+
+  - id: vibrating-color-pair
+    title: 'Two vivid colors of the same lightness touch and vibrate'
+    source: Common sense
+    # DRAFT reason (G-4)
+    reason: 'Two vivid colors of about the same lightness make the edge between them seem to flicker, which tires the eye and makes text on them hard to read.'
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Is there text or a shape in one vivid, saturated color set directly on another vivid color of about the same lightness, so that the edge between them seems to flicker or vibrate?'
+      criteria:
+        "true": 'Text or a shape in one vivid color sits directly on a different vivid color of about the same lightness, so the edge between the two colors seems to flicker or vibrate and is tiring to look at.'
+        "false": 'Wherever one color sits on another, the two clearly differ in lightness, or at least one of them is a neutral or muted color, so no edge seems to flicker.'
+    warn_when: { probability_at_least: 0.7 }
+    # DRAFT fix hint (G-4)
+    fix: 'Make one of the two colors clearly darker or lighter, or mute one of them, or put a neutral gap such as a white or dark outline between them.'
+    fixtures:
+      positive:
+        - fixtures/vibrating-color-pair.positive.png
+        - fixtures/vibrating-color-pair--2.positive.png
+        - fixtures/vibrating-color-pair--3.positive.png
+        - fixtures/vibrating-color-pair--4.positive.png
+        - fixtures/vibrating-color-pair--5.positive.png
+      negative:
+        - fixtures/vibrating-color-pair.negative.png
+        - fixtures/vibrating-color-pair--2.negative.png
+        - fixtures/vibrating-color-pair--3.negative.png
+        - fixtures/vibrating-color-pair--4.negative.png
+        - fixtures/vibrating-color-pair--5.negative.png
+
+  - id: accent-overused
+    title: 'The accent color is used on so many elements that nothing stands out'
+    source: 'Apple, *Human Interface Guidelines*, "Color", sections "Best practices" ("Avoid using the same color to mean different things") and "Liquid Glass color" ("reserve it for elements that truly benefit from emphasis"), in part.'
+    link: https://developer.apple.com/design/human-interface-guidelines/color
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Is the accent color, the one strong color meant to mark the main action or the most important item, used on so many elements that nothing stands out?'
+      criteria:
+        "true": 'The strong accent color is spread over many elements, such as headings, icons, borders, backgrounds, links, and buttons, so it no longer points to one important thing.'
+        "false": 'The accent color appears on only a few elements, such as the main action and one key highlight, so those elements stand out, or the page has no accent color.'
+    pass_when: { probability_at_most: 0.3 }
+    warn_when: { probability_at_least: 0.7 }
+    # DRAFT fix hint (G-4)
+    fix: 'Keep the accent color for the main action and at most one key highlight, and draw the headings, icons, borders, and other elements in neutral colors (Apple, Human Interface Guidelines, "Color").'
+    fixtures:
+      positive:
+        - fixtures/accent-overused.positive.png
+        - fixtures/accent-overused--2.positive.png
+        - fixtures/accent-overused--3.positive.png
+        - fixtures/accent-overused--4.positive.png
+        - fixtures/accent-overused--5.positive.png
+      negative:
+        - fixtures/accent-overused.negative.png
+        - fixtures/accent-overused--2.negative.png
+        - fixtures/accent-overused--3.negative.png
+        - fixtures/accent-overused--4.negative.png
+        - fixtures/accent-overused--5.negative.png
+
+  - id: saturated-large-areas
+    title: 'A large area is filled with a vivid, fully saturated color'
+    source: Common sense
+    # DRAFT reason (G-4)
+    reason: 'A large field of vivid color tires the eye and leaves no stronger color to mark what matters.'
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Is a large area of the page, such as a full-width band, a sidebar, or the whole background, filled with a vivid, fully saturated color instead of a muted, light, or dark one?'
+      criteria:
+        "true": 'A large area of the page, such as a full-width band, a sidebar, or the whole background, is filled with a vivid, fully saturated color.'
+        "false": 'Large areas of the page use neutral, light, dark, or muted colors, and vivid colors appear only on small elements such as buttons, icons, or highlights.'
+    warn_when: { probability_at_least: 0.7 }
+    # DRAFT fix hint (G-4)
+    fix: 'Fill the large area with a light tint or a dark shade of the color, and keep the full-strength color for small elements such as the main button.'
+    fixtures:
+      positive:
+        - fixtures/saturated-large-areas.positive.png
+        - fixtures/saturated-large-areas--2.positive.png
+        - fixtures/saturated-large-areas--3.positive.png
+        - fixtures/saturated-large-areas--4.positive.png
+        - fixtures/saturated-large-areas--5.positive.png
+      negative:
+        - fixtures/saturated-large-areas.negative.png
+        - fixtures/saturated-large-areas--2.negative.png
+        - fixtures/saturated-large-areas--3.negative.png
+        - fixtures/saturated-large-areas--4.negative.png
+        - fixtures/saturated-large-areas--5.negative.png
+
+  - id: competing-saturated-hues
+    title: 'Two or more vivid colors compete at equal weight'
+    source: Common sense
+    # DRAFT reason (G-4)
+    reason: 'When two or three vivid colors each take an equal share of the page, none of them leads, so the eye has no clear place to start.'
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Are two or more different vivid colors given equal weight on the page, each on large or prominent elements, so that no one color leads and they compete for attention?'
+      criteria:
+        "true": 'Two or more different vivid colors each cover large or prominent elements at about the same size and strength, so no single color leads and they compete for attention.'
+        "false": 'One color clearly leads and any other colors are smaller, quieter, or neutral, or the page uses only one vivid color.'
+    warn_when: { probability_at_least: 0.7 }
+    # DRAFT fix hint (G-4)
+    fix: 'Choose one lead color for the most important element, and turn the other colors into light tints or neutrals, or shrink them to small accents.'
+    fixtures:
+      positive:
+        - fixtures/competing-saturated-hues.positive.png
+        - fixtures/competing-saturated-hues--2.positive.png
+        - fixtures/competing-saturated-hues--3.positive.png
+        - fixtures/competing-saturated-hues--4.positive.png
+        - fixtures/competing-saturated-hues--5.positive.png
+      negative:
+        - fixtures/competing-saturated-hues.negative.png
+        - fixtures/competing-saturated-hues--2.negative.png
+        - fixtures/competing-saturated-hues--3.negative.png
+        - fixtures/competing-saturated-hues--4.negative.png
+        - fixtures/competing-saturated-hues--5.negative.png
+
+  - id: same-role-different-colors
+    title: 'Elements that do the same job have different colors'
+    source: 'Apple, *Human Interface Guidelines*, "Color", section "Best practices" ("Use color consistently throughout your interface").'
+    link: https://developer.apple.com/design/human-interface-guidelines/color
+    question:
+      type: noul
+      instructions: 'In the image at screenshot: Outside any chart, are elements that do the same job, such as the buttons in one row or the cards in one grid, shown in different colors from each other for no visible reason?'
+      criteria:
+        "true": 'Outside any chart, elements of the same kind that do the same job, such as matching buttons or cards side by side, are each shown in a different color, and nothing about them explains the difference.'
+        "false": 'Elements that do the same job share one color, and where colors differ the difference marks a different role, state, or category that the page makes clear, or the only such colors are inside a chart.'
+    pass_when: { probability_at_most: 0.3 }
+    warn_when: { probability_at_least: 0.7 }
+    # DRAFT fix hint (G-4)
+    fix: 'Give elements that do the same job one shared color, and keep a different color only for a different role or state (Apple, Human Interface Guidelines, "Color").'
+    fixtures:
+      positive:
+        - fixtures/same-role-different-colors.positive.png
+        - fixtures/same-role-different-colors--2.positive.png
+        - fixtures/same-role-different-colors--3.positive.png
+        - fixtures/same-role-different-colors--4.positive.png
+        - fixtures/same-role-different-colors--5.positive.png
+      negative:
+        - fixtures/same-role-different-colors.negative.png
+        - fixtures/same-role-different-colors--2.negative.png
+        - fixtures/same-role-different-colors--3.negative.png
+        - fixtures/same-role-different-colors--4.negative.png
+        - fixtures/same-role-different-colors--5.negative.png

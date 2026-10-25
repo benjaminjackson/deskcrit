@@ -409,9 +409,10 @@ These checks were in the earlier catalog, but no source this section may cite ho
 
 ### Text over images and gradients
 - **Rule:** Text on a photo, gradient or textured background keeps its contrast at the worst point behind the text, not the average. Add a scrim, overlay or solid panel where the background varies.
-- **Source:** W3C, *Understanding SC 1.4.3 Contrast (Minimum)* (2023)
-- **Link:** https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
-- **Judged by:** askable.
+- **Source:** W3C, *Techniques for WCAG 2.2*, F83 "Failure of Success Criterion 1.4.3 and 1.4.6 due to using background images that do not provide sufficient contrast with foreground text (or images of text)". Checked 2026-10-25: F83 says text over a background image needs contrast against "those parts of the image that are most like the text and behind the text", and its examples are lines and dark areas of an image that cross behind the letters. It does not name a remedy; the scrim, overlay or panel in the rule is the plain fix. *Understanding SC 1.4.3* itself only points to F83 for background images.
+- **Link:** https://www.w3.org/WAI/WCAG22/Techniques/failures/F83
+- **Judged by:** askable. Question: "Is there text set directly on a busy photo or pattern, where the detail behind the letters makes the text hard to pick out?"
+- **Defect range:** `text-over-busy-image`: not measured. One heading or lead line set over a detailed region of a photo or illustration with no scrim or panel; the clean side puts a scrim or solid panel behind the same text.
 
 ### Color-vision deficiency safety
 - **Rule:** The design stays readable and its distinctions stay visible when simulated for protanopia, deuteranopia and tritanopia (about 8% of men have red-green deficiency). Red vs green, and green vs brown, must differ in lightness or carry another cue.
@@ -423,7 +424,7 @@ These checks were in the earlier catalog, but no source this section may cite ho
 - **Rule:** When a chart needs distinct categories safe for color-blind readers, use the Okabe-Ito eight (black, orange, sky blue, bluish green, yellow, blue, vermillion, reddish purple), and keep to about 8 or fewer categories.
 - **Source:** Masataka Okabe and Kei Ito, *Color Universal Design (CUD): How to make figures and presentations that are friendly to colorblind people* (2002/2008)
 - **Link:** https://jfly.uni-koeln.de/color/
-- **Judged by:** askable as a visual judgment only. Jev is asked about a chart whose categories are told apart by colour alone, especially red against green. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Judged by:** askable as a visual judgment only. Jev is asked about a chart whose categories are told apart by color alone, especially red against green. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
 
 ### Limit categorical colors in a chart
 - **Rule:** Categorical palettes work for about 5 to 10 hues at most; beyond that, direct labels, small multiples, grouping or highlighting one series and graying the rest are better than more colors.
@@ -455,14 +456,16 @@ These checks were in the earlier catalog, but no source this section may cite ho
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
 ### Analogous harmony
-- **Rule:** An analogous scheme uses neighbouring hues (roughly within 30 to 60 degrees); it reads calm and cohesive but needs lightness or saturation variation, or one contrasting accent, to avoid flatness.
+- **Rule:** An analogous scheme uses neighboring hues (roughly within 30 to 60 degrees); it reads calm and cohesive but needs lightness or saturation variation, or one contrasting accent, to avoid flatness.
 - **Source:** Johannes Itten, *The Art of Color* (1961)
 - **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
 
 ### Triadic, split-complementary and tetradic schemes
 - **Rule:** Triadic (about 120 degrees apart) and split-complementary (a hue plus the two neighbours of its complement) schemes keep one hue dominant and mute the others in saturation or area. Three equally saturated hues at equal weight is a defect.
 - **Source:** Johannes Itten, *The Art of Color* (1961), color chords
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Judged by:** askable as a visual judgment; the figure in the rule is not checked. Question: "Are two or more different vivid colors given equal weight on the page, each on large or prominent elements, so that no one color leads and they compete for attention?"
+- **Source check (FR-45):** not confirmed. On 2026-10-25 the only copy of *The Art of Color* found online (archive.org, `artofcolorsubjec00itte`) is lending-only, so the text of the color chords and of the contrast of extension could not be opened. The `competing-saturated-hues` criterion cites `Common sense` and may only warn until a person checks the book.
+- **Defect range:** `competing-saturated-hues`: not measured. Two or three vivid hues at similar area on prominent elements, such as feature panels, a large button and an illustration block, none of them a full-width band or the page background; the clean side keeps one of them as the lead hue and turns the others into light tints or neutrals.
 
 ### Monochromatic schemes need value range
 - **Rule:** A single-hue design varies lightness and saturation enough to separate its levels (steps at least visibly distinct, text still at 4.5:1) so hierarchy comes from value, not hue.
@@ -478,13 +481,16 @@ These checks were in the earlier catalog, but no source this section may cite ho
 - **Rule:** Use one primary accent for the main action and interactive state; reserve it so that it does not also decorate non-interactive content. More than about two competing saturated accents on one screen splits attention.
 - **Source:** Apple, *Human Interface Guidelines: Color* (accent colors); Google, *Material Design 3: Color roles*
 - **Link:** https://developer.apple.com/design/human-interface-guidelines/color
-- **Judged by:** askable.
+- **Judged by:** askable. Question: "Is the accent color, the one strong color meant to mark the main action or the most important item, used on so many elements that nothing stands out?"
+- **Source check (FR-45):** confirmed in part on 2026-10-25 in Apple, *Human Interface Guidelines*, "Color", section "Best practices": "Avoid using the same color to mean different things", with the example that the brand color which marks a button as interactive, put on noninteractive text, is confusing; and section "Liquid Glass color": "reserve it for elements that truly benefit from emphasis, such as status indicators or primary actions". That is the part the question asks about. The page does not state the "about two competing accents" figure. The Material 3 page could not be read as text (it needs a script to draw), so the criterion cites only Apple.
+- **Defect range:** `accent-overused`: not measured. The accent color on headings, icons, borders, tags and links as well as on the main action; the clean side keeps it on the main action and one highlight and draws the rest in neutrals.
 
 ### Limited palette
 - **Rule:** A piece has a small defined palette: typically one neutral ramp, one or two brand hues, and semantic status colors. Count distinct hues outside photos and illustrations; many one-off hues indicate no system.
 - **Source:** Steve Schoger and Adam Wathan, *Refactoring UI* (2018), "Define your shades"; Material Design 3 color roles
 - **Link:** https://m3.material.io/styles/color/roles
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Does the page use many different hues that do not seem to belong to one palette, so the colors look random instead of planned?"
+- **Not encoded:** `many-unrelated-hues` was cut after the pre-screen (crit-q25.17, jev-1.14.0), with pre-screen figures 0.34, 0.25 / 0.02, 0.02.
 
 ### Simultaneous contrast
 - **Rule:** The same color looks different on different surrounds; compare colors in context. Adjacent colors of similar lightness make edges shimmer, and a gray or small swatch will appear tinted toward the complement of its surround.
@@ -494,7 +500,9 @@ These checks were in the earlier catalog, but no source this section may cite ho
 ### Vibrating and clashing combinations
 - **Rule:** Avoid fully saturated complementary colors adjacent at similar lightness (red on blue, red on green, magenta on cyan) for text or thin shapes; they vibrate. Separate by lightness difference or a neutral gap.
 - **Source:** Josef Albers, *Interaction of Color* (1963); Johannes Itten, *The Art of Color* (1961), contrast of saturation
-- **Judged by:** askable.
+- **Judged by:** askable. Question: "Is there text or a shape in one vivid, saturated color set directly on another vivid color of about the same lightness, so that the edge between them seems to flicker or vibrate?"
+- **Source check (FR-45):** not confirmed. On 2026-10-25 the table of contents of *Interaction of Color* (Yale catalog record) shows the chapter "Vibrating boundaries: enforced contours", but no copy of its text could be opened, and Itten's contrast of saturation is about muting a color, not about vibrating edges. The `vibrating-color-pair` criterion cites `Common sense` and may only warn until a person checks the Albers chapter.
+- **Defect range:** `vibrating-color-pair`: not measured. Display text or a shape in one saturated hue set on its near-complement at about the same lightness, such as red on blue or magenta on green; the clean side darkens or lightens one of the two, or puts a neutral gap between them.
 
 ### Value (lightness) carries structure
 - **Rule:** The design should still show its hierarchy and figure/ground in a grayscale render; if two elements merge in grayscale, hue alone is separating them and the pairing is fragile.
@@ -509,7 +517,9 @@ These checks were in the earlier catalog, but no source this section may cite ho
 ### Saturation hierarchy
 - **Rule:** Saturated color marks what matters; surrounding content uses desaturated or neutral tones. Large areas of fully saturated color tire the eye and weaken emphasis.
 - **Source:** Johannes Itten, *The Art of Color* (1961), contrast of saturation; Steve Schoger and Adam Wathan, *Refactoring UI* (2018)
-- **Judged by:** askable.
+- **Judged by:** askable. Question: "Is a large area of the page, such as a full-width band, a sidebar, or the whole background, filled with a vivid, fully saturated color instead of a muted, light, or dark one?"
+- **Source check (FR-45):** not confirmed. On 2026-10-25 neither book could be opened as text: the archive.org copy of *The Art of Color* is lending-only, and *Refactoring UI* is sold only as a paid download. The `saturated-large-areas` criterion cites `Common sense` and may only warn until a person checks either book.
+- **Defect range:** `saturated-large-areas`: not measured. One full-width band, sidebar or page background in a fully saturated hue; the clean side fills the same area with a light tint or a dark shade of the same hue.
 
 ### Semantic color conventions
 - **Rule:** Red marks errors and danger, green marks success, amber/yellow marks warning, blue marks information. Do not use these status colors for unrelated decoration, and do not reverse them (a green delete button, a red success message).
@@ -527,7 +537,9 @@ These checks were in the earlier catalog, but no source this section may cite ho
 - **Rule:** The same role uses the same color everywhere (all primary buttons, all links, all error states). Near-duplicate values (e.g. several slightly different blues) indicate drift; roles should map to named tokens.
 - **Source:** Google, *Material Design 3: Color roles*; Apple, *Human Interface Guidelines: Color*
 - **Link:** https://m3.material.io/styles/color/roles
-- **Judged by:** askable as a visual judgment only. Jev is asked about the same role shown in visibly different colours across the view. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core.
+- **Judged by:** askable as a visual judgment only. Jev is asked about the same role shown in visibly different colors across the view, outside charts, which the dataviz pack covers. The figure in the rule is not checked. An exact result needs a measuring tool such as axe-core. Question: "Outside any chart, are elements that do the same job, such as the buttons in one row or the cards in one grid, shown in different colors from each other for no visible reason?"
+- **Source check (FR-45):** confirmed on 2026-10-25 in Apple, *Human Interface Guidelines*, "Color", section "Best practices": "Use color consistently throughout your interface, especially when you use it to help communicate information like status or interactivity." The Material 3 page could not be read as text (it needs a script to draw), so the criterion cites only Apple.
+- **Defect range:** `same-role-different-colors`: not measured. Three to six buttons or cards that do the same job, side by side, each in a different hue; the clean side gives them one shared hue.
 
 ### Dark mode conventions
 - **Rule:** Dark themes use dark gray (not pure #000 with pure #FFF text), lighter and slightly desaturated accents, and express elevation by lighter surfaces rather than shadows. Body text keeps at least 4.5:1, and avoid maximum-contrast white on black for long text.

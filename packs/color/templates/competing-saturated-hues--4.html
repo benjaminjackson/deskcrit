@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Color fixture: competing saturated hues, fitness app</title>
+    <meta name="crit-viewport" content="390x844">
+    <script src="../../_renderer/base.js"></script>
+    <link rel="stylesheet" href="../../_renderer/base.css">
+    <style>
+/*
+ * Criterion competing-saturated-hues. A phone home screen for a fitness app on a white page. Three large tiles
+ * stack for workouts, meals and sleep. The clean side draws the workouts tile in vivid green and the other two
+ * as light gray tiles with dark text. The defect switch changes the background-color and color of the meals and
+ * sleep tiles to vivid orange and vivid blue, and the stroke of their icons. Nothing else changes.
+ */
+html, body { width: 390px; height: 844px; }
+.top { padding: 22px 22px 8px; }
+.top .date { font-size: 14px; color: var(--color-muted); }
+.top h1 { font-size: 28px; font-weight: 700; margin-top: 4px; }
+.tiles { padding: 12px 22px 0; display: flex; flex-direction: column; gap: 14px; }
+.tile { height: 190px; border-radius: 18px; padding: 20px 22px; display: flex; flex-direction: column; position: relative; }
+.tile h2 { font-size: 22px; font-weight: 700; }
+.tile p { font-size: 15px; margin-top: 6px; line-height: 1.4; }
+.tile .stat { margin-top: auto; font-size: 34px; font-weight: 700; }
+.tile svg { position: absolute; right: 20px; top: 20px; fill: none; stroke-width: 2.5; }
+.a { background-color: #168a3e; color: #fff; }
+.b, .c { background-color: #eceff2; color: #1f2328; }
+.a svg { stroke: #fff; }
+.b svg, .c svg { stroke: #168a3e; }
+.tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; border-top: 1px solid #e0e4e8; display: flex; justify-content: space-around; align-items: center; font-size: 12px; color: var(--color-muted); background: #fff; }
+.tabs .on { color: #1f2328; font-weight: 700; }
+
+[data-defect="on"] .b { background-color: #d9480f; color: #fff; }
+[data-defect="on"] .c { background-color: #1f5fd1; color: #fff; }
+[data-defect="on"] .b svg, [data-defect="on"] .c svg { stroke: #fff; }
+    </style>
+  </head>
+  <body>
+<div class="top"><div class="date">Thursday, March 6</div><h1>Today</h1></div>
+<div class="tiles">
+  <div class="tile a"><svg width="34" height="34" viewBox="0 0 34 34"><path d="M4 17h26M9 10v14M25 10v14"/></svg><h2>Workout</h2><p>Lower body, 35 minutes</p><span class="stat">35 min</span></div>
+  <div class="tile b"><svg width="34" height="34" viewBox="0 0 34 34"><path d="M8 4v10a4 4 0 0 0 4 4v12M16 4v10M24 4c-4 4-4 12 0 14v12"/></svg><h2>Meals</h2><p>Two of three logged</p><span class="stat">1,420 kcal</span></div>
+  <div class="tile c"><svg width="34" height="34" viewBox="0 0 34 34"><path d="M26 22A12 12 0 1 1 14 6a10 10 0 0 0 12 16z"/></svg><h2>Sleep</h2><p>Goal is eight hours</p><span class="stat">7 h 12 m</span></div>
+</div>
+<div class="tabs"><span class="on">Today</span><span>Plans</span><span>Progress</span><span>Settings</span></div>
+  </body>
+</html>
