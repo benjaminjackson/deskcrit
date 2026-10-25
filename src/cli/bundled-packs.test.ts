@@ -112,9 +112,9 @@ describe("loadBundledPacks (FR-11, FR-51)", () => {
 
   it("throws CouldNotRunError that names the pack and lists the bundled names (FR-4)", () => {
     const allNames = namesOf(listBundledPackSources()).join(", ");
-    expect(() => loadBundledPacks(["color"])).toThrow(CouldNotRunError);
-    expect(() => loadBundledPacks(["color"])).toThrow(
-      `pack color is not a bundled pack; the bundled packs are: ${allNames}`,
+    expect(() => loadBundledPacks(["no-such-pack"])).toThrow(CouldNotRunError);
+    expect(() => loadBundledPacks(["no-such-pack"])).toThrow(
+      `pack no-such-pack is not a bundled pack; the bundled packs are: ${allNames}`,
     );
   });
 
