@@ -4,10 +4,10 @@ Pack license: MIT
 
 Every fixture here is rendered from a template in packs/layout/templates/ by the renderer in packs/_renderer/. packs/README.md defines the entry format.
 
-## everything-centred.positive.png
+## everything-centered.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/layout/templates/everything-centred.html, defect=on
+- Source: packs/layout/templates/everything-centered.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -16,10 +16,10 @@ Every fixture here is rendered from a template in packs/layout/templates/ by the
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred.negative.png
+## everything-centered.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/layout/templates/everything-centred.html, defect=off
+- Source: packs/layout/templates/everything-centered.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -28,10 +28,10 @@ Every fixture here is rendered from a template in packs/layout/templates/ by the
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred--2.positive.png
+## everything-centered--2.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/layout/templates/everything-centred--2.html, defect=on
+- Source: packs/layout/templates/everything-centered--2.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -40,10 +40,10 @@ Every fixture here is rendered from a template in packs/layout/templates/ by the
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred--2.negative.png
+## everything-centered--2.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/layout/templates/everything-centred--2.html, defect=off
+- Source: packs/layout/templates/everything-centered--2.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -52,10 +52,10 @@ Every fixture here is rendered from a template in packs/layout/templates/ by the
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred--3.positive.png
+## everything-centered--3.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/layout/templates/everything-centred--3.html, defect=on
+- Source: packs/layout/templates/everything-centered--3.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -64,10 +64,10 @@ Every fixture here is rendered from a template in packs/layout/templates/ by the
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred--3.negative.png
+## everything-centered--3.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/layout/templates/everything-centred--3.html, defect=off
+- Source: packs/layout/templates/everything-centered--3.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -76,10 +76,10 @@ Every fixture here is rendered from a template in packs/layout/templates/ by the
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred--4.positive.png
+## everything-centered--4.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/layout/templates/everything-centred--4.html, defect=on
+- Source: packs/layout/templates/everything-centered--4.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -88,10 +88,10 @@ Every fixture here is rendered from a template in packs/layout/templates/ by the
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred--4.negative.png
+## everything-centered--4.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/layout/templates/everything-centred--4.html, defect=off
+- Source: packs/layout/templates/everything-centered--4.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -100,10 +100,10 @@ Every fixture here is rendered from a template in packs/layout/templates/ by the
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred--5.positive.png
+## everything-centered--5.positive.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/layout/templates/everything-centred--5.html, defect=on
+- Source: packs/layout/templates/everything-centered--5.html, defect=on
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable
@@ -112,10 +112,10 @@ Every fixture here is rendered from a template in packs/layout/templates/ by the
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
-## everything-centred--5.negative.png
+## everything-centered--5.negative.png
 
 - Rights basis: own work licensed under the pack license
-- Source: packs/layout/templates/everything-centred--5.html, defect=off
+- Source: packs/layout/templates/everything-centered--5.html, defect=off
 - License: MIT
 - Attribution text: none
 - Source URL: not applicable

@@ -68,7 +68,7 @@ export type ElementSnapshot = {
   path: string;
   /** The index of the parent element in the same snapshot, or null for <html>. */
   parentIndex: number | null;
-  /** True for an SVG element, whose text colour is its fill and not its color. */
+  /** True for an SVG element, whose text color is its fill and not its color. */
   isSvg: boolean;
   /** True when the element is inside <body> and holds a text node that is not only white space. */
   hasOwnText: boolean;
@@ -732,8 +732,8 @@ function compareByProperty(
   return 0;
 }
 
-/** A colour with red, green, and blue from 0 to 255 and alpha from 0 to 1. */
-export type Colour = {
+/** A color with red, green, and blue from 0 to 255 and alpha from 0 to 1. */
+export type Color = {
   red: number;
   green: number;
   blue: number;
@@ -741,11 +741,11 @@ export type Colour = {
 };
 
 /**
- * Reads a computed colour, which Chromium writes as "rgb(r, g, b)" or
- * "rgba(r, g, b, a)". It returns null for any other form, such as a colour
- * function or "none", so the caller treats the colour as not measurable.
+ * Reads a computed color, which Chromium writes as "rgb(r, g, b)" or
+ * "rgba(r, g, b, a)". It returns null for any other form, such as a color
+ * function or "none", so the caller treats the color as not measurable.
  */
-export function parseCssColour(value: string): Colour | null {
+export function parseCssColor(value: string): Color | null {
   const match =
     /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)$/.exec(
       value.trim(),
@@ -762,8 +762,8 @@ export function parseCssColour(value: string): Colour | null {
   };
 }
 
-/** Paints a colour with alpha over an opaque colour and returns the opaque result. */
-function paintOver(top: Colour, bottom: Colour): Colour {
+/** Paints a color with alpha over an opaque color and returns the opaque result. */
+function paintOver(top: Color, bottom: Color): Color {
   return {
     red: top.red * top.alpha + bottom.red * (1 - top.alpha),
     green: top.green * top.alpha + bottom.green * (1 - top.alpha),
@@ -772,9 +772,9 @@ function paintOver(top: Colour, bottom: Colour): Colour {
   };
 }
 
-/** The WCAG 2.2 relative luminance of an opaque colour. */
-function relativeLuminance(colour: Colour): number {
-  const channels = [colour.red, colour.green, colour.blue].map((channel) => {
+/** The WCAG 2.2 relative luminance of an opaque color. */
+function relativeLuminance(color: Color): number {
+  const channels = [color.red, color.green, color.blue].map((channel) => {
     const scaled = channel / 255;
     if (scaled <= 0.04045) {
       return scaled / 12.92;
@@ -786,10 +786,10 @@ function relativeLuminance(colour: Colour): number {
 }
 
 /**
- * The WCAG 2.2 contrast ratio of two opaque colours, from 1 to 21, rounded to
+ * The WCAG 2.2 contrast ratio of two opaque colors, from 1 to 21, rounded to
  * two decimals so the same page gives the same number on every machine.
  */
-export function contrastRatio(first: Colour, second: Colour): number {
+export function contrastRatio(first: Color, second: Color): number {
   const firstLuminance = relativeLuminance(first);
   const secondLuminance = relativeLuminance(second);
   const lighter = Math.max(firstLuminance, secondLuminance);
@@ -797,20 +797,20 @@ export function contrastRatio(first: Colour, second: Colour): number {
   return Math.round(((lighter + 0.05) / (darker + 0.05)) * 100) / 100;
 }
 
-/** The page colour behind everything, because a fixture page with no background shows white. */
-const WHITE: Colour = { red: 255, green: 255, blue: 255, alpha: 1 };
+/** The page color behind everything, because a fixture page with no background shows white. */
+const WHITE: Color = { red: 255, green: 255, blue: 255, alpha: 1 };
 
 /**
- * Works out the opaque colour behind an element's text: its own background
+ * Works out the opaque color behind an element's text: its own background
  * and its ancestors' backgrounds, painted over white. It returns null when a
- * background image or gradient is in the way, because the colour behind the
- * text is then not one colour.
+ * background image or gradient is in the way, because the color behind the
+ * text is then not one color.
  */
 export function backgroundBehind(
   snapshot: PageSnapshot,
   elementIndex: number,
-): Colour | null {
-  const layers: Colour[] = [];
+): Color | null {
+  const layers: Color[] = [];
   let currentIndex: number | null = elementIndex;
   while (currentIndex !== null) {
     const element: ElementSnapshot | undefined =
@@ -822,12 +822,12 @@ export function backgroundBehind(
     if (backgroundImage !== "none") {
       return null;
     }
-    const backgroundColour = parseCssColour(
+    const backgroundColor = parseCssColor(
       element.styles["background-color"] ?? "rgba(0, 0, 0, 0)",
     );
-    if (backgroundColour !== null && backgroundColour.alpha > 0) {
-      layers.push(backgroundColour);
-      if (backgroundColour.alpha === 1) {
+    if (backgroundColor !== null && backgroundColor.alpha > 0) {
+      layers.push(backgroundColor);
+      if (backgroundColor.alpha === 1) {
         break;
       }
     }
@@ -843,7 +843,7 @@ export function backgroundBehind(
   return result;
 }
 
-/** The contrast ratio of an element's text with the colour behind it, or null when it cannot be measured. */
+/** The contrast ratio of an element's text with the color behind it, or null when it cannot be measured. */
 function textContrast(
   snapshot: PageSnapshot,
   elementIndex: number,
@@ -852,15 +852,15 @@ function textContrast(
   if (element === undefined) {
     return null;
   }
-  const textColourValue = element.isSvg
+  const textColorValue = element.isSvg
     ? (element.styles.fill ?? "")
     : (element.styles.color ?? "");
-  const textColour = parseCssColour(textColourValue);
+  const textColor = parseCssColor(textColorValue);
   const background = backgroundBehind(snapshot, elementIndex);
-  if (textColour === null || background === null) {
+  if (textColor === null || background === null) {
     return null;
   }
-  return contrastRatio(paintOver(textColour, background), background);
+  return contrastRatio(paintOver(textColor, background), background);
 }
 
 /** Reads a computed pixel length such as "14px" as a number. */

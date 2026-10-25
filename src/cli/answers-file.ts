@@ -39,7 +39,7 @@ export type AnswersFile = RecordedRun & {
   readonly answers_file_version: typeof ANSWERS_FILE_VERSION;
 };
 
-/** The two runs of a `crit compare` answers file, labelled before and after (FR-42, OQ-26). */
+/** The two runs of a `crit compare` answers file, labeled before and after (FR-42, OQ-26). */
 export type CompareAnswersFile = {
   readonly before: RecordedRun;
   readonly after: RecordedRun;

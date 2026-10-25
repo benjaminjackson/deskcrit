@@ -11,7 +11,7 @@ import {
   isPropertyDeclared,
   isTextOrAttributeKey,
   type PageSnapshot,
-  parseCssColour,
+  parseCssColor,
   parseDefectDeclaration,
   parseGuidelineRanges,
   templateCriterionId,
@@ -245,7 +245,7 @@ test("lets a currentColor property through a declared color only where it equals
   ).toBe(false);
 });
 
-test("fails a border colour set on its own when only color is declared", () => {
+test("fails a border color set on its own when only color is declared", () => {
   const problems = problemsFor(
     FAINT_TEXT,
     pageWithParagraph({
@@ -257,7 +257,7 @@ test("fails a border colour set on its own when only color is declared", () => {
   expect(problems.join("\n")).toContain("differ in border-top-color");
 });
 
-test("passes a border colour that only follows color when color is declared", () => {
+test("passes a border color that only follows color when color is declared", () => {
   const problems = problemsFor(
     FAINT_TEXT,
     pageWithParagraph({
@@ -343,17 +343,17 @@ test("ignores a pseudo-element line-height that only follows its font size", () 
   expect(problems).toEqual([]);
 });
 
-test("computes the WCAG contrast ratio of known colour pairs", () => {
-  const white = parseCssColour("rgb(255, 255, 255)");
-  const grey = parseCssColour("rgb(119, 119, 119)");
-  const black = parseCssColour("rgb(0, 0, 0)");
-  if (white === null || grey === null || black === null) {
-    throw new Error("the test colours did not parse");
+test("computes the WCAG contrast ratio of known color pairs", () => {
+  const white = parseCssColor("rgb(255, 255, 255)");
+  const gray = parseCssColor("rgb(119, 119, 119)");
+  const black = parseCssColor("rgb(0, 0, 0)");
+  if (white === null || gray === null || black === null) {
+    throw new Error("the test colors did not parse");
   }
   expect(contrastRatio(black, white)).toBe(21);
-  expect(contrastRatio(grey, white)).toBe(4.48);
-  expect(parseCssColour("color(srgb 1 0 0)")).toBeNull();
-  expect(parseCssColour("rgba(0, 0, 0, 0.25)")?.alpha).toBe(0.25);
+  expect(contrastRatio(gray, white)).toBe(4.48);
+  expect(parseCssColor("color(srgb 1 0 0)")).toBeNull();
+  expect(parseCssColor("rgba(0, 0, 0, 0.25)")?.alpha).toBe(0.25);
 });
 
 test("maps a numbered template to its criterion id", () => {
@@ -444,6 +444,7 @@ test("says how a GUIDELINES.md range and a declared range differ", () => {
 });
 
 test("refuses a declared name that is not a CSS property", () => {
+  // "colour" is the British spelling, which is not a CSS property name (CS-26).
   for (const name of ["text", "", "border-", "colour"]) {
     expect(() =>
       parseDefectDeclaration(
@@ -686,7 +687,7 @@ function pairWithPseudoStyles(
 }
 
 for (const pseudoName of ["::first-line", "::first-letter"]) {
-  test(`fails a ${pseudoName} colour that a declared element color does not cover`, () => {
+  test(`fails a ${pseudoName} color that a declared element color does not cover`, () => {
     // The positive's first line is near white, which the contrast measure on
     // the paragraph itself never sees.
     const { positive, negative } = pairWithPseudoStyles(
@@ -700,7 +701,7 @@ for (const pseudoName of ["::first-line", "::first-letter"]) {
     ]);
   });
 
-  test(`passes a ${pseudoName} colour that only inherits the element's color`, () => {
+  test(`passes a ${pseudoName} color that only inherits the element's color`, () => {
     const { positive, negative } = pairWithPseudoStyles(
       pseudoName,
       {
@@ -736,6 +737,7 @@ test("refuses a pseudo-element name in a declaration with a font size or contras
       "a.defect.json",
     ).properties,
   ).toHaveLength(3);
+  // "colour" is the British spelling, which is not a CSS property name (CS-26).
   for (const name of ["::after-all color", "::first-line colour"]) {
     expect(() =>
       parseDefectDeclaration(

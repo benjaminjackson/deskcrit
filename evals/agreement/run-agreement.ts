@@ -98,6 +98,7 @@ import {
   scoreFixtureTests,
   type Verdict,
 } from "./score.ts";
+import { RESPELLING, type Respelling } from "./spelling.ts";
 
 const DEFAULT_HARNESS_DIRECTORY = import.meta.dirname;
 const REPOSITORY_DIRECTORY = resolve(DEFAULT_HARNESS_DIRECTORY, "..", "..");
@@ -169,6 +170,8 @@ export type HarnessOptions = {
   readonly runsDirectory: string;
   readonly labelsDirectory: string;
   readonly runCrit: CritRunner;
+  /** The spelling changes to apply (R-4, crit-q25.24); RESPELLING when left out. */
+  readonly respelling?: Respelling;
 };
 
 /** The options of the real harness: this folder, its runs/ and labels/, and the built bundle. */
@@ -177,6 +180,7 @@ const DEFAULT_OPTIONS: HarnessOptions = {
   runsDirectory: join(DEFAULT_HARNESS_DIRECTORY, "runs"),
   labelsDirectory: join(DEFAULT_HARNESS_DIRECTORY, "labels"),
   runCrit: runCritBundle,
+  respelling: RESPELLING,
 };
 
 /** What one harness run needs at every step: the options, the pinned model, and the checker. */
@@ -377,7 +381,11 @@ function planPackLiveRun(
     for (const savedFile of readSavedAnswersFiles(context, pack, fixture)) {
       hasSavedAnswers = true;
       currentFiles.push(
-        keepCurrentAnswers(savedFile, pack.questionSha256ByCriterion).savedFile,
+        keepCurrentAnswers(
+          savedFile,
+          pack.questionSha256ByCriterion,
+          respellingOf(context),
+        ).savedFile,
       );
     }
     fixtures.push({
@@ -401,6 +409,7 @@ function planPackLiveRun(
     pack.questionSha256ByCriterion,
     askedQuestionHashes,
     hasSavedAnswers,
+    respellingOf(context),
   );
   let storedSetHash: string | null = null;
   const hashPath = frozenSetHashPath(context, pack);
@@ -617,6 +626,11 @@ function hashFileIfPresent(filePath: string): string | null {
   return createHash("sha256").update(readFileSync(filePath)).digest("hex");
 }
 
+/** Return the spelling changes this run applies: the option, or RESPELLING when it is left out (R-4). */
+function respellingOf(context: HarnessContext): Respelling {
+  return context.options.respelling ?? RESPELLING;
+}
+
 /** Return the SHA-256 of a criterion's current question, or throw for a criterion not in the pack. */
 function currentQuestionSha256(pack: PackFixtures, criterion: string): string {
   const questionSha256 = pack.questionSha256ByCriterion.get(criterion);
@@ -643,6 +657,7 @@ async function replayFixture(
     const current = keepCurrentAnswers(
       savedFile,
       pack.questionSha256ByCriterion,
+      respellingOf(context),
     );
     currentFiles.push(current.savedFile);
     questionIdsToDropByFile.set(savedFile.fileName, current.questionIdsToDrop);
@@ -1266,7 +1281,7 @@ function formatAgreement(context: HarnessContext, result: PackResult): string {
   for (const criterion of result.agreement) {
     let agreementText = "-";
     if (criterion.agreement !== null) {
-      agreementText = `${criterion.agreement.toFixed(2)} (${criterion.agreed} of ${criterion.labelled})`;
+      agreementText = `${criterion.agreement.toFixed(2)} (${criterion.agreed} of ${criterion.labeled})`;
     }
     let shipWith = "no labels scored";
     if (criterion.meets_floor === true) {
@@ -1278,7 +1293,7 @@ function formatAgreement(context: HarnessContext, result: PackResult): string {
     rows.push([
       criterion.criterion,
       agreementText,
-      String(criterion.labelled),
+      String(criterion.labeled),
       String(criterion.uncertain),
       String(criterion.cannot_tell),
       String(criterion.not_asked),
@@ -1291,7 +1306,7 @@ function formatAgreement(context: HarnessContext, result: PackResult): string {
       [
         "criterion",
         "agreement",
-        "labelled",
+        "labeled",
         "uncertain",
         "cannot tell",
         "not asked",
@@ -1304,7 +1319,7 @@ function formatAgreement(context: HarnessContext, result: PackResult): string {
 }
 
 /**
- * Format the label coverage: the labelled designs per domain, the total against 100, and the
+ * Format the label coverage: the labeled designs per domain, the total against 100, and the
  * domains with designs against seven. Below either, it says "EV-5 minimum not met" (EV-5, M-2).
  */
 function formatCoverage(coverage: Coverage): string {
@@ -1318,7 +1333,7 @@ function formatCoverage(coverage: Coverage): string {
   }
   const lines = [
     "EV-5 label coverage",
-    formatTable(["domain", "labelled designs", "cannot tell"], rows),
+    formatTable(["domain", "labeled designs", "cannot tell"], rows),
     `Total: ${coverage.total_designs} of ${EV5_MINIMUM_DESIGNS} designs, ${coverage.domains_with_designs} of ${FIRST_PARTY_DOMAINS.length} domains`,
   ];
   if (coverage.minimum_met) {
