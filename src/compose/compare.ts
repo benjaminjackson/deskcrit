@@ -29,7 +29,8 @@ export const SCORE_MIN_LEVEL_MOVE = 1;
 
 /**
  * The smallest move in the probability of true that counts as better or worse when the two noul
- * verdicts are equal. It is one of the compare thresholds that CS-15 names (FR-36).
+ * verdicts are equal (FR-36), or when either noul verdict is uncertain (FR-37). It is one of the
+ * compare thresholds that CS-15 names.
  */
 export const NOUL_MIN_PROBABILITY_MOVE = 0.15;
 
@@ -297,8 +298,9 @@ function skippedByOneRun(
 
 /**
  * Decides the change for one criterion that both runs asked (FR-36, FR-37). It checks, in order:
- * an uncertain verdict on either side, then the verdict order fail, warn, pass, then the value move
- * for score and noul. A choice criterion with equal verdicts is always the same.
+ * an uncertain verdict on either side (a noul criterion then reads the probability move, and any
+ * other is uncertain), then the verdict order fail, warn, pass, then the value move for score and
+ * noul. A choice criterion with equal verdicts is always the same.
  */
 function compareFinding(
   criterion: Criterion,
@@ -316,7 +318,12 @@ function compareFinding(
   };
 }
 
-/** Applies the order of FR-37 first, then the verdict order, then the value move of FR-36. */
+/**
+ * Applies FR-37 first, then the verdict order, then the value move of FR-36. When either side is
+ * uncertain, a noul criterion is decided by how far its defect probability (the probability of
+ * true) moved, with the same margin as FR-36, and a choice or score criterion is uncertain,
+ * because it has no single defect probability (FR-37).
+ */
 function decideChange(
   criterion: Criterion,
   before: Finding,
@@ -325,7 +332,16 @@ function decideChange(
   afterValue: number | string,
 ): Change {
   if (before.verdict === "uncertain" || after.verdict === "uncertain") {
-    return "uncertain";
+    if (criterion.question.type !== "noul") {
+      return "uncertain";
+    }
+    return decideValueMove(
+      criterion,
+      readNumber(criterion, beforeValue),
+      readNumber(criterion, afterValue),
+      NOUL_MIN_PROBABILITY_MOVE,
+      NOUL_MOVE_TOLERANCE,
+    );
   }
 
   const beforeRank = rankVerdict(before.verdict);

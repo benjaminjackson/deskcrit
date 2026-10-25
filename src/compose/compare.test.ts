@@ -207,17 +207,87 @@ describe("compareFinding through compare (FR-36, FR-37)", () => {
     change: string;
   }> = [
     {
-      name: "uncertain in before gives uncertain",
+      name: "noul uncertain in before with a drop of 0.4 gives better",
       criterion: lowerBetterNoul,
       before: noulFinding("contrast", "uncertain", 0.5),
       after: noulFinding("contrast", "pass", 0.1),
-      change: "uncertain",
+      change: "better",
     },
     {
-      name: "uncertain in after gives uncertain",
+      name: "noul uncertain in before with a drop of exactly 0.15 gives better",
+      criterion: lowerBetterNoul,
+      before: noulFinding("contrast", "uncertain", 0.4),
+      after: noulFinding("contrast", "pass", 0.25),
+      change: "better",
+    },
+    {
+      name: "noul uncertain in after with a drop of 0.4 gives better",
       criterion: lowerBetterNoul,
       before: noulFinding("contrast", "fail", 0.9),
       after: noulFinding("contrast", "uncertain", 0.5),
+      change: "better",
+    },
+    {
+      name: "noul uncertain in after with a rise of 0.15 gives worse",
+      criterion: lowerBetterNoul,
+      before: noulFinding("contrast", "pass", 0.2),
+      after: noulFinding("contrast", "uncertain", 0.35),
+      change: "worse",
+    },
+    {
+      name: "noul uncertain in before with a rise of 0.57 gives worse",
+      criterion: lowerBetterNoul,
+      before: noulFinding("contrast", "uncertain", 0.38),
+      after: noulFinding("contrast", "fail", 0.95),
+      change: "worse",
+    },
+    {
+      name: "noul uncertain in after with a rise under 0.15 gives same",
+      criterion: lowerBetterNoul,
+      before: noulFinding("contrast", "pass", 0.26),
+      after: noulFinding("contrast", "uncertain", 0.31),
+      change: "same",
+    },
+    {
+      name: "noul uncertain in before with a drop under 0.15 gives same",
+      criterion: lowerBetterNoul,
+      before: noulFinding("contrast", "uncertain", 0.35),
+      after: noulFinding("contrast", "pass", 0.21),
+      change: "same",
+    },
+    {
+      name: "noul uncertain on both sides with a drop of 0.34 gives better",
+      criterion: lowerBetterNoul,
+      before: noulFinding("contrast", "uncertain", 0.69),
+      after: noulFinding("contrast", "uncertain", 0.35),
+      change: "better",
+    },
+    {
+      name: "noul uncertain on both sides with a rise of 0.29 gives worse",
+      criterion: lowerBetterNoul,
+      before: noulFinding("contrast", "uncertain", 0.39),
+      after: noulFinding("contrast", "uncertain", 0.68),
+      change: "worse",
+    },
+    {
+      name: "noul uncertain on both sides with a move under 0.15 gives same",
+      criterion: lowerBetterNoul,
+      before: noulFinding("contrast", "uncertain", 0.45),
+      after: noulFinding("contrast", "uncertain", 0.42),
+      change: "same",
+    },
+    {
+      name: "score uncertain in before gives uncertain whatever the level moved",
+      criterion: lowerBetterScore,
+      before: scoreFinding("crowding", "uncertain", 3),
+      after: scoreFinding("crowding", "pass", 0),
+      change: "uncertain",
+    },
+    {
+      name: "choice uncertain in after gives uncertain",
+      criterion: choiceCriterion("side"),
+      before: choiceFinding("side", "pass", "right"),
+      after: choiceFinding("side", "uncertain", "left"),
       change: "uncertain",
     },
     {
@@ -591,10 +661,10 @@ describe("the compare document (section 8.2, FR-33, FR-39)", () => {
   test("the summary counts match the changes", () => {
     const result = compare({ before, after, packs });
     expect(result.summary).toEqual({
-      improved: 1,
+      improved: 2,
       regressed: 1,
       same: 0,
-      uncertain: 1,
+      uncertain: 0,
     });
   });
 
