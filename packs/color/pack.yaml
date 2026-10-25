@@ -4,9 +4,10 @@
 # spelling, and same-role-different-colors is narrowed to elements outside charts, which the dataviz
 # pack covers. The pre-screened criterion many-unrelated-hues is not encoded; GUIDELINES.md records why.
 # The other entries of the color section belong to the accessibility, basics, and dataviz packs, or
-# stay as research. Three criteria cite a source whose text was checked (FR-45): W3C F83 for one, and
-# the Apple Human Interface Guidelines for two. Three cite Common sense, because the text of Albers,
-# Itten, and Refactoring UI could not be opened; they have a reason and warn_when only. The cited criteria have pass_when and warn_when
+# stay as research. Two criteria cite a source whose text was checked (FR-45): W3C F83 and the Apple
+# Human Interface Guidelines. Four cite Common sense, because the text of Albers, Itten, and
+# Refactoring UI could not be opened, or the checked text states only part of the rule; they have a
+# reason and warn_when only. The cited criteria have pass_when and warn_when
 # and no fail_when until the EV-5 run (crit-q25.11). Fix hints and reason sentences are DRAFT,
 # awaiting Benjamin Jackson (G-4).
 name: color
@@ -74,18 +75,18 @@ criteria:
 
   - id: accent-overused
     title: 'The accent color is used on so many elements that nothing stands out'
-    source: 'Apple, *Human Interface Guidelines*, "Color", sections "Best practices" ("Avoid using the same color to mean different things") and "Liquid Glass color" ("reserve it for elements that truly benefit from emphasis"), in part.'
-    link: https://developer.apple.com/design/human-interface-guidelines/color
+    source: Common sense
+    # DRAFT reason (G-4)
+    reason: 'An accent color draws the eye only when few elements wear it, so spreading it over many elements leaves nothing marked as most important.'
     question:
       type: noul
       instructions: 'In the image at screenshot: Is the accent color, the one strong color meant to mark the main action or the most important item, used on so many elements that nothing stands out?'
       criteria:
         "true": 'The strong accent color is spread over many elements, such as headings, icons, borders, backgrounds, links, and buttons, so it no longer points to one important thing.'
         "false": 'The accent color appears on only a few elements, such as the main action and one key highlight, so those elements stand out, or the page has no accent color.'
-    pass_when: { probability_at_most: 0.3 }
     warn_when: { probability_at_least: 0.7 }
     # DRAFT fix hint (G-4)
-    fix: 'Keep the accent color for the main action and at most one key highlight, and draw the headings, icons, borders, and other elements in neutral colors (Apple, Human Interface Guidelines, "Color").'
+    fix: 'Keep the accent color for the main action and at most one key highlight, and draw the headings, icons, borders, and other elements in neutral colors.'
     fixtures:
       positive:
         - fixtures/accent-overused.positive.png
@@ -129,15 +130,15 @@ criteria:
         - fixtures/saturated-large-areas--5.negative.png
 
   - id: competing-saturated-hues
-    title: 'Two or more vivid colors compete at equal weight'
+    title: 'Several vivid colors compete at equal weight'
     source: Common sense
     # DRAFT reason (G-4)
     reason: 'When two or three vivid colors each take an equal share of the page, none of them leads, so the eye has no clear place to start.'
     question:
       type: noul
-      instructions: 'In the image at screenshot: Are two or more different vivid colors given equal weight on the page, each on large or prominent elements, so that no one color leads and they compete for attention?'
+      instructions: 'In the image at screenshot: Do several different vivid colors take equal weight on the page, each on large or prominent elements, so that no one color leads and they compete for attention?'
       criteria:
-        "true": 'Two or more different vivid colors each cover large or prominent elements at about the same size and strength, so no single color leads and they compete for attention.'
+        "true": 'Several different vivid colors each cover large or prominent elements at about the same size and strength, so no single color leads and they compete for attention.'
         "false": 'One color clearly leads and any other colors are smaller, quieter, or neutral, or the page uses only one vivid color.'
     warn_when: { probability_at_least: 0.7 }
     # DRAFT fix hint (G-4)

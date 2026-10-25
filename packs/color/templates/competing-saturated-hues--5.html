@@ -2,50 +2,52 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Color fixture: competing saturated hues, home store</title>
+    <title>Color fixture: competing saturated hues, energy dashboard</title>
     <script src="../../_renderer/base.js"></script>
     <link rel="stylesheet" href="../../_renderer/base.css">
     <style>
 /*
- * Criterion competing-saturated-hues. The home page of a home-goods store on a white page. A row has a large
- * kitchen promotion, a large garden promotion and a large gift-card block, each with its own button. The clean
- * side draws the kitchen promotion in vivid red-orange and the other two in light tints with dark text and
- * outlined buttons. The defect switch changes the background-color and color of the garden and gift-card blocks
- * to vivid green and vivid blue, and the background-color of their buttons. Nothing else changes.
+ * Criterion competing-saturated-hues. A home energy account page on a light gray page. Three elements with
+ * three jobs: a solar illustration block, the "Switch to the green plan" button, and a tariff-change alert
+ * panel. The clean side makes the green button the lead; the illustration is a pale yellow tint with dark amber
+ * lines and the alert is a white panel with dark text. The defect switch changes the background-color of the
+ * illustration to vivid amber (with dark lines) and of the alert to vivid blue (with white text). The button
+ * stays green. Nothing else changes.
  */
-header { height: 62px; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; border-bottom: 1px solid #e6e9ed; }
-.brand { font-weight: 700; font-size: 20px; }
-nav { display: flex; gap: 24px; font-size: 15px; color: #3a424a; }
-.strip { padding: 22px 48px 14px; display: flex; justify-content: space-between; align-items: baseline; }
-.strip h1 { font-size: 30px; font-weight: 700; }
-.strip span { font-size: 15px; color: var(--color-muted); }
-.row { display: flex; gap: 22px; padding: 0 48px; }
-.promo { border-radius: 14px; height: 470px; padding: 30px; display: flex; flex-direction: column; }
-.k { flex: 1.3; background-color: #d23a12; color: #fff; }
-.g, .gc { flex: 1; background-color: #fbe9e4; color: #1f2328; }
-.promo .kicker { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; }
-.promo h2 { font-size: 36px; line-height: 1.15; font-weight: 700; margin-top: 10px; }
-.promo p { font-size: 17px; line-height: 1.5; margin-top: 12px; }
-.promo .shape { margin-top: auto; margin-bottom: 20px; height: 110px; display: flex; align-items: flex-end; gap: 10px; }
-.shape i { display: block; border-radius: 8px 8px 4px 4px; background: rgba(255,255,255,0.45); }
-.btn { align-self: flex-start; font-weight: 700; font-size: 16px; padding: 13px 26px; border-radius: 8px; }
-.k .btn { background: #fff; color: #1f2328; }
-.g .btn, .gc .btn { background: transparent; color: #1f2328; box-shadow: inset 0 0 0 2px #1f2328; }
-.g .shape i, .gc .shape i { background: #fff; }
+body { background-color: #f4f5f7; }
+header { height: 60px; background-color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; border-bottom: 1px solid #dfe3e8; }
+.brand { font-weight: 700; font-size: 19px; }
+nav { display: flex; gap: 24px; font-size: 15px; color: var(--color-muted); }
+nav .on { color: var(--color-text); font-weight: 700; }
+main { padding: 32px 48px 0; }
+h1 { font-size: 30px; font-weight: 700; }
+.sub { font-size: 16px; color: #4a535c; margin-top: 4px; }
+.grid { display: flex; gap: 36px; margin-top: 26px; align-items: flex-start; }
+.sun { width: 420px; height: 280px; flex: none; border-radius: 14px; background-color: #fdf3c8; color: #8a5a00; display: flex; align-items: center; justify-content: center; }
+.sun svg { fill: none; stroke: currentColor; stroke-width: 3; }
+.col { width: 640px; }
+.usage { background-color: #fff; border: 1px solid #dfe3e8; border-radius: 12px; padding: 18px 22px; display: flex; justify-content: space-between; }
+.usage div { font-size: 14px; color: var(--color-muted); }
+.usage b { display: block; font-size: 26px; color: #1f2328; margin-top: 2px; }
+.btn { display: inline-block; margin-top: 22px; background-color: #167a43; color: #fff; font-weight: 700; font-size: 18px; padding: 15px 34px; border-radius: 10px; }
+.alert { margin-top: 22px; width: 460px; padding: 16px 22px; border-radius: 12px; background-color: #fff; color: #1f2328; border: 1px solid #dfe3e8; }
+.alert b { display: block; font-size: 16px; }
+.alert span { display: block; font-size: 15px; line-height: 1.45; margin-top: 3px; }
 
-[data-defect="on"] .g { background-color: #17803f; color: #fff; }
-[data-defect="on"] .gc { background-color: #1f5fd1; color: #fff; }
-[data-defect="on"] .g .btn, [data-defect="on"] .gc .btn { background-color: #fff; color: #1f2328; box-shadow: none; }
-[data-defect="on"] .g .shape i, [data-defect="on"] .gc .shape i { background-color: rgba(255,255,255,0.45); }
+[data-defect="on"] .sun { background-color: #f2b705; color: #3d2a00; }
+[data-defect="on"] .alert { background-color: #1d4fd8; color: #ffffff; }
     </style>
   </head>
   <body>
-<header><span class="brand">Tallow &amp; Thyme</span><nav><span>Kitchen</span><span>Garden</span><span>Bedroom</span><span>Sale</span><span>Cart (0)</span></nav></header>
-<div class="strip"><h1>Spring picks</h1><span>Free shipping on orders over $60</span></div>
-<section class="row">
-  <div class="promo k"><span class="kicker">KITCHEN</span><h2>Cast iron and enamel, 20% off</h2><p>Skillets, braisers and baking dishes through Sunday.</p><div class="shape"><i style="width:120px;height:90px"></i><i style="width:80px;height:60px"></i><i style="width:100px;height:100px"></i></div><span class="btn">Shop cookware</span></div>
-  <div class="promo g"><span class="kicker">GARDEN</span><h2>Planters and tools</h2><p>Everything for a balcony or a small yard.</p><div class="shape"><i style="width:60px;height:70px"></i><i style="width:60px;height:100px"></i></div><span class="btn">Shop garden</span></div>
-  <div class="promo gc"><span class="kicker">GIFT CARDS</span><h2>Send a gift card</h2><p>Delivered by email, any amount from $25.</p><div class="shape"><i style="width:130px;height:84px"></i></div><span class="btn">Choose an amount</span></div>
-</section>
+<header><span class="brand">Hearthgrid</span><nav><span class="on">Account</span><span>Usage</span><span>Plans</span><span>Support</span></nav></header>
+<main>
+  <h1>Your electricity plan</h1><p class="sub">Standard plan, billed monthly</p>
+  <div class="grid">
+    <div class="sun"><svg width="220" height="170" viewBox="0 0 220 170"><circle cx="110" cy="50" r="22"/><path d="M110 8v8M110 84v8M68 50h8M144 50h8M80 20l6 6M134 74l6 6M140 20l-6 6M86 74l-6 6"/><path d="M30 160l24-52h112l24 52zM42 134h136M82 108l-10 52M110 108v52M138 108l10 52"/></svg></div>
+    <div class="col"><div class="usage"><div>This month<b>412 kWh</b></div><div>Last month<b>468 kWh</b></div><div>Estimated bill<b>$86.40</b></div></div>
+    <span class="btn">Switch to the green plan</span>
+    <div class="alert"><b>Rates change on March 1</b><span>Peak hours move to 4 to 9 p.m. on weekdays.</span></div></div>
+  </div>
+</main>
   </body>
 </html>

@@ -204,7 +204,7 @@ Every fixture here is rendered from a template in packs/color/templates/ by the 
 - Attribution text: none
 - Source URL: not applicable
 - Capture date: not applicable
-- Viewport: 390x844
+- Viewport: 1280x800
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
@@ -216,7 +216,7 @@ Every fixture here is rendered from a template in packs/color/templates/ by the 
 - Attribution text: none
 - Source URL: not applicable
 - Capture date: not applicable
-- Viewport: 390x844
+- Viewport: 1280x800
 - Device scale factor: 1
 - Browser version: 153.0.8010.12
 
