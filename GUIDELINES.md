@@ -1202,7 +1202,8 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 ### Contrast of value
 - **Rule:** The image uses a clear range of light and dark; the key shapes read in a squinted, grayscale view. A flat mid-gray image with no value structure is a fault.
 - **Source:** Andrew Loomis, *Creative Illustration* (1947); Bruce Block, *The Visual Story* (2001).
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Does the large hero image or banner look flat and murky, with almost everything in it at a similar middle lightness and no clear light areas and dark areas?"
+- **Not encoded:** `flat-value-structure` was cut after the pre-screen (crit-q25.17, jev-1.14.0), because both positives stayed quiet, at 0.41 and 0.10.
 
 ### Limited, purposeful palette
 - **Rule:** The palette uses a small set of related hues (commonly one dominant, one or two supporting, one accent), and each color has a job. Many unrelated saturated hues are a fault.
@@ -1301,8 +1302,10 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 
 ### Consistent level of detail across a set
 - **Rule:** All illustrations or icons in the image share one level of detail and abstraction (all simple glyphs, or all rendered scenes), not a mix.
-- **Source:** Andrew Loomis, *Creative Illustration* (1947); Ellen Lupton and Jennifer Cole Phillips, *Graphic Design: The New Basics* (2008).
-- **Judged by:** askable.
+- **Source:** Apple Human Interface Guidelines, "Icons", section "Interface icons", checked on 2026-10-25: "all interface icons in your app need to use a consistent size, level of detail, stroke thickness (or weight), and perspective." The pack cites this page. Andrew Loomis, *Creative Illustration* (1947), and Ellen Lupton and Jennifer Cole Phillips, *Graphic Design: The New Basics* (2008), were listed before and were not checked.
+- **Link:** https://developer.apple.com/design/human-interface-guidelines/icons
+- **Judged by:** askable. Question: "Do icons that sit together as one set mix very different levels of detail, for example simple outline icons next to detailed, shaded, many-colored icons?"
+- **Defect range:** `mixed-level-of-detail`: not measured. A set of 4 to 8 simple icons in which one or two are detailed, shaded, multicolor icons, at the same size.
 
 ### One perspective and one light source
 - **Rule:** All objects in a scene share one viewpoint, horizon, and perspective system, and shadows and highlights agree on a single light direction. Mixed isometric and flat, or conflicting shadows, are faults.
@@ -1311,13 +1314,15 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 
 ### Consistent rendering style across assets
 - **Rule:** All imagery shares one treatment (flat vector, line art, photo, 3D render, texture), or mixes them by an explicit system (for example photo cut-outs on flat color). Random mixing of styles is a fault.
-- **Source:** Ellen Lupton and Jennifer Cole Phillips, *Graphic Design: The New Basics* (2008); Alina Wheeler, *Designing Brand Identity* (2003).
-- **Judged by:** askable as a visual judgment; the figure in the rule is not checked.
+- **Source:** Common sense. Reason: images shown side by side as one set read as one family, so a set that mixes photographs, flat drawings, and 3D renders looks assembled from unrelated sources rather than designed together. Checked on 2026-10-25 and not found stated: Apple Human Interface Guidelines, "Images". The Material Design imagery page did not open as text, so it counts as not confirmed. Ellen Lupton and Jennifer Cole Phillips, *Graphic Design: The New Basics* (2008), and Alina Wheeler, *Designing Brand Identity* (2003), were listed before, were not checked, and are not on the FR-45 list.
+- **Judged by:** askable. Question: "Do images that sit together as one set, such as a row of cards, mix different rendering styles, for example a photograph next to a flat vector illustration next to a glossy 3D render?"
+- **Defect range:** `mixed-rendering-styles`: not measured. A row of 3 to 6 images in one set where one or two use a different rendering (photo, flat illustration, or 3D render) at the same size and crop.
 
 ### Photos treated consistently
 - **Rule:** Photos in one design share lighting mood, color grade, crop style, and subject distance. One cold, desaturated photo among warm, bright ones is a fault.
 - **Source:** Michael Freeman, *The Photographer's Eye* (2007); David Ogilvy, *Ogilvy on Advertising* (1983).
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Do photographs that sit together as one set, such as a row of cards or a gallery, have clearly different color treatments, for example one warm and faded, one cold and blue, one black and white, or one heavily saturated?"
+- **Not encoded:** `photos-graded-inconsistently` was cut after the pre-screen (crit-q25.17, jev-1.14.0), because a negative fired at 0.74.
 
 ### Cropping and framing are intentional
 - **Rule:** Crops do not cut off heads, hands, or limbs at joints by accident, and tangents (edges that just touch) are avoided. Cropping that is bold and clearly intentional is acceptable.
@@ -1327,12 +1332,14 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 ### Image quality: sharp, undistorted, at native proportions
 - **Rule:** Images are sharp at display size (no visible pixelation or blur from upscaling), keep their original aspect ratio (no stretch or squash), and have no compression artifacts.
 - **Source:** David Ogilvy, *Ogilvy on Advertising* (1983), on photograph quality; Michael Freeman, *The Photographer's Eye* (2007).
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Is a photograph or picture on the page visibly stretched or squashed out of its natural proportions, or blurry and blocky because a small image was enlarged?"
+- **Not encoded:** `image-stretched-or-pixelated` was cut after the pre-screen (crit-q25.17, jev-1.14.0), because it stayed quiet at 0.13 on the stretched photograph.
 
 ### Texture and pattern with restraint
 - **Rule:** Texture or pattern is used on a limited area or at low contrast so it never competes with the focal point or reduces legibility of text over it.
 - **Source:** Wucius Wong, *Principles of Form and Design* (1993); Donis A. Dondis, *A Primer of Visual Literacy* (1973).
-- **Judged by:** askable.
+- **Judged by:** not encoded. Question tried in the pre-screen: "Is text or other content placed over a busy, detailed background, such as a strong pattern or a cluttered photograph, so the background competes with what sits on it?"
+- **Not encoded:** `busy-texture-behind-content` passed the pre-screen (crit-q25.17) but is not encoded, because the color pack's `text-over-busy-image` owns the same rule and a rule has one owner. The layout pack's `figure-merges-with-ground` asked about the same rule and was removed under R-4.
 
 ### Every ornament does a job
 - **Rule:** Every ornament, flourish, gradient, shadow, or effect serves meaning, hierarchy, or mood. Elements that could be removed with no loss are a fault.
