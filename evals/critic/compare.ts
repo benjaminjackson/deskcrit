@@ -132,24 +132,38 @@ function keyOfRequest(request: CritRequest): string {
 }
 
 /**
- * Reads the choice from a crit: every line that is only `Better: version 1`, `Better: version 2`,
- * or `Better: same`, with optional bold stars or backticks around it. Returns undecided when there
- * is no such line or the lines disagree.
+ * Reads the choice from the last non-empty line of a crit, and only that line, because the focus
+ * line asks the critic to end with it. Markdown decoration is stripped first: leading quote,
+ * heading, and list marks, every `*`, `_`, and backtick, surrounding spaces, and one trailing
+ * period. The rest must be `Better: version 1`, `Better: version 2`, or `Better: same`, ignoring
+ * case. Anything else is undecided; a `Better:` line elsewhere in the crit is ignored.
  */
 export function parseChoice(markdown: string): CriticChoice {
-  // The g flag finds every match, i lets case differ, and m makes ^ and $ match at each line.
-  const pattern =
-    /^\s*[`*]*\s*Better:\s*(version 1|version 2|same)\s*[`*]*\s*$/gim;
-  const found = new Set<string>();
-  for (const match of markdown.matchAll(pattern)) {
-    found.add((match[1] ?? "").toLowerCase());
+  const lines = markdown.split("\n");
+  let lastLine = "";
+  for (let index = lines.length - 1; index >= 0; index -= 1) {
+    const line = (lines[index] ?? "").trim();
+    if (line !== "") {
+      lastLine = line;
+      break;
+    }
   }
-  if (found.size !== 1) {
-    return "undecided";
+  // Remove leading `>`, `#`, `-`, and `*` marks and the spaces between them.
+  let stripped = lastLine.replace(/^[>#\-*\s]+/, "");
+  // Remove every bold, italic, and code mark anywhere in the line.
+  stripped = stripped.replaceAll(/[*_`]/g, "").trim();
+  if (stripped.endsWith(".")) {
+    stripped = stripped.slice(0, -1).trim();
   }
-  const [only] = found;
-  if (only === "version 1" || only === "version 2" || only === "same") {
-    return only;
+  const normalized = stripped.toLowerCase();
+  if (normalized === "better: version 1") {
+    return "version 1";
+  }
+  if (normalized === "better: version 2") {
+    return "version 2";
+  }
+  if (normalized === "better: same") {
+    return "same";
   }
   return "undecided";
 }
@@ -201,21 +215,31 @@ export function formatSummaryLine(outcomes: readonly PairOutcome[]): string {
   return `agreed ${agreed}, disagreed ${disagreed}, undecided ${undecided}, rate ${rate.toFixed(3)}`;
 }
 
-/** Runs `work` on every item with at most `limit` running at once, and keeps the results in item order. */
-async function runPooled<Item, Result>(
+/**
+ * Runs `work` on every item with at most `limit` running at once, and keeps the results in item
+ * order. After the first failure no worker takes a new item; the runs already started finish, so
+ * what they save stays saved. Then it throws one error that names every failure.
+ */
+export async function runPooled<Item, Result>(
   items: readonly Item[],
   limit: number,
   work: (item: Item) => Promise<Result>,
 ): Promise<Result[]> {
   const results: Result[] = new Array(items.length);
+  const failures: string[] = [];
   let nextIndex = 0;
-  // Each worker takes the next index until none is left. JavaScript runs one callback at a time,
-  // so two workers never take the same index.
+  // Each worker takes the next index until none is left or a run has failed. JavaScript runs one
+  // callback at a time, so two workers never take the same index.
   const worker = async (): Promise<void> => {
-    while (nextIndex < items.length) {
+    while (nextIndex < items.length && failures.length === 0) {
       const index = nextIndex;
       nextIndex += 1;
-      results[index] = await work(items[index] as Item);
+      try {
+        results[index] = await work(items[index] as Item);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        failures.push(message);
+      }
     }
   };
   const workers: Promise<void>[] = [];
@@ -223,6 +247,11 @@ async function runPooled<Item, Result>(
     workers.push(worker());
   }
   await Promise.all(workers);
+  if (failures.length > 0) {
+    throw new Error(
+      `${failures.length} ${failures.length === 1 ? "run" : "runs"} failed:\n${failures.join("\n")}`,
+    );
+  }
   return results;
 }
 
@@ -294,14 +323,21 @@ export async function runCompare(
         readSavedCrits(options.runsDirectory, commit, keyOfRequest(request))[0],
     );
   } else {
-    crits = await runPooled(requests, MAX_PARALLEL_RUNS, async (request) => {
-      const saved = await ensureCrits(request, {
-        runsDirectory: options.runsDirectory,
-        skillDirectory,
-        skillCommit: commit,
-        runClaude: options.runClaude,
-      });
-      return saved[0];
+    const indexes = pairs.map((_pair, index) => index);
+    crits = await runPooled(indexes, MAX_PARALLEL_RUNS, async (index) => {
+      const pair = pairs[index] as LabeledPair;
+      try {
+        const saved = await ensureCrits(requests[index] as CritRequest, {
+          runsDirectory: options.runsDirectory,
+          skillDirectory,
+          skillCommit: commit,
+          runClaude: options.runClaude,
+        });
+        return saved[0];
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`pair ${pair.pair_id}: ${message}`);
+      }
     });
     // Collected after every run has finished, so the warnings come in pair order.
     pairs.forEach((pair, index) => {

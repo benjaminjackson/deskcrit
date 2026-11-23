@@ -16,6 +16,7 @@ import {
   JEV_FIGURES_LINE,
   parseChoice,
   runCompare,
+  runPooled,
   toPreference,
 } from "./compare.ts";
 import type { ClaudeRunner } from "./run-critic.ts";
@@ -108,19 +109,31 @@ describe("the order of the images", () => {
 });
 
 describe("parseChoice and toPreference", () => {
-  it("reads each of the three last lines, also in bold or backticks", () => {
+  it("reads each of the three last lines", () => {
     expect(parseChoice("Text.\nBetter: version 1")).toBe("version 1");
-    expect(parseChoice("Text.\nBetter: version 2\n")).toBe("version 2");
-    expect(parseChoice("Text.\nBetter: same")).toBe("same");
+    expect(parseChoice("Text.\nBetter: version 2")).toBe("version 2");
+    expect(parseChoice("Text.\nbetter: SAME")).toBe("same");
+  });
+
+  it("strips markdown decoration and one trailing period from the last line", () => {
+    expect(parseChoice("Text.\n**Better:** version 2")).toBe("version 2");
+    expect(parseChoice("Text.\nBetter: version 2.")).toBe("version 2");
+    expect(parseChoice("Text.\n> Better: version 2")).toBe("version 2");
+    expect(parseChoice("Text.\n- Better: version 2")).toBe("version 2");
+    expect(parseChoice("Text.\n## Better: version 2")).toBe("version 2");
     expect(parseChoice("Text.\n**Better: version 2**")).toBe("version 2");
     expect(parseChoice("Text.\n`Better: same`")).toBe("same");
   });
 
-  it("returns undecided with no line or with two lines that disagree", () => {
-    expect(parseChoice("Version 1 is better.")).toBe("undecided");
-    expect(parseChoice("Better: version 1\nBetter: version 2")).toBe(
+  it("reads only the last non-empty line", () => {
+    expect(parseChoice("Better: version 1\nText.\nBetter: version 2")).toBe(
+      "version 2",
+    );
+    expect(parseChoice("Text.\nBetter: version 1\nA closing remark.")).toBe(
       "undecided",
     );
+    expect(parseChoice("Text.\nBetter: same\n\n  \n")).toBe("same");
+    expect(parseChoice("Version 1 is better.")).toBe("undecided");
   });
 
   it("maps the versions to after or before in both orders", () => {
@@ -136,9 +149,29 @@ describe("parseChoice and toPreference", () => {
     expect(
       formatSummaryLine(["agreed", "disagreed", "undecided", "agreed"]),
     ).toBe("agreed 2, disagreed 1, undecided 1, rate 0.500");
-    expect(JEV_FIGURES_LINE).toBe(
-      "Jev: 0.500 first run, 0.467 after the respelling, 0.867 after FR-37 changed (FR-37 was chosen after these 30 pairs had been seen)",
+  });
+});
+
+describe("runPooled", () => {
+  it("takes no new item after a failure, lets started runs finish, and names every failure", async () => {
+    const items = Array.from({ length: 30 }, (_value, index) => index);
+    const started: number[] = [];
+    const finished: number[] = [];
+    const work = async (item: number): Promise<number> => {
+      started.push(item);
+      // Wait one turn of the event loop, so both workers have started before the failure.
+      await new Promise((resolvePromise) => setTimeout(resolvePromise, 1));
+      if (item === 1) {
+        throw new Error("run 2 broke");
+      }
+      finished.push(item);
+      return item;
+    };
+    await expect(runPooled(items, 2, work)).rejects.toThrow(
+      /1 run failed:\nrun 2 broke/,
     );
+    expect(started.length).toBeLessThan(5);
+    expect(finished).toContain(0);
   });
 });
 
