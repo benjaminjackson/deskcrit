@@ -937,7 +937,7 @@ const HELP_TEXT = `Detection evaluation (EV-14) on the live and the removed crit
 
 Usage:
   node evals/critic/detect.ts [--replay] [--pairs-per-criterion N] [--skill DIR] [--skill-commit SHA]
-                              [--facts] [--beside SHA]...
+                              [--facts] [--live-only] [--beside SHA]...
   node evals/critic/detect.ts --help
 
 For each criterion it takes the first N fixture pairs (a pair is one variant with a positive and a
@@ -953,6 +953,7 @@ Flags:
   --facts                    Score the live criteria only, and give the critic each image's
                              measured facts file from evals/critic/facts/ (FR-79). These runs
                              never share a saved crit with runs without facts.
+  --live-only                Score the live criteria only, as --facts does, without facts files.
   --beside SHA               Replay the runs without facts of this skill commit on the same
                              images and print them in a side-by-side table after the main table.
                              May be given more than once. Starts no child process for them.
@@ -1039,6 +1040,7 @@ export async function runDetect(
       skill: { type: "string" },
       "skill-commit": { type: "string" },
       facts: { type: "boolean", default: false },
+      "live-only": { type: "boolean", default: false },
       beside: { type: "string", multiple: true },
       help: { type: "boolean", short: "h", default: false },
     },
@@ -1066,7 +1068,8 @@ export async function runDetect(
   );
   const notes = selection.notes;
   // The removed criteria have no templates on this branch, so they have no facts files.
-  const selected = withFacts
+  const liveOnly = withFacts || parsed.values["live-only"] === true;
+  const selected = liveOnly
     ? selection.selected.filter((entry) => entry.criterion.group === "live")
     : selection.selected;
   const requestFor = (image: FixtureImage): CritRequest =>
@@ -1253,9 +1256,12 @@ export async function runDetect(
 
   // complete covers this run only; a beside commit with a missing item adds to missing below.
   const complete = missing.length === 0;
-  const factsText = withFacts
-    ? ", with measured facts (live criteria only)"
-    : "";
+  let factsText = "";
+  if (withFacts) {
+    factsText = ", with measured facts (live criteria only)";
+  } else if (liveOnly) {
+    factsText = ", live criteria only";
+  }
   const header = `skill commit ${commit}${factsText}, judge model ${JUDGE_MODEL}, pairs per criterion ${pairsPerCriterion}`;
   const table = formatTable(
     TABLE_HEADERS,

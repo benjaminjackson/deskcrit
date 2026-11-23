@@ -937,6 +937,25 @@ describe("runDetect --facts", () => {
     expect(replayed.text).toMatch(/^total +3\/3 +0\/1 +3\/3 +0\/1$/m);
   });
 
+  it("scores only the live criteria with --live-only, without facts", async () => {
+    const repository = buildTinyRepository();
+    const runsDirectory = newFolder();
+    await seedRuns(repository, runsDirectory, []);
+    const output = await runDetect(
+      ["--replay", "--skill-commit", COMMIT, "--live-only"],
+      {
+        repositoryDirectory: repository,
+        runsDirectory,
+        skillDirectory: SKILL_DIRECTORY,
+        runClaude: throwingRunner,
+      },
+    );
+    expect(output.exitCode).toBe(0);
+    expect(output.text).toContain(`skill commit ${COMMIT}, live criteria only`);
+    expect(output.text).toMatch(/^live +tiny +alpha/m);
+    expect(output.text).not.toMatch(/^removed +tiny +gamma/m);
+  });
+
   it("stops when an image has no facts file", async () => {
     const repository = buildTinyRepository();
     await expect(
