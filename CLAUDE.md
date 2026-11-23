@@ -10,7 +10,7 @@
 - `docs/PRD.md` is the behavioral specification with stable IDs. It is the source of truth for what to build. If `BRIEF.md` and `docs/PRD.md` disagree, `docs/PRD.md` wins and the disagreement is a defect to report.
 - `README.md` is a two-line summary. Do not treat it as a specification.
 
-Current state: the package scaffold exists. It has the build, lint, type check, and test tools, the four stages, and the `crit report` and `crit gate` commands. The first milestone is the spike described in `BRIEF.md` under Milestones: one screenshot, twenty hand-written questions, the danger-zone header, and a spreadsheet comparing Jev's answers with one designer's answers (PRD M-1). That spike decided whether the project continues. Its result is recorded in `docs/PRD.md` M-1: continue, decided by Benjamin Jackson on 2026-10-24, so M-2 work may start under the conditions listed there.
+Current state: the package scaffold exists. It has the build, lint, type check, and test tools, the four stages, and the `crit report`, `crit compare`, `crit gate`, and `crit packs` commands. The first milestone is the spike described in `BRIEF.md` under Milestones: one screenshot, twenty hand-written questions, the danger-zone header, and a spreadsheet comparing Jev's answers with one designer's answers (PRD M-1). That spike decided whether the project continues. The Jev design ended at git tag `jev-spike-final`. Under PRD section 7.12 the judge is now a subagent critic (FR-77), Jev is optional evidence (FR-78), and the work is milestone M-6.
 
 ## Layout
 
