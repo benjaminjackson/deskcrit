@@ -297,7 +297,7 @@ describe("saved metadata", () => {
       {
         tool_name: "Bash",
         tool_input: {
-          command: `cd ${temporaryForms[1]}/crit-critic-x; sips -g pixelWidth image-1.png`,
+          command: `cd ${temporaryForms[1]}/crit-critic-x; node /skill/scripts/crop.mjs image-1.png`,
         },
       },
       {
@@ -526,8 +526,7 @@ describe("buildClaudeArguments", () => {
       "Read,Bash",
       "--allowedTools",
       "Read",
-      "Bash(sips *)",
-      "Bash(mktemp *)",
+      "Bash(node /skill/scripts/crop.mjs *)",
       "--permission-prompts",
       "none",
       "--strict-mcp-config",

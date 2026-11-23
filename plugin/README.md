@@ -4,6 +4,8 @@ This plugin gives Claude Code two skills. The `crit-loop` skill tells a coding a
 
 The `design-critic` skill critiques a still image of a design the way a senior design director would. It starts a Claude agent that walks a checklist of guidelines. It does not run `crit` and needs no TypeSafe key.
 
+To look at a large image closely, the critic runs `scripts/crop.mjs`, which cuts a PNG into full-resolution crops about one screen tall. The script uses only Node's own modules (it reads the PNG with `node:zlib`), so the installed plugin needs no install step and no image library. For a file other than a PNG, an interlaced PNG, or a broken file, it prints one line that says why, and the critic looks at the whole image.
+
 `crit` does not take screenshots. The agent takes them with its own browser tool or with Playwright.
 
 ## Install
