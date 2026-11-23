@@ -1,7 +1,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { deflateSync } from "node:zlib";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
@@ -9,7 +9,6 @@ import {
   decodePng,
   encodeCrop,
   planCrops,
-  splitLength,
 } from "../plugin/skills/design-critic/scripts/crop.mjs";
 
 const repositoryRoot = join(import.meta.dirname, "..");
@@ -117,16 +116,21 @@ function buildPng(options: {
   ]);
 }
 
-/** Reads the value of pixel x in a row of packed samples, as a list of its bytes or its bits. */
-function pixelAt(row: Uint8Array, bitsPerPixel: number, x: number): number[] {
-  if (bitsPerPixel % 8 === 0) {
-    const bytesPerPixel = bitsPerPixel / 8;
-    return Array.from(row.slice(x * bytesPerPixel, (x + 1) * bytesPerPixel));
+/** Returns the bytes of pixel x in a row of raw pixel bytes. */
+function pixelAt(row: Uint8Array, bytesPerPixel: number, x: number): number[] {
+  return Array.from(row.slice(x * bytesPerPixel, (x + 1) * bytesPerPixel));
+}
+
+/** Returns the crop paths that the script printed, one per "crop" line. */
+function printedCropPaths(output: string): string[] {
+  const paths: string[] = [];
+  for (const line of output.trim().split("\n")) {
+    const match = /^crop (.+\.png): rows/.exec(line);
+    if (match?.[1] !== undefined) {
+      paths.push(match[1]);
+    }
   }
-  const bit = x * bitsPerPixel;
-  const byte = row[Math.floor(bit / 8)] ?? 0;
-  const shift = 8 - bitsPerPixel - (bit % 8);
-  return [(byte >> shift) & ((1 << bitsPerPixel) - 1)];
+  return paths;
 }
 
 /** Lists the chunk types of a PNG file in order. */
@@ -141,7 +145,7 @@ function chunkTypes(bytes: Buffer): string[] {
   return types;
 }
 
-describe("splitLength and planCrops", () => {
+describe("planCrops", () => {
   it("cuts a 1280 x 1520 screenshot into two crops of one 1280 x 800 screen that overlap by 80 rows", () => {
     expect(planCrops(1280, 1520)).toEqual([
       { x: 0, y: 0, width: 1280, height: 800 },
@@ -151,9 +155,18 @@ describe("splitLength and planCrops", () => {
 
   it("gives no crops for an image that fits one view", () => {
     expect(planCrops(1280, 800)).toEqual([]);
-    expect(planCrops(1280, 1280)).toEqual([]);
     expect(planCrops(1600, 1000)).toEqual([]);
-    expect(planCrops(410, 700)).toEqual([]);
+    expect(planCrops(2560, 1600)).toEqual([]);
+  });
+
+  it("stretches the crop before a near copy to the edge instead of adding the near copy", () => {
+    expect(planCrops(800, 801)).toEqual([]);
+    expect(planCrops(1601, 1000)).toEqual([]);
+    expect(planCrops(390, 844)).toEqual([]);
+    expect(planCrops(1280, 1521)).toEqual([
+      { x: 0, y: 0, width: 1280, height: 800 },
+      { x: 0, y: 720, width: 1280, height: 801 },
+    ]);
   });
 
   it("keeps crops at least 800 px tall for a narrow phone screenshot", () => {
@@ -163,44 +176,62 @@ describe("splitLength and planCrops", () => {
     ]);
   });
 
-  it("cuts an image wider than 1600 px into columns as well as rows", () => {
-    expect(planCrops(2000, 1250)).toEqual([
+  it("keeps a 2x screenshot up to 3200 px wide whole across, and cuts a wider image into columns", () => {
+    const retina = planCrops(2560, 20000);
+    expect(retina).toHaveLength(14);
+    for (const crop of retina) {
+      expect(crop.x).toBe(0);
+      expect(crop.width).toBe(2560);
+      expect(crop.height).toBe(1600);
+    }
+    expect(planCrops(1280, 12000)).toHaveLength(17);
+    expect(planCrops(3201, 1000)).toEqual([
       { x: 0, y: 0, width: 1600, height: 1000 },
-      { x: 400, y: 0, width: 1600, height: 1000 },
-      { x: 0, y: 250, width: 1600, height: 1000 },
-      { x: 400, y: 250, width: 1600, height: 1000 },
-    ]);
-    expect(planCrops(2560, 900)).toEqual([
-      { x: 0, y: 0, width: 1600, height: 900 },
-      { x: 960, y: 0, width: 1600, height: 900 },
+      { x: 1440, y: 0, width: 1761, height: 1000 },
     ]);
   });
 
-  it("covers every pixel with crops inside the image that overlap their neighbors", () => {
+  it("covers every pixel with crops inside the image whose neighbors overlap", () => {
     for (const [width, height] of [
       [1280, 9000],
       [390, 2532],
-      [1600, 1601],
-      [3000, 5000],
+      [1601, 1601],
+      [1280, 1521],
+      [3201, 1000],
+      [3840, 2160],
     ] as const) {
       const crops = planCrops(width, height);
+      expect(crops.length).toBeGreaterThan(1);
+      const timesCovered = new Uint8Array(width * height);
       for (const crop of crops) {
         expect(crop.x).toBeGreaterThanOrEqual(0);
         expect(crop.y).toBeGreaterThanOrEqual(0);
         expect(crop.x + crop.width).toBeLessThanOrEqual(width);
         expect(crop.y + crop.height).toBeLessThanOrEqual(height);
-        expect(crop.width).toBeLessThanOrEqual(1600);
+        for (let y = crop.y; y < crop.y + crop.height; y++) {
+          timesCovered.fill(
+            1,
+            y * width + crop.x,
+            y * width + crop.x + crop.width,
+          );
+        }
       }
-      const rows = splitLength(height, crops[0]?.height ?? 0, 1);
-      expect(rows[0]?.start).toBe(0);
-      expect((rows.at(-1)?.start ?? 0) + (rows.at(-1)?.length ?? 0)).toBe(
-        height,
-      );
-      for (let index = 1; index < rows.length; index++) {
-        const before = rows[index - 1];
-        expect(rows[index]?.start).toBeLessThan(
-          (before?.start ?? 0) + (before?.length ?? 0),
-        );
+      expect(timesCovered.includes(0)).toBe(false);
+      for (let index = 1; index < crops.length; index++) {
+        const before = crops[index - 1];
+        const current = crops[index];
+        if (before === undefined || current === undefined) {
+          continue;
+        }
+        if (current.y === before.y) {
+          // The next crop in the same row must start inside the one to its left.
+          expect(current.x).toBeLessThan(before.x + before.width);
+          expect(current.x).toBeGreaterThan(before.x);
+        } else {
+          // The first crop of a new row must start inside the row above.
+          expect(current.y).toBeLessThan(before.y + before.height);
+          expect(current.y).toBeGreaterThan(before.y);
+        }
       }
     }
   });
@@ -208,16 +239,10 @@ describe("splitLength and planCrops", () => {
 
 describe("decodePng and encodeCrop", () => {
   const cases = [
-    { colorType: 0, channels: 1, bitDepth: 1 },
-    { colorType: 0, channels: 1, bitDepth: 2 },
-    { colorType: 0, channels: 1, bitDepth: 4 },
     { colorType: 0, channels: 1, bitDepth: 8 },
     { colorType: 0, channels: 1, bitDepth: 16 },
     { colorType: 2, channels: 3, bitDepth: 8 },
     { colorType: 2, channels: 3, bitDepth: 16 },
-    { colorType: 3, channels: 1, bitDepth: 1 },
-    { colorType: 3, channels: 1, bitDepth: 2 },
-    { colorType: 3, channels: 1, bitDepth: 4 },
     { colorType: 3, channels: 1, bitDepth: 8 },
     { colorType: 4, channels: 2, bitDepth: 8 },
     { colorType: 4, channels: 2, bitDepth: 16 },
@@ -229,8 +254,8 @@ describe("decodePng and encodeCrop", () => {
     it(`crops color type ${testCase.colorType} at ${testCase.bitDepth} bits with every filter type and the same pixels`, () => {
       const width = 13;
       const height = 11;
-      const bitsPerPixel = testCase.channels * testCase.bitDepth;
-      const rowLength = Math.ceil((width * bitsPerPixel) / 8);
+      const bytesPerPixel = (testCase.channels * testCase.bitDepth) / 8;
+      const rowLength = width * bytesPerPixel;
       const rows: Uint8Array[] = [];
       for (let rowIndex = 0; rowIndex < height; rowIndex++) {
         const row = new Uint8Array(rowLength);
@@ -239,22 +264,14 @@ describe("decodePng and encodeCrop", () => {
         }
         rows.push(row);
       }
-      // Clear the padding bits after the last pixel, which a PNG writer leaves at zero.
-      const paddingBits = rowLength * 8 - width * bitsPerPixel;
-      for (const row of rows) {
-        row[rowLength - 1] =
-          ((row[rowLength - 1] ?? 0) >> paddingBits) << paddingBits;
-      }
+      const gamma = chunk("gAMA", Buffer.from([0, 0, 177, 143]));
+      const text = chunk("tEXt", Buffer.from("Comment\0dropped", "latin1"));
       const palette = chunk("PLTE", Buffer.alloc(256 * 3, 9));
       const transparency = chunk("tRNS", Buffer.from([0, 128, 255]));
       const extraChunks =
         testCase.colorType === 3
-          ? [
-              chunk("gAMA", Buffer.from([0, 0, 177, 143])),
-              palette,
-              transparency,
-            ]
-          : [chunk("gAMA", Buffer.from([0, 0, 177, 143]))];
+          ? [gamma, text, palette, transparency]
+          : [gamma, text];
       const png = buildPng({ ...testCase, width, rows, extraChunks });
 
       const decoded = decodePng(png);
@@ -273,12 +290,12 @@ describe("decodePng and encodeCrop", () => {
         for (let x = 0; x < crop.width; x++) {
           const expected = pixelAt(
             rows[crop.y + y] ?? new Uint8Array(),
-            bitsPerPixel,
+            bytesPerPixel,
             crop.x + x,
           );
           const actual = pixelAt(
             reread.rows[y] ?? new Uint8Array(),
-            bitsPerPixel,
+            bytesPerPixel,
             x,
           );
           expect(actual).toEqual(expected);
@@ -309,44 +326,76 @@ describe("decodePng and encodeCrop", () => {
   });
 });
 
+/** Runs crop.mjs as a child process with the given arguments and environment. */
+function runScript(commandArguments: string[], environment = process.env) {
+  return spawnSync("node", [cropScript, ...commandArguments], {
+    encoding: "utf8",
+    env: environment,
+  });
+}
+
 describe("crop.mjs on the command line", () => {
-  it("crops a committed screenshot taller than its width into crops as wide as the image", () => {
-    const folder = newFolder();
-    const output = execFileSync("node", [cropScript, tallImage, folder], {
+  it("crops a committed screenshot taller than its width into a new temp folder, as wide as the image", () => {
+    const output = execFileSync("node", [cropScript, tallImage], {
       encoding: "utf8",
     });
     const lines = output.trim().split("\n");
     expect(lines[0]).toBe(`image ${tallImage}: 1280 x 1520 px`);
+    const paths = printedCropPaths(output);
+    expect(paths).toHaveLength(2);
+    const folder = dirname(paths[0] ?? "");
+    expect(folder.startsWith(join(tmpdir(), "design-critic-crops-"))).toBe(
+      true,
+    );
     expect(lines.slice(1)).toEqual([
       `crop ${join(folder, "slice-01.png")}: rows 0-799, columns 0-1279`,
       `crop ${join(folder, "slice-02.png")}: rows 720-1519, columns 0-1279`,
     ]);
-    const files = readdirSync(folder).sort();
-    expect(files).toEqual(["slice-01.png", "slice-02.png"]);
-    for (const file of files) {
-      const bytes = readFileSync(join(folder, file));
-      expect(bytes.readUInt32BE(16)).toBe(1280);
+    expect(readdirSync(folder).sort()).toEqual([
+      "slice-01.png",
+      "slice-02.png",
+    ]);
+    for (const path of paths) {
+      expect(readFileSync(path).readUInt32BE(16)).toBe(1280);
     }
   });
 
-  it("makes its own folder in the system temp folder when no folder is given", () => {
-    const output = execFileSync("node", [cropScript, tallImage], {
-      encoding: "utf8",
-    });
-    const cropLines = output.trim().split("\n").slice(1);
-    expect(cropLines).toHaveLength(2);
-    for (const line of cropLines) {
-      expect(line.startsWith(`crop ${tmpdir()}`)).toBe(true);
+  it("writes one crop of a box, clamped to the image", async () => {
+    const result = runScript([tallImage, "--box", "1200,1500,500,100"]);
+    expect(result.status).toBe(0);
+    const paths = printedCropPaths(result.stdout);
+    expect(paths).toHaveLength(1);
+    expect(result.stdout).toContain(": rows 1500-1519, columns 1200-1279");
+    const metadata = await sharp(paths[0]).metadata();
+    expect([metadata.width, metadata.height]).toEqual([80, 20]);
+  });
+
+  it("refuses a box outside the image with one line and exit code 3", () => {
+    const result = runScript([tallImage, "--box", "1280,0,10,10"]);
+    expect(result.status).toBe(3);
+    expect(result.stdout).toBe(
+      "cannot crop: the box 1280,0,10,10 holds no pixel of the 1280 x 1520 px image; Read the whole image instead.\n",
+    );
+  });
+
+  it("answers a malformed box or an extra argument with the usage line and exit code 2", () => {
+    for (const commandArguments of [
+      [tallImage, "--box", "1,2,3"],
+      [tallImage, "/some/folder"],
+      [],
+    ]) {
+      const result = runScript(commandArguments);
+      expect(result.status).toBe(2);
+      expect(result.stdout).toBe(
+        "usage: node crop.mjs IMAGE [--box x,y,width,height]\n",
+      );
     }
   });
 
   it("refuses a JPEG named .png with one line and exit code 3", async () => {
-    const folder = newFolder();
-    const jpegPath = join(folder, "photo.png");
+    const jpegPath = join(newFolder(), "photo.png");
     writeFileSync(jpegPath, await sharp(tallImage).jpeg().toBuffer());
-    const result = spawnSync("node", [cropScript, jpegPath, folder], {
-      encoding: "utf8",
-    });
+    const result = runScript([jpegPath]);
     expect(result.status).toBe(3);
     expect(result.stdout).toBe(
       "cannot crop: the file is not a PNG; Read the whole image instead.\n",
@@ -354,33 +403,53 @@ describe("crop.mjs on the command line", () => {
   });
 
   it("refuses an interlaced PNG with one line and exit code 3", async () => {
-    const folder = newFolder();
-    const interlacedPath = join(folder, "interlaced.png");
+    const interlacedPath = join(newFolder(), "interlaced.png");
     writeFileSync(
       interlacedPath,
       await sharp(tallImage).png({ progressive: true }).toBuffer(),
     );
-    const result = spawnSync("node", [cropScript, interlacedPath, folder], {
-      encoding: "utf8",
-    });
+    const result = runScript([interlacedPath]);
     expect(result.status).toBe(3);
     expect(result.stdout).toBe(
       "cannot crop: the PNG is interlaced, which this script does not crop; Read the whole image instead.\n",
     );
   });
 
-  it("refuses a cut-off PNG with one line and exit code 4", () => {
-    const folder = newFolder();
-    const brokenPath = join(folder, "broken.png");
+  it("refuses a PNG of fewer than 8 bits per sample with one line and exit code 3", () => {
+    const packedPath = join(newFolder(), "packed.png");
+    const rows = [new Uint8Array([0xaa]), new Uint8Array([0x55])];
+    writeFileSync(
+      packedPath,
+      buildPng({ width: 8, bitDepth: 1, colorType: 0, channels: 1, rows }),
+    );
+    const result = runScript([packedPath]);
+    expect(result.status).toBe(3);
+    expect(result.stdout).toBe(
+      "cannot crop: the PNG uses 1 bits per sample, which this script does not crop; Read the whole image instead.\n",
+    );
+  });
+
+  it("refuses a cut-off PNG with one line and exit code 3", () => {
+    const brokenPath = join(newFolder(), "broken.png");
     const bytes = readFileSync(tallImage);
     writeFileSync(brokenPath, bytes.subarray(0, Math.floor(bytes.length / 2)));
-    const result = spawnSync("node", [cropScript, brokenPath, folder], {
-      encoding: "utf8",
-    });
-    expect(result.status).toBe(4);
+    const result = runScript([brokenPath]);
+    expect(result.status).toBe(3);
     expect(result.stdout.split("\n")).toHaveLength(2);
     expect(result.stdout.startsWith("cannot crop: the PNG is broken:")).toBe(
       true,
     );
+  });
+
+  it("turns a temp folder it cannot write into one line and exit code 3, with no stack trace", () => {
+    const missingFolder = join(newFolder(), "does-not-exist");
+    const result = runScript([tallImage], {
+      ...process.env,
+      TMPDIR: missingFolder,
+    });
+    expect(result.status).toBe(3);
+    expect(result.stderr).toBe("");
+    expect(result.stdout.split("\n")).toHaveLength(2);
+    expect(result.stdout.startsWith("cannot crop: ENOENT")).toBe(true);
   });
 });
