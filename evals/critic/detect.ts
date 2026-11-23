@@ -621,7 +621,7 @@ function imageSha256(imagePath: string): string {
 }
 
 /** Returns the request key of an image: its SHA-256, as a one-image request with no note or focus. */
-function imageKey(image: FixtureImage): string {
+export function imageKey(image: FixtureImage): string {
   return requestKey([imageSha256(image.absolutePath)], undefined, undefined);
 }
 
