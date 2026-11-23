@@ -63,12 +63,24 @@ export const CRITIC_ISOLATION_FLAG = "--safe-mode";
 
 /**
  * Settings passed to the child with --settings. blockReadsOutsideWorkingDirectories makes the file
- * tools refuse reads outside the working folders, which are the work folder and the skill folder,
- * so the critic cannot read fixture names or label files in the repository.
+ * tools refuse reads outside the working folders (CRITIC_READABLE_FOLDERS), so the critic cannot
+ * read fixture names or label files in the repository.
  */
 export const CRITIC_SETTINGS = JSON.stringify({
   permissions: { blockReadsOutsideWorkingDirectories: true },
 });
+
+/**
+ * The folders the critic may read: the work folder (its working directory), the skill folder, and
+ * the system temp folder (os.tmpdir()), all given with --add-dir except the work folder. The temp
+ * folder is there because `mktemp -d` in the child's Bash makes the crop folder in the system temp
+ * folder: a probe showed that neither TMPDIR in the child's environment nor an env key in
+ * --settings reaches its Bash, so without this folder Read refused every crop. The work folder is
+ * made inside the system temp folder, so the critic can also list other temp folders of this user,
+ * but not the repository.
+ */
+export const CRITIC_READABLE_FOLDERS =
+  "work folder, skill folder, system temp folder";
 
 /** How a run was made. A saved run counts only when every field matches the current values. */
 export type RunIdentity = {
@@ -77,6 +89,7 @@ export type RunIdentity = {
   readonly isolation_flag: string;
   readonly permission_mode: string;
   readonly settings: string;
+  readonly readable_folders: string;
 };
 
 /**
@@ -144,6 +157,7 @@ export type ClaudeResult = {
   readonly usage: unknown;
   readonly totalCostUsd: unknown;
   readonly modelIds: readonly string[];
+  readonly permissionDenials: readonly unknown[];
 };
 
 /**
@@ -205,6 +219,7 @@ export function currentRunIdentity(): RunIdentity {
     isolation_flag: CRITIC_ISOLATION_FLAG,
     permission_mode: CRITIC_PERMISSION_MODE,
     settings: CRITIC_SETTINGS,
+    readable_folders: CRITIC_READABLE_FOLDERS,
   };
 }
 
@@ -218,7 +233,8 @@ function matchesIdentity(
     metadata.model_requested === identity.model_requested &&
     metadata.isolation_flag === identity.isolation_flag &&
     metadata.permission_mode === identity.permission_mode &&
-    metadata.settings === identity.settings
+    metadata.settings === identity.settings &&
+    metadata.readable_folders === identity.readable_folders
   );
 }
 
@@ -253,6 +269,7 @@ export function buildClaudeArguments(
     CRITIC_SETTINGS,
     "--add-dir",
     skillDirectory,
+    tmpdir(),
     "--max-budget-usd",
     MAX_BUDGET_USD,
     prompt,
@@ -310,6 +327,10 @@ export function parseClaudeResult(stdout: string): ClaudeResult {
     usage: parsed.usage ?? null,
     totalCostUsd: parsed.total_cost_usd ?? null,
     modelIds,
+    // Each call the permission rules refused; an empty list means nothing was refused.
+    permissionDenials: Array.isArray(parsed.permission_denials)
+      ? parsed.permission_denials
+      : [],
   };
 }
 
@@ -485,8 +506,6 @@ async function runCriticOnce(
 }> {
   const workDirectory = mkdtempSync(join(tmpdir(), "crit-critic-"));
   try {
-    const temporaryDirectory = join(workDirectory, "tmp");
-    mkdirSync(temporaryDirectory);
     const workImagePaths: string[] = [];
     request.imagePaths.forEach((imagePath, index) => {
       // Fixture names carry the answer, so the critic sees only image-1.png, image-2.png, and so on.
@@ -497,9 +516,7 @@ async function runCriticOnce(
       copyFileSync(imagePath, workImagePath);
       workImagePaths.push(workImagePath);
     });
-    // TMPDIR inside the work folder keeps the crops that critic.md makes with mktemp -d in an
-    // allowed directory.
-    const environment = { ...process.env, TMPDIR: temporaryDirectory };
+    const environment = process.env;
     const versionRun = await options.runClaude(
       ["--version"],
       environment,
@@ -574,6 +591,7 @@ export async function ensureCrits(
       skill_directory: portablePath(options.skillDirectory, 2),
       skill_commit: commit,
       model_ids: once.result.modelIds,
+      permission_denials: once.result.permissionDenials,
       claude_version: once.claudeVersion,
       session_id: once.result.sessionId,
       num_turns: once.result.numTurns,
@@ -640,6 +658,19 @@ Flags:
 
 Exit codes: 0 done, 1 replay found an image with no saved crit, 2 could not run.
 `;
+
+/** Returns one warning line per call that the permission rules refused in a saved run. */
+function describeDenials(saved: SavedCrit): string[] {
+  const denials = saved.metadata.permission_denials;
+  if (!Array.isArray(denials)) {
+    return [];
+  }
+  return denials.map((denial) => {
+    const toolName = isRecord(denial) ? String(denial.tool_name) : "unknown";
+    const toolInput = isRecord(denial) ? JSON.stringify(denial.tool_input) : "";
+    return `warning: run ${saved.runNumber} was refused a ${toolName} call: ${toolInput}`;
+  });
+}
 
 /** Options for main: where runs live, the default skill folder, and the child process runner. */
 export type MainOptions = {
@@ -755,6 +786,7 @@ export async function runCriticCommand(
     );
     for (const crit of saved) {
       lines.push(`${imagePath}: ${crit.critPath}`);
+      lines.push(...describeDenials(crit));
     }
   }
   return { text: `${lines.join("\n")}\n`, exitCode: 0 };

@@ -27,6 +27,15 @@ const COMMIT = "0123456789abcdef0123456789abcdef01234567";
 const RUNNER_FILE = join(import.meta.dirname, "run-critic.ts");
 const REPOSITORY_ROOT = join(import.meta.dirname, "..", "..");
 
+/** Runs git in a folder with a fixed identity, so the test needs no git configuration. */
+function git(directory: string, args: string[]): string {
+  return execFileSync(
+    "git",
+    ["-c", "user.name=test", "-c", "user.email=test@example.com", ...args],
+    { cwd: directory, encoding: "utf8" },
+  ).trim();
+}
+
 /** A successful result in the shape `claude -p --output-format json` prints. */
 function successStdout(crit: string): string {
   return JSON.stringify({
@@ -371,6 +380,49 @@ describe("readSavedCrits", () => {
   });
 });
 
+describe("permission denials", () => {
+  it("saves the refused calls in the metadata and prints one warning line per call", async () => {
+    const { root, imagePath, runsDirectory } = setUp();
+    // The run command needs a committed skill folder with SKILL.md and agents/critic.md.
+    const skillDirectory = join(root, "skill");
+    mkdirSync(join(skillDirectory, "agents"), { recursive: true });
+    writeFileSync(join(skillDirectory, "SKILL.md"), "skill");
+    writeFileSync(join(skillDirectory, "agents", "critic.md"), "critic");
+    git(skillDirectory, ["init", "-q"]);
+    git(skillDirectory, ["add", "."]);
+    git(skillDirectory, ["commit", "-q", "-m", "skill"]);
+    const denial = {
+      tool_name: "Read",
+      tool_use_id: "toolu_1",
+      tool_input: { file_path: "/elsewhere/1.png" },
+    };
+    const result = JSON.parse(successStdout("A hobbled crit."));
+    result.permission_denials = [denial];
+    const stub = recordingStub(JSON.stringify(result));
+    const { runCriticCommand } = await import("./run-critic.ts");
+    const output = await runCriticCommand(
+      ["run", "--skill", skillDirectory, imagePath],
+      {
+        runsDirectory,
+        defaultSkillDirectory: "/no-skill",
+        runClaude: stub.runner,
+      },
+    );
+    expect(output.exitCode).toBe(0);
+    const warnings = output.text
+      .split("\n")
+      .filter((line) => line.startsWith("warning:"));
+    expect(warnings).toEqual([
+      'warning: run 1 was refused a Read call: {"file_path":"/elsewhere/1.png"}',
+    ]);
+    const metadataPath =
+      output.text.split("\n")[0]?.split(": ")[1]?.replace(/\.md$/, ".json") ??
+      "";
+    const metadata = JSON.parse(readFileSync(metadataPath, "utf8"));
+    expect(metadata.permission_denials).toEqual([denial]);
+  });
+});
+
 describe("buildClaudeArguments", () => {
   it("holds the planned flags, puts the prompt last, and never skips permissions", () => {
     const args = buildClaudeArguments("/skill", "the prompt");
@@ -397,6 +449,7 @@ describe("buildClaudeArguments", () => {
       '{"permissions":{"blockReadsOutsideWorkingDirectories":true}}',
       "--add-dir",
       "/skill",
+      tmpdir(),
       "--max-budget-usd",
       "5",
       "the prompt",
@@ -450,15 +503,6 @@ describe("parseClaudeResult", () => {
 });
 
 describe("skillCommit", () => {
-  /** Runs git in a folder with a fixed identity, so the test needs no git configuration. */
-  function git(directory: string, args: string[]): string {
-    return execFileSync(
-      "git",
-      ["-c", "user.name=test", "-c", "user.email=test@example.com", ...args],
-      { cwd: directory, encoding: "utf8" },
-    ).trim();
-  }
-
   it("returns the last commit that touched the folder and refuses an untracked file", () => {
     const root = mkdtempSync(join(tmpdir(), "run-critic-git-"));
     git(root, ["init", "-q"]);
