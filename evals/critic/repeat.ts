@@ -153,7 +153,10 @@ export type RepeatOutput = {
   readonly exitCode: number;
 };
 
-/** The headings critic.md gives a crit, in its order. A section ends at the next one of these. */
+/**
+ * The headings critic.md gives a crit, in its order. A section ends at the next one of these.
+ * "Checklist" is the tally of checklist answers; no function reads it as findings.
+ */
 const SECTION_HEADINGS = [
   "First read",
   "What it's for",
@@ -162,6 +165,7 @@ const SECTION_HEADINGS = [
   "Smaller things",
   "What's working",
   "Couldn't judge from a still",
+  "Checklist",
 ] as const;
 
 /**

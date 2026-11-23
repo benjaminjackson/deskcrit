@@ -18,9 +18,9 @@ Be unflinching. If the piece is weak, say so in the verdict, in plain words. Do 
 
 3. **Establish the job.** Use what the caller told you about purpose, audience, and medium. If they told you nothing, infer it and state your assumption in one sentence so they can correct it. Judge everything against that job: a dense trading screen and a wedding invitation fail in opposite directions.
 
-4. **Run the checklist.** Read `references/checklist.md`. Walk it top to bottom against the image, and mark each line for yourself as fine, off, unsure, or not applicable. Skip whole sections that do not apply (no chart: skip charts and data). Keep this walk to yourself; it is your notes, not the crit. Read the copy too: see "The words are part of the design" below, which no checklist line covers.
+4. **Run the checklist, in writing.** Read `references/checklist.md`. Before you rank anything, write the walk as a message of its own; it is your working notes, not the crit. Go through every section in order. A section that does not apply gets one line, such as `Charts and data: skipped, no chart`. In a section that applies, answer every line, by its bold title, with `yes`, `no`, or `unsure`, and leave none out. Each line states what a good design does, so `yes` means the piece meets it, `no` means it does not, and `unsure` means you cannot tell from this image or it is borderline. A rule broken on purpose in a way that serves the piece is `yes`. In "Unchecked candidates", name each line by a few of its words; `yes` means the piece does not have the problem the line describes. A `yes` needs no reason; give each `no` and `unsure` a few words that say where on the image. Answer from what you already saw in steps 1 and 2, and look again at a crop only when a line needs it. Read the copy too: see "The words are part of the design" below, which no checklist line covers. With two or more versions, walk each one.
 
-5. **Go deep on every line marked off or unsure.** Open its entry in the reference file the line points to, and use what the entry gives you:
+5. **Go deep on every line you answered `no` or `unsure`.** Open its entry in the reference file the line points to, and use what the entry gives you. When the entry settles an `unsure`, it becomes `yes` or `no`; one that stays `unsure` is not a finding, and goes under what you could not judge only if it matters for this piece. Several `no` lines about one problem make one finding.
    - **Rule** and **Look for** say exactly what the defect is and what it looks like.
    - **How bad it gets** gives the realistic range of the defect, so you can tell a real case from a borderline one.
    - **Fix (approved)** is wording the owner has approved. Use it for the direction of the fix, adapted to this piece.
@@ -47,7 +47,7 @@ Never cite Robin Williams, *The Non-Designer's Design Book*. Give a page or sect
 
 - **Located.** "The three cards in the lower third", not "some elements". If you cannot point to it, you have not seen it.
 - **Consequences, not labels.** Not "the hierarchy is weak" but "the price, the headline, and the badge are the same weight, so the eye bounces between them and the offer takes a second read to find."
-- **Ranked.** Lead with what changes the most. The ranked list holds only findings that would noticeably change how well the piece does its job. Every other real failure from the checklist goes in "Smaller things", one line each, so nothing is lost and nothing buries the headline.
+- **Ranked.** Lead with what changes the most. The ranked list holds only findings that would noticeably change how well the piece does its job. Every other real failure from the checklist goes in "Smaller things", one line each, so nothing is lost and nothing buries the headline. Every line you answered `no` in the end appears in one of the two, and no finding rests on a checklist line you did not answer `no`. Findings the checklist has no line for, such as the copy or the first read, are still welcome.
 - **Direction, not redesign.** Say what the fix must achieve and the usual way to get there ("make one of these dominant: the price, if this is a sales page"). Leave the design to the designer.
 - **Earned credit.** Name what works and why, specifically enough that the designer keeps it when revising. Never pad with praise. If the piece is good, say so plainly and keep the list short.
 - **Generic is not a finding.** If a page looks AI-generated or templated, say what that costs the viewer (nothing stands out, it could be anyone's product) rather than listing the tells.
@@ -108,6 +108,10 @@ The rule of thirds and the golden ratio are folk wisdom; a centred subject is no
 **What's working.** One to three specific things to keep, and why.
 
 **Couldn't judge from a still.** Only items that matter for this piece. Omit if none.
+
+**Checklist.** One line per section, with your final answers: `Typography: 26 lines, 23 yes, 2 no (Line length (measure); Sizes come from a scale), 1 unsure (Leading suits the measure)`, or `Charts and data: skipped`. Do not repeat the walk here.
 ```
+
+The Checklist tally is the last section. If the caller asked for a last line, such as `Better: version 1`, put that line after the tally.
 
 When the critique is done, end with the full critique as your final message, so it reaches whoever asked for it. If the caller asked you to save it to a file as well, do both.
