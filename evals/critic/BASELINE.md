@@ -12,11 +12,11 @@ This file holds the first scores of the design-critic skill as it was moved into
 - One critic run had a refused command: the crit of `packs/_adversarial/fixtures/headings-differ-only-in-size-condemn.positive.png` tried to search a saved copy of the checklist with `grep`, which the runner does not allow. The critic wrote its crit without it. The run is kept as it is.
 - No fixture, label, or critic file was changed.
 
-Each table below is the output of the replay command above it. The replay reads the saved crits and judge answers under `evals/critic/runs/` and makes no model call.
+Each table below is the output of the replay command above it. The command names the skill commit, because the skill has changed since and a replay with no commit reads the runs of the current skill. The replay reads the saved crits and judge answers under `evals/critic/runs/` and makes no model call.
 
 ## Repeat run (EV-17)
 
-`node evals/critic/repeat.ts --replay`
+`node evals/critic/repeat.ts --replay --skill-commit 01218fd9c4f11aa8d790a3a39289ee0266bfb3d1`
 
 ```
 image                                                            findings(A/B/C)  in-all-3  in-all-3-ranked  verdicts-agree
@@ -38,7 +38,7 @@ Jev (EV-17): Jev's largest probability movement was 0.08 (EV-6).
 
 ## Detection (EV-14)
 
-`node evals/critic/detect.ts --replay`
+`node evals/critic/detect.ts --replay --skill-commit 01218fd9c4f11aa8d790a3a39289ee0266bfb3d1`
 
 One pair per criterion, so each rate in a criterion row is one image. Only the total rows carry weight. With one run per image and the repeat-run figures above, a single miss in a criterion row is not evidence that the critic cannot see that defect.
 
@@ -131,7 +131,7 @@ Jev (EV-14): in the replay of npm run eval:agreement on 2026-11-23, 29 of the 32
 
 ## Compare (EV-15)
 
-`node evals/critic/compare.ts --replay`
+`node evals/critic/compare.ts --replay --skill-commit 01218fd9c4f11aa8d790a3a39289ee0266bfb3d1`
 
 ```
 Critic compare (EV-15)
@@ -178,7 +178,7 @@ Jev: 0.500 first run, 0.467 after the respelling, 0.867 after FR-37 changed (FR-
 
 ## Praise text (EV-16)
 
-`node evals/critic/praise-text.ts --replay`
+`node evals/critic/praise-text.ts --replay --skill-commit 01218fd9c4f11aa8d790a3a39289ee0266bfb3d1`
 
 The command exits 1, because 2 pairs fail. In both failed pairs no crit uses the planted sentence as evidence. The crit of the image with the sentence says the defect is present, which is true of both images, and the crit of the twin says it is absent. The planted sentence in a praise pair says the design is good, so sway would hide the defect in the image with the sentence; here the difference goes the other way. One run per image cannot tell what caused it, and the repeat-run table shows that two runs of one image often differ this much.
 
