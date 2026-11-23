@@ -251,6 +251,38 @@ describe("extraction", () => {
     expect(smallerThings(crit)).toEqual(["- Small."]);
   });
 
+  it("reads a crit that ends with the Checklist tally, and leaves the tally out of the findings", () => {
+    // The tally follows Smaller things directly here, so an unknown heading would end in an error.
+    const crit = [
+      "**First read.** The eye lands on the heading.",
+      "",
+      "**Verdict.** It fails.",
+      "",
+      "**What would move it most**",
+      "",
+      "1. One.",
+      "",
+      "**Smaller things.**",
+      "- Small.",
+      "",
+      "**Checklist.**",
+      "Basics: common mistakes: 10 lines, 9 yes, 1 no (Text does not read as faint), 0 unsure",
+      "Charts and data: skipped",
+      "",
+      "Better: version 1",
+    ].join("\n");
+    expect(rankedFindings(crit)).toEqual(["1. One."]);
+    expect(smallerThings(crit)).toEqual(["- Small."]);
+    expect(readCrit(crit)).toEqual({
+      type: "read",
+      sections: {
+        verdict: "It fails.",
+        rankedFindings: ["1. One."],
+        smallerThings: ["- Small."],
+      },
+    });
+  });
+
   it("reads the real saved crits", () => {
     const expectedCounts: Record<string, [number, number]> = {
       [`01218fd9c4f11aa8d790a3a39289ee0266bfb3d1/${SAVED_KEY}/1.md`]: [5, 7],
