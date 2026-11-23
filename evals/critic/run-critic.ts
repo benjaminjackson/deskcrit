@@ -73,9 +73,8 @@ export const CRITIC_SETTINGS = JSON.stringify({
 /**
  * The folders the critic may read: the work folder (its working directory), the skill folder, and
  * the system temp folder (os.tmpdir()), all given with --add-dir except the work folder. The temp
- * folder is there because `mktemp -d` in the child's Bash makes the crop folder in the system temp
- * folder: a probe showed that neither TMPDIR in the child's environment nor an env key in
- * --settings reaches its Bash, so without this folder Read refused every crop. The work folder is
+ * folder is there because the skill's scripts/crop.mjs writes its crops into a new folder in the
+ * system temp folder, and without this folder Read refuses every crop. The work folder is
  * made inside the system temp folder, so the critic can also list other temp folders of this user,
  * but not the repository.
  */
@@ -239,6 +238,14 @@ function matchesIdentity(
 }
 
 /**
+ * Returns the one Bash rule the critic is allowed: running the skill's crop script, by its
+ * absolute path, on any arguments (agents/critic.md step 1).
+ */
+export function cropCommandRule(skillDirectory: string): string {
+  return `Bash(node ${skillDirectory}/scripts/crop.mjs *)`;
+}
+
+/**
  * Returns the `claude` arguments for one crit. The prompt goes last, after an option that takes
  * one value, so no option that takes a list can swallow it.
  */
@@ -260,8 +267,7 @@ export function buildClaudeArguments(
     "Read,Bash",
     "--allowedTools",
     "Read",
-    "Bash(sips *)",
-    "Bash(mktemp *)",
+    cropCommandRule(skillDirectory),
     "--permission-prompts",
     "none",
     "--strict-mcp-config",
