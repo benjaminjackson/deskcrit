@@ -660,7 +660,7 @@ export async function ensureCrits(
  * The real runner: starts `claude` with stdin closed, because `claude -p` waits and warns when
  * stdin is open, and stops it after 20 minutes.
  */
-function runClaudeProcess(
+export function runClaudeProcess(
   args: readonly string[],
   environment: NodeJS.ProcessEnv,
   workingDirectory: string,
