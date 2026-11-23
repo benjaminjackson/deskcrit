@@ -8,7 +8,7 @@
 //
 // Usage:
 //   node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--note TEXT] IMAGE...
-//   node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] IMAGE...
+//   node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--note TEXT] IMAGE...
 //   node evals/critic/run-critic.ts --help
 // Each image on the command line is a separate one-image request.
 //
@@ -28,7 +28,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { extname, join, resolve } from "node:path";
+import { extname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
@@ -111,6 +111,27 @@ export type ClaudeResult = {
   readonly totalCostUsd: unknown;
   readonly modelIds: readonly string[];
 };
+
+/**
+ * Returns a path that is safe to commit in a metadata file: relative to the repository root when
+ * the path is inside it, otherwise only its last `segmentsOutside` segments. An absolute path
+ * would save the user's home folder and the worktree name.
+ */
+export function portablePath(path: string, segmentsOutside: number): string {
+  const absolutePath = resolve(path);
+  const fromRepository = relative(REPOSITORY_DIRECTORY, absolutePath);
+  // relative() starts with ".." when the path is outside the repository, and is absolute when it
+  // is on another drive (Windows).
+  if (
+    fromRepository !== "" &&
+    !fromRepository.startsWith("..") &&
+    !isAbsolute(fromRepository)
+  ) {
+    return fromRepository.split(sep).join("/");
+  }
+  const segments = absolutePath.split(sep).filter((segment) => segment !== "");
+  return segments.slice(-segmentsOutside).join("/");
+}
 
 /** Returns the SHA-256 of a string or bytes as lowercase hex. */
 function sha256(content: string | Buffer): string {
@@ -475,13 +496,13 @@ export async function ensureCrits(
       request: {
         images: request.imagePaths.map((imagePath, index) => ({
           sha256: imageSha256s[index],
-          path: imagePath,
+          path: portablePath(imagePath, 1),
         })),
         note: request.note ?? null,
         focus: request.focus ?? null,
       },
       prompt_sha256: promptSha256,
-      skill_directory: options.skillDirectory,
+      skill_directory: portablePath(options.skillDirectory, 2),
       skill_commit: commit,
       model_ids: once.result.modelIds,
       claude_version: once.claudeVersion,
@@ -533,7 +554,7 @@ const HELP_TEXT = `Run the design critic headless, save each crit, or replay sav
 
 Usage:
   node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--note TEXT] IMAGE...
-  node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] IMAGE...
+  node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--note TEXT] IMAGE...
   node evals/critic/run-critic.ts --help
 
 Modes:
@@ -545,7 +566,7 @@ Flags:
   --skill DIR         The skill folder (default plugin/skills/design-critic).
   --skill-commit SHA  replay only: read the runs of this commit instead of the skill's commit.
   --runs N            run only: how many saved crits each image must have.
-  --note TEXT         run only: what you know about the piece.
+  --note TEXT         what you know about the piece. replay needs the note the run used.
   --help, -h          Print this help.
 
 Exit codes: 0 done, 1 replay found an image with no saved crit, 2 could not run.
@@ -623,7 +644,7 @@ export async function runCriticCommand(
     for (const imagePath of imagePaths) {
       const key = requestKey(
         [sha256(readFileSync(imagePath))],
-        undefined,
+        parsed.values.note,
         undefined,
       );
       const saved = readSavedCrits(options.runsDirectory, commit, key);

@@ -92,7 +92,12 @@ describe("ensureCrits", () => {
       readFileSync(first?.metadataPath ?? "", "utf8"),
     );
     expect(metadata.prompt_sha256).toMatch(/^[0-9a-f]{64}$/);
-    expect(metadata.request.images[0].path).toBe(imagePath);
+    // An image outside the repository is saved by its base name, and the skill by its last two
+    // segments, so no committed file holds the user's home folder.
+    expect(metadata.request.images[0].path).toBe(
+      "heading-indistinct.positive.png",
+    );
+    expect(metadata.skill_directory).toBe("skill");
     expect(metadata.model_ids).toEqual(["claude-opus-test"]);
     expect(metadata.claude_version).toBe("9.9.9 (Claude Code)");
     // A one-image request with no note or focus is keyed by the image's SHA-256.
@@ -209,6 +214,44 @@ describe("ensureCrits", () => {
   });
 });
 
+describe("saved metadata", () => {
+  /** Returns every string inside a parsed JSON value. */
+  function collectStrings(value: unknown): string[] {
+    if (typeof value === "string") {
+      return [value];
+    }
+    if (typeof value === "object" && value !== null) {
+      return Object.values(value).flatMap(collectStrings);
+    }
+    return [];
+  }
+
+  it("holds no absolute path, for an image inside or outside the repository", async () => {
+    const { root, imagePath, runsDirectory } = setUp();
+    const stub = recordingStub();
+    const inside = join(import.meta.dirname, "..", "wobble", "slice.png");
+    const savedRuns = [
+      ...(await ensureCrits(
+        { imagePaths: [imagePath] },
+        {
+          ...options(runsDirectory, stub.runner),
+          skillDirectory: join(root, "skills", "design-critic"),
+        },
+      )),
+      ...(await ensureCrits(
+        { imagePaths: [inside], note: "a chart page" },
+        options(runsDirectory, stub.runner),
+      )),
+    ];
+    const strings = savedRuns.flatMap((saved) =>
+      collectStrings(JSON.parse(readFileSync(saved.metadataPath, "utf8"))),
+    );
+    expect(strings.filter((text) => text.startsWith("/"))).toEqual([]);
+    expect(strings).toContain("evals/wobble/slice.png");
+    expect(strings).toContain("skills/design-critic");
+  });
+});
+
 describe("readSavedCrits", () => {
   it("returns the saved crits and cannot start a child process", async () => {
     const { imagePath, runsDirectory } = setUp();
@@ -256,6 +299,42 @@ describe("readSavedCrits", () => {
     );
     expect(missing.exitCode).toBe(1);
     expect(missing.text).toContain(imagePath);
+  });
+
+  it("replays a run made with a note when --note names the same note", async () => {
+    const { imagePath, runsDirectory } = setUp();
+    const stub = recordingStub(successStdout("A noted crit."));
+    await ensureCrits(
+      { imagePaths: [imagePath], note: "a landing page" },
+      options(runsDirectory, stub.runner),
+    );
+    const { runCriticCommand } = await import("./run-critic.ts");
+    const throwingRunner: ClaudeRunner = async () => {
+      throw new Error("replay must not start a child process");
+    };
+    const replayOptions = {
+      runsDirectory,
+      defaultSkillDirectory: "/no-skill",
+      runClaude: throwingRunner,
+    };
+    const withNote = await runCriticCommand(
+      [
+        "replay",
+        "--skill-commit",
+        COMMIT,
+        "--note",
+        "a landing page",
+        imagePath,
+      ],
+      replayOptions,
+    );
+    expect(withNote.exitCode).toBe(0);
+    expect(withNote.text).toContain("A noted crit.");
+    const withoutNote = await runCriticCommand(
+      ["replay", "--skill-commit", COMMIT, imagePath],
+      replayOptions,
+    );
+    expect(withoutNote.exitCode).toBe(1);
   });
 });
 
@@ -379,6 +458,7 @@ describe("the command line", () => {
     });
     expect(help).toContain("run ");
     expect(help).toContain("replay ");
+    expect(help).toContain("[--note TEXT] IMAGE");
   });
 
   it("keeps the prompt template in one constant with the skill's placeholders", () => {
