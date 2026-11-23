@@ -1,0 +1,361 @@
+{
+  "title": "deskcrit measured facts",
+  "description": "The facts.json file that plugin/skills/design-critic/scripts/measure.mjs writes (docs/PRD.md FR-79): what a rendered page measures, for the design critic and then a coding agent. It is not the facts file of FR-3. Written for JSON Schema draft 2020-12; the $schema keyword is left out by project rule, so a validator must be set to draft 2020-12. Every object rejects unknown fields, because the schema and the script ship together. Pixel boxes are [x, y, width, height] in whole pixels of that viewport's full-page screenshot, taken at device scale factor 1, so they are also CSS pixels from the top left of the page. A value that could not be measured is null with a note that says why, never a guess.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "source",
+    "color_scheme",
+    "notes",
+    "texts",
+    "viewports"
+  ],
+  "properties": {
+    "version": {
+      "description": "The version of this format. A change that a reader of version 1 cannot read raises it.",
+      "const": 1
+    },
+    "source": {
+      "description": "The page that was measured, as it was given to the script: a local HTML file path or an http(s) URL.",
+      "type": "string"
+    },
+    "color_scheme": {
+      "description": "The color scheme the page was rendered in. The script always asks for light, so a page with a dark mode is measured in its light mode.",
+      "const": "light"
+    },
+    "notes": {
+      "description": "What applies to the whole file, such as a redirect. Empty when nothing does.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "final_url": {
+      "description": "Present only when the browser ended on another URL than source, for example after a redirect. The facts describe the page at this URL.",
+      "type": "string"
+    },
+    "texts": {
+      "description": "The first 60 characters of each listed text block's own text, keyed by the block's selector. A text block's text is the same in every viewport, so it is kept here once and the viewports name blocks by selector.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "viewports": {
+      "description": "One entry per viewport the page was rendered in: desktop (1280 x 800 px) first, then phone (390 x 844 px).",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/viewport"
+      }
+    }
+  },
+  "$defs": {
+    "box": {
+      "description": "A pixel box: [x, y, width, height] in whole pixels of the viewport's full-page screenshot.",
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "color": {
+      "description": "A color as #rrggbb, or #rrggbbaa when it is not opaque. A color the browser wrote in another form, such as oklch(), is kept as the browser wrote it.",
+      "type": "string"
+    },
+    "viewport": {
+      "description": "What the page measures in one viewport.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "width",
+        "height",
+        "page_width",
+        "page_height",
+        "notes",
+        "text_blocks_found",
+        "text_blocks_left_out",
+        "text_blocks",
+        "type_sizes",
+        "text_colors",
+        "spacing",
+        "left_edges",
+        "blocks_on_no_shared_edge",
+        "targets",
+        "targets_left_out",
+        "screenshot",
+        "crops"
+      ],
+      "properties": {
+        "name": {
+          "description": "The viewport's name, which also names its screenshot and crops.",
+          "enum": ["desktop", "phone"]
+        },
+        "width": {
+          "description": "The viewport width in CSS pixels.",
+          "type": "integer"
+        },
+        "height": {
+          "description": "The viewport height in CSS pixels: one screen.",
+          "type": "integer"
+        },
+        "page_width": {
+          "description": "The width of the whole page in this viewport. Wider than the viewport means the page scrolls sideways.",
+          "type": "integer"
+        },
+        "page_height": {
+          "description": "The height of the whole page in this viewport, which is the height of the full-page screenshot.",
+          "type": "integer"
+        },
+        "notes": {
+          "description": "What went wrong while the page loaded in this viewport, such as a network that never went quiet, web fonts still loading, or a web font that failed and was replaced by a fallback, and a page wider than the viewport. Empty when the page settled.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "text_blocks_found": {
+          "description": "How many visible text blocks the page has in this viewport. A text block is an element that is not display: inline and holds visible text of its own; text inside inline children such as a, strong, or span counts toward it. SVG text is left out. A block is not visible when it is not displayed, has visibility: hidden or opacity 0, has its own clip or clip-path, is 1 x 1 px or smaller, lies wholly outside the page, is wholly hidden by an ancestor's overflow, or the browser finds none of its sampled characters at their own position.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "text_blocks_left_out": {
+          "description": "How many text blocks are not listed in text_blocks because the list is capped at 60. type_sizes and text_colors still count them.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "text_blocks": {
+          "description": "The listed text blocks: every h1 to h6 first, then the other blocks, each group in document order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/textBlock"
+          }
+        },
+        "type_sizes": {
+          "description": "Each distinct font size that draws characters of the text blocks found, largest first. Sizes come from the element that draws each piece of text, so a light link inside a heading counts with the link's size.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["size", "blocks", "characters"],
+            "properties": {
+              "size": {
+                "description": "The font size in px, to one decimal.",
+                "type": "number"
+              },
+              "blocks": {
+                "description": "How many text blocks have characters drawn at this size.",
+                "type": "integer"
+              },
+              "characters": {
+                "description": "How many characters, not counting white space, are drawn at this size.",
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "text_colors": {
+          "description": "Each distinct text color that draws characters of the text blocks found, the color of most characters first. Colors come from the element that draws each piece of text.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["color", "blocks", "characters", "example"],
+            "properties": {
+              "color": {
+                "$ref": "#/$defs/color"
+              },
+              "blocks": {
+                "description": "How many text blocks have characters drawn in this color.",
+                "type": "integer"
+              },
+              "characters": {
+                "description": "How many characters, not counting white space, are drawn in this color.",
+                "type": "integer"
+              },
+              "example": {
+                "description": "The selector of the first listed block with characters in this color, or null when only blocks that were left out use it.",
+                "type": ["string", "null"]
+              }
+            }
+          }
+        },
+        "spacing": {
+          "description": "The distinct vertical distances between neighboring block-level siblings, smallest first. For each element, the script takes its visible children whose display is block, flex, grid, table, list-item, or flow-root and that are not absolutely or fixed positioned; for each neighboring pair where the second starts below the first, the distance is the space from the bottom of the first box to the top of the second. That space holds their margins and the parent's gap. Inline siblings and horizontal space are not measured. Distances under 1 px are left out.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["px", "count", "example"],
+            "properties": {
+              "px": {
+                "description": "The distance in whole px.",
+                "type": "integer"
+              },
+              "count": {
+                "description": "How many sibling pairs are this far apart.",
+                "type": "integer"
+              },
+              "example": {
+                "description": "The selector of the parent of the first pair this far apart.",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "left_edges": {
+          "description": "The x positions where the drawn text of two or more listed text blocks starts, smallest first. Positions within 1 px of each other are one edge, named by the smallest.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["x", "blocks"],
+            "properties": {
+              "x": {
+                "description": "The left edge of the drawn text in whole px.",
+                "type": "integer"
+              },
+              "blocks": {
+                "description": "How many listed text blocks start their text on this edge.",
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "blocks_on_no_shared_edge": {
+          "description": "How many listed text blocks start their text on an x position that no other listed block shares within 1 px.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "targets": {
+          "description": "The visible interactive elements (a, button, input, select, textarea, [role=button], [onclick]) in document order, at most 60. The box gives the size a pointer or a finger can hit.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["selector", "box"],
+            "properties": {
+              "selector": {
+                "description": "A CSS selector that matches only this element.",
+                "type": "string"
+              },
+              "box": {
+                "$ref": "#/$defs/box"
+              }
+            }
+          }
+        },
+        "targets_left_out": {
+          "description": "How many visible interactive elements are not listed in targets because of the cap.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "screenshot": {
+          "description": "The file name of this viewport's full-page screenshot, in the same folder as facts.json.",
+          "type": "string"
+        },
+        "crops": {
+          "description": "The one-screen crops of the screenshot, top to bottom: full width, one viewport tall, neighbors overlapping by a tenth. The last crop ends at the bottom of the page, and can be up to one and a half screens tall, because a crop that would be a near copy of the one before it is merged into it. The first crop is what shows before any scroll.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["file", "box"],
+            "properties": {
+              "file": {
+                "description": "The crop's file name, in the same folder as facts.json.",
+                "type": "string"
+              },
+              "box": {
+                "$ref": "#/$defs/box"
+              }
+            }
+          }
+        }
+      }
+    },
+    "textBlock": {
+      "description": "One text block measured in one viewport. Its text is in the top-level texts object under the same selector.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selector",
+        "box",
+        "font_family",
+        "font_size",
+        "font_weight",
+        "line_height",
+        "line_height_ratio",
+        "lines",
+        "characters_per_line",
+        "color",
+        "contrast"
+      ],
+      "properties": {
+        "selector": {
+          "description": "A CSS selector that matches only this block.",
+          "type": "string"
+        },
+        "box": {
+          "$ref": "#/$defs/box"
+        },
+        "font_family": {
+          "description": "The font that the browser drew most of the block's text in. For a web font it is the @font-face name the page's CSS uses; for a local font, the name the browser gives. When the browser cannot say, it is the declared font-family list, and notes says so.",
+          "type": "string"
+        },
+        "font_size": {
+          "description": "The font size in px, to one decimal, that draws most of the block's characters, read from the element that draws each piece of text. notes says when the block mixes sizes.",
+          "type": "number"
+        },
+        "font_weight": {
+          "description": "The font weight, such as 400 or 700, that draws most of the block's characters. notes says when the block mixes weights.",
+          "type": "number"
+        },
+        "line_height": {
+          "description": "The line height in px, to one decimal: the computed value, or, for line-height: normal, the mean distance between the tops of the drawn lines. Null when it is normal and the block has one line.",
+          "type": ["number", "null"]
+        },
+        "line_height_ratio": {
+          "description": "line_height divided by font_size, to two decimals, or null when line_height is null.",
+          "type": ["number", "null"]
+        },
+        "lines": {
+          "description": "How many lines the block's text is drawn on.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "characters_per_line": {
+          "description": "The mean number of drawn characters on each line except the last, counting the spaces between words but not the space where a line wraps, to one decimal; the last line of a paragraph is usually short. A one-line block gives its own length, which says nothing about the measure of a wrapped paragraph. Measured from where the browser drew each character, on at most the first 1500 characters. Null when no character is drawn.",
+          "type": ["number", "null"]
+        },
+        "color": {
+          "description": "The text color that draws most of the block's characters. notes says when the block mixes colors.",
+          "$ref": "#/$defs/color"
+        },
+        "contrast": {
+          "description": "The WCAG 2 contrast ratio, to two decimals, of the text color against the background drawn under the text, the lowest of up to three sampled characters (the first, the middle, and the last). Each sampled character's color is read from the element that draws it. Alpha colors are composited. Null when one number would be wrong, with contrast_note saying why.",
+          "type": ["number", "null"]
+        },
+        "contrast_note": {
+          "description": "Present only when contrast is null. One of: not measurable: background image (an image, a gradient, or a replaced element such as img lies under the text); not measurable: image or gradient text fill; not measurable: covered by another element (something above the text paints, including one with pointer-events: none); not measurable: pseudo-element background (a ::before or ::after with content paints a background in the stack); not measurable: opacity, filter, or blend mode (on the text, an ancestor, or any element painted under it); not measurable: text not found at its own position; not measurable: no visible character to sample; not measurable: color format <the color>.",
+          "type": "string"
+        },
+        "background": {
+          "description": "The background color the contrast was measured against. Present only when contrast is a number.",
+          "$ref": "#/$defs/color"
+        },
+        "notes": {
+          "description": "Present only when something about the block's numbers needs saying: mixed sizes, weights, or colors; a font that is not the first declared one; a block partly hidden by an ancestor's overflow or inside a scrolling container; a line height of normal on one line; or characters per line measured on part of a long block.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
