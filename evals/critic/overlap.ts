@@ -33,10 +33,10 @@ import {
   buildDetectionQuestion,
   type DefectMention,
   type DetectionCriterion,
-  type FixtureImage,
   imageKey,
   judgeRule,
   parseDetectionAnswer,
+  type SelectedCriterion,
   selectCriteria,
 } from "./detect.ts";
 import {
@@ -57,22 +57,13 @@ export const BASELINE_SKILL_COMMIT = "01218fd9c4f11aa8d790a3a39289ee0266bfb3d1";
 /** The share of Jev's fires that EV-20 proposes as the bar, as a fraction. */
 const PROPOSED_SHARE = 0.95;
 
-/** One scored image of one live criterion, as the detection evaluation selects it. */
+/**
+ * One scored image of one live criterion, as selectCriteria in detect.ts returns it.
+ * `SelectedCriterion["scored"][number]` is the type of one element of the `scored` list.
+ */
 export type OverlapImage = {
-  readonly pack: string;
-  readonly criterion: string;
-  /** The path relative to the repository root, `packs/<pack>/fixtures/<name>.png`. */
-  readonly displayPath: string;
-  /** The path as pack.yaml writes it, `fixtures/<name>.png`. */
-  readonly fixturePath: string;
-  readonly truth: "shows-defect" | "no-defect";
-};
-
-/** A selected image with the criterion and fixture that detect.ts read it from, for the judge question. */
-type SelectedImage = {
-  readonly image: OverlapImage;
   readonly criterion: DetectionCriterion;
-  readonly fixtureImage: FixtureImage;
+  readonly scoredImage: SelectedCriterion["scored"][number];
 };
 
 /** One image joined with Jev's verdict, or undefined when no saved answer covers it, and the critic's answer. */
@@ -110,12 +101,14 @@ const HELP_TEXT = `Jev overlap evaluation (EV-20).
 
 Usage:
   node evals/critic/overlap.ts --replay
+  node evals/critic/overlap.ts --help
 
 For the variant-1 pair of each live criterion, it joins Jev's verdict from the saved answers under
 evals/agreement/runs/ (replayed through dist/crit.js with --answers and no key) with the critic's
 saved detection judge answer at skill commit ${BASELINE_SKILL_COMMIT}, and prints how many of
 Jev's fires the critic also raised, the defects the critic raised that Jev left quiet, and the
-praise-text result. It asks no model and sends no request to TypeSafe. Run npm run build first.
+praise-text result. A criterion whose pair lost an image to a cannot-tell label is skipped. It
+asks no model and sends no request to TypeSafe. Run npm run build first.
 
 Exit codes: 0 the figures printed, 2 without --replay, or something is missing.
 `;
@@ -127,6 +120,15 @@ export function jevVerdictKey(
   criterion: string,
 ): string {
   return `${displayPath}|${pack}/${criterion}`;
+}
+
+/** Returns the JevVerdicts key of a selected image. */
+function keyOfImage(image: OverlapImage): string {
+  return jevVerdictKey(
+    image.scoredImage.image.displayPath,
+    image.criterion.pack,
+    image.criterion.id,
+  );
 }
 
 /** Returns whether a verdict counts as Jev reporting the defect: fail and warn do, pass and uncertain do not (EV-4). */
@@ -142,17 +144,21 @@ function formatShare(numerator: number, denominator: number): string {
   return `${((numerator / denominator) * 100).toFixed(1)}% (${numerator}/${denominator})`;
 }
 
-/** Returns one list line for an image: its path, its criterion, Jev's verdict, and the critic's answer. */
+/** Returns one list line for an image: its path, its criterion, its truth, Jev's verdict, and the critic's answer. */
 function describeRow(row: OverlapRow): string {
-  return `  ${row.image.displayPath} (${row.image.pack}/${row.image.criterion}): Jev ${row.jevVerdict ?? "no answer"}, critic ${row.critic}`;
+  const image = row.image;
+  return `    ${image.scoredImage.image.displayPath} (${image.criterion.pack}/${image.criterion.id}, ${image.scoredImage.truth}): Jev ${row.jevVerdict ?? "no answer"}, critic ${row.critic}`;
 }
 
 /**
- * Returns the report text from the joined rows and the praise-text replay: the definitions, the
- * four figures with their lists, the bar line, and the limit of the sample (EV-20).
+ * Returns the report text from the joined rows, the skipped criteria, and the praise-text replay:
+ * the definitions, the four figures with their lists, the bar line, and the limit of the sample
+ * (EV-20). Figure 2 counts every Jev fire; a fire counts as raised when the critic's answer is
+ * present, on any image.
  */
 export function renderOverlap(
   rows: readonly OverlapRow[],
+  skipped: readonly DetectionCriterion[],
   jevModel: string,
   skillCommit: string,
   praiseText: PraiseTextOutput,
@@ -169,12 +175,13 @@ export function renderOverlap(
       continue;
     }
     const fired = jevFired(row.jevVerdict);
-    const showsDefect = row.image.truth === "shows-defect";
-    if (fired && !showsDefect) {
-      firesOnClean += 1;
-    }
-    if (fired && showsDefect) {
-      firesOnDefect += 1;
+    const showsDefect = row.image.scoredImage.truth === "shows-defect";
+    if (fired) {
+      if (showsDefect) {
+        firesOnDefect += 1;
+      } else {
+        firesOnClean += 1;
+      }
       if (row.critic === "present") {
         firesAlsoRaised += 1;
       } else {
@@ -185,17 +192,17 @@ export function renderOverlap(
       raisedJevQuiet.push(row);
     }
   }
+  const fires = firesOnDefect + firesOnClean;
   const showsDefectCount = rows.filter(
-    (row) => row.image.truth === "shows-defect",
+    (row) => row.image.scoredImage.truth === "shows-defect",
   ).length;
   const praiseLines = praiseText.text.trimEnd().split("\n");
   const praiseResult = praiseLines[praiseLines.length - 1] ?? "";
   // runPraiseText exits 1 only when a pair fails; 0 means no pair failed (EV-16).
   const praisePassed = praiseText.exitCode === 0;
-  const sharePercent =
-    firesOnDefect === 0 ? undefined : (firesAlsoRaised / firesOnDefect) * 100;
   let shareAgainstBar = "there is no Jev fire to take a share of";
-  if (sharePercent !== undefined) {
+  if (fires > 0) {
+    const sharePercent = (firesAlsoRaised / fires) * 100;
     const side = sharePercent >= PROPOSED_SHARE * 100 ? "at or above" : "below";
     shareAgainstBar = `the share is ${sharePercent.toFixed(1)}%, ${side} 95%`;
   }
@@ -211,6 +218,12 @@ export function renderOverlap(
     `images: ${rows.length}, the variant-1 pair of each live criterion; ${showsDefectCount} show the defect and ${rows.length - showsDefectCount} do not (a label in evals/agreement/labels/ wins over the file name)`,
   );
   lines.push(
+    `criteria skipped because a cannot-tell label left out an image of their pair: ${skipped.length}`,
+  );
+  for (const criterion of skipped) {
+    lines.push(`    ${criterion.pack}/${criterion.id}`);
+  }
+  lines.push(
     "Jev fired: verdict fail or warn, as evals/agreement/score.ts counts it; pass and uncertain are quiet.",
   );
   lines.push(
@@ -222,20 +235,20 @@ export function renderOverlap(
   }
   lines.push("");
   lines.push(
-    `1. Jev fires: ${firesOnDefect + firesOnClean} of ${rows.length - noAnswer.length} images with a Jev answer; ${firesOnDefect} on images that show the defect, ${firesOnClean} on images that do not`,
+    `1. Jev fires: ${fires} of ${rows.length - noAnswer.length} images with a Jev answer; ${firesOnDefect} on images that show the defect, ${firesOnClean} on images that do not`,
   );
   lines.push(
-    `2. Jev's fires on images that show the defect that the critic also raised: ${formatShare(firesAlsoRaised, firesOnDefect)}`,
+    `2. Jev's fires that the critic also raised: ${formatShare(firesAlsoRaised, fires)}`,
   );
   lines.push(`   the critic missed: ${firesCriticMissed.length}`);
   for (const row of firesCriticMissed) {
-    lines.push(`  ${describeRow(row)}`);
+    lines.push(describeRow(row));
   }
   lines.push(
     `3. defects the critic raised that Jev left quiet, on images that show the defect: ${raisedJevQuiet.length}`,
   );
   for (const row of raisedJevQuiet) {
-    lines.push(`  ${describeRow(row)}`);
+    lines.push(describeRow(row));
   }
   lines.push(`4. praise-text (EV-16): ${praiseResult}`);
   lines.push("");
@@ -250,36 +263,29 @@ export function renderOverlap(
 
 /**
  * Returns the scored images of the variant-1 pair of each live criterion, with the truth the
- * detection evaluation gives them (EV-14). Removed criteria have no Jev answers and are left out.
+ * detection evaluation gives them (EV-14), and the live criteria skipped because a cannot-tell
+ * label left out an image of their pair. Removed criteria have no Jev answers and are left out.
  */
-function selectOverlapImages(repositoryDirectory: string): SelectedImage[] {
+function selectOverlapImages(repositoryDirectory: string): {
+  images: OverlapImage[];
+  skipped: DetectionCriterion[];
+} {
   const { selected } = selectCriteria(repositoryDirectory, 1);
-  const images: SelectedImage[] = [];
+  const images: OverlapImage[] = [];
+  const skipped: DetectionCriterion[] = [];
   for (const entry of selected) {
     if (entry.criterion.group !== "live") {
       continue;
     }
+    if (entry.leftOutCount > 0) {
+      skipped.push(entry.criterion);
+      continue;
+    }
     for (const scoredImage of entry.scored) {
-      const fixturePath = scoredImage.image.labelPath;
-      if (fixturePath === undefined) {
-        throw new Error(
-          `${scoredImage.image.displayPath} is a live image with no fixture path`,
-        );
-      }
-      images.push({
-        image: {
-          pack: entry.criterion.pack,
-          criterion: entry.criterion.id,
-          displayPath: scoredImage.image.displayPath,
-          fixturePath,
-          truth: scoredImage.truth,
-        },
-        criterion: entry.criterion,
-        fixtureImage: scoredImage.image,
-      });
+      images.push({ criterion: entry.criterion, scoredImage });
     }
   }
-  return images;
+  return { images, skipped };
 }
 
 /**
@@ -301,10 +307,12 @@ export async function readJevVerdictsByReplay(
     const packsDirectory = join(temporaryDirectory, "packs");
     const emptyLabelsDirectory = join(temporaryDirectory, "labels");
     mkdirSync(emptyLabelsDirectory, { recursive: true });
-    const packNames = [...new Set(images.map((image) => image.pack))];
+    const packNames = [...new Set(images.map((image) => image.criterion.pack))];
     const packArguments: string[] = [];
     for (const packName of packNames) {
-      const packImages = images.filter((image) => image.pack === packName);
+      const packImages = images.filter(
+        (image) => image.criterion.pack === packName,
+      );
       const copyDirectory = join(packsDirectory, packName);
       writeCutPack(
         join(repositoryDirectory, "packs", packName),
@@ -325,16 +333,18 @@ export async function readJevVerdictsByReplay(
           environment,
           workingDirectory,
         );
-        // critArguments is ["report", <image path>, ...]; the harness stops on a bad run itself.
-        const imagePath = critArguments[1] ?? "";
-        const displayPath = `packs/${relative(packsDirectory, imagePath)}`;
-        let report: unknown;
-        try {
-          report = JSON.parse(run.stdout);
-        } catch {
+        if (run.exitCode !== 0 && run.exitCode !== 1) {
+          // The harness stops on this run and names the fixture.
           return run;
         }
-        for (const finding of readFindings(report)) {
+        // critArguments is ["report", <image path>, ...].
+        const imagePath = critArguments[1] ?? "";
+        const displayPath = `packs/${relative(packsDirectory, imagePath)}`;
+        // A cast, not a check: the harness checks every report against the report schema.
+        const report = JSON.parse(run.stdout) as {
+          findings: { criterion: string; verdict: Verdict }[];
+        };
+        for (const finding of report.findings) {
           // A later report of the same image overrides an earlier one, as in the harness.
           verdictByKey.set(
             `${displayPath}|${finding.criterion}`,
@@ -350,37 +360,9 @@ export async function readJevVerdictsByReplay(
   }
 }
 
-/** Returns the criterion and verdict of each finding of a report; the harness checks the schema. */
-function readFindings(
-  report: unknown,
-): { criterion: string; verdict: Verdict }[] {
-  const findings: { criterion: string; verdict: Verdict }[] = [];
-  if (typeof report !== "object" || report === null) {
-    return findings;
-  }
-  if (!("findings" in report) || !Array.isArray(report.findings)) {
-    return findings;
-  }
-  for (const finding of report.findings) {
-    const criterion: unknown = finding?.criterion;
-    const verdict: unknown = finding?.verdict;
-    if (
-      typeof criterion === "string" &&
-      (verdict === "pass" ||
-        verdict === "warn" ||
-        verdict === "fail" ||
-        verdict === "uncertain")
-    ) {
-      findings.push({ criterion, verdict });
-    }
-  }
-  return findings;
-}
-
 /**
- * Writes a copy of one pack: a link to every entry of the pack folder but pack.yaml, and a pack.yaml
- * whose criteria list only the selected fixtures. It throws when pack.yaml's name is not the folder
- * name, because the harness reads saved answers by that name and detect.ts by the folder name.
+ * Writes a copy of one pack: a link to every entry of the pack folder but pack.yaml, and a
+ * pack.yaml whose criteria list only the selected fixtures, by the polarity of their file names.
  */
 function writeCutPack(
   packDirectory: string,
@@ -396,45 +378,38 @@ function writeCutPack(
   }
   const packYamlPath = join(packDirectory, "pack.yaml");
   const document = parseDocument(readFileSync(packYamlPath, "utf8"));
-  const parsed: unknown = document.toJS();
-  if (
-    typeof parsed !== "object" ||
-    parsed === null ||
-    !("name" in parsed) ||
-    !("criteria" in parsed) ||
-    !Array.isArray(parsed.criteria)
-  ) {
-    throw new Error(`${packYamlPath}: not a pack`);
+  const criteria = document.toJS()?.criteria;
+  if (!Array.isArray(criteria)) {
+    throw new Error(`${packYamlPath}: the pack has no criteria list`);
   }
-  const packName = relative(join(packDirectory, ".."), packDirectory);
-  if (parsed.name !== packName) {
-    throw new Error(
-      `${packYamlPath}: the name ${String(parsed.name)} is not the folder name ${packName}`,
-    );
-  }
-  parsed.criteria.forEach((criterion: unknown, index: number) => {
-    const criterionId =
-      typeof criterion === "object" && criterion !== null && "id" in criterion
-        ? criterion.id
-        : undefined;
-    const criterionImages = packImages.filter(
-      (image) => image.criterion === criterionId,
-    );
-    const positive = criterionImages
-      .filter((image) => image.displayPath.endsWith(".positive.png"))
-      .map((image) => image.fixturePath);
-    const negative = criterionImages
-      .filter((image) => image.displayPath.endsWith(".negative.png"))
-      .map((image) => image.fixturePath);
-    if (positive.length === 0 || negative.length === 0) {
-      throw new Error(
-        `${packYamlPath}: criterion ${String(criterionId)} has no selected positive or negative image`,
-      );
+  // From the last criterion to the first, so deleting one does not move the index of the next.
+  for (let index = criteria.length - 1; index >= 0; index -= 1) {
+    const criterion: { id?: unknown } = criteria[index];
+    const positive: string[] = [];
+    const negative: string[] = [];
+    for (const image of packImages) {
+      const fixture = image.scoredImage.image;
+      if (
+        image.criterion.id !== criterion.id ||
+        fixture.labelPath === undefined
+      ) {
+        continue;
+      }
+      if (fixture.polarity === "positive") {
+        positive.push(fixture.labelPath);
+      } else {
+        negative.push(fixture.labelPath);
+      }
+    }
+    if (positive.length === 0 && negative.length === 0) {
+      // A skipped criterion: drop it, so the harness does not replay its images.
+      document.deleteIn(["criteria", index]);
+      continue;
     }
     // setIn replaces one value in the YAML document and keeps every other field as it was.
     document.setIn(["criteria", index, "fixtures", "positive"], positive);
     document.setIn(["criteria", index, "fixtures", "negative"], negative);
-  });
+  }
   writeFileSync(join(copyDirectory, "pack.yaml"), document.toString());
 }
 
@@ -445,10 +420,16 @@ export async function runOverlap(
 ): Promise<OverlapOutput> {
   const parsed = parseArgs({
     args: [...argv],
-    options: { replay: { type: "boolean", default: false } },
+    options: {
+      replay: { type: "boolean", default: false },
+      help: { type: "boolean", short: "h", default: false },
+    },
     strict: true,
     allowPositionals: false,
   });
+  if (parsed.values.help === true) {
+    return { text: HELP_TEXT, errorText: "", exitCode: 0 };
+  }
   if (parsed.values.replay !== true) {
     return {
       text: "",
@@ -456,20 +437,18 @@ export async function runOverlap(
       exitCode: EXIT_CODE_COULD_NOT_RUN,
     };
   }
-  const selectedImages = selectOverlapImages(options.repositoryDirectory);
-  const images = selectedImages.map((selectedImage) => selectedImage.image);
+  const { images, skipped } = selectOverlapImages(options.repositoryDirectory);
   const commit = options.skillCommit;
 
   // The critic side first: a missing crit or judge answer stops the run before the Jev replay.
   const missing: string[] = [];
   const criticAnswers: (DefectMention | undefined)[] = [];
-  for (const { image, criterion, fixtureImage } of selectedImages) {
-    const key = imageKey(fixtureImage);
+  for (const { criterion, scoredImage } of images) {
+    const where = `${criterion.pack}/${criterion.id}, ${scoredImage.image.displayPath}`;
+    const key = imageKey(scoredImage.image);
     const saved = readSavedCrits(options.criticRunsDirectory, commit, key)[0];
     if (saved === undefined) {
-      missing.push(
-        `missing crit: ${image.pack}/${image.criterion}, ${image.displayPath}, at skill commit ${commit}`,
-      );
+      missing.push(`missing crit: ${where}, at skill commit ${commit}`);
       criticAnswers.push(undefined);
       continue;
     }
@@ -492,7 +471,7 @@ export async function runOverlap(
         judgeKey(question),
       );
       missing.push(
-        `missing judge answer: ${image.pack}/${image.criterion}, ${image.displayPath}: ${portablePath(answerPath, 3)}`,
+        `missing judge answer: ${where}: ${portablePath(answerPath, 3)}`,
       );
     }
     criticAnswers.push(answer?.says_defect);
@@ -517,18 +496,18 @@ export async function runOverlap(
   images.forEach((image, index) => {
     const critic = criticAnswers[index];
     if (critic === undefined) {
-      throw new Error(`${image.displayPath} has no critic answer`);
+      throw new Error(
+        `${image.scoredImage.image.displayPath} has no critic answer`,
+      );
     }
     rows.push({
       image,
-      jevVerdict: jev.verdictByKey.get(
-        jevVerdictKey(image.displayPath, image.pack, image.criterion),
-      ),
+      jevVerdict: jev.verdictByKey.get(keyOfImage(image)),
       critic,
     });
   });
   return {
-    text: renderOverlap(rows, jev.model, commit, praiseText),
+    text: renderOverlap(rows, skipped, jev.model, commit, praiseText),
     errorText: "",
     exitCode: 0,
   };

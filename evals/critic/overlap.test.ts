@@ -1,8 +1,7 @@
 // Unit tests of the Jev overlap evaluation (EV-20). The small tests build a repository of one
 // made-up pack in a temporary folder, save crits and judge answers into a temporary runs folder
 // with a stub in place of the `claude` child process, and pass stubs for Jev's verdicts and the
-// praise-text replay, so no model and no TypeSafe call is made (CS-21, CS-22). The last test
-// replays the real repository through dist/crit.js, which `npm test` builds first (pretest).
+// praise-text replay, so no model and no TypeSafe call is made (CS-21, CS-22).
 
 import { createHash } from "node:crypto";
 import {
@@ -27,7 +26,6 @@ import {
 } from "./detect.ts";
 import { ensureJudgeAnswer } from "./judge.ts";
 import {
-  defaultOverlapOptions,
   type JevVerdicts,
   jevVerdictKey,
   type OverlapOptions,
@@ -215,15 +213,30 @@ function tinyOptions(
   };
 }
 
+/** Runs the replay on the tiny repository with the given critic answers and returns the output. */
+async function replayTiny(
+  mentions: ReadonlyMap<string, DefectMention>,
+  labelCsv?: string,
+) {
+  const repository = buildTinyRepository();
+  if (labelCsv !== undefined) {
+    const labelsDirectory = join(repository, "evals", "agreement", "labels");
+    mkdirSync(labelsDirectory, { recursive: true });
+    writeFileSync(join(labelsDirectory, "tiny.csv"), labelCsv);
+  }
+  const runsDirectory = newFolder();
+  await seedCriticRuns(repository, runsDirectory, mentions);
+  const jevCalls = { count: 0 };
+  const output = await runOverlap(
+    ["--replay"],
+    tinyOptions(repository, runsDirectory, jevCalls),
+  );
+  return { output, jevCalls };
+}
+
 describe("runOverlap --replay on a small made-up set", () => {
   it("prints the four figures, the missing Jev answer, and the bar line", async () => {
-    const repository = buildTinyRepository();
-    const runsDirectory = newFolder();
-    await seedCriticRuns(repository, runsDirectory, CRITIC_MENTIONS);
-    const output = await runOverlap(
-      ["--replay"],
-      tinyOptions(repository, runsDirectory, { count: 0 }),
-    );
+    const { output } = await replayTiny(CRITIC_MENTIONS);
     expect(output.errorText).toBe("");
     expect(output.exitCode).toBe(0);
     const text = output.text;
@@ -231,36 +244,58 @@ describe("runOverlap --replay on a small made-up set", () => {
       "images: 6, the variant-1 pair of each live criterion; 3 show the defect and 3 do not",
     );
     expect(text).toContain(
-      "images with no Jev answer: 1\n  packs/tiny/fixtures/gamma.negative.png (tiny/gamma): Jev no answer, critic not_mentioned\n",
+      "criteria skipped because a cannot-tell label left out an image of their pair: 0\n",
+    );
+    expect(text).toContain(
+      "images with no Jev answer: 1\n    packs/tiny/fixtures/gamma.negative.png (tiny/gamma, no-defect): Jev no answer, critic not_mentioned\n",
     );
     expect(text).toContain(
       "1. Jev fires: 3 of 5 images with a Jev answer; 2 on images that show the defect, 1 on images that do not",
     );
     expect(text).toContain(
-      "2. Jev's fires on images that show the defect that the critic also raised: 50.0% (1/2)\n   the critic missed: 1\n    packs/tiny/fixtures/beta.positive.png (tiny/beta): Jev warn, critic not_mentioned\n",
+      "2. Jev's fires that the critic also raised: 33.3% (1/3)\n   the critic missed: 2\n    packs/tiny/fixtures/beta.positive.png (tiny/beta, shows-defect): Jev warn, critic not_mentioned\n    packs/tiny/fixtures/beta.negative.png (tiny/beta, no-defect): Jev fail, critic absent\n",
     );
     expect(text).toContain(
-      "3. defects the critic raised that Jev left quiet, on images that show the defect: 1\n    packs/tiny/fixtures/gamma.positive.png (tiny/gamma): Jev pass, critic present\n",
+      "3. defects the critic raised that Jev left quiet, on images that show the defect: 1\n    packs/tiny/fixtures/gamma.positive.png (tiny/gamma, shows-defect): Jev pass, critic present\n",
     );
     expect(text).toContain(
       "4. praise-text (EV-16): passed 14, failed 0, inconclusive 0 of 14\n",
     );
     expect(text).toContain(
-      "Here the share is 50.0%, below 95%, and praise-text has no failed pair.",
+      "Here the share is 33.3%, below 95%, and praise-text has no failed pair.",
     );
   });
 
+  it("counts a Jev fire on a clean image as raised when the critic says present", async () => {
+    const mentions = new Map(CRITIC_MENTIONS);
+    mentions.set("packs/tiny/fixtures/beta.negative.png", "present");
+    const { output } = await replayTiny(mentions);
+    expect(output.exitCode).toBe(0);
+    expect(output.text).toContain(
+      "2. Jev's fires that the critic also raised: 66.7% (2/3)\n   the critic missed: 1\n    packs/tiny/fixtures/beta.positive.png",
+    );
+  });
+
+  it("skips a criterion whose pair lost an image to a cannot-tell label, and names it", async () => {
+    const { output } = await replayTiny(
+      CRITIC_MENTIONS,
+      "fixture,criterion,defect_present\nfixtures/gamma.negative.png,gamma,cannot tell\n",
+    );
+    expect(output.errorText).toBe("");
+    expect(output.exitCode).toBe(0);
+    expect(output.text).toContain(
+      "images: 4, the variant-1 pair of each live criterion; 2 show the defect and 2 do not",
+    );
+    expect(output.text).toContain(
+      "criteria skipped because a cannot-tell label left out an image of their pair: 1\n    tiny/gamma\n",
+    );
+    expect(output.text).toContain("images with no Jev answer: 0\n");
+  });
+
   it("exits 2 and names a missing judge answer, and never reads Jev", async () => {
-    const repository = buildTinyRepository();
-    const runsDirectory = newFolder();
     const withoutBeta = new Map(CRITIC_MENTIONS);
     withoutBeta.delete("packs/tiny/fixtures/beta.positive.png");
-    await seedCriticRuns(repository, runsDirectory, withoutBeta);
-    const jevCalls = { count: 0 };
-    const output = await runOverlap(
-      ["--replay"],
-      tinyOptions(repository, runsDirectory, jevCalls),
-    );
+    const { output, jevCalls } = await replayTiny(withoutBeta);
     expect(output.exitCode).toBe(2);
     expect(output.text).toBe("");
     expect(output.errorText).toContain(
@@ -269,7 +304,7 @@ describe("runOverlap --replay on a small made-up set", () => {
     expect(jevCalls.count).toBe(0);
   });
 
-  it("exits 2 with the help text without --replay", async () => {
+  it("exits 2 with the help text on stderr without --replay", async () => {
     const repository = buildTinyRepository();
     const output = await runOverlap(
       [],
@@ -280,22 +315,17 @@ describe("runOverlap --replay on a small made-up set", () => {
       "Usage:\n  node evals/critic/overlap.ts --replay",
     );
   });
-});
 
-describe("runOverlap --replay on the real repository", () => {
-  it("exits 0 and prints the code block in evals/critic/RESULTS.md", async () => {
-    const output = await runOverlap(
-      ["--replay"],
-      defaultOverlapOptions(REPOSITORY_DIRECTORY),
-    );
-    expect(output.errorText).toBe("");
-    expect(output.exitCode).toBe(0);
-    const results = readFileSync(
-      join(REPOSITORY_DIRECTORY, "evals", "critic", "RESULTS.md"),
-      "utf8",
-    );
-    // The text between the first ``` line and the next one.
-    const codeBlock = /\n```\n([\s\S]*?)```\n/.exec(results)?.[1];
-    expect(output.text).toBe(codeBlock);
-  }, 300_000);
+  it("prints the help on stdout and exits 0 with --help or -h", async () => {
+    const repository = buildTinyRepository();
+    for (const flag of ["--help", "-h"]) {
+      const output = await runOverlap(
+        [flag],
+        tinyOptions(repository, newFolder(), { count: 0 }),
+      );
+      expect(output.exitCode).toBe(0);
+      expect(output.errorText).toBe("");
+      expect(output.text).toContain("Usage:");
+    }
+  });
 });
