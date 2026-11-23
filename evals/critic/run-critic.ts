@@ -7,8 +7,8 @@
 // It asks a model, so `npm run ci` never runs it (CS-21); a person starts run mode by hand.
 //
 // Usage:
-//   node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--note TEXT] IMAGE...
-//   node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--note TEXT] IMAGE...
+//   node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--runs-dir DIR] [--note TEXT] IMAGE...
+//   node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] IMAGE...
 //   node evals/critic/run-critic.ts --help
 // Each image on the command line is a separate one-image request.
 //
@@ -691,8 +691,8 @@ export function runClaudeProcess(
 const HELP_TEXT = `Run the design critic headless, save each crit, or replay saved crits.
 
 Usage:
-  node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--note TEXT] IMAGE...
-  node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--note TEXT] IMAGE...
+  node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--runs-dir DIR] [--note TEXT] IMAGE...
+  node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] IMAGE...
   node evals/critic/run-critic.ts --help
 
 Modes:
@@ -705,6 +705,7 @@ Flags:
   --skill-commit SHA  replay only: read the runs of this commit instead of the skill's commit.
   --runs N            run only: how many saved crits each image must have.
   --note TEXT         what you know about the piece. replay needs the note the run used.
+  --runs-dir DIR      The folder that holds the saved runs (default evals/critic/runs).
   --help, -h          Print this help.
 
 Exit codes: 0 done, 1 replay found an image with no saved crit, 2 could not run.
@@ -759,6 +760,7 @@ export async function runCriticCommand(
       "skill-commit": { type: "string" },
       runs: { type: "string" },
       note: { type: "string" },
+      "runs-dir": { type: "string" },
       help: { type: "boolean", short: "h", default: false },
     },
     strict: true,
@@ -783,6 +785,9 @@ export async function runCriticCommand(
   const skillDirectory = resolve(
     parsed.values.skill ?? options.defaultSkillDirectory,
   );
+  const runsDirectory = resolve(
+    parsed.values["runs-dir"] ?? options.runsDirectory,
+  );
   const lines: string[] = [];
 
   if (mode === "replay") {
@@ -798,7 +803,7 @@ export async function runCriticCommand(
         parsed.values.note,
         undefined,
       );
-      const saved = readSavedCrits(options.runsDirectory, commit, key);
+      const saved = readSavedCrits(runsDirectory, commit, key);
       if (saved.length === 0) {
         missingImages.push(imagePath);
       }
@@ -828,7 +833,7 @@ export async function runCriticCommand(
     const saved = await ensureCrits(
       { imagePaths: [imagePath], note: parsed.values.note },
       {
-        runsDirectory: options.runsDirectory,
+        runsDirectory,
         skillDirectory,
         skillCommit: commit,
         runClaude: options.runClaude,

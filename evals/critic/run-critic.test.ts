@@ -412,6 +412,60 @@ describe("readSavedCrits", () => {
   });
 });
 
+describe("--runs-dir", () => {
+  it("makes run save into, and replay read from, the named folder instead of the default", async () => {
+    const { root, imagePath, runsDirectory } = setUp();
+    const skillDirectory = join(root, "skill");
+    mkdirSync(join(skillDirectory, "agents"), { recursive: true });
+    writeFileSync(join(skillDirectory, "SKILL.md"), "skill");
+    writeFileSync(join(skillDirectory, "agents", "critic.md"), "critic");
+    git(skillDirectory, ["init", "-q"]);
+    git(skillDirectory, ["add", "."]);
+    git(skillDirectory, ["commit", "-q", "-m", "skill"]);
+    const commit = git(skillDirectory, ["rev-parse", "HEAD"]);
+    const privateRunsDirectory = join(root, "private-runs");
+    const stub = recordingStub(successStdout("A private crit."));
+    const { runCriticCommand } = await import("./run-critic.ts");
+    const commandOptions = {
+      runsDirectory,
+      defaultSkillDirectory: "/no-skill",
+      runClaude: stub.runner,
+    };
+    const run = await runCriticCommand(
+      [
+        "run",
+        "--skill",
+        skillDirectory,
+        "--runs-dir",
+        privateRunsDirectory,
+        imagePath,
+      ],
+      commandOptions,
+    );
+    expect(run.exitCode).toBe(0);
+    expect(readdirSync(privateRunsDirectory)).toEqual([commit]);
+    expect(() => readdirSync(runsDirectory)).toThrow();
+    const replay = await runCriticCommand(
+      [
+        "replay",
+        "--skill-commit",
+        commit,
+        "--runs-dir",
+        privateRunsDirectory,
+        imagePath,
+      ],
+      commandOptions,
+    );
+    expect(replay.exitCode).toBe(0);
+    expect(replay.text).toContain("A private crit.");
+    const defaultReplay = await runCriticCommand(
+      ["replay", "--skill-commit", commit, imagePath],
+      commandOptions,
+    );
+    expect(defaultReplay.exitCode).toBe(1);
+  });
+});
+
 describe("permission denials", () => {
   it("saves the refused calls in the metadata and prints one warning line per call", async () => {
     const { root, imagePath, runsDirectory } = setUp();
