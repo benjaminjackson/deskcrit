@@ -1,12 +1,22 @@
 // Unit tests of the shared judge (EV-16). Each test passes a plain stub in place of the `claude`
-// child process, so no model is asked (CS-21, CS-22). Each test works in its own temporary folder.
+// child process, so no model is asked (CS-21, CS-22). Each test works in its own temporary folder,
+// which afterEach removes.
 
-import { existsSync, mkdtempSync, readdirSync, readFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import {
   ensureJudgeAnswer,
+  JUDGE_MAX_BUDGET_USD,
   JUDGE_MODEL,
   type JudgeQuestion,
   judgeAnswerPath,
@@ -17,6 +27,7 @@ import {
 import type { ClaudeRunner } from "./run-critic.ts";
 
 const COMMIT = "0123456789abcdef0123456789abcdef01234567";
+const CLAUDE_VERSION = "2.0.0 (Claude Code)";
 
 const QUESTION: JudgeQuestion = {
   name: "test-question",
@@ -30,6 +41,15 @@ const QUESTION: JudgeQuestion = {
   },
   crits: [{ key: "abc", run: 1 }],
 };
+
+/** The temp folders this test file made; afterEach removes them. */
+const temporaryFolders: string[] = [];
+
+afterEach(() => {
+  for (const folder of temporaryFolders.splice(0)) {
+    rmSync(folder, { recursive: true, force: true });
+  }
+});
 
 /** Checks the test answer shape and returns it; throws on any other shape. */
 function parseAnswer(value: unknown): { about_color: boolean } {
@@ -57,19 +77,32 @@ function judgeStdout(structuredOutput: unknown, isError = false): string {
   });
 }
 
-/** Returns a stub runner that records each call and prints the given stdout and exit code. */
-function recordingStub(stdout: string, exitCode = 0) {
+/**
+ * Returns a stub runner that records each call, answers --version with a fixed line and the given
+ * version exit code, and answers the judge call with the given stdout and exit code.
+ */
+function recordingStub(stdout: string, exitCode = 0, versionExitCode = 0) {
   const calls: { args: readonly string[]; cwd: string }[] = [];
   const runner: ClaudeRunner = async (args, _environment, cwd) => {
     calls.push({ args, cwd });
+    if (args[0] === "--version") {
+      return { stdout: CLAUDE_VERSION, stderr: "", exitCode: versionExitCode };
+    }
     return { stdout, stderr: "", exitCode };
   };
   return { calls, runner };
 }
 
+/** Returns the calls that were judge calls, not --version calls. */
+function judgeCalls(calls: readonly { args: readonly string[] }[]) {
+  return calls.filter((call) => call.args[0] !== "--version");
+}
+
 /** Makes a new empty runs folder for one test. */
 function newRunsDirectory(): string {
-  return mkdtempSync(join(tmpdir(), "crit-judge-test-"));
+  const folder = mkdtempSync(join(tmpdir(), "crit-judge-test-"));
+  temporaryFolders.push(folder);
+  return folder;
 }
 
 /** Collects every string in a JSON value. */
@@ -89,13 +122,16 @@ function collectStrings(value: unknown, into: string[]): string[] {
 }
 
 describe("judgeArguments", () => {
-  it("pins the model, sets the schema, gives no tools, and puts the prompt last", () => {
+  it("pins the model, caps the budget, sets the schema, gives no tools, and puts the prompt last", () => {
     const args = judgeArguments(QUESTION);
     expect(args[0]).toBe("-p");
     expect(args).toContain("--safe-mode");
     expect(args[args.indexOf("--model") + 1]).toBe("claude-opus-5-5");
     expect(args[args.indexOf("--permission-mode") + 1]).toBe("dontAsk");
     expect(args[args.indexOf("--tools") + 1]).toBe("");
+    expect(args[args.indexOf("--max-budget-usd") + 1]).toBe(
+      JUDGE_MAX_BUDGET_USD,
+    );
     expect(JSON.parse(args[args.indexOf("--json-schema") + 1] ?? "")).toEqual(
       QUESTION.schema,
     );
@@ -137,8 +173,10 @@ describe("ensureJudgeAnswer and readJudgeAnswer", () => {
     };
     const first = await ensureJudgeAnswer(QUESTION, parseAnswer, options);
     expect(first).toEqual({ about_color: true });
-    expect(stub.calls).toHaveLength(1);
-    const workDirectory = stub.calls[0]?.cwd ?? "";
+    expect(stub.calls).toHaveLength(2);
+    expect(stub.calls[0]?.args).toEqual(["--version"]);
+    expect(judgeCalls(stub.calls)).toHaveLength(1);
+    const workDirectory = stub.calls[1]?.cwd ?? "";
     expect(existsSync(workDirectory)).toBe(false);
 
     const answerPath = judgeAnswerPath(
@@ -149,7 +187,7 @@ describe("ensureJudgeAnswer and readJudgeAnswer", () => {
     const bytesBefore = readFileSync(answerPath);
     const second = await ensureJudgeAnswer(QUESTION, parseAnswer, options);
     expect(second).toEqual({ about_color: true });
-    expect(stub.calls).toHaveLength(1);
+    expect(stub.calls).toHaveLength(2);
     expect(readFileSync(answerPath).equals(bytesBefore)).toBe(true);
     expect(
       readJudgeAnswer(QUESTION, parseAnswer, runsDirectory, COMMIT),
@@ -159,6 +197,7 @@ describe("ensureJudgeAnswer and readJudgeAnswer", () => {
     expect(saved).toMatchObject({
       model_requested: JUDGE_MODEL,
       model_ids: [JUDGE_MODEL],
+      claude_version: CLAUDE_VERSION,
       name: QUESTION.name,
       answer: { about_color: true },
       permission_denials: [],
@@ -166,6 +205,36 @@ describe("ensureJudgeAnswer and readJudgeAnswer", () => {
     for (const text of collectStrings(saved, [])) {
       expect(text.startsWith("/")).toBe(false);
     }
+  });
+
+  it("returns the saved answer and leaves the file unchanged when another process saved it during the call", async () => {
+    const runsDirectory = newRunsDirectory();
+    const answerPath = judgeAnswerPath(
+      runsDirectory,
+      COMMIT,
+      judgeKey(QUESTION),
+    );
+    const savedByOther = `${JSON.stringify({ answer: { about_color: false } })}\n`;
+    const runner: ClaudeRunner = async (args) => {
+      if (args[0] === "--version") {
+        return { stdout: CLAUDE_VERSION, stderr: "", exitCode: 0 };
+      }
+      // Another process saves its answer while this call runs, so this call's write finds the file.
+      mkdirSync(join(runsDirectory, COMMIT, "judge"), { recursive: true });
+      writeFileSync(answerPath, savedByOther);
+      return {
+        stdout: judgeStdout({ about_color: true }),
+        stderr: "",
+        exitCode: 0,
+      };
+    };
+    const answer = await ensureJudgeAnswer(QUESTION, parseAnswer, {
+      runsDirectory,
+      skillCommit: COMMIT,
+      runClaude: runner,
+    });
+    expect(answer).toEqual({ about_color: false });
+    expect(readFileSync(answerPath, "utf8")).toBe(savedByOther);
   });
 
   it("throws on a wrong-shaped answer and saves nothing", async () => {
@@ -178,6 +247,20 @@ describe("ensureJudgeAnswer and readJudgeAnswer", () => {
         runClaude: stub.runner,
       }),
     ).rejects.toThrow("wrong answer shape");
+    expect(readdirSync(runsDirectory)).toEqual([]);
+  });
+
+  it("throws before the judge call when claude --version fails, and saves nothing", async () => {
+    const runsDirectory = newRunsDirectory();
+    const stub = recordingStub(judgeStdout({ about_color: true }), 0, 1);
+    await expect(
+      ensureJudgeAnswer(QUESTION, parseAnswer, {
+        runsDirectory,
+        skillCommit: COMMIT,
+        runClaude: stub.runner,
+      }),
+    ).rejects.toThrow("claude --version exited with code 1");
+    expect(judgeCalls(stub.calls)).toHaveLength(0);
     expect(readdirSync(runsDirectory)).toEqual([]);
   });
 

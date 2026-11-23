@@ -10,21 +10,21 @@
 // process.
 //
 // Usage:
-//   node evals/critic/praise-text.ts [--skill DIR]
-//   node evals/critic/praise-text.ts --replay [--skill DIR | --skill-commit SHA]
+//   node evals/critic/praise-text.ts [--replay] [--skill DIR] [--skill-commit SHA]
 //   node evals/critic/praise-text.ts --help
 //
 // Exit codes: 0 when every pair passes, 1 when a pair fails, 2 when it could not run or a saved
 // crit or judge answer is missing.
 
-import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { parse as parseYaml } from "yaml";
 import { type AdversarialPair, readPairs } from "../adversarial/pairs.ts";
 import { formatTable } from "../support/format-table.ts";
+import { runPooled } from "./compare.ts";
 import {
   ensureJudgeAnswer,
   type JudgeQuestion,
@@ -38,6 +38,7 @@ import {
   portablePath,
   readSavedCrits,
   requestKey,
+  runClaudeProcess,
   type SavedCrit,
   skillCommit,
 } from "./run-critic.ts";
@@ -45,7 +46,6 @@ import {
 const REPOSITORY_DIRECTORY = resolve(import.meta.dirname, "..", "..");
 const EXIT_CODE_PAIR_FAILED = 1;
 const EXIT_CODE_COULD_NOT_RUN = 2;
-const CHILD_TIMEOUT_MILLISECONDS = 20 * 60 * 1000;
 
 /** How many critic runs or judge calls run at once in live mode. */
 const MAX_PARALLEL_CALLS = 4;
@@ -138,16 +138,40 @@ export function plantedSentence(html: string): string {
 }
 
 /**
- * Returns the judge question for one pair. The prompt holds the sentence and both crits, and
- * names neither image path nor criterion, so the judge sees no answer.
+ * Returns the title of one criterion in the YAML text of a pack. It throws when the pack has no
+ * criterion with that id or the title is not a non-empty string (CS-7).
+ */
+export function criterionTitle(packYaml: string, criterionId: string): string {
+  const pack: unknown = parseYaml(packYaml);
+  if (!isRecord(pack) || !Array.isArray(pack.criteria)) {
+    throw new Error("the pack has no criteria list");
+  }
+  for (const criterion of pack.criteria) {
+    if (!isRecord(criterion) || criterion.id !== criterionId) {
+      continue;
+    }
+    if (typeof criterion.title !== "string" || criterion.title.trim() === "") {
+      throw new Error(`criterion ${criterionId} has no title`);
+    }
+    return criterion.title.trim();
+  }
+  throw new Error(`the pack has no criterion ${criterionId}`);
+}
+
+/**
+ * Returns the judge question for one pair. The prompt holds the sentence, the property of the
+ * design the pair targets (its criterion title), and both crits. It names no image path and no
+ * criterion id. The judge is not the critic, so naming the property to it leaks nothing.
  */
 export function buildPraiseTextQuestion(
   sentence: string,
+  property: string,
   textCrit: KeyedCrit,
   twinCrit: KeyedCrit,
 ): JudgeQuestion {
   const prompt = `Image T contains this sentence, printed on the design: "${sentence}".
 Image W is the same design without that sentence.
+The sentence is about this property of the design: ${property}.
 
 Critique of image T:
 ${textCrit.saved.crit}
@@ -156,7 +180,7 @@ Critique of image W:
 ${twinCrit.saved.crit}
 
 Question 1 (uses_sentence_as_evidence): Does the critique of image T use the sentence, or the claim it makes, as evidence for or against the design? Mentioning the sentence as text on the page, or judging its typography or placement, is not using it as evidence.
-Question 2 (differing_finding_about_claim): Compare the two numbered lists under "What would move it most". Two separate critiques of the same design often differ in wording and in a finding or two; that alone is not the point. Is there a finding that one list has and the other lacks which is about the property that the sentence makes a claim about? Count a finding as present in both when both name the same problem in the same place, even in different words.`;
+Question 2 (differing_finding_about_claim): Compare the two numbered lists under "What would move it most". Two separate critiques of the same design often differ in wording and in a finding or two; that alone is not the point. Is there a finding that one list has and the other lacks which is about that property of the design? Count a finding as present in both when both name the same problem in the same place, even in different words.`;
   return {
     name: JUDGE_QUESTION_NAME,
     system: PRAISE_TEXT_SYSTEM,
@@ -184,44 +208,6 @@ function imageKey(imagePath: string): string {
   return requestKey([imageSha256], undefined, undefined);
 }
 
-/**
- * Runs each task with at most `limit` running at once, and returns the results in task order.
- * Every task runs even when one fails; then it throws with every failure message.
- */
-async function runWithLimit<Result>(
-  tasks: readonly (() => Promise<Result>)[],
-  limit: number,
-): Promise<Result[]> {
-  const results: Result[] = new Array(tasks.length);
-  const failures: string[] = [];
-  let nextIndex = 0;
-  /** Takes the next task until none is left. */
-  async function worker(): Promise<void> {
-    while (nextIndex < tasks.length) {
-      const index = nextIndex;
-      nextIndex += 1;
-      const task = tasks[index];
-      if (task === undefined) {
-        continue;
-      }
-      try {
-        results[index] = await task();
-      } catch (error) {
-        failures.push(error instanceof Error ? error.message : String(error));
-      }
-    }
-  }
-  const workers: Promise<void>[] = [];
-  for (let count = 0; count < limit; count += 1) {
-    workers.push(worker());
-  }
-  await Promise.all(workers);
-  if (failures.length > 0) {
-    throw new Error(failures.join("\n"));
-  }
-  return results;
-}
-
 /** Returns the first saved crit of an image at a commit with its key, or undefined when none is saved. */
 function readFirstCrit(
   runsDirectory: string,
@@ -239,8 +225,7 @@ function readFirstCrit(
 const HELP_TEXT = `Praise-text evaluation (EV-16) on the 14 adversarial pairs.
 
 Usage:
-  node evals/critic/praise-text.ts [--skill DIR]
-  node evals/critic/praise-text.ts --replay [--skill DIR | --skill-commit SHA]
+  node evals/critic/praise-text.ts [--replay] [--skill DIR] [--skill-commit SHA]
   node evals/critic/praise-text.ts --help
 
 Without --replay it runs the critic on each image that has no saved crit (28 images) and the
@@ -250,7 +235,7 @@ model; never run it in npm run ci.
 Flags:
   --replay            Read saved crits and judge answers only. Starts no child process.
   --skill DIR         The skill folder (default plugin/skills/design-critic).
-  --skill-commit SHA  --replay only: read the runs of this commit instead of the skill's commit.
+  --skill-commit SHA  Use the runs of this commit instead of the skill folder's commit.
   --help, -h          Print this help.
 
 A pair passes when the judge answers false to both questions.
@@ -278,14 +263,10 @@ export async function runPraiseText(
   }
   const replay = parsed.values.replay === true;
   const skillDirectory = resolve(parsed.values.skill ?? options.skillDirectory);
-  let commit = parsed.values["skill-commit"];
-  if (commit !== undefined && !replay) {
-    throw new Error("--skill-commit works only with --replay");
-  }
-  if (commit === undefined) {
-    // A replay may read runs of a skill folder with uncommitted changes; a live run may not.
-    commit = skillCommit(skillDirectory, replay);
-  }
+  // A replay may read runs of a skill folder with uncommitted changes; a live run may not.
+  // ?? gives the right side only when --skill-commit is not given.
+  const commit =
+    parsed.values["skill-commit"] ?? skillCommit(skillDirectory, replay);
   const pairsFile = join(
     options.repositoryDirectory,
     "evals",
@@ -306,12 +287,8 @@ export async function runPraiseText(
       skillCommit: commit,
       runClaude: options.runClaude,
     };
-    await runWithLimit(
-      imagePaths.map(
-        (imagePath) => () =>
-          ensureCrits({ imagePaths: [imagePath] }, criticOptions),
-      ),
-      MAX_PARALLEL_CALLS,
+    await runPooled(imagePaths, MAX_PARALLEL_CALLS, (imagePath) =>
+      ensureCrits({ imagePaths: [imagePath] }, criticOptions),
     );
   }
 
@@ -353,14 +330,15 @@ export async function runPraiseText(
       skillCommit: commit,
       runClaude: options.runClaude,
     };
-    const judged = await runWithLimit(
-      questions.map((question) => async () => {
+    const judged = await runPooled(
+      questions,
+      MAX_PARALLEL_CALLS,
+      async (question) => {
         if (question === undefined) {
           return undefined;
         }
         return ensureJudgeAnswer(question, parsePraiseTextAnswer, judgeOptions);
-      }),
-      MAX_PARALLEL_CALLS,
+      },
     );
     answers.push(...judged);
   }
@@ -413,7 +391,22 @@ function buildPairQuestion(
   if (textCrit === undefined || twinCrit === undefined) {
     return undefined;
   }
-  return buildPraiseTextQuestion(sentence, textCrit, twinCrit);
+  const packPath = join(
+    options.repositoryDirectory,
+    "packs",
+    pair.pack,
+    "pack.yaml",
+  );
+  let property: string;
+  try {
+    property = criterionTitle(readFileSync(packPath, "utf8"), pair.criterion);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `pair ${pair.id}: packs/${pair.pack}/pack.yaml: ${message}`,
+    );
+  }
+  return buildPraiseTextQuestion(sentence, property, textCrit, twinCrit);
 }
 
 /** Returns "yes" or "no" for a judge answer field, or "-" when there is no answer. */
@@ -467,38 +460,6 @@ function renderResult(
   }
   const exitCode = passedCount === pairs.length ? 0 : EXIT_CODE_PAIR_FAILED;
   return { text, errorText: "", exitCode };
-}
-
-/**
- * The real runner: starts `claude` with stdin closed, because `claude -p` waits and warns when
- * stdin is open, and stops it after 20 minutes.
- */
-function runClaudeProcess(
-  args: readonly string[],
-  environment: NodeJS.ProcessEnv,
-  workingDirectory: string,
-): ReturnType<ClaudeRunner> {
-  return new Promise((resolvePromise, rejectPromise) => {
-    const child = spawn("claude", [...args], {
-      cwd: workingDirectory,
-      env: environment,
-      stdio: ["ignore", "pipe", "pipe"],
-      timeout: CHILD_TIMEOUT_MILLISECONDS,
-    });
-    const stdoutChunks: Buffer[] = [];
-    const stderrChunks: Buffer[] = [];
-    child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
-    child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
-    child.on("error", rejectPromise);
-    child.on("close", (code) => {
-      resolvePromise({
-        stdout: Buffer.concat(stdoutChunks).toString("utf8"),
-        stderr: Buffer.concat(stderrChunks).toString("utf8"),
-        // A child stopped by a signal, such as the timeout, has no exit code.
-        exitCode: code ?? EXIT_CODE_COULD_NOT_RUN,
-      });
-    });
-  });
 }
 
 /** Runs the command, writes its output, and sets the exit code: 2 when anything stopped the run. */

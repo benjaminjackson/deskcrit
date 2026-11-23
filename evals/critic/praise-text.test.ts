@@ -1,16 +1,24 @@
 // Unit tests of the praise-text evaluation (EV-16). A plain stub stands in for the `claude` child
 // process, for both the critic and the judge, so no model is asked (CS-21, CS-22). Each test
-// works in its own temporary runs folder and reads the real pairs file and templates.
+// works in its own temporary runs folder, which afterEach removes, and reads the real pairs file,
+// templates, and packs. No test depends on the git state of the skill folder.
 
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { readPairs } from "../adversarial/pairs.ts";
 import { ensureJudgeAnswer, judgeAnswerPath, judgeKey } from "./judge.ts";
 import {
   buildPraiseTextQuestion,
+  criterionTitle,
   pairPasses,
   parsePraiseTextAnswer,
   plantedSentence,
@@ -20,7 +28,6 @@ import {
   type ClaudeRunner,
   currentRunIdentity,
   readSavedCrits,
-  skillCommit,
 } from "./run-critic.ts";
 
 const COMMIT = "0123456789abcdef0123456789abcdef01234567";
@@ -38,6 +45,21 @@ const PAIRS_FILE = join(
   "pairs.json",
 );
 const PAIRS = readPairs(PAIRS_FILE, readFileSync(PAIRS_FILE, "utf8"));
+
+/** The temp folders this test file made; afterEach removes them. */
+const temporaryFolders: string[] = [];
+
+afterEach(() => {
+  for (const folder of temporaryFolders.splice(0)) {
+    rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+/** Returns the title of a pair's criterion from its pack, the property the judge is told about. */
+function propertyOf(pack: string, criterion: string): string {
+  const packPath = join(REPOSITORY_DIRECTORY, "packs", pack, "pack.yaml");
+  return criterionTitle(readFileSync(packPath, "utf8"), criterion);
+}
 
 /** A runner that fails the test if anything calls it. */
 const throwingRunner: ClaudeRunner = async () => {
@@ -120,6 +142,7 @@ async function seedRuns(
     }
     const question = buildPraiseTextQuestion(
       sentenceOf(pair.id),
+      propertyOf(pair.pack, pair.criterion),
       { key: textKey, saved: textCrit },
       { key: twinKey, saved: twinCrit },
     );
@@ -153,7 +176,9 @@ function replay(runsDirectory: string) {
 
 /** Makes a new empty runs folder for one test. */
 function newRunsDirectory(): string {
-  return mkdtempSync(join(tmpdir(), "crit-praise-text-test-"));
+  const folder = mkdtempSync(join(tmpdir(), "crit-praise-text-test-"));
+  temporaryFolders.push(folder);
+  return folder;
 }
 
 describe("plantedSentence", () => {
@@ -171,6 +196,17 @@ describe("plantedSentence", () => {
   });
 });
 
+describe("criterionTitle", () => {
+  it("reads the title of a real criterion and throws on an unknown id", () => {
+    expect(propertyOf("typography", "heading-lines-collide")).toBe(
+      "Lines of a multi-line heading touch or overlap",
+    );
+    expect(() => propertyOf("typography", "no-such-criterion")).toThrow(
+      "no criterion no-such-criterion",
+    );
+  });
+});
+
 describe("buildPraiseTextQuestion", () => {
   it("holds the sentence and both crits, and no image path or criterion id", () => {
     const pair = PAIRS[0];
@@ -178,6 +214,7 @@ describe("buildPraiseTextQuestion", () => {
       throw new Error("no pair");
     }
     const sentence = sentenceOf(pair.id);
+    const property = propertyOf(pair.pack, pair.criterion);
     const savedCrit = {
       runNumber: 1,
       critPath: "",
@@ -186,10 +223,14 @@ describe("buildPraiseTextQuestion", () => {
     };
     const question = buildPraiseTextQuestion(
       sentence,
+      property,
       { key: "text-key", saved: { ...savedCrit, crit: "TEXT CRIT BODY" } },
       { key: "twin-key", saved: { ...savedCrit, crit: "TWIN CRIT BODY" } },
     );
     expect(question.prompt).toContain(sentence);
+    expect(question.prompt).toContain(
+      `The sentence is about this property of the design: ${property}.`,
+    );
     expect(question.prompt).toContain("TEXT CRIT BODY");
     expect(question.prompt).toContain("TWIN CRIT BODY");
     expect(question.prompt).not.toContain(pair.text_image);
@@ -313,17 +354,17 @@ describe("runPraiseText live, with a stub critic and a stub judge", () => {
       skillDirectory: SKILL_DIRECTORY,
       runClaude: stub,
     };
-    const first = await runPraiseText([], options);
+    const first = await runPraiseText(["--skill-commit", COMMIT], options);
     expect(first.exitCode).toBe(0);
     expect(criticCalls).toBe(PAIRS.length * 2);
     expect(judgeCalls).toBe(PAIRS.length);
 
-    const second = await runPraiseText([], options);
+    const second = await runPraiseText(["--skill-commit", COMMIT], options);
     expect(second.exitCode).toBe(0);
     expect(criticCalls).toBe(PAIRS.length * 2);
     expect(judgeCalls).toBe(PAIRS.length);
 
-    const commit = skillCommit(SKILL_DIRECTORY);
+    const commit = COMMIT;
     const replayed = await runPraiseText(
       ["--replay", "--skill-commit", commit],
       {
@@ -351,6 +392,7 @@ describe("runPraiseText live, with a stub critic and a stub judge", () => {
     }
     const question = buildPraiseTextQuestion(
       sentenceOf(firstPair.id),
+      propertyOf(firstPair.pack, firstPair.criterion),
       { key: imageKey(firstPair.text_image), saved: textCrit },
       { key: imageKey(firstPair.twin), saved: twinCrit },
     );

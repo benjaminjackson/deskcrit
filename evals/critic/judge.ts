@@ -29,6 +29,13 @@ import {
  */
 export const JUDGE_MODEL = "claude-opus-5-5";
 
+/**
+ * The most one judge call may spend, passed with --max-budget-usd. The one live probe, a short
+ * text-only call, cost about $0.012; two full crits in one prompt cost a few cents. One dollar is
+ * far above that, so it stops only a call that has gone wrong.
+ */
+export const JUDGE_MAX_BUDGET_USD = "1";
+
 /** One saved crit the judge reads: the request key of the crit and its run number. */
 export type CritReference = { readonly key: string; readonly run: number };
 
@@ -111,6 +118,8 @@ export function judgeArguments(question: JudgeQuestion): string[] {
     // An empty string means no built-in tools (claude --help).
     "--tools",
     "",
+    "--max-budget-usd",
+    JUDGE_MAX_BUDGET_USD,
     "--json-schema",
     JSON.stringify(question.schema),
     "--system-prompt",
@@ -216,7 +225,8 @@ function isFileExistsError(error: unknown): boolean {
 
 /**
  * Returns the answer to a judge question: the saved answer when there is one, and otherwise the
- * answer of one new `claude -p` call, saved first. The call runs in a new empty temp folder, so no
+ * answer of one new `claude -p` call, saved first. It runs `claude --version` first and saves its
+ * output with the answer, as the critic runner does. The call runs in a new empty temp folder, so no
  * project file loads. Any failure, including a wrong-shaped answer, throws and saves nothing.
  */
 export async function ensureJudgeAnswer<Answer>(
@@ -235,7 +245,19 @@ export async function ensureJudgeAnswer<Answer>(
   }
   const workDirectory = mkdtempSync(join(tmpdir(), "crit-judge-"));
   let run: Awaited<ReturnType<ClaudeRunner>>;
+  let claudeVersion: string;
   try {
+    const versionRun = await options.runClaude(
+      ["--version"],
+      process.env,
+      workDirectory,
+    );
+    if (versionRun.exitCode !== 0) {
+      throw new Error(
+        `claude --version exited with code ${versionRun.exitCode}: ${versionRun.stderr.slice(0, 500)}`,
+      );
+    }
+    claudeVersion = versionRun.stdout.trim();
     run = await options.runClaude(
       judgeArguments(question),
       process.env,
@@ -254,6 +276,7 @@ export async function ensureJudgeAnswer<Answer>(
   const record = {
     model_requested: JUDGE_MODEL,
     model_ids: result.modelIds,
+    claude_version: claudeVersion,
     name: question.name,
     crits: question.crits,
     system: question.system,
