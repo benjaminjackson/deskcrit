@@ -27,7 +27,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { extname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -455,6 +455,57 @@ export function readSavedCrits(
   return saved;
 }
 
+/**
+ * Returns the folder paths to hide in saved metadata, longest first, each with its placeholder:
+ * the system temp folder in both its /var and /private/var forms (on macOS /var links to
+ * /private/var, so tools print either), and the home folder.
+ */
+function pathsToRedact(): { path: string; placeholder: string }[] {
+  const temporaryFolder = tmpdir();
+  const temporaryForms = new Set([temporaryFolder]);
+  if (temporaryFolder.startsWith("/private/var/")) {
+    temporaryForms.add(temporaryFolder.slice("/private".length));
+  } else if (temporaryFolder.startsWith("/var/")) {
+    temporaryForms.add(`/private${temporaryFolder}`);
+  }
+  const replacements = [...temporaryForms].map((path) => ({
+    path,
+    placeholder: "<temp>",
+  }));
+  replacements.push({ path: homedir(), placeholder: "<home>" });
+  replacements.sort((left, right) => right.path.length - left.path.length);
+  return replacements;
+}
+
+/**
+ * Returns a copy of a JSON value with every temp and home folder path in its strings replaced by
+ * <temp> or <home>, so a committed metadata file holds no absolute path of this machine.
+ */
+export function redactPaths<Value>(value: Value): Value {
+  const replacements = pathsToRedact();
+  /** Replaces the paths in one value, walking into arrays and objects. */
+  function redact(item: unknown): unknown {
+    if (typeof item === "string") {
+      let text = item;
+      for (const replacement of replacements) {
+        text = text.replaceAll(replacement.path, replacement.placeholder);
+      }
+      return text;
+    }
+    if (Array.isArray(item)) {
+      return item.map(redact);
+    }
+    if (isRecord(item)) {
+      return Object.fromEntries(
+        Object.entries(item).map(([key, entry]) => [key, redact(entry)]),
+      );
+    }
+    return item;
+  }
+  // The walk keeps the shape of the value, so the cast back to its type is safe.
+  return redact(value) as Value;
+}
+
 /** Returns true when an error is Node's "file already exists" error. */
 function isFileExistsError(error: unknown): boolean {
   return isRecord(error) && error.code === "EEXIST";
@@ -591,7 +642,7 @@ export async function ensureCrits(
       skill_directory: portablePath(options.skillDirectory, 2),
       skill_commit: commit,
       model_ids: once.result.modelIds,
-      permission_denials: once.result.permissionDenials,
+      permission_denials: redactPaths(once.result.permissionDenials),
       claude_version: once.claudeVersion,
       session_id: once.result.sessionId,
       num_turns: once.result.numTurns,

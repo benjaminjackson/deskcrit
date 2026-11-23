@@ -10,7 +10,7 @@ import {
   readFileSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
@@ -283,9 +283,33 @@ describe("saved metadata", () => {
     return [];
   }
 
-  it("holds no absolute path, for an image inside or outside the repository", async () => {
+  it("holds no absolute path, for an image inside or outside the repository and in permission_denials", async () => {
     const { root, imagePath, runsDirectory } = setUp();
-    const stub = recordingStub();
+    // On macOS /var links to /private/var, so tools print the temp folder in either form.
+    const temporaryFolder = tmpdir();
+    const temporaryForms = [
+      temporaryFolder,
+      temporaryFolder.replace(/^\/private\/var\//, "/var/"),
+      temporaryFolder.replace(/^\/var\//, "/private/var/"),
+    ];
+    const result = JSON.parse(successStdout("A crit."));
+    result.permission_denials = [
+      {
+        tool_name: "Bash",
+        tool_input: {
+          command: `cd ${temporaryForms[1]}/crit-critic-x; sips -g pixelWidth image-1.png`,
+        },
+      },
+      {
+        tool_name: "Read",
+        tool_input: { file_path: `${temporaryForms[2]}/tmp.a/1.png` },
+      },
+      {
+        tool_name: "Read",
+        tool_input: { file_path: `${homedir()}/github/crit/package.json` },
+      },
+    ];
+    const stub = recordingStub(JSON.stringify(result));
     const inside = join(import.meta.dirname, "..", "wobble", "slice.png");
     const savedRuns = [
       ...(await ensureCrits(
@@ -304,6 +328,14 @@ describe("saved metadata", () => {
       collectStrings(JSON.parse(readFileSync(saved.metadataPath, "utf8"))),
     );
     expect(strings.filter((text) => text.startsWith("/"))).toEqual([]);
+    const leaks = strings.filter(
+      (text) =>
+        temporaryForms.some((form) => text.includes(form)) ||
+        text.includes(homedir()),
+    );
+    expect(leaks).toEqual([]);
+    expect(strings).toContain("<home>/github/crit/package.json");
+    expect(strings).toContain("<temp>/tmp.a/1.png");
     expect(strings).toContain("evals/wobble/slice.png");
     expect(strings).toContain("skills/design-critic");
   });
