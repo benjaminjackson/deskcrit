@@ -20,6 +20,8 @@ type ManifestEntry = {
   sha256: string;
   title: string;
   question: string;
+  removal_commit: string;
+  removed_because: string;
 };
 
 /** The folder that holds the manifest and one subfolder of PNG files per pack. */
@@ -36,18 +38,26 @@ const REQUIRED_KEYS = [
   "sha256",
   "title",
   "question",
+  "removal_commit",
+  "removed_because",
 ];
 
 const manifest = JSON.parse(
   readFileSync(join(FIXTURES_FOLDER, "manifest.json"), "utf8"),
 ) as ManifestEntry[];
 
-/** Lists each PNG file on disk as `<pack>/<name>`, sorted. */
+/**
+ * Lists each PNG file on disk as `<pack>/<name>`, sorted. A PNG directly in this folder is
+ * listed by its bare name, which no manifest entry has, so the comparison with the manifest fails.
+ */
 function listPngFilesOnDisk(): string[] {
   const files: string[] = [];
   const folderEntries = readdirSync(FIXTURES_FOLDER, { withFileTypes: true });
   for (const folderEntry of folderEntries) {
     if (!folderEntry.isDirectory()) {
+      if (folderEntry.name.endsWith(".png")) {
+        files.push(folderEntry.name);
+      }
       continue;
     }
     for (const name of readdirSync(join(FIXTURES_FOLDER, folderEntry.name))) {
