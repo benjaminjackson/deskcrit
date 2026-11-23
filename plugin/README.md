@@ -1,6 +1,8 @@
 # deskcrit plugin for Claude Code
 
-This plugin gives Claude Code the `crit-loop` skill. The skill tells a coding agent how to check its UI work with `crit`: take a screenshot, run `crit report`, fix the top findings, take a new screenshot, run `crit compare` and `crit gate`, and stop when the gate passes or two rounds in a row improve nothing. The plugin only runs the CLI. `crit` decides every verdict and threshold. The rules are in [docs/PRD.md](../docs/PRD.md).
+This plugin gives Claude Code two skills. The `crit-loop` skill tells a coding agent how to check its UI work with `crit`: take a screenshot, run `crit report`, fix the top findings, take a new screenshot, run `crit compare` and `crit gate`, and stop when the gate passes or two rounds in a row improve nothing. The plugin only runs the CLI. `crit` decides every verdict and threshold. The rules are in [docs/PRD.md](../docs/PRD.md).
+
+The `design-critic` skill critiques a still image of a design the way a senior design director would. It starts a Claude agent that walks a checklist of guidelines. It does not run `crit` and needs no TypeSafe key.
 
 `crit` does not take screenshots. The agent takes them with its own browser tool or with Playwright.
 
@@ -43,7 +45,7 @@ This plugin gives Claude Code the `crit-loop` skill. The skill tells a coding ag
    /plugin install deskcrit@deskcrit
    ```
 
-7. Run `/plugin` and check that the `crit-loop` skill is listed.
+7. Run `/plugin` and check that the `crit-loop` and `design-critic` skills are listed.
 8. In the root of your project, set `screenshot` in `.crit.yaml` to the path where the agent keeps its latest screenshot:
 
    ```yaml
