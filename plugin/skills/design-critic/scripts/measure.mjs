@@ -897,7 +897,11 @@ function readPage(limits) {
 
   const backgrounds = [];
   const gaps = [];
-  for (const element of document.body.querySelectorAll("*")) {
+  // The body counts too: its background and the space between its children are page facts.
+  for (const element of [
+    document.body,
+    ...document.body.querySelectorAll("*"),
+  ]) {
     const style = getComputedStyle(element);
     if (style.display === "none") {
       continue;
