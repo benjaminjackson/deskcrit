@@ -620,6 +620,120 @@ describe("runRepeat --replay", () => {
   });
 });
 
+describe("runRepeat --batch", () => {
+  it("gives the same replay with --batch 1 as with no flag, for every saved skill commit", async () => {
+    for (const commit of readdirSync(SAVED_RUNS)) {
+      const options = {
+        repositoryDirectory: REPOSITORY_DIRECTORY,
+        runsDirectory: SAVED_RUNS,
+        skillDirectory: SKILL_DIRECTORY,
+        runClaude: throwingRunner,
+      };
+      const plain = await runRepeat(
+        ["--replay", "--skill-commit", commit],
+        options,
+      );
+      const batchOne = await runRepeat(
+        ["--replay", "--skill-commit", commit, "--batch", "1"],
+        options,
+      );
+      expect(batchOne).toEqual(plain);
+    }
+  });
+
+  it("scores batch 2 from runs 4 to 6 with its own judge answers, and leaves batch 1 as it was", async () => {
+    const runsDirectory = newRunsDirectory();
+    await seedRuns(runsDirectory, []);
+    const before = await replay(runsDirectory);
+    const batchTwoCrits = [
+      sampleCrit("Strong.", ["Gap."], []),
+      sampleCrit("Strong.", ["Gap."], []),
+      sampleCrit("Strong.", ["Gap."], []),
+    ];
+    for (const fixture of REPEAT_FIXTURES) {
+      writeSavedCrits(runsDirectory, fixture, [
+        ...SEED_CRITS,
+        ...batchTwoCrits,
+      ]);
+    }
+    const judgeCalls: string[] = [];
+    const stub: ClaudeRunner = async (args) => {
+      if (args[0] === "--version") {
+        return { stdout: "2.0.0 (Claude Code)", stderr: "", exitCode: 0 };
+      }
+      if (!args.includes("--json-schema")) {
+        throw new Error(
+          "batch 2 must start no critic run: runs 4 to 6 are saved",
+        );
+      }
+      judgeCalls.push(args.join(" "));
+      return {
+        stdout: judgeStdout({
+          reason: "stub",
+          groups: [["A1", "B1"], ["C1"]],
+          verdicts_agree: true,
+        }),
+        stderr: "",
+        exitCode: 0,
+      };
+    };
+    const options = {
+      repositoryDirectory: REPOSITORY_DIRECTORY,
+      runsDirectory,
+      skillDirectory: SKILL_DIRECTORY,
+      runClaude: stub,
+    };
+    const live = await runRepeat(
+      ["--skill-commit", COMMIT, "--batch", "2"],
+      options,
+    );
+    expect(live.errorText).toBe("");
+    expect(judgeCalls).toHaveLength(10);
+    expect(live.text).toContain("mean share in all 3: 0.000 (10 of 10 images)");
+    for (const fixture of REPEAT_FIXTURES) {
+      expect(live.text).toMatch(
+        new RegExp(`^${fixture} +1/1/1 +0\\.000 +0\\.000 +yes$`, "m"),
+      );
+    }
+    const after = await replay(runsDirectory);
+    expect(after).toEqual(before);
+    expect(after.text).toContain(
+      "mean share in all 3: 0.600 (10 of 10 images)",
+    );
+  });
+
+  it("names the missing crits of batch 2 and starts no run in replay", async () => {
+    const runsDirectory = newRunsDirectory();
+    await seedRuns(runsDirectory, []);
+    const output = await runRepeat(
+      ["--replay", "--skill-commit", COMMIT, "--batch", "2"],
+      {
+        repositoryDirectory: REPOSITORY_DIRECTORY,
+        runsDirectory,
+        skillDirectory: SKILL_DIRECTORY,
+        runClaude: throwingRunner,
+      },
+    );
+    expect(output.exitCode).toBe(2);
+    expect(output.errorText).toContain(
+      `missing crits of ${REPEAT_FIXTURES[0]}: 0 of 3 saved`,
+    );
+  });
+
+  it("refuses a batch that is not a whole number from 1 up", async () => {
+    for (const value of ["0", "1.5", "two", "01"]) {
+      const output = await runRepeat(["--replay", "--batch", value], {
+        repositoryDirectory: REPOSITORY_DIRECTORY,
+        runsDirectory: newRunsDirectory(),
+        skillDirectory: SKILL_DIRECTORY,
+        runClaude: throwingRunner,
+      });
+      expect(output.exitCode).toBe(2);
+      expect(output.errorText).toContain("--batch must be a whole number");
+    }
+  });
+});
+
 describe("runRepeat live, with a stub critic and a stub judge", () => {
   it("makes 30 crits and 10 judge answers, then a second run makes no call", async () => {
     const runsDirectory = newRunsDirectory();
