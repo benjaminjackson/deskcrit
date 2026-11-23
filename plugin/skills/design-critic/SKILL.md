@@ -30,7 +30,7 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
 ## What is in the folder
 
 - `agents/critic.md`: the critic's instructions, how it looks, what makes a good finding, and the output format.
-- `references/checklist.md`: one line per guideline, whole page first and detail last, each pointing to its full entry.
+- `references/checklist.md`: yes-or-no questions in sections, whole page first and detail last, where yes means fine; each kind of defect has one question, and each question points to the full entries it stands for.
 - `references/<domain>.md`: full entries for basics, layout, typography, color, art direction, ux, accessibility, and dataviz. Each gives the rule, what to look for, the source, caveats about the source, and the approved fix.
 - `scripts/build.rb`: makes `references/` from this repository's `GUIDELINES.md` and `packs/`.
 

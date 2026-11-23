@@ -1,0 +1,715 @@
+# The design critic's checklist: the source of references/checklist.md.
+# scripts/build.rb turns it into references/checklist.md, and
+# evals/design-critic-checklist.test.ts checks the rules below in npm run ci.
+# Written by hand. Ticket crit-0a0.9, PRD FR-77.
+#
+# Principle of division: a defect belongs to the section of what the viewer is trying to do
+# when the defect gets in the way, in the order a viewer does those things, from the whole
+# to the detail:
+#   whole        get the point of the piece and take it in as one thing
+#   hierarchy    see what matters most and in what order
+#   arrangement  follow where things sit and the space between them
+#   text         read the text
+#   color        read the color
+#   pictures     look at the pictures: photos, illustrations, icons, and marks
+#   data         read a chart, a table of figures, or a dashboard
+#   interface    operate the controls
+# The tasks are steps a viewer takes one after another, so a defect blocks one of them.
+# The data and interface sections hold the questions particular to charts and to controls
+# (buttons, links, fields, menus, messages about an input). When one of their questions names
+# a defect, the defect belongs there and not to a general question, because the viewer is then
+# reading data or operating the interface: chart junk is asked by chart-ink, not nothing-extra;
+# a link marked only by color by looks-operable, not not-color-alone. Text set in a chart or a
+# control is still read as text, so its size, face, and contrast stay under text. So a piece
+# with no chart or no controls skips the data or interface section whole.
+#
+# How the principle was chosen: the 209 entries the critic sees were read once under this
+# principle and once under the other candidate, which divides by material (space, type,
+# color, image, data marks, controls, words), listing the entries that fit two sections.
+# By material, 47 entries fit two: every hierarchy, balance, unity, and reduction entry
+# (importance comes from size, color, and space at once), every text contrast entry (type
+# or color), and the links, states, and consistency entries (color or controls). By viewer
+# task, 15 entries fit two, nearly all a chart or a control against a general section, and
+# the rule above settles each of them. Folding accessibility into the task each rule serves
+# is what keeps the count low: limited sight is a degree of every task, not a task of its own.
+#
+# Rules this file meets, and the test checks the first three:
+# - Every GUIDELINES.md entry with a Rule line is under exactly one question, or in
+#   excluded below. An entry is named by its exact title, or by {section, title} when two
+#   sections hold the same title; section is the start of the GUIDELINES.md "##" heading.
+# - Every question is in exactly one section, and its id is unique.
+# - A question with no entries has gap: true: a kind of defect the catalog has no entry for.
+# - Yes means fine and no means a defect. One check per question. No catch-all question.
+# - A note says where an entry's second, separable defect is asked.
+
+# GUIDELINES.md entries the critic never sees, with the reason. Benjamin Jackson agreed on
+# 2026-11-23 to drop popular psychology "laws": each is a lab finding that screen design
+# misapplies, and each repeats a better-sourced entry.
+excluded:
+  Hick's law: reaction time among equally likely choices; real menus are scanned or learned
+  Fitts's law: a still image does not show where the pointer starts; WCAG 2.5.8 covers target size
+  Miller's law (chunking): about holding items in memory, not about items visible on screen
+  Aesthetic-usability effect: one small study of perceived, not actual, usability
+  Zeigarnik effect: memory for unfinished tasks; nothing to judge in a still image
+  Serial position effect: recall of spoken or read lists, misapplied to navigation order
+  Peak-end rule: about remembered experiences of a whole flow, not one still image
+  Choice overload: the jam study has not replicated reliably; repeats one-primary-action entries
+  Von Restorff effect (isolation effect): repeats the one-dominant-element and primary-action entries
+  Tesler's law (conservation of complexity): secondary sources only; about system behaviour a still image does not show
+  Proportion and scale relationships: Wong and Elam are off the reading list; the type-scale and scale-contrast entries cover it
+  Do not rely on the 4.5:1 ratio for dark backgrounds blindly: it says to prefer lighter weights, but APCA wants larger, heavier text at lower contrast; include it again once crit's GUIDELINES.md is fixed
+
+sections:
+  - id: whole
+    title: The whole piece
+    scope: What the piece is, what it says, and whether it reads as one thing.
+    questions:
+      - id: one-message
+        question: Can a first-time viewer say in one sentence what this piece is for?
+        entries:
+          - One idea per piece (concept)
+          - "Poster: one message, readable at distance"
+          - "Krug: Don't make me think (self-evident and scannable)"
+        note: The poster entry's readable-at-distance part is asked by body-size and one-first; Krug's scanning part by chunks.
+      - id: headline-and-visual
+        question: Do the main image and the headline make one idea together, with neither just repeating the other?
+        entries:
+          - Visual and headline work together
+      - id: nothing-extra
+        question: Does every element, rule, box, and ornament do a job, so that removing it would lose something?
+        entries:
+          - Every ornament does a job
+          - Less, but better (reduction)
+          - No rules, boxes, or ornament where space would do
+          - "Nielsen 8: Aesthetic and minimalist design"
+          - Cognitive load
+          - Redundancy and duplicate controls
+          - "Foundation exercise: the elements and principles check"
+        note: Inside a chart, extra ink is asked by chart-ink; too many typefaces by faces-pair; too many colors by few-colors.
+      - id: one-whole
+        question: Apart from the pictures, do the type, colors, and shapes share one mood and era, so the piece reads as one whole rather than a collage?
+        entries:
+          - "Unity: parts belong to one whole"
+          - "Thematic coherence: one mood, one era"
+        note: Mixed styles among the pictures themselves are asked by picture-style.
+      - id: copy-final
+        question: Is the copy finished, with no placeholder text and no spelling mistakes?
+        gap: true
+      - id: one-look-per-kind
+        question: Does each kind of element (primary buttons, links, cards, section headings, error states) look the same everywhere it appears?
+        entries:
+          - Repeated elements follow one program
+          - Color consistency across a system
+          - "Nielsen 4: Consistency and standards"
+        note: The standards half of Nielsen 4 (platform conventions) is asked by conventions; the same name across screens by across-screens.
+      - id: mood
+        question: Do the colors, shapes, and directions of the piece carry the mood its message calls for?
+        entries:
+          - Color mood matches the message
+          - Shape language carries emotion
+          - Tension and dynamism from diagonals and asymmetry
+      - id: headings-say-what
+        question: Does each heading name what its section holds?
+        entries:
+          - Headings and labels
+        note: The entry's form-label half is asked by field-labels; its heading-order half by levels.
+
+  - id: hierarchy
+    title: What matters first
+    scope: The order of importance across the whole piece, outside charts and controls.
+    questions:
+      - id: one-first
+        question: Does one element stand clearly above the rest, by size or by contrast, so the eye knows where to start?
+        entries:
+          - One element dominates
+          - One focal point
+          - Emphasis through contrast, not volume
+          - Contrast of scale gives the page tension
+          - Dominant scale contrast
+          - Variety to avoid monotony
+        note: These entries all describe one defect, a page with no clear first element, in different words and at different strictness.
+      - id: levels
+        question: Below the first element, can you tell each level of the text (title, headings, body, captions) from the next at a glance, with no two sizes almost the same?
+        entries:
+          - Visual hierarchy has distinct levels
+          - Weak contrast is worse than none
+          - Sizes come from a scale
+        note: Near-equal sizes and weakly different levels are the same visible defect.
+      - id: more-than-size
+        question: Do headings differ from the text in weight, form, or color as well as in size?
+        entries:
+          - Contrast from more than size
+
+  - id: arrangement
+    title: Arrangement and space
+    scope: Where elements sit and the space between them, outside charts and controls.
+    questions:
+      - id: grid
+        question: Do all blocks, pictures included, take their edges and the gaps between them from one grid, so column lines and gutters repeat down the page?
+        entries:
+          - One grid governs the page
+          - "Use a grid"
+          - Pictures fit the grid
+          - Equal intervals between columns
+          - Repetition and rhythm are regular enough to read
+        note: Uneven gutters and uneven rhythm in a row of repeated items are one defect seen as a grid.
+      - id: aligned
+        question: Is every element either exactly aligned with an edge or axis it shares with another, or clearly off it, with no near-misses of a few pixels?
+        entries:
+          - Break the grid decisively or not at all
+          - "Alignment: every element has a visible relationship"
+          - Optical alignment over mathematical alignment
+        note: From an image a near-miss and an optical misalignment look the same, so they are one question. An element far off every line is asked by grid.
+      - id: baselines
+        question: Do lines of text in neighboring columns sit on the same baselines?
+        entries:
+          - Lines of text align across columns
+      - id: space-groups
+        question: Is the space inside each group clearly smaller than the space between groups, so each heading sits nearer the text it introduces?
+        entries:
+          - Space shows the groups
+          - Proximity groups related items
+          - Headings sit with the text they introduce
+          - Group related items by proximity, enclosure, and similarity
+        note: A label's distance from its form field is asked by field-labels.
+      - id: boxes-match-groups
+        question: Does each card, panel, tint, or border hold exactly one group, with no group split across boxes?
+        entries:
+          - Boxes do not split or join groups
+      - id: lookalikes-belong
+        question: Do only related elements look alike, with no accidental groups or shapes formed between unrelated ones?
+        entries:
+          - "Gestalt grouping: similarity, continuity, closure"
+      - id: clear-space
+        question: Does each element keep clear space from unrelated elements, with no text or box overlapping, touching, or nearly touching another?
+        entries:
+          - Unrelated elements do not crowd each other
+      - id: page-margin
+        question: Do text and boxes keep a margin from the edge of the page or screen?
+        entries:
+          - Content keeps clear of the page edge
+      - id: empty-space
+        question: Is the empty space gathered into a few deliberate areas, rather than left over in scattered gaps?
+        entries:
+          - White space is gathered, not scattered
+          - Negative space is deliberate
+        note: Negative space's crowding-to-the-edges part is asked by page-margin.
+      - id: balance
+        question: Does the visual weight balance, with no side that looks heavy enough to tip?
+        entries:
+          - Balance
+          - Balance (symmetrical or asymmetrical)
+      - id: center-chosen
+        question: Is each centered or symmetric placement of blocks or of the main subject there for a reason the piece shows, rather than by habit?
+        entries:
+          - No central axis by default
+          - Symmetry is chosen, and static by default
+          - Rule of thirds and off-center subject placement
+        note: Near-symmetry that looks like a mistake is asked by aligned.
+      - id: proportions
+        question: Do the main divisions of the frame follow one proportion, such as halves, thirds, or the golden section, rather than arbitrary splits?
+        entries:
+          - Golden ratio and proportional division (use sparingly)
+      - id: eye-path
+        question: Does the arrangement lead the eye from the first element through the rest, with no line, gaze, or pointing shape that leads it off the edge?
+        entries:
+          - Clear eye path
+          - Leading lines and directional movement
+
+  - id: text
+    title: Text
+    scope: Setting and reading text, outside charts and controls.
+    questions:
+      - id: body-size
+        question: Is body text large enough to read, at least as large as the menu and button text around it (12 pt or more in print for low vision)?
+        entries:
+          - Body text is not smaller than the menu and button text
+          - Low-vision large-print guidance
+      - id: small-text-size
+        question: Are captions, labels, and legal text large enough to read (11 pt or more on iOS)?
+        entries:
+          - Captions and labels are not too small to read
+      - id: reading-face
+        question: Is paragraph text set upright in a plain face made for reading, not in italic, underline, script, blackletter, or a display face?
+        entries:
+          - Paragraphs are not set in a decorative face
+          - Dyslexia-friendly typography
+        note: The dyslexia entry's size and alignment parts are asked by body-size and flush-left.
+      - id: faces-pair
+        question: Do the typefaces follow one plan, one family or a few plainly different faces, with no face that nearly matches another and no extra unrelated face?
+        entries:
+          - Typefaces in concord or in clear contrast, never in conflict
+      - id: small-weight
+        question: Is small text set in a weight heavy enough to hold up, with hairline weights kept to large sizes?
+        entries:
+          - Weight and stroke thickness at small sizes
+      - id: text-contrast
+        question: Does text on a plain background reach 4.5:1 contrast (3:1 for large text), placeholder and helper text included?
+        entries:
+          - Text does not read as faint
+          - Body text contrast (WCAG AA)
+          - Text contrast (minimum)
+          - Placeholder, disabled and decorative text exemptions
+      - id: text-on-images
+        question: Does text over a photo, gradient, or texture stay readable at the worst point behind it?
+        entries:
+          - Figure and ground are unambiguous
+          - Text over images and gradients
+        note: Figure and ground for pictures without text is asked by subject-stands-out.
+      - id: measure
+        question: Do paragraph lines run about 45 to 75 characters?
+        entries:
+          - Line length (measure)
+      - id: leading
+        question: Does the space between lines of a paragraph suit its line length, neither cramped nor so loose that the lines drift apart?
+        entries:
+          - Leading suits the measure
+          - Dyslexia-friendly line length, spacing, and background
+        note: The dyslexia entry's line length is asked by measure; its background color is a soft preference with no defect a viewer would raise.
+      - id: heading-leading
+        question: Is a heading of two or more lines set tight enough to read as one unit?
+        entries:
+          - Heading lines hold together
+      - id: flush-left
+        question: Are paragraphs of several lines set flush left?
+        entries:
+          - Paragraphs are not centered or right-aligned
+      - id: justified-spacing
+        question: Does justified text keep even word spaces, with no holes or rivers of white?
+        entries:
+          - Even word spacing in justified text
+          - Rivers of white space
+      - id: rag
+        question: Is the right edge of ragged text gently uneven, with no staircase, wedge, or regular long-short pattern?
+        entries:
+          - Rag quality in ragged-right text
+      - id: widows
+        question: Do paragraphs and columns break cleanly, with no lone short word on a last line and no heading at the foot of a column?
+        entries:
+          - Widows, orphans, and runts
+      - id: line-breaks
+        question: Do headings and captions break at phrase boundaries, never between a number and its unit or inside a name?
+        entries:
+          - Line breaks in headings and short text
+      - id: paragraph-marks
+        question: Are paragraphs marked by an indent or by space, never both, with the first paragraph after a heading flush left?
+        entries:
+          - "Paragraph marks: indent or space, not both"
+      - id: hanging-bullets
+        question: Does the left edge of each text block stay crisp, with wrapped list lines under the first word and opening quotation marks hung outside?
+        entries:
+          - Hanging bullets and punctuation
+      - id: chunks
+        question: Is long text broken up by headings, short paragraphs, or lists?
+        entries:
+          - Text is broken into chunks
+      - id: no-long-capitals
+        question: Is every sentence or paragraph set in mixed case, with capitals kept to short headings and labels?
+        entries:
+          - Long text is not set in all capitals
+      - id: one-emphasis
+        question: Does each emphasized phrase change one thing only (italic, bold, or small capitals)?
+        entries:
+          - One change at a time for emphasis
+      - id: display-spacing
+        question: Are large headings set with tighter letter and word spacing than the text?
+        entries:
+          - Display type is spaced tighter than text
+      - id: kerning
+        question: In large mixed-case type, do letter pairs look evenly spaced, with no gaps and no collisions?
+        entries:
+          - Kerning
+      - id: text-tracking
+        question: Is lower-case text set with its typeface's own letter spacing, neither tracked out nor squeezed?
+        entries:
+          - Letterspacing (tracking) of text
+      - id: capitals-tracking
+        question: Are strings of capitals and small capitals letterspaced?
+        entries:
+          - Letterspace capitals and small caps
+      - id: ligatures
+        question: In large type, are "fi" and "fl" joined as ligatures where the face's f reaches into the next letter?
+        entries:
+          - Ligatures
+      - id: real-styles
+        question: Are italic, bold, and small capitals the real cuts of the family, not slanted, smeared, or shrunk?
+        entries:
+          - Real italics, bold, and small caps (no faux styles)
+      - id: punctuation
+        question: Are quotation marks curly, and are dashes and ellipses the true characters?
+        entries:
+          - "Typographic details: quotes, dashes, and spaces"
+      - id: figures
+        question: Do columns of numbers use tabular figures aligned on the decimal point or the right edge?
+        entries:
+          - Figures in tables and text
+      - id: real-text
+        question: Is text real type rather than a picture of text, apart from a logotype?
+        entries:
+          - Images of text
+      - id: text-whole
+        question: Is every piece of text shown whole, with none cut off or hidden by its own box or by another element?
+        gap: true
+
+  - id: color
+    title: Color
+    scope: Color across the piece, outside charts and controls.
+    questions:
+      - id: few-colors
+        question: Does the piece use a small palette, about one neutral range and one or two hues besides the status colors?
+        entries:
+          - Limited palette
+          - Limited, purposeful palette
+      - id: one-hue-leads
+        question: Is strong, saturated color kept to a small share of the area, with most of the area neutral or muted?
+        entries:
+          - 60-30-10 proportion
+          - Complementary harmony
+          - Triadic, split-complementary and tetradic schemes
+          - Accent color restraint
+          - Saturation hierarchy
+        note: Equal areas of strong color and a saturated accent spread over unimportant things are one defect, no color leading.
+      - id: light-and-dark
+        question: Does the piece hold a clear range of light and dark, so its structure still shows in grayscale?
+        entries:
+          - Value (lightness) carries structure
+          - Contrast of value
+          - Monochromatic schemes need value range
+          - Analogous harmony
+      - id: temperature
+        question: Do warm colors sit on what should come forward and cool ones on what should recede?
+        entries:
+          - Warm and cool temperature
+      - id: same-color-same-look
+        question: Does each color that is meant to match look the same wherever it sits?
+        entries:
+          - Simultaneous contrast
+        note: Its shimmering-edge part is asked by no-vibration.
+      - id: no-vibration
+        question: Do neighboring strong colors differ clearly in lightness, so no edge between them seems to vibrate?
+        entries:
+          - Vibrating and clashing combinations
+      - id: status-colors
+        question: Is each status color (red, green, amber, blue) used only for its usual meaning to this audience?
+        entries:
+          - Semantic color conventions
+          - Cultural meaning of color
+      - id: not-color-alone
+        question: Is every meaning shown by color (status, category, a marked item) also shown by a label, icon, pattern, or position?
+        entries:
+          - Do not use color alone to carry meaning
+          - Use of color
+          - Color-vision deficiency safety
+        note: Inside a chart this is asked by chart-colors-apart; for links and form errors by looks-operable and error-words.
+      - id: dark-theme
+        question: On a dark theme, is the background a dark gray rather than pure black?
+        entries:
+          - Dark mode conventions
+
+  - id: pictures
+    title: Pictures
+    scope: Photos, illustrations, icons, logos, and marks.
+    questions:
+      - id: image-loads
+        question: Does every image show its content, with no broken-image icon or empty placeholder box?
+        gap: true
+      - id: image-quality
+        question: "Is each image shown at full quality: sharp, unstretched, and free of compression blocks?"
+        entries:
+          - "Image quality: sharp, undistorted, at native proportions"
+      - id: cropping
+        question: Does each crop look intended, with no limb cut at a joint and no edges that just touch?
+        entries:
+          - Cropping and framing are intentional
+      - id: subject-stands-out
+        question: Does the subject of each picture stand clearly apart from its background?
+        entries:
+          - Figure-ground is unambiguous
+      - id: picture-style
+        question: Do the pictures share one rendering style and one level of detail?
+        entries:
+          - Consistent rendering style across assets
+          - Consistent level of detail across a set
+      - id: photos-match
+        question: Do the photos share one lighting mood, color grade, and crop style?
+        entries:
+          - Photos treated consistently
+      - id: icon-strokes
+        question: Do the icons and line drawings share one stroke weight, cap style, and corner radius?
+        entries:
+          - Line quality and weight are consistent
+      - id: one-light
+        question: Do the objects in a scene share one viewpoint and one light direction?
+        entries:
+          - One perspective and one light source
+      - id: quiet-texture
+        question: Is any texture or pattern quiet enough that it never competes with the focal point or the text over it?
+        entries:
+          - Texture and pattern with restraint
+      - id: honest-surfaces
+        question: Do surfaces look like what they are, with no fake bevels, textures, or depth?
+        entries:
+          - "Honesty: no fake depth or false promises"
+      - id: logo
+        question: Is the logo shown with clear space around it, undistorted, in its own colors?
+        entries:
+          - "Brand consistency: voice, mark, and clear space"
+      - id: mark-simple
+        question: Is a logo or symbol simple enough to recognize small and in one color?
+        entries:
+          - Simplicity and wit in marks and symbols
+
+  - id: data
+    title: Charts and data
+    scope: Charts, tables of figures, and dashboards. A defect one of these questions names belongs here rather than to a general question. Skip it when the piece has none.
+    questions:
+      - id: chart-form
+        question: Does each chart use the form that fits its data and question, such as bars for comparison, lines for change over time, and a table for exact values?
+        entries:
+          - Choose chart type by data relationship
+          - Use pie charts sparingly
+          - Rank encodings by perceptual accuracy
+          - Choose visual variables to fit the data type
+          - "Chart vs table: use tables for lookup of exact values"
+          - Use sparklines for compact trend context
+        note: A pie for comparison is both the wrong type and a weak encoding, so the type and encoding entries are one question.
+      - id: small-multiples
+        question: Can each series in a chart be followed on its own, without tangling with the others?
+        entries:
+          - Use small multiples for comparison across many series
+      - id: chart-ink
+        question: Is nearly all the ink in each chart data, with no 3D, shadows, textures, or heavy gridlines?
+        entries:
+          - Maximize the data-ink ratio
+          - No chartjunk
+          - Do not distort with 3D
+      - id: honest-scale
+        question: "Does each chart keep honest scales: bar axes from zero, even ticks, no unmarked breaks, and one scale for charts that are compared?"
+        entries:
+          - "Graphical integrity: keep the lie factor near 1"
+          - Bar charts start at zero
+          - Keep scales honest and consistent
+      - id: honest-range
+        question: Does each chart show enough of the time range or sample to judge the trend?
+        entries:
+          - Do not truncate or cherry-pick the time range or sample
+      - id: chart-palette-fits
+        question: Does each chart's palette fit its data, an ordered lightness ramp for ordered values, a neutral midpoint for diverging values, and distinct hues for categories?
+        entries:
+          - Use color type that matches the data
+          - Sequential data uses one ordered lightness ramp
+          - Diverging data uses a neutral midpoint
+          - Color scales must be perceptually uniform and CVD safe
+      - id: chart-colors-apart
+        question: Can each chart's series be told apart without color vision, by labels, shapes, or a color-blind-safe palette such as Okabe-Ito?
+        entries:
+          - Do not rely on color alone and avoid red-green pairs
+          - Okabe-Ito palette for categorical data
+      - id: chart-few-colors
+        question: Does each chart use few distinct colors for its series or categories, with gray for context?
+        entries:
+          - Limit categorical colors in a chart
+          - Use color with restraint and emphasis
+      - id: direct-labels
+        question: Is each series label placed at its data rather than in a separate legend?
+        entries:
+          - Label directly instead of using a legend
+      - id: axes-labeled
+        question: Does each chart name what its marks show, with axis values, units, and series labels?
+        entries:
+          - Label axes, units, and sources
+        note: A missing source line has no question of its own; mention it under this one.
+      - id: labels-clear
+        question: Do the labels in each chart stay clear of each other and of the marks?
+        gap: true
+      - id: takeaway
+        question: Does a title or caption state the chart's finding in words?
+        entries:
+          - Titles and annotations state the takeaway
+          - Text alternatives for charts and posters (information not conveyed in image alone)
+      - id: sorted
+        question: Are categorical bars sorted by value or by a natural order?
+        entries:
+          - Sort and order data meaningfully
+      - id: uncertainty
+        question: Is each estimate or forecast marked as one, by a range or a different line style?
+        entries:
+          - Show uncertainty and sample context
+      - id: metric-context
+        question: Does each headline number come with a comparison, such as a target, the previous period, or a trend?
+        entries:
+          - Give metrics context and comparison
+      - id: dashboard-one-screen
+        question: Do a dashboard's key figures all fit on the first screen?
+        entries:
+          - Dashboards fit on one screen and are glanceable
+        note: The place of the most important figure is asked by one-first.
+
+  - id: interface
+    title: Interface
+    scope: Buttons, links, fields, menus, navigation, and the messages about them. Text inside a control is still asked under Text. Skip it when the piece has no controls.
+    questions:
+      - id: one-primary-action
+        question: Is exactly one button styled as the primary action, with every other action styled lower?
+        entries:
+          - Primary versus secondary action
+          - Secondary actions are not styled as strongly as the primary one
+        note: A main action that looks like plain text is asked by looks-operable.
+      - id: looks-operable
+        question: Does every control look like what it does, buttons pressable, fields typeable, and links marked by more than color?
+        entries:
+          - "Norman: Affordances"
+          - "Norman: Signifiers"
+          - Buttons and links must look clickable
+          - Links distinguishable from surrounding text
+        note: From a still image an affordance and a signifier are the same visible cue.
+      - id: control-contrast
+        question: Do input borders, control edges, and meaningful icons reach 3:1 contrast against what is next to them?
+        entries:
+          - {section: Color, title: Non-text contrast}
+          - {section: Accessibility, title: Non-text contrast}
+        note: The Color entry's chart graphics are asked by chart-colors-apart; focus rings by focus-visible.
+      - id: states-distinct
+        question: Do the hover, pressed, and disabled states shown each look distinct from the default?
+        entries:
+          - "Norman: Feedback"
+          - "Color for state: hover, focus, disabled"
+        note: Focus indicators are asked by focus-visible.
+      - id: focus-visible
+        question: Does a focused control show an indicator at least 2 px thick with 3:1 contrast?
+        entries:
+          - Focus visible
+          - Focus appearance
+      - id: focus-unhidden
+        question: Is a focused control left uncovered by sticky headers, banners, or chat widgets?
+        entries:
+          - Focus not obscured (minimum)
+      - id: content-uncovered
+        question: Is the main content left uncovered by banners, pop-ups, or sticky bars?
+        gap: true
+      - id: target-size
+        question: Is every touch or click target large enough (24 px on the web, 44 pt on iOS, 48 dp on Android) with space between neighbors?
+        entries:
+          - Target size (minimum)
+          - Apple touch target size
+          - Material touch target size
+          - Touch target size and spacing
+        note: The same defect at the three platforms' thresholds; judge by the platform shown.
+      - id: thumb-zone
+        question: On a phone layout, do the frequent actions sit in the lower, easy-reach part of the screen?
+        entries:
+          - Mobile thumb zones
+      - id: where-am-i
+        question: Does the screen show where the user is and what is happening, such as the current page or step, progress, or loading?
+        entries:
+          - "Nielsen 1: Visibility of system status"
+          - "Shneiderman: Design dialogs to yield closure"
+          - Loading states
+      - id: way-out
+        question: Does every dialog, flow, or state shown have a visible way out (close, cancel, back, or undo)?
+        entries:
+          - "Nielsen 3: User control and freedom"
+      - id: prevents-errors
+        question: Do the inputs allow only valid values, by pickers, input types, or disabled options?
+        entries:
+          - "Nielsen 5: Error prevention"
+          - "Norman: Constraints"
+        note: Nielsen 5's confirmation before destructive actions is asked by destructive-safe; its defaults by anticipates.
+      - id: destructive-safe
+        question: Is each destructive action (delete, remove, reset) set apart from the safe actions, so it cannot be hit by mistake?
+        entries:
+          - Destructive action confirmation and safety
+        note: Its outcome-label part ("Delete project", not "OK") has no question of its own; mention it under this one.
+      - id: visible-options
+        question: Is everything the user needs to act visible on this screen, with nothing to remember from another?
+        entries:
+          - "Nielsen 6: Recognition rather than recall"
+        note: Its label-not-placeholder part is asked by field-labels.
+      - id: rare-options-tucked
+        question: Are rare or advanced options kept behind a visible control, with the main content first?
+        entries:
+          - Progressive disclosure
+      - id: field-labels
+        question: Does every field have its own visible label, closer to it than to any other field, not a placeholder alone?
+        entries:
+          - "Forms: labels above fields and never placeholder-only"
+          - Labels or instructions
+      - id: control-near-target
+        question: Does each control sit next to the thing it changes?
+        entries:
+          - "Norman: Natural mapping"
+        note: Its label-next-to-field part is asked by field-labels.
+      - id: one-column-form
+        question: Is the form one column, with fields side by side only for short related pairs?
+        entries:
+          - "Forms: single column layout"
+      - id: required-marked
+        question: Are required or optional fields marked?
+        entries:
+          - "Forms: inline validation and required markers"
+        note: Its validation-result part is asked by error-words.
+      - id: error-words
+        question: Is each error stated in words that name the field, not shown by color or an icon alone?
+        entries:
+          - Error identification
+          - Error states
+          - "Nielsen 9: Help users recognize, diagnose, and recover from errors"
+        note: Nielsen 9's how-to-fix part is asked by error-fix.
+      - id: error-fix
+        question: Does each error message say how to correct it?
+        entries:
+          - Error suggestion
+      - id: empty-state
+        question: Does an empty list or dashboard tell the user what to do next?
+        entries:
+          - Empty states
+      - id: help-near
+        question: Where the task is complex, is short help shown near the step it concerns?
+        entries:
+          - "Nielsen 10: Help and documentation"
+      - id: shortcuts
+        question: Are shortcuts offered for frequent actions, such as search, filters, or keyboard hints?
+        entries:
+          - "Nielsen 7: Flexibility and efficiency of use"
+          - "Shneiderman: Enable frequent users to use shortcuts"
+      - id: anticipates
+        question: Does the screen put what the user likely needs next in front of them, such as a prefilled default or the next action?
+        entries:
+          - "Tognazzini: Anticipation"
+      - id: conventions
+        question: Do the navigation and components follow the conventions users know from the platform and similar products?
+        entries:
+          - Jakob's law
+          - Platform conventions (Apple HIG and Material)
+      - id: users-words
+        question: Do labels and messages use the audience's own words rather than internal or system terms?
+        entries:
+          - "Nielsen 2: Match between system and the real world"
+      - id: link-text
+        question: Can each link's purpose be told from its text or the sentence around it?
+        entries:
+          - Link purpose (in context)
+      - id: instructions-named
+        question: Do instructions name the control they mean, rather than only its shape, color, or position?
+        entries:
+          - Sensory characteristics
+      - id: product-structure
+        question: Do the grouping, names, and navigation show how the product's parts relate?
+        entries:
+          - "Norman: Conceptual model"
+      - id: across-screens
+        question: When several screens are shown, does each repeated piece of navigation, help, or labeled function stay the same on every one?
+        entries:
+          - Consistent navigation
+          - Consistent help
+          - Consistent identification
+      - id: fits-viewport
+        question: Does the content fit the width of the screen shown, with no sideways scrolling?
+        entries:
+          - Reflow
+          - Orientation
+        note: A still image shows orientation only as content that does not fit the screen, so Orientation is asked here.
+      - id: no-dark-patterns
+        question: Does every choice on the screen present its options honestly, with no pre-checked opt-in, hidden decline, or fake urgency?
+        entries:
+          - Dark patterns to avoid
