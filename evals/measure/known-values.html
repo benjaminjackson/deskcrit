@@ -1,0 +1,52 @@
+<!doctype html>
+<!--
+  A page with known values for measure.mjs (PRD FR-79). evals/measure/browser-check.mjs measures it
+  and checks the numbers; known-values.facts.json is its committed output.
+  Known values: #body is 16 px Inter, line height 24 px, black on white, four lines of exactly 40
+  characters; #gray is #777777 on white (contrast 4.48); #on-gradient sits on a gradient, #covered
+  sits under an opaque box, #faded has opacity 0.5, so none of the three has a contrast number;
+  #hidden is not displayed; #action is a 120 x 40 px button.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Known values</title>
+  <style>
+    @font-face {
+      font-family: "Inter";
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url("../../packs/_renderer/fonts/inter-latin-400-normal.woff2") format("woff2");
+    }
+    body { margin: 0; background: #ffffff; color: #000000; font-family: "Inter", sans-serif; font-weight: 400; }
+    main { padding: 40px; }
+    h1 { margin: 0 0 24px; font-size: 32px; line-height: 40px; font-weight: 400; }
+    p { margin: 0 0 24px; font-size: 16px; line-height: 24px; }
+    #body { white-space: pre-line; }
+    #gray { color: #777777; }
+    .hero { padding: 16px; background: linear-gradient(90deg, #ffffff, #222222); }
+    .hero p { margin: 0; }
+    .stack { position: relative; }
+    .overlay { position: absolute; left: 0; top: 0; width: 100%; height: 24px; background: #ff0000; }
+    #faded { opacity: 0.5; }
+    #hidden { display: none; }
+    #action { width: 120px; height: 40px; margin: 0; padding: 0; border: 0; font: 16px "Inter", sans-serif; background: #000000; color: #ffffff; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 id="title">Known values</h1>
+    <p id="body">abcd efgh ijkl mnop qrst uvwx yzab cdefg
+abcd efgh ijkl mnop qrst uvwx yzab cdefg
+abcd efgh ijkl mnop qrst uvwx yzab cdefg
+abcd efgh ijkl mnop qrst uvwx yzab cdefg</p>
+    <p id="gray">Gray text on a white background.</p>
+    <div class="hero"><p id="on-gradient">Text that sits on a gradient.</p></div>
+    <div class="stack"><p id="covered">Text under an opaque box.</p><div class="overlay"></div></div>
+    <p id="faded">Text at half opacity.</p>
+    <p id="hidden">Text that is not displayed.</p>
+    <button id="action" type="button">Go</button>
+  </main>
+</body>
+</html>

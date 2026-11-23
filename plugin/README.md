@@ -6,6 +6,8 @@ The `design-critic` skill critiques a still image of a design the way a senior d
 
 To look at a large image closely, the critic runs `scripts/crop.mjs`, which cuts a PNG into full-resolution crops about one screen tall, or crops one box, into a new temporary folder. The script uses only Node's own modules (it reads the PNG with `node:zlib`), so the installed plugin needs no install step and no image library. For a file other than a PNG of 8 or 16 bits per sample, an interlaced PNG, or a broken file, it prints one line that says why, and the critic looks at the whole image.
 
+When the page's code or URL is available, the critic can run `scripts/measure.mjs PAGE --out FOLDER`. It renders the page at 1280 x 800 px and at 390 x 844 px, and writes a full-page screenshot of each, one-screen crops of each, and `facts.json`, which `schemas/facts.schema.json` describes: per text block the font, size, line height, characters per line, and contrast, with a CSS selector and a pixel box, and per page the type sizes, colors, spacing, left edges, and target sizes. The script needs Playwright and its Chromium, and it never installs them. It loads `playwright` from the project in the working directory, and then from `packs/` of a deskcrit checkout. To get it in your project, run `npm install playwright` and `npx playwright install chromium`. Without Playwright, the script prints one line that says this and exits with code 3, and the critic works from the image alone.
+
 `crit` does not take screenshots. The agent takes them with its own browser tool or with Playwright.
 
 ## Install
