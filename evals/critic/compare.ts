@@ -12,7 +12,6 @@
 // Usage: node evals/critic/compare.ts [--replay] [--skill DIR] [--skill-commit SHA]
 // Exit codes: 0 after a full report, 2 when it could not run or replay found a missing crit.
 
-import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -31,6 +30,7 @@ import {
   ensureCrits,
   readSavedCrits,
   requestKey,
+  runClaudeProcess,
   type SavedCrit,
   skillCommit,
 } from "./run-critic.ts";
@@ -38,34 +38,6 @@ import {
 const REPOSITORY_DIRECTORY = resolve(import.meta.dirname, "..", "..");
 const EXIT_CODE_COULD_NOT_RUN = 2;
 const MAX_PARALLEL_RUNS = 4;
-const CHILD_TIMEOUT_MILLISECONDS = 20 * 60 * 1000;
-
-/**
- * The real runner, the same as the private one in run-critic.ts: starts `claude` with stdin
- * closed, because `claude -p` waits when stdin is open, and stops it after 20 minutes.
- */
-const runClaudeProcess: ClaudeRunner = (args, environment, workingDirectory) =>
-  new Promise((resolvePromise, rejectPromise) => {
-    const child = spawn("claude", [...args], {
-      cwd: workingDirectory,
-      env: environment,
-      stdio: ["ignore", "pipe", "pipe"],
-      timeout: CHILD_TIMEOUT_MILLISECONDS,
-    });
-    const stdoutChunks: Buffer[] = [];
-    const stderrChunks: Buffer[] = [];
-    child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
-    child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
-    child.on("error", rejectPromise);
-    child.on("close", (code) => {
-      resolvePromise({
-        stdout: Buffer.concat(stdoutChunks).toString("utf8"),
-        stderr: Buffer.concat(stderrChunks).toString("utf8"),
-        // A child stopped by a signal, such as the timeout, has no exit code.
-        exitCode: code ?? EXIT_CODE_COULD_NOT_RUN,
-      });
-    });
-  });
 
 /**
  * The focus line of every compare request. It names the images only by their neutral names, so it
@@ -322,23 +294,22 @@ export async function runCompare(
         readSavedCrits(options.runsDirectory, commit, keyOfRequest(request))[0],
     );
   } else {
-    crits = await runPooled(
-      pairs.map((pair, index) => ({ pair, request: requests[index] })),
-      MAX_PARALLEL_RUNS,
-      async ({ pair, request }) => {
-        const saved = await ensureCrits(request as CritRequest, {
-          runsDirectory: options.runsDirectory,
-          skillDirectory,
-          skillCommit: commit,
-          runClaude: options.runClaude,
-        });
-        const first = saved[0];
-        if (first !== undefined) {
-          warnings.push(...describeDenials(pair.pair_id, first));
-        }
-        return first;
-      },
-    );
+    crits = await runPooled(requests, MAX_PARALLEL_RUNS, async (request) => {
+      const saved = await ensureCrits(request, {
+        runsDirectory: options.runsDirectory,
+        skillDirectory,
+        skillCommit: commit,
+        runClaude: options.runClaude,
+      });
+      return saved[0];
+    });
+    // Collected after every run has finished, so the warnings come in pair order.
+    pairs.forEach((pair, index) => {
+      const crit = crits[index];
+      if (crit !== undefined) {
+        warnings.push(...describeDenials(pair.pair_id, crit));
+      }
+    });
   }
 
   const rows: string[][] = [];
@@ -376,7 +347,7 @@ export async function runCompare(
   if (missing.length > 0) {
     const errorLines = [
       ...warnings,
-      `No saved crit at commit ${commit} for ${missing.length} pairs; run node evals/critic/compare.ts without --replay to make them:`,
+      `No saved crit at commit ${commit} for ${missing.length} ${missing.length === 1 ? "pair" : "pairs"}; run node evals/critic/compare.ts without --replay to make them:`,
       ...missing,
     ];
     return {

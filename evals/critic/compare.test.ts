@@ -195,7 +195,7 @@ describe("runCompare", () => {
     });
     expect(partial.exitCode).toBe(2);
     expect(partial.errorText).toContain(`key ${removedKey}`);
-    expect(partial.errorText).toMatch(/for 1 pairs/);
+    expect(partial.errorText).toContain("for 1 pair;");
     expect(partial.text).toContain("missing");
   });
 
