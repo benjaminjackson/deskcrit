@@ -13,7 +13,7 @@ What the piece is, what it says, and whether it reads as one thing.
 - [ ] **Does every element, rule, box, and ornament do a job, so that removing it would lose something?** → `references/art-direction.md` "Every ornament does a job" _(off-list source)_; `references/art-direction.md` "Less, but better (reduction)" _(off-list source)_; `references/layout.md` "No rules, boxes, or ornament where space would do"; `references/ux.md` "Nielsen 8: Aesthetic and minimalist design"; `references/ux.md` "Cognitive load" _(off-list source)_; `references/ux.md` "Redundancy and duplicate controls"; `references/art-direction.md` "Foundation exercise: the elements and principles check"
 - [ ] **Apart from the pictures, do the type, colors, and shapes share one mood and era, so the piece reads as one whole rather than a collage?** → `references/art-direction.md` "Unity: parts belong to one whole" _(off-list source)_; `references/art-direction.md` "Thematic coherence: one mood, one era" _(off-list source)_
 - [ ] **Is the copy finished, with no placeholder text and no spelling mistakes?** → (no catalog entry: judge as taste or common sense, and say so)
-- [ ] **Does each kind of element (primary buttons, links, cards, section headings, error states) look the same everywhere it appears?** → `references/layout.md` "Repeated elements follow one program"; `references/color.md` "Color consistency across a system"; `references/ux.md` "Nielsen 4: Consistency and standards"
+- [ ] **Within one screen or image, does each kind of element (primary buttons, links, cards, section headings, error states) look the same everywhere it appears?** → `references/layout.md` "Repeated elements follow one program"; `references/color.md` "Color consistency across a system"; `references/ux.md` "Nielsen 4: Consistency and standards"
 - [ ] **Do the colors, shapes, and directions of the piece carry the mood its message calls for?** → `references/art-direction.md` "Color mood matches the message"; `references/art-direction.md` "Shape language carries emotion" _(off-list source)_; `references/art-direction.md` "Tension and dynamism from diagonals and asymmetry" _(off-list source)_
 - [ ] **Does each heading name what its section holds?** → `references/accessibility.md` "Headings and labels"
 
@@ -23,7 +23,7 @@ The order of importance across the whole piece, outside charts and controls.
 
 - [ ] **Does one element stand clearly above the rest, by size or by contrast, so the eye knows where to start?** → `references/layout.md` "One element dominates"; `references/art-direction.md` "One focal point"; `references/art-direction.md` "Emphasis through contrast, not volume" _(off-list source)_; `references/layout.md` "Contrast of scale gives the page tension"; `references/art-direction.md` "Dominant scale contrast" _(off-list source)_; `references/art-direction.md` "Variety to avoid monotony"
 - [ ] **Below the first element, can you tell each level of the text (title, headings, body, captions) from the next at a glance, with no two sizes almost the same?** → `references/art-direction.md` "Visual hierarchy has distinct levels"; `references/typography.md` "Weak contrast is worse than none"; `references/typography.md` "Sizes come from a scale"
-- [ ] **Do headings differ from the text in weight, form, or color as well as in size?** → `references/typography.md` "Contrast from more than size"
+- [ ] **Where headings are clearly larger than the text, do they also differ from it in weight, form, or color?** → `references/typography.md` "Contrast from more than size"
 
 ## Arrangement and space
 
@@ -35,10 +35,10 @@ Where elements sit and the space between them, outside charts and controls.
 - [ ] **Is the space inside each group clearly smaller than the space between groups, so each heading sits nearer the text it introduces?** → `references/layout.md` "Space shows the groups"; `references/art-direction.md` "Proximity groups related items"; `references/typography.md` "Headings sit with the text they introduce"; `references/dataviz.md` "Group related items by proximity, enclosure, and similarity"
 - [ ] **Does each card, panel, tint, or border hold exactly one group, with no group split across boxes?** → `references/basics.md` "Boxes do not split or join groups"
 - [ ] **Do only related elements look alike, with no accidental groups or shapes formed between unrelated ones?** → `references/art-direction.md` "Gestalt grouping: similarity, continuity, closure"
-- [ ] **Does each element keep clear space from unrelated elements, with no text or box overlapping, touching, or nearly touching another?** → `references/layout.md` "Unrelated elements do not crowd each other"
+- [ ] **Does each element stay clear of the others, with no text or box overlapping or touching another?** → `references/layout.md` "Unrelated elements do not crowd each other"
 - [ ] **Do text and boxes keep a margin from the edge of the page or screen?** → `references/basics.md` "Content keeps clear of the page edge"
-- [ ] **Is the empty space gathered into a few deliberate areas, rather than left over in scattered gaps?** → `references/layout.md` "White space is gathered, not scattered"; `references/art-direction.md` "Negative space is deliberate"
-- [ ] **Does the visual weight balance, with no side that looks heavy enough to tip?** → `references/layout.md` "Balance"; `references/art-direction.md` "Balance (symmetrical or asymmetrical)"
+- [ ] **Is the empty space gathered into a few deliberate areas, rather than left over in scattered small gaps?** → `references/layout.md` "White space is gathered, not scattered"; `references/art-direction.md` "Negative space is deliberate"
+- [ ] **Does the visual weight balance, with no side, crowded or empty, that makes the page look about to tip?** → `references/layout.md` "Balance"; `references/art-direction.md` "Balance (symmetrical or asymmetrical)"
 - [ ] **Is each centered or symmetric placement of blocks or of the main subject there for a reason the piece shows, rather than by habit?** → `references/layout.md` "No central axis by default"; `references/art-direction.md` "Symmetry is chosen, and static by default"; `references/art-direction.md` "Rule of thirds and off-center subject placement" _(off-list source)_
 - [ ] **Do the main divisions of the frame follow one proportion, such as halves, thirds, or the golden section, rather than arbitrary splits?** → `references/art-direction.md` "Golden ratio and proportional division (use sparingly)"
 - [ ] **Does the arrangement lead the eye from the first element through the rest, with no line, gaze, or pointing shape that leads it off the edge?** → `references/art-direction.md` "Clear eye path"; `references/art-direction.md` "Leading lines and directional movement" _(off-list source)_
@@ -76,7 +76,7 @@ Setting and reading text, outside charts and controls.
 - [ ] **Are quotation marks curly, and are dashes and ellipses the true characters?** → `references/typography.md` "Typographic details: quotes, dashes, and spaces"
 - [ ] **Do columns of numbers use tabular figures aligned on the decimal point or the right edge?** → `references/typography.md` "Figures in tables and text"
 - [ ] **Is text real type rather than a picture of text, apart from a logotype?** → `references/accessibility.md` "Images of text"
-- [ ] **Is every piece of text shown whole, with none cut off or hidden by its own box or by another element?** → (no catalog entry: judge as taste or common sense, and say so)
+- [ ] **Is every piece of text shown whole, with none cut off or clipped by its own box?** → (no catalog entry: judge as taste or common sense, and say so)
 
 ## Color
 
@@ -140,7 +140,7 @@ Buttons, links, fields, menus, navigation, and the messages about them. Text ins
 - [ ] **Do the hover, pressed, and disabled states shown each look distinct from the default?** → `references/ux.md` "Norman: Feedback"; `references/color.md` "Color for state: hover, focus, disabled"
 - [ ] **Does a focused control show an indicator at least 2 px thick with 3:1 contrast?** → `references/accessibility.md` "Focus visible"; `references/accessibility.md` "Focus appearance"
 - [ ] **Is a focused control left uncovered by sticky headers, banners, or chat widgets?** → `references/accessibility.md` "Focus not obscured (minimum)"
-- [ ] **Is the main content left uncovered by banners, pop-ups, or sticky bars?** → (no catalog entry: judge as taste or common sense, and say so)
+- [ ] **Is the main content left uncovered by fixed banners, pop-ups, or sticky bars?** → (no catalog entry: judge as taste or common sense, and say so)
 - [ ] **Is every touch or click target large enough (24 px on the web, 44 pt on iOS, 48 dp on Android) with space between neighbors?** → `references/accessibility.md` "Target size (minimum)"; `references/accessibility.md` "Apple touch target size"; `references/accessibility.md` "Material touch target size"; `references/ux.md` "Touch target size and spacing"
 - [ ] **On a phone layout, do the frequent actions sit in the lower, easy-reach part of the screen?** → `references/ux.md` "Mobile thumb zones" _(off-list source)_
 - [ ] **Does the screen show where the user is and what is happening, such as the current page or step, progress, or loading?** → `references/ux.md` "Nielsen 1: Visibility of system status"; `references/ux.md` "Shneiderman: Design dialogs to yield closure" _(off-list source)_; `references/ux.md` "Loading states"
@@ -164,6 +164,6 @@ Buttons, links, fields, menus, navigation, and the messages about them. Text ins
 - [ ] **Can each link's purpose be told from its text or the sentence around it?** → `references/accessibility.md` "Link purpose (in context)"
 - [ ] **Do instructions name the control they mean, rather than only its shape, color, or position?** → `references/accessibility.md` "Sensory characteristics"
 - [ ] **Do the grouping, names, and navigation show how the product's parts relate?** → `references/ux.md` "Norman: Conceptual model"
-- [ ] **When several screens are shown, does each repeated piece of navigation, help, or labeled function stay the same on every one?** → `references/accessibility.md` "Consistent navigation"; `references/accessibility.md` "Consistent help"; `references/accessibility.md` "Consistent identification"
+- [ ] **When several screens are shown, does each repeated element (navigation, help, a labeled function, or a component) stay the same in look, place, and name on every one?** → `references/accessibility.md` "Consistent navigation"; `references/accessibility.md` "Consistent help"; `references/accessibility.md` "Consistent identification"
 - [ ] **Does the content fit the width of the screen shown, with no sideways scrolling?** → `references/accessibility.md` "Reflow"; `references/accessibility.md` "Orientation"
 - [ ] **Does every choice on the screen present its options honestly, with no pre-checked opt-in, hidden decline, or fake urgency?** → `references/ux.md` "Dark patterns to avoid" _(off-list source)_
