@@ -102,8 +102,6 @@ export type FixtureImage = {
   readonly polarity: Polarity;
   /** The path as a label file writes it, `fixtures/<name>.png`; undefined for removed images. */
   readonly labelPath: string | undefined;
-  /** The SHA-256 the manifest records; undefined for live images. */
-  readonly expectedSha256: string | undefined;
 };
 
 /** One criterion with its title, its rule, and every fixture image it has. */
@@ -139,10 +137,10 @@ export type DetectOutput = {
   readonly exitCode: number;
 };
 
-/** One selected image with its truth, its crit key, and its judge answer once read. */
+/** One selected image to score, with what it counts as. A left-out image never becomes one. */
 type ScoredImage = {
   readonly image: FixtureImage;
-  readonly truth: ImageTruth;
+  readonly truth: "shows-defect" | "no-defect";
 };
 
 /** A selected criterion: its images to score, and how many of its images were left out. */
@@ -169,16 +167,6 @@ const LIVE_FIXTURE_PATTERN =
 const REMOVED_FIXTURE_PATTERN =
   /^([^/]+)\/(.+?)(?:--(\d+))?\.(positive|negative)\.png$/;
 
-/** Returns the value as a DefectMention, or undefined when it is not one. */
-function readDefectMention(value: unknown): DefectMention | undefined {
-  for (const mention of DEFECT_MENTIONS) {
-    if (value === mention) {
-      return mention;
-    }
-  }
-  return undefined;
-}
-
 /** Checks a judge answer and returns it; throws when its shape is wrong (CS-7). */
 export function parseDetectionAnswer(value: unknown): DetectionAnswer {
   const wrongShape = new Error(
@@ -187,7 +175,10 @@ export function parseDetectionAnswer(value: unknown): DetectionAnswer {
   if (!isRecord(value)) {
     throw wrongShape;
   }
-  const saysDefect = readDefectMention(value.says_defect);
+  // find returns the first mention equal to the value, or undefined when none is.
+  const saysDefect = DEFECT_MENTIONS.find(
+    (mention) => mention === value.says_defect,
+  );
   if (typeof value.reason !== "string" || saysDefect === undefined) {
     throw wrongShape;
   }
@@ -311,7 +302,6 @@ export function readLiveCriteria(
             variant: parsed.variant,
             polarity: parsed.polarity,
             labelPath: fixturePath,
-            expectedSha256: undefined,
           });
         }
       }
@@ -365,7 +355,6 @@ export function readRemovedCriteria(
     const title = readText(entry, "title", where);
     const question = readText(entry, "question", where);
     const removedBecause = readText(entry, "removed_because", where);
-    const sha256 = readText(entry, "sha256", where);
     const match = REMOVED_FIXTURE_PATTERN.exec(file);
     if (match === null) {
       throw new Error(
@@ -392,7 +381,6 @@ export function readRemovedCriteria(
       variant,
       polarity,
       labelPath: undefined,
-      expectedSha256: sha256,
     };
     const mapKey = `${pack}/${criterionId}`;
     const existing = byCriterion.get(mapKey);
@@ -438,14 +426,10 @@ function compareText(left: string, right: string): number {
   return 0;
 }
 
-/** Sorts criteria in place by group, then pack, then criterion id. */
+/** Sorts the criteria of one group in place by pack, then criterion id. */
 function sortCriteria(criteria: DetectionCriterion[]): void {
   criteria.sort((left, right) => {
-    return (
-      compareText(left.group, right.group) ||
-      compareText(left.pack, right.pack) ||
-      compareText(left.id, right.id)
-    );
+    return compareText(left.pack, right.pack) || compareText(left.id, right.id);
   });
 }
 
@@ -487,15 +471,40 @@ export function selectPairs(
 }
 
 /**
- * Reads the label files of the live packs that have one, through readLabels, and returns a map from
- * `<pack>|<fixture path>|<criterion>` to the label (EV-5). Packs with no file add nothing.
+ * Reads the label files of the live packs that have one, through readLabels with the pack's
+ * criteria and fixtures, and returns a map from `<pack>|<fixture path>|<criterion>` to the label
+ * (EV-5). It throws on a row whose criterion or fixture the pack lacks, or whose fixture is not
+ * listed under that criterion. Packs with no file add nothing.
  */
 export function readAllLabels(
   repositoryDirectory: string,
-  packNames: readonly string[],
+  liveCriteria: readonly DetectionCriterion[],
 ): Map<string, FixtureLabel> {
   const labelsByKey = new Map<string, FixtureLabel>();
+  const packNames = [
+    ...new Set(liveCriteria.map((criterion) => criterion.pack)),
+  ];
   for (const packName of packNames) {
+    const packCriteria = liveCriteria.filter(
+      (criterion) => criterion.pack === packName,
+    );
+    // The fixture paths each criterion of this pack lists, keyed by criterion id.
+    const fixturesByCriterion = new Map<string, Set<string>>();
+    for (const criterion of packCriteria) {
+      const fixtures = new Set<string>();
+      for (const image of criterion.images) {
+        if (image.labelPath !== undefined) {
+          fixtures.add(image.labelPath);
+        }
+      }
+      fixturesByCriterion.set(criterion.id, fixtures);
+    }
+    const allFixtures = new Set<string>();
+    for (const fixtures of fixturesByCriterion.values()) {
+      for (const fixture of fixtures) {
+        allFixtures.add(fixture);
+      }
+    }
     const labelPath = join(
       repositoryDirectory,
       "evals",
@@ -509,9 +518,19 @@ export function readAllLabels(
     const labels = readLabels(
       `${packName}.csv`,
       readFileSync(labelPath, "utf8"),
-      undefined,
+      {
+        criterionIds: new Set(fixturesByCriterion.keys()),
+        fixtures: allFixtures,
+      },
     );
     for (const label of labels) {
+      // readLabels checks the fixture against the whole pack; a label must also name a fixture
+      // that its own criterion lists, or it would decide an image of another criterion.
+      if (!fixturesByCriterion.get(label.criterion)?.has(label.fixture)) {
+        throw new Error(
+          `${packName}.csv: ${label.fixture} is not listed under criterion ${label.criterion}`,
+        );
+      }
       labelsByKey.set(
         labelMapKey(packName, label.fixture, label.criterion),
         label,
@@ -558,10 +577,15 @@ export function imageTruth(
 
 /**
  * Returns the rule the judge is told about: the question text with a leading "In the image at
- * screenshot:" removed, because the judge sees no image.
+ * screenshot:" and a trailing "Judge only what is visible." removed. Both spoke to Jev about the
+ * image, and the judge sees no image.
  */
 export function judgeRule(question: string): string {
-  return question.replace(/^In the image at screenshot[:,]?\s*/i, "");
+  const withoutLead = question.replace(
+    /^In the image at screenshot[:,]?\s*/i,
+    "",
+  );
+  return withoutLead.replace(/\s*Judge only what is visible\.\s*$/i, "");
 }
 
 /**
@@ -581,7 +605,7 @@ The design may or may not have this defect.
 Critique:
 ${saved.crit}
 
-Anywhere in the critique, in any section, does it say that this defect is present in the design, say that it is absent or that this aspect is fine, or not mention it? A defect that is plainly the same one in other words counts. Answer present, absent or not_mentioned.`;
+Anywhere in the critique, in any section, does it say that this defect is present in the design, say that it is absent or that this aspect is fine, or not mention it? A defect that is plainly the same one in other words counts. A different problem in the same area, or a general remark about the topic, is not_mentioned. Answer present, absent or not_mentioned.`;
   return {
     name: JUDGE_QUESTION_NAME,
     system: DETECTION_SYSTEM,
@@ -596,15 +620,9 @@ function imageSha256(imagePath: string): string {
   return createHash("sha256").update(readFileSync(imagePath)).digest("hex");
 }
 
-/** Returns the request key of an image, and throws when a removed image's bytes differ from its manifest hash. */
+/** Returns the request key of an image: its SHA-256, as a one-image request with no note or focus. */
 function imageKey(image: FixtureImage): string {
-  const sha256 = imageSha256(image.absolutePath);
-  if (image.expectedSha256 !== undefined && image.expectedSha256 !== sha256) {
-    throw new Error(
-      `${image.displayPath} has SHA-256 ${sha256}, but the manifest records ${image.expectedSha256}`,
-    );
-  }
-  return requestKey([sha256], undefined, undefined);
+  return requestKey([imageSha256(image.absolutePath)], undefined, undefined);
 }
 
 /** Returns a count as a cell: the rate to two places with its sample, or `- (0/0)` when nothing was judged. */
@@ -698,7 +716,8 @@ export function buildRows(
   const rows: string[][] = [];
   const liveTotal = emptyCounts();
   const removedTotal = emptyCounts();
-  const removedTotalsByReason = new Map<string, DetectionCounts>();
+  const removedJevQuietTotal = emptyCounts();
+  const removedNoSourceTotal = emptyCounts();
   selected.forEach((entry, index) => {
     const criterion = entry.criterion;
     const counts = countsByCriterion[index];
@@ -719,28 +738,26 @@ export function buildRows(
       return;
     }
     addCounts(removedTotal, counts);
-    const reason = criterion.removedBecause ?? "unknown";
-    let reasonTotal = removedTotalsByReason.get(reason);
-    if (reasonTotal === undefined) {
-      reasonTotal = emptyCounts();
-      removedTotalsByReason.set(reason, reasonTotal);
+    if (criterion.removedBecause === "jev-quiet") {
+      addCounts(removedJevQuietTotal, counts);
+    } else if (criterion.removedBecause === "no-source") {
+      addCounts(removedNoSourceTotal, counts);
+    } else {
+      throw new Error(
+        `removed criterion ${criterion.pack}/${criterion.id} has removed_because ${String(criterion.removedBecause)}, not jev-quiet or no-source`,
+      );
     }
-    addCounts(reasonTotal, counts);
   });
   if (!withTotals) {
     return rows;
   }
   rows.push(countsRow("live total", "", "", liveTotal));
-  for (const reason of ["jev-quiet", "no-source"]) {
-    rows.push(
-      countsRow(
-        `removed total (${reason})`,
-        "",
-        "",
-        removedTotalsByReason.get(reason) ?? emptyCounts(),
-      ),
-    );
-  }
+  rows.push(
+    countsRow("removed total (jev-quiet)", "", "", removedJevQuietTotal),
+  );
+  rows.push(
+    countsRow("removed total (no-source)", "", "", removedNoSourceTotal),
+  );
   rows.push(countsRow("removed total", "", "", removedTotal));
   return rows;
 }
@@ -796,8 +813,7 @@ export function selectCriteria(
 ): { selected: SelectedCriterion[]; notes: string[] } {
   const live = readLiveCriteria(repositoryDirectory);
   const removed = readRemovedCriteria(repositoryDirectory);
-  const livePackNames = [...new Set(live.map((criterion) => criterion.pack))];
-  const labelsByKey = readAllLabels(repositoryDirectory, livePackNames);
+  const labelsByKey = readAllLabels(repositoryDirectory, live);
   const selected: SelectedCriterion[] = [];
   const notes: string[] = [];
   for (const criterion of [...live, ...removed]) {
@@ -811,11 +827,21 @@ export function selectCriteria(
     let leftOutCount = 0;
     for (const image of pick.images) {
       const truth = imageTruth(criterion, image, labelsByKey);
-      if (truth === "left-out") {
-        leftOutCount += 1;
-        continue;
+      // A switch on the three values: TypeScript then knows truth is one of the other two below.
+      switch (truth) {
+        case "left-out":
+          leftOutCount += 1;
+          break;
+        case "shows-defect":
+        case "no-defect":
+          scored.push({ image, truth });
+          break;
+        default: {
+          // never: the compiler fails here if a value of ImageTruth has no case (CS-9).
+          const unhandled: never = truth;
+          throw new Error(`unknown image truth ${String(unhandled)}`);
+        }
       }
-      scored.push({ image, truth });
     }
     selected.push({ criterion, scored, leftOutCount });
   }
@@ -873,19 +899,45 @@ export async function runDetect(
   }
 
   if (!replay) {
-    let savedCount = 0;
-    let judgeCallCount = 0;
+    let critsSaved = 0;
     for (const image of imagesToCrit) {
       const key = keyByImagePath.get(image.absolutePath) ?? "";
       if (readSavedCrits(options.runsDirectory, commit, key).length > 0) {
-        savedCount += 1;
+        critsSaved += 1;
       }
     }
+    // A judge answer can be saved only for an image whose crit is saved.
+    let judgeCallsTotal = 0;
+    let answersSaved = 0;
     for (const entry of selected) {
-      judgeCallCount += entry.scored.length;
+      const rule = judgeRule(entry.criterion.question);
+      for (const scoredImage of entry.scored) {
+        judgeCallsTotal += 1;
+        const key = keyByImagePath.get(scoredImage.image.absolutePath) ?? "";
+        const saved = readSavedCrits(options.runsDirectory, commit, key)[0];
+        if (saved === undefined) {
+          continue;
+        }
+        const question = buildDetectionQuestion(
+          entry.criterion.title,
+          rule,
+          key,
+          saved,
+        );
+        if (
+          readJudgeAnswer(
+            question,
+            parseDetectionAnswer,
+            options.runsDirectory,
+            commit,
+          ) !== undefined
+        ) {
+          answersSaved += 1;
+        }
+      }
     }
     options.reportProgress?.(
-      `plan: ${selected.length} criteria, ${imagesToCrit.length} critic runs (${savedCount} already saved), ${judgeCallCount} judge calls, at most ${MAX_PARALLEL_CALLS} at once`,
+      `plan: ${selected.length} criteria, ${imagesToCrit.length - critsSaved} critic runs and ${judgeCallsTotal - answersSaved} judge calls to make (${critsSaved} crits and ${answersSaved} judge answers already saved), at most ${MAX_PARALLEL_CALLS} at once`,
     );
     const criticOptions = {
       runsDirectory: options.runsDirectory,
@@ -994,10 +1046,7 @@ export async function runDetect(
     if (counts === undefined) {
       return;
     }
-    // Left-out images never become a question item, so the truth here is one of the other two.
-    if (item.scoredImage.truth !== "left-out") {
-      addJudgedImage(counts, item.scoredImage.truth, answer);
-    }
+    addJudgedImage(counts, item.scoredImage.truth, answer);
   });
 
   const complete = missing.length === 0;
@@ -1009,12 +1058,15 @@ export async function runDetect(
   const noteText = notes.length > 0 ? `${notes.join("\n")}\n` : "";
   const text = `${header}\n${noteText}${table}\n${JEV_FIGURES_LINE}\n`;
   if (!complete) {
-    const advice = replay
-      ? "Run node evals/critic/detect.ts without --replay to make them; it asks a model."
-      : "";
+    const errorLines = [...missing];
+    if (replay) {
+      errorLines.push(
+        "Run node evals/critic/detect.ts without --replay to make them; it asks a model.",
+      );
+    }
     return {
       text,
-      errorText: `${[...missing, advice].filter((line) => line !== "").join("\n")}\n`,
+      errorText: `${errorLines.join("\n")}\n`,
       exitCode: EXIT_CODE_COULD_NOT_RUN,
     };
   }

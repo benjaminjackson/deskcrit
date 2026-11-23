@@ -138,7 +138,6 @@ function fakeImage(
     variant,
     polarity,
     labelPath,
-    expectedSha256: undefined,
   };
 }
 
@@ -379,6 +378,44 @@ describe("reading the real criteria", () => {
   });
 });
 
+describe("reading the label files", () => {
+  /** Writes one label row for the tiny pack and returns the replay promise. */
+  function replayWithLabel(row: string) {
+    const repository = buildTinyRepository();
+    writeFileSync(
+      join(repository, "evals", "agreement", "labels", "tiny.csv"),
+      `fixture,criterion,defect_present\n${row}\n`,
+    );
+    return replay(repository, newFolder());
+  }
+
+  it("throws on a row whose criterion the pack lacks", async () => {
+    await expect(
+      replayWithLabel("fixtures/alpha.positive.png,no-such,yes"),
+    ).rejects.toThrow("the pack has no criterion no-such");
+  });
+
+  it("throws on a row whose fixture the pack lacks", async () => {
+    await expect(
+      replayWithLabel("fixtures/alpha--9.positive.png,alpha,yes"),
+    ).rejects.toThrow(
+      "the pack lists no fixture fixtures/alpha--9.positive.png",
+    );
+  });
+
+  it("throws on a row whose fixture is listed under another criterion", async () => {
+    await expect(
+      replayWithLabel("fixtures/beta.positive.png,alpha,yes"),
+    ).rejects.toThrow(
+      "fixtures/beta.positive.png is not listed under criterion alpha",
+    );
+  });
+
+  it("accepts every real label file", () => {
+    expect(() => selectCriteria(REPOSITORY_DIRECTORY, 1)).not.toThrow();
+  });
+});
+
 describe("selectPairs", () => {
   const criterion = fakeCriterion([
     fakeImage(10, "positive"),
@@ -564,6 +601,10 @@ describe("the judge prompt", () => {
       for (const image of criterion.images) {
         expect(prompt).not.toContain(basename(image.absolutePath, ".png"));
       }
+      expect(prompt).not.toContain("Judge only what is visible");
+      expect(prompt).toContain(
+        "A defect that is plainly the same one in other words counts. A different problem in the same area, or a general remark about the topic, is not_mentioned. Answer present, absent or not_mentioned.",
+      );
       expect(question.crits).toEqual([{ key: "key", run: 1 }]);
     }
   });
@@ -575,6 +616,14 @@ describe("the judge prompt", () => {
     expect(judgeRule("in the image at screenshot, is it bad?")).toBe(
       "is it bad?",
     );
+  });
+
+  it("removes the trailing instruction to judge only what is visible", () => {
+    expect(
+      judgeRule(
+        "In the image at screenshot: Is it bad? Judge only what is visible.",
+      ),
+    ).toBe("Is it bad?");
   });
 });
 
@@ -796,14 +845,16 @@ describe("runDetect live, with a stub critic and a stub judge", () => {
     expect(criticCalls).toBe(6);
     expect(judgeCalls).toBe(6);
     expect(progress).toEqual([
-      "plan: 3 criteria, 6 critic runs (0 already saved), 6 judge calls, at most 4 at once",
+      "plan: 3 criteria, 6 critic runs and 6 judge calls to make (0 crits and 0 judge answers already saved), at most 4 at once",
     ]);
 
     const second = await runDetect(["--skill-commit", COMMIT], options);
     expect(second.exitCode).toBe(0);
     expect(criticCalls).toBe(6);
     expect(judgeCalls).toBe(6);
-    expect(progress[1]).toContain("6 critic runs (6 already saved)");
+    expect(progress[1]).toBe(
+      "plan: 3 criteria, 0 critic runs and 0 judge calls to make (6 crits and 6 judge answers already saved), at most 4 at once",
+    );
 
     const replayed = await replay(repository, runsDirectory);
     expect(replayed.exitCode).toBe(0);
