@@ -25,7 +25,12 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { decodePng, encodeCrop, OVERLAP_FRACTION } from "./crop.mjs";
+import {
+  decodePng,
+  encodeCrop,
+  OVERLAP_FRACTION,
+  splitLength,
+} from "./crop.mjs";
 
 /** The version of the facts.json format; schemas/facts.schema.json requires this value. */
 export const FACTS_VERSION = 1;
@@ -47,6 +52,9 @@ export const TEXT_SNIPPET_LENGTH = 60;
 
 /** Characters per line is measured on at most this many characters of a block, so a huge block cannot stall the run. */
 export const MAX_MEASURED_CHARACTERS = 1500;
+
+/** The color scheme the page is rendered in; a page with a dark mode is measured in its light mode. */
+const COLOR_SCHEME = "light";
 
 /** How long to wait for the page's load event before measuring what is there. */
 const LOAD_TIMEOUT_MS = 30_000;
@@ -318,34 +326,30 @@ function toPixelBox(box) {
 }
 
 /**
- * Works out the contrast of one text block from what the browser read at up to three points of its
- * text. The text color is composited over the background; the lowest ratio of the points is kept.
- * It returns `contrast: null` with a reason whenever one number would be wrong.
+ * Writes a computed CSS color as #rrggbb or #rrggbbaa, or keeps the browser's text when it is in a
+ * form parseCssColor does not read, such as oklch().
  *
- * @param {object} rawBlock the block as the browser read it
+ * @param {string} colorText
+ */
+export function toHexColor(colorText) {
+  const color = parseCssColor(colorText);
+  if (color === null) {
+    return colorText;
+  }
+  return formatHexColor(color);
+}
+
+/**
+ * Works out the contrast of one text block from what the browser read at up to three of its
+ * characters. Each sampled character's own color (from the element that draws it) is composited
+ * over the background painted under it, and the lowest ratio is kept. It returns `contrast: null`
+ * with a reason whenever one number would be wrong.
+ *
+ * @param {{ samples: object[] }} rawBlock the block as the browser read it
  * @param {string} canvasColor
  * @returns {{ contrast: number | null, contrast_note?: string, background?: string }}
  */
 export function measureContrast(rawBlock, canvasColor) {
-  if (rawBlock.textFill) {
-    return {
-      contrast: null,
-      contrast_note: "not measurable: image or gradient text fill",
-    };
-  }
-  if (rawBlock.paintEffect !== null) {
-    return {
-      contrast: null,
-      contrast_note: `not measurable: ${rawBlock.paintEffect}`,
-    };
-  }
-  const textColor = parseCssColor(rawBlock.color);
-  if (textColor === null) {
-    return {
-      contrast: null,
-      contrast_note: `not measurable: color format ${rawBlock.color}`,
-    };
-  }
   if (rawBlock.samples.length === 0) {
     return {
       contrast: null,
@@ -367,6 +371,31 @@ export function measureContrast(rawBlock, canvasColor) {
         contrast_note: "not measurable: covered by another element",
       };
     }
+    if (sample.textFill) {
+      return {
+        contrast: null,
+        contrast_note: "not measurable: image or gradient text fill",
+      };
+    }
+    if (sample.pseudo) {
+      return {
+        contrast: null,
+        contrast_note: "not measurable: pseudo-element background",
+      };
+    }
+    if (sample.paintEffect) {
+      return {
+        contrast: null,
+        contrast_note: "not measurable: opacity, filter, or blend mode",
+      };
+    }
+    const textColor = parseCssColor(sample.color);
+    if (textColor === null) {
+      return {
+        contrast: null,
+        contrast_note: `not measurable: color format ${sample.color}`,
+      };
+    }
     const background = resolveBackground(sample.layers, canvasColor);
     if ("reason" in background) {
       return { contrast: null, contrast_note: background.reason };
@@ -386,91 +415,197 @@ export function measureContrast(rawBlock, canvasColor) {
 }
 
 /**
- * Counts values by a key and returns one entry per distinct key, most frequent first, then by key.
+ * Returns the value of one style property that covers the most characters of a block, and whether
+ * the block's characters use more than one value. The runs are the block's text nodes, each with
+ * the style of the element that draws it and its count of characters that are not white space.
  *
- * @template T
- * @param {T[]} items
- * @param {(item: T) => string | number} readKey
- * @returns {{ key: string | number, count: number, first: T }[]}
+ * @template {{ characters: number }} Run
+ * @param {Run[]} styleRuns
+ * @param {(run: Run) => string | number} readValue
+ * @returns {{ value: string | number | null, mixed: boolean }}
  */
-function countByKey(items, readKey) {
-  const counts = new Map();
-  for (const item of items) {
-    const key = readKey(item);
-    const entry = counts.get(key);
-    if (entry === undefined) {
-      counts.set(key, { key, count: 1, first: item });
-    } else {
-      entry.count += 1;
+export function findMainStyle(styleRuns, readValue) {
+  const totals = new Map();
+  for (const run of styleRuns) {
+    const value = readValue(run);
+    totals.set(value, (totals.get(value) ?? 0) + run.characters);
+  }
+  let best = null;
+  let bestCount = -1;
+  for (const [value, count] of totals) {
+    if (count > bestCount) {
+      best = value;
+      bestCount = count;
     }
   }
-  const entries = [...counts.values()];
-  entries.sort((first, second) => {
-    if (second.count !== first.count) {
-      return second.count - first.count;
+  return { value: best, mixed: totals.size > 1 };
+}
+
+/**
+ * Counts characters and blocks per value of one style property, over every text block found. A
+ * block counts once for each value any of its characters use.
+ *
+ * @param {{ selector: string | null, styleRuns: object[] }[]} blocks
+ * @param {(run: object) => string | number} readValue
+ * @returns {Map<string | number, { blocks: number, characters: number, example: string | null }>}
+ */
+function countStyleValues(blocks, readValue) {
+  const groups = new Map();
+  for (const block of blocks) {
+    const seenInBlock = new Set();
+    for (const run of block.styleRuns) {
+      const value = readValue(run);
+      let group = groups.get(value);
+      if (group === undefined) {
+        group = { blocks: 0, characters: 0, example: null };
+        groups.set(value, group);
+      }
+      group.characters += run.characters;
+      if (!seenInBlock.has(value)) {
+        seenInBlock.add(value);
+        group.blocks += 1;
+      }
+      if (group.example === null && block.selector !== null) {
+        group.example = block.selector;
+      }
     }
-    return String(first.key) < String(second.key) ? -1 : 1;
-  });
-  return entries;
+  }
+  return groups;
+}
+
+/** The generic family names of CSS, which name no font of their own. */
+const GENERIC_FAMILIES = new Set([
+  "serif",
+  "sans-serif",
+  "monospace",
+  "cursive",
+  "fantasy",
+  "system-ui",
+  "ui-serif",
+  "ui-sans-serif",
+  "ui-monospace",
+  "ui-rounded",
+  "emoji",
+  "math",
+]);
+
+/**
+ * Names the font a block is drawn in and says whether it is not the first declared one. For a web
+ * font, the browser reports the name inside the font file, which can differ from the @font-face
+ * name the page's CSS uses, so the CSS name of the first declared family that loaded is used.
+ *
+ * @param {{ renderedFamily: string | null, renderedIsCustom: boolean, declaredFamilies: string[], fontFamily: string }} rawBlock
+ * @param {Set<string>} loadedFamilies lower-case @font-face names whose fonts loaded
+ * @returns {{ family: string, note: string | null }}
+ */
+export function nameDrawnFont(rawBlock, loadedFamilies) {
+  if (rawBlock.renderedFamily === null) {
+    return {
+      family: rawBlock.fontFamily,
+      note: "rendered font unknown: font_family is the declared list",
+    };
+  }
+  let family = rawBlock.renderedFamily;
+  if (rawBlock.renderedIsCustom) {
+    const loaded = rawBlock.declaredFamilies.find((declared) =>
+      loadedFamilies.has(declared.toLowerCase()),
+    );
+    if (loaded !== undefined) {
+      family = loaded;
+    }
+  }
+  const first = rawBlock.declaredFamilies[0];
+  const firstIsNamedFont =
+    first !== undefined && !GENERIC_FAMILIES.has(first.toLowerCase());
+  if (firstIsNamedFont && family.toLowerCase() !== first.toLowerCase()) {
+    return {
+      family,
+      note: `first declared family ${first} is not the one drawn`,
+    };
+  }
+  return { family, note: null };
 }
 
 /**
  * Turns what the browser read in one viewport into that viewport's part of facts.json: the text
- * blocks with their measured values, and the page facts (type sizes, colors, spacing, left edges,
- * and interactive targets). It also returns each block's text snippet, which the file keeps once.
+ * blocks with their measured values, and the page facts (type sizes, text colors, spacing, left
+ * edges, and interactive targets). It also returns each block's text snippet, which the file keeps
+ * once. A block whose every sampled character the browser could not find at its own position is
+ * left out, because something hides it.
  *
- * @param {object} raw what readPage returned, with each block's rendered font family filled in
+ * @param {object} raw what readPage returned, with each block's rendered font filled in
  * @returns {{ viewport: object, texts: Map<string, string> }}
  */
 export function summarizeViewport(raw) {
+  const hiddenSelectors = new Set();
+  for (const rawBlock of raw.blocks) {
+    const allMissing =
+      rawBlock.samples.length > 0 &&
+      rawBlock.samples.every((sample) => !sample.found);
+    if (allMissing) {
+      hiddenSelectors.add(rawBlock.selector);
+    }
+  }
+  const allBlocks = raw.allBlocks.filter(
+    (block) => !hiddenSelectors.has(block.selector),
+  );
+  const loadedFamilies = new Set(
+    raw.loadedFontFamilies.map((family) => family.toLowerCase()),
+  );
+
   const texts = new Map();
   const textBlocks = [];
+  const listedBlocks = [];
   for (const rawBlock of raw.blocks) {
+    if (hiddenSelectors.has(rawBlock.selector)) {
+      continue;
+    }
+    listedBlocks.push(rawBlock);
     texts.set(rawBlock.selector, rawBlock.text);
+    const notes = [...rawBlock.notes];
+    const size = findMainStyle(rawBlock.styleRuns, (run) =>
+      roundToTenth(run.fontSize),
+    );
+    const weight = findMainStyle(rawBlock.styleRuns, (run) => run.fontWeight);
+    const color = findMainStyle(rawBlock.styleRuns, (run) =>
+      toHexColor(run.color),
+    );
+    if (size.mixed) {
+      notes.push("mixed sizes: font_size is the size of most characters");
+    }
+    if (weight.mixed) {
+      notes.push("mixed weights: font_weight is the weight of most characters");
+    }
+    if (color.mixed) {
+      notes.push("mixed colors: color is the color of most characters");
+    }
+    const font = nameDrawnFont(rawBlock, loadedFamilies);
+    if (font.note !== null) {
+      notes.push(font.note);
+    }
     const lines = measureLines(rawBlock.characterRects);
-    const fontSize = roundToTenth(rawBlock.fontSize);
+    const fontSize = Number(size.value);
     let lineHeight = null;
+    let lineHeightRatio = null;
     if (rawBlock.lineHeight !== null) {
       lineHeight = roundToTenth(rawBlock.lineHeight);
+      lineHeightRatio = Math.round((lineHeight / fontSize) * 100) / 100;
+    } else {
+      notes.push("line height normal, one line");
     }
     const block = {
       selector: rawBlock.selector,
       box: toPixelBox(rawBlock.box),
-      font_family: rawBlock.renderedFamily ?? rawBlock.fontFamily,
+      font_family: font.family,
       font_size: fontSize,
-      font_weight: rawBlock.fontWeight,
+      font_weight: Number(weight.value),
       line_height: lineHeight,
-      line_height_ratio:
-        lineHeight === null
-          ? null
-          : Math.round((lineHeight / fontSize) * 100) / 100,
+      line_height_ratio: lineHeightRatio,
       lines: lines.lines,
       characters_per_line: lines.charactersPerLine,
-      color: rawBlock.colorHex,
+      color: String(color.value),
       ...measureContrast(rawBlock, raw.canvasColor),
     };
-    const notes = [...rawBlock.notes];
-    if (rawBlock.renderedFamily === null) {
-      notes.push("rendered font unknown: font_family is the declared list");
-    } else if (rawBlock.firstDeclaredFamily !== null) {
-      const declared = rawBlock.firstDeclaredFamily.toLowerCase();
-      const isGeneric = [
-        "serif",
-        "sans-serif",
-        "monospace",
-        "cursive",
-        "fantasy",
-        "system-ui",
-      ].includes(declared);
-      if (!isGeneric && rawBlock.renderedFamily.toLowerCase() !== declared) {
-        notes.push(
-          `first declared family ${rawBlock.firstDeclaredFamily} is not the one drawn`,
-        );
-      }
-    }
-    if (rawBlock.lineHeight === null) {
-      notes.push("line height is normal and the block has one line");
-    }
     if (notes.length > 0) {
       block.notes = notes;
     }
@@ -478,65 +613,59 @@ export function summarizeViewport(raw) {
   }
 
   const typeSizes = [];
-  const sizeGroups = new Map();
-  for (const summary of raw.allBlocks) {
-    const size = roundToTenth(summary.fontSize);
-    const group = sizeGroups.get(size) ?? { size, blocks: 0, characters: 0 };
-    group.blocks += 1;
-    group.characters += summary.characters;
-    sizeGroups.set(size, group);
-  }
-  for (const group of sizeGroups.values()) {
-    typeSizes.push(group);
+  const sizeGroups = countStyleValues(allBlocks, (run) =>
+    roundToTenth(run.fontSize),
+  );
+  for (const [size, group] of sizeGroups) {
+    typeSizes.push({
+      size,
+      blocks: group.blocks,
+      characters: group.characters,
+    });
   }
   typeSizes.sort((first, second) => second.size - first.size);
 
   const textColors = [];
-  for (const entry of countByKey(
-    raw.allBlocks,
-    (summary) => summary.colorHex,
-  )) {
+  const colorGroups = countStyleValues(allBlocks, (run) =>
+    toHexColor(run.color),
+  );
+  for (const [color, group] of colorGroups) {
     textColors.push({
-      color: entry.key,
-      blocks: entry.count,
-      example: entry.first.selector,
+      color,
+      blocks: group.blocks,
+      characters: group.characters,
+      example: group.example,
     });
   }
-  const backgroundColors = [];
-  for (const entry of countByKey(raw.backgrounds, (item) => item.colorHex)) {
-    backgroundColors.push({
-      color: entry.key,
-      elements: entry.count,
-      example: entry.first.selector,
-    });
+  textColors.sort((first, second) => second.characters - first.characters);
+
+  const spacingGroups = new Map();
+  for (const gap of raw.gaps) {
+    const group = spacingGroups.get(gap.pixels) ?? {
+      px: gap.pixels,
+      count: 0,
+      example: gap.parentSelector,
+    };
+    group.count += 1;
+    spacingGroups.set(gap.pixels, group);
   }
-  const spacing = [];
-  for (const entry of countByKey(raw.gaps, (gap) => gap.pixels)) {
-    spacing.push({
-      px: entry.key,
-      count: entry.count,
-      example: entry.first.parentSelector,
-    });
-  }
+  const spacing = [...spacingGroups.values()];
   spacing.sort((first, second) => first.px - second.px);
 
-  const leftEdges = [];
   const leftValues = [];
-  for (const rawBlock of raw.blocks) {
+  for (const rawBlock of listedBlocks) {
     if (rawBlock.textLeft !== null) {
       leftValues.push(Math.round(rawBlock.textLeft));
     }
   }
+  const leftEdges = [];
+  let unsharedEdges = 0;
   for (const group of clusterValues(leftValues, 1)) {
-    let example = null;
-    for (const rawBlock of raw.blocks) {
-      const left = rawBlock.textLeft;
-      if (left !== null && Math.abs(Math.round(left) - group.value) <= 1) {
-        example = rawBlock.selector;
-        break;
-      }
+    if (group.count < 2) {
+      unsharedEdges += 1;
+      continue;
     }
-    leftEdges.push({ x: group.value, blocks: group.count, example });
+    leftEdges.push({ x: group.value, blocks: group.count });
   }
 
   const targets = [];
@@ -557,14 +686,14 @@ export function summarizeViewport(raw) {
     page_width: raw.pageWidth,
     page_height: raw.pageHeight,
     notes,
-    text_blocks_found: raw.allBlocks.length,
-    text_blocks_left_out: raw.allBlocks.length - raw.blocks.length,
+    text_blocks_found: allBlocks.length,
+    text_blocks_left_out: allBlocks.length - textBlocks.length,
     text_blocks: textBlocks,
     type_sizes: typeSizes,
     text_colors: textColors,
-    background_colors: backgroundColors,
     spacing,
     left_edges: leftEdges,
+    blocks_on_no_shared_edge: unsharedEdges,
     targets,
     targets_left_out: raw.targetsFound - raw.targets.length,
   };
@@ -577,12 +706,14 @@ export function summarizeViewport(raw) {
 // ---------------------------------------------------------------------------------------------
 
 /**
- * Reads the page's layout and computed styles: every text block, the backgrounds, the gaps between
- * sibling boxes, and the interactive targets. A text block is an element that is not `display:
- * inline` and holds visible text of its own; text inside inline children (a, strong, span) counts
- * toward it, and text inside a nested block counts toward that block. To sample what lies under
- * the text it scrolls the window and asks the browser which elements are painted at a point,
- * top first; it scrolls back to the top when it is done.
+ * Reads the page's layout and computed styles: every text block, the gaps between stacked sibling
+ * blocks, and the interactive targets. A text block is an element that is not `display: inline`
+ * and holds visible text of its own; text inside inline children (a, strong, span) counts toward
+ * it, and text inside a nested block counts toward that block. SVG text is left out, because SVG
+ * draws text with `fill` and transforms that this script does not read. Every color, size, and
+ * weight is read from the element that draws each piece of text. To sample what lies under the
+ * text it scrolls the window, adds a style tag that makes every element answer hit tests, asks the
+ * browser which elements are painted at a point, top first, then removes the tag and scrolls back.
  *
  * @param {{ maxBlocks: number, maxTargets: number, snippetLength: number, maxCharacters: number }} limits
  */
@@ -632,33 +763,12 @@ function readPage(limits) {
     };
   }
 
-  /** Writes a computed rgb() or rgba() color as #rrggbb or #rrggbbaa, or returns it unchanged. */
-  function toHex(colorText) {
-    const match =
-      /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)$/.exec(
-        colorText,
-      );
-    if (match === null) {
-      return colorText;
-    }
-    let hex = "#";
-    for (const channel of [match[1], match[2], match[3]]) {
-      hex += Math.round(Number(channel)).toString(16).padStart(2, "0");
-    }
-    if (match[4] !== undefined && Number(match[4]) < 1) {
-      hex += Math.round(Number(match[4]) * 255)
-        .toString(16)
-        .padStart(2, "0");
-    }
-    return hex;
-  }
-
   /** Says whether a computed background color paints anything (its alpha is above zero). */
   function paintsColor(colorText) {
     return colorText !== "rgba(0, 0, 0, 0)" && colorText !== "transparent";
   }
 
-  /** Returns the nearest element at or above a node whose display is not inline: the block that owns its text. */
+  /** Returns the nearest element above a node whose display is not inline: the block that owns its text. */
   function findOwner(node) {
     let element = node.parentElement;
     while (element !== null) {
@@ -671,35 +781,80 @@ function readPage(limits) {
     return null;
   }
 
+  /** Says whether an element changes the colors drawn under or inside it by opacity, a filter, or a blend mode. */
+  function hasPaintEffect(element) {
+    const style = getComputedStyle(element);
+    return (
+      Number.parseFloat(style.opacity) < 1 ||
+      style.filter !== "none" ||
+      style.backdropFilter !== "none" ||
+      style.mixBlendMode !== "normal"
+    );
+  }
+
+  /** Says whether the element's ::before or ::after has content and paints a background. */
+  function hasPaintedPseudo(element) {
+    for (const pseudo of ["::before", "::after"]) {
+      const style = getComputedStyle(element, pseudo);
+      const hasContent = style.content !== "none" && style.content !== "normal";
+      const paints =
+        paintsColor(style.backgroundColor) || style.backgroundImage !== "none";
+      if (hasContent && paints) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // Measure layout at the top of the page, so fixed and sticky elements sit where the screenshot shows them.
   window.scrollTo(0, 0);
 
-  const textNodesByOwner = new Map();
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  let textNode = walker.nextNode();
-  while (textNode !== null) {
-    const owner = findOwner(textNode);
-    if (owner !== null) {
-      const list = textNodesByOwner.get(owner);
-      if (textNode.data.trim() !== "") {
-        textNodesByOwner.set(owner, [...(list ?? []), textNode]);
-      } else if (list !== undefined) {
-        // White space between inline children ("Home</a> <a>Features") belongs to the block's text,
-        // but it alone never makes an element a text block.
-        list.push(textNode);
+  // Each owner gets its text nodes in document order, and a { lineBreak: true } entry for each <br>.
+  const entriesByOwner = new Map();
+  const walker = document.createTreeWalker(
+    document.body,
+    // The bitwise OR asks the walker for both text nodes and elements.
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+  );
+  let node = walker.nextNode();
+  while (node !== null) {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      if (node.localName === "br") {
+        const owner = findOwner(node);
+        const list = owner === null ? undefined : entriesByOwner.get(owner);
+        list?.push({ lineBreak: true });
+      }
+    } else if (node.parentElement?.closest("svg") == null) {
+      const owner = findOwner(node);
+      if (owner !== null) {
+        const list = entriesByOwner.get(owner);
+        if (node.data.trim() !== "") {
+          entriesByOwner.set(owner, [...(list ?? []), { textNode: node }]);
+        } else if (list !== undefined) {
+          // White space between inline children belongs to the block's text, but alone never makes a block.
+          list.push({ textNode: node });
+        }
       }
     }
-    textNode = walker.nextNode();
+    node = walker.nextNode();
   }
 
   const candidates = [];
-  for (const [owner, nodes] of textNodesByOwner) {
+  for (const [owner, entries] of entriesByOwner) {
     const visible = owner.checkVisibility({
       opacityProperty: true,
       visibilityProperty: true,
     });
     const rect = owner.getBoundingClientRect();
-    if (!visible || rect.width === 0 || rect.height === 0) {
+    const style = getComputedStyle(owner);
+    const tooSmall = rect.width <= 1 && rect.height <= 1;
+    const outsidePage =
+      rect.right + window.scrollX <= 0 ||
+      rect.bottom + window.scrollY <= 0 ||
+      rect.left + window.scrollX >= pageWidth ||
+      rect.top + window.scrollY >= pageHeight;
+    const clippedAway = style.clipPath !== "none" || style.clip !== "auto";
+    if (!visible || tooSmall || outsidePage || clippedAway) {
       continue;
     }
     // Leave out a block that an ancestor's overflow hides completely, and note one it hides in part.
@@ -710,8 +865,11 @@ function readPage(limits) {
     let visibleBottom = rect.bottom;
     let ancestor = owner.parentElement;
     while (ancestor !== null && ancestor !== document.documentElement) {
-      const style = getComputedStyle(ancestor);
-      if (style.overflowX !== "visible" || style.overflowY !== "visible") {
+      const ancestorStyle = getComputedStyle(ancestor);
+      const clips =
+        ancestorStyle.overflowX !== "visible" ||
+        ancestorStyle.overflowY !== "visible";
+      if (clips) {
         const clip = ancestor.getBoundingClientRect();
         visibleLeft = Math.max(visibleLeft, clip.left);
         visibleTop = Math.max(visibleTop, clip.top);
@@ -734,46 +892,59 @@ function readPage(limits) {
     if (visibleArea < rect.width * rect.height - 1) {
       notes.push("partly hidden by an ancestor's overflow");
     }
-    const style = getComputedStyle(owner);
     let rawText = "";
-    for (const node of nodes) {
-      rawText += node.data;
+    const styleRuns = [];
+    for (const entry of entries) {
+      if (entry.lineBreak) {
+        rawText += " ";
+        continue;
+      }
+      rawText += entry.textNode.data;
+      const characters = entry.textNode.data.replace(/\s/g, "").length;
+      const parent = entry.textNode.parentElement;
+      if (characters > 0 && parent !== null) {
+        const textStyle = getComputedStyle(parent);
+        styleRuns.push({
+          characters,
+          color: textStyle.color,
+          fontSize: Number.parseFloat(textStyle.fontSize),
+          fontWeight: Number(textStyle.fontWeight),
+        });
+      }
+    }
+    if (styleRuns.length === 0) {
+      continue;
     }
     // Collapse each run of white space to one space, as the browser draws it.
     const text = rawText.replace(/\s+/g, " ").trim();
+    const isHeading = /^h[1-6]$/.test(owner.localName);
     candidates.push({
       owner,
-      nodes,
+      entries,
       notes,
       style,
       text,
-      fontSize: Number.parseFloat(style.fontSize),
-      colorHex: toHex(style.color),
+      styleRuns,
+      isHeading,
     });
   }
 
-  // Longest text first, then the larger type; the list in the file is cut after maxBlocks.
-  candidates.sort((first, second) => {
-    if (second.text.length !== first.text.length) {
-      return second.text.length - first.text.length;
-    }
-    return second.fontSize - first.fontSize;
-  });
+  // Headings first, then the other blocks, each in document order; the list is cut after maxBlocks.
+  const ordered = [
+    ...candidates.filter((candidate) => candidate.isHeading),
+    ...candidates.filter((candidate) => !candidate.isHeading),
+  ];
 
   const allBlocks = [];
-  for (const candidate of candidates) {
-    allBlocks.push({
-      fontSize: candidate.fontSize,
-      characters: candidate.text.length,
-      colorHex: candidate.colorHex,
-      selector: null,
-    });
+  for (const candidate of ordered) {
+    allBlocks.push({ selector: null, styleRuns: candidate.styleRuns });
   }
 
   const blocks = [];
-  const kept = candidates.slice(0, limits.maxBlocks);
-  for (const [index, candidate] of kept.entries()) {
-    const { owner, style } = candidate;
+  for (const [index, candidate] of ordered
+    .slice(0, limits.maxBlocks)
+    .entries()) {
+    const { owner, style, entries } = candidate;
     const selector = buildSelector(owner);
     const summary = allBlocks[index];
     if (summary !== undefined) {
@@ -784,18 +955,22 @@ function readPage(limits) {
     const range = document.createRange();
     let textLeft = null;
     let measured = 0;
-    for (const node of candidate.nodes) {
-      for (let offset = 0; offset < node.data.length; offset++) {
+    for (const entry of entries) {
+      const textNode = entry.textNode;
+      if (textNode === undefined) {
+        continue;
+      }
+      for (let offset = 0; offset < textNode.data.length; offset++) {
         if (measured >= limits.maxCharacters) {
           break;
         }
-        const character = node.data[offset];
+        const character = textNode.data[offset];
         if (character === "\n" || character === "\r") {
           // A kept line break (white-space: pre or pre-line) ends a line; it is not a character on it.
           continue;
         }
-        range.setStart(node, offset);
-        range.setEnd(node, offset + 1);
+        range.setStart(textNode, offset);
+        range.setEnd(textNode, offset + 1);
         const rect = range.getBoundingClientRect();
         if (rect.width === 0) {
           // White space that the browser collapsed is not drawn, and its rectangle has no width.
@@ -806,6 +981,7 @@ function readPage(limits) {
           top: rect.top + window.scrollY,
           bottom: rect.bottom + window.scrollY,
           centerX: rect.left + window.scrollX + rect.width / 2,
+          textElement: textNode.parentElement,
         });
         const left = rect.left + window.scrollX;
         const isLetter = character?.trim() !== "";
@@ -839,54 +1015,21 @@ function readPage(limits) {
       }
     }
 
-    // Opacity, filters, and blend modes on the block or an ancestor change the drawn colors in ways one ratio cannot hold.
-    let paintEffect = null;
-    let zoom = 1;
-    let element = owner;
-    while (element !== null) {
-      const elementStyle = getComputedStyle(element);
-      const hasEffect =
-        Number.parseFloat(elementStyle.opacity) < 1 ||
-        elementStyle.filter !== "none" ||
-        elementStyle.mixBlendMode !== "normal";
-      if (hasEffect && paintEffect === null) {
-        paintEffect = "opacity, filter, or blend mode";
-      }
-      zoom *= Number.parseFloat(elementStyle.zoom) || 1;
-      element = element.parentElement;
+    const declaredFamilies = [];
+    for (const family of style.fontFamily.split(",")) {
+      declaredFamilies.push(family.trim().replace(/^["']|["']$/g, ""));
     }
-    if (zoom !== 1) {
-      candidate.notes.push(
-        `CSS zoom ${zoom}: font_size is the computed size before zoom`,
-      );
-    }
-    const fillColor = style.webkitTextFillColor;
-    const textFill =
-      style.backgroundClip === "text" ||
-      style.webkitBackgroundClip === "text" ||
-      (fillColor !== undefined &&
-        fillColor !== style.color &&
-        !paintsColor(fillColor));
-
-    const declaredFamilies = style.fontFamily.split(",");
-    const firstDeclared = declaredFamilies[0]
-      ?.trim()
-      .replace(/^["']|["']$/g, "");
 
     blocks.push({
       selector,
       text: candidate.text.slice(0, limits.snippetLength),
       box: pageBox(owner.getBoundingClientRect()),
       fontFamily: style.fontFamily,
-      firstDeclaredFamily: firstDeclared ?? null,
+      declaredFamilies,
       renderedFamily: null,
-      fontSize: candidate.fontSize,
-      fontWeight: Number(style.fontWeight),
+      renderedIsCustom: false,
+      styleRuns: candidate.styleRuns,
       lineHeight,
-      color: style.color,
-      colorHex: candidate.colorHex,
-      textFill,
-      paintEffect,
       characterRects,
       textLeft,
       notes: candidate.notes,
@@ -895,28 +1038,31 @@ function readPage(limits) {
     });
   }
 
-  const backgrounds = [];
+  // The vertical space between neighboring block-level siblings in flow, which holds their margins and the parent's gap.
+  const blockDisplays = new Set([
+    "block",
+    "flex",
+    "grid",
+    "table",
+    "list-item",
+    "flow-root",
+  ]);
   const gaps = [];
-  // The body counts too: its background and the space between its children are page facts.
   for (const element of [
     document.body,
     ...document.body.querySelectorAll("*"),
   ]) {
-    const style = getComputedStyle(element);
-    if (style.display === "none") {
+    if (getComputedStyle(element).display === "none") {
       continue;
     }
-    if (paintsColor(style.backgroundColor) && element.checkVisibility()) {
-      backgrounds.push({ element, colorHex: toHex(style.backgroundColor) });
-    }
-    // The space between consecutive sibling boxes in flow, which holds their margins and the parent's gap.
     const children = [];
     for (const child of element.children) {
       const childStyle = getComputedStyle(child);
       const inFlow =
         childStyle.position !== "absolute" && childStyle.position !== "fixed";
       const childRect = child.getBoundingClientRect();
-      if (inFlow && childRect.width > 0 && childRect.height > 0) {
+      const isBlock = blockDisplays.has(childStyle.display);
+      if (inFlow && isBlock && childRect.width > 0 && childRect.height > 0) {
         children.push(childRect);
       }
     }
@@ -926,14 +1072,10 @@ function readPage(limits) {
       if (previous === undefined || current === undefined) {
         continue;
       }
-      let gap = null;
-      if (current.top >= previous.bottom - 0.5) {
-        gap = current.top - previous.bottom;
-      } else if (current.left >= previous.right - 0.5) {
-        gap = current.left - previous.right;
-      }
-      if (gap !== null && Math.round(gap) >= 1) {
-        gaps.push({ pixels: Math.round(gap), parent: element });
+      const stacked = current.top >= previous.bottom - 0.5;
+      const gap = Math.round(current.top - previous.bottom);
+      if (stacked && gap >= 1) {
+        gaps.push({ pixels: gap, parent: element });
       }
     }
   }
@@ -947,17 +1089,7 @@ function readPage(limits) {
     }
     return selector;
   }
-  // Only the first element of each value is named in the file, so build those selectors only.
-  const namedBackgrounds = new Set();
-  const backgroundsOut = [];
-  for (const item of backgrounds) {
-    let selector = null;
-    if (!namedBackgrounds.has(item.colorHex)) {
-      namedBackgrounds.add(item.colorHex);
-      selector = cachedSelector(item.element);
-    }
-    backgroundsOut.push({ colorHex: item.colorHex, selector });
-  }
+  // Only the first parent of each distance is named in the file, so build those selectors only.
   const namedGaps = new Set();
   const gapsOut = [];
   for (const gap of gaps) {
@@ -978,7 +1110,7 @@ function readPage(limits) {
       opacityProperty: true,
       visibilityProperty: true,
     });
-    if (visible && rect.width > 0 && rect.height > 0) {
+    if (visible && rect.width > 1 && rect.height > 1) {
       targetElements.push(element);
     }
   }
@@ -989,6 +1121,12 @@ function readPage(limits) {
       box: pageBox(element.getBoundingClientRect()),
     });
   }
+
+  // While sampling, every element answers hit tests, so an overlay with pointer-events: none is seen.
+  const forceHits = document.createElement("style");
+  forceHits.textContent =
+    "*, *::before, *::after { pointer-events: auto !important; }";
+  document.documentElement.append(forceHits);
 
   // Sample what is painted under up to three characters of each block: the first, the middle, and the last.
   const replacedTags = new Set([
@@ -1023,7 +1161,7 @@ function readPage(limits) {
         (element) => element === block.owner || block.owner.contains(element),
       );
       if (firstOwnIndex === -1 || !stack.includes(block.owner)) {
-        block.samples.push({ found: false, covered: false, layers: [] });
+        block.samples.push({ found: false });
         continue;
       }
       let covered = false;
@@ -1032,14 +1170,23 @@ function readPage(limits) {
         const paints =
           paintsColor(style.backgroundColor) ||
           style.backgroundImage !== "none" ||
-          replacedTags.has(element.localName);
+          replacedTags.has(element.localName) ||
+          hasPaintedPseudo(element);
         if (paints) {
           covered = true;
         }
       }
+      let pseudo = false;
+      let paintEffect = false;
       const layers = [];
       for (const element of stack.slice(firstOwnIndex)) {
         const style = getComputedStyle(element);
+        if (hasPaintedPseudo(element)) {
+          pseudo = true;
+        }
+        if (hasPaintEffect(element)) {
+          paintEffect = true;
+        }
         layers.push({
           backgroundColor: style.backgroundColor,
           hasImage: style.backgroundImage !== "none",
@@ -1049,9 +1196,34 @@ function readPage(limits) {
             !block.owner.contains(element),
         });
       }
-      block.samples.push({ found: true, covered, layers });
+      // An ancestor's opacity changes the text even where the ancestor's box is not under the point.
+      let ancestor = rect.textElement;
+      while (ancestor !== null) {
+        if (hasPaintEffect(ancestor)) {
+          paintEffect = true;
+        }
+        ancestor = ancestor.parentElement;
+      }
+      const textStyle = getComputedStyle(rect.textElement);
+      const fillColor = textStyle.webkitTextFillColor;
+      const textFill =
+        textStyle.backgroundClip === "text" ||
+        textStyle.webkitBackgroundClip === "text" ||
+        (fillColor !== undefined &&
+          fillColor !== textStyle.color &&
+          !paintsColor(fillColor));
+      block.samples.push({
+        found: true,
+        covered,
+        pseudo,
+        paintEffect,
+        textFill,
+        color: textStyle.color,
+        layers,
+      });
     }
   }
+  forceHits.remove();
   window.scrollTo(0, 0);
 
   // Where no element paints, the browser shows the root's background, or the body's when the root has none.
@@ -1060,17 +1232,27 @@ function readPage(limits) {
     canvasColor = getComputedStyle(document.body).backgroundColor;
   }
 
+  const loadedFontFamilies = [];
+  for (const face of document.fonts) {
+    if (face.status === "loaded") {
+      loadedFontFamilies.push(face.family.replace(/^["']|["']$/g, ""));
+    }
+  }
+
   for (const block of blocks) {
-    // The element itself cannot leave the browser; the selector names it.
+    // Elements cannot leave the browser; the selector names the block.
     delete block.owner;
+    for (const rect of block.characterRects) {
+      delete rect.textElement;
+    }
   }
   return {
     pageHeight,
     pageWidth,
     canvasColor,
+    loadedFontFamilies,
     blocks,
     allBlocks,
-    backgrounds: backgroundsOut,
     gaps: gapsOut,
     targets,
     targetsFound: targetElements.length,
@@ -1118,24 +1300,47 @@ function toPageUrl(pageArgument) {
   return pathToFileURL(filePath).href;
 }
 
+/** Returns the first line of an error's message, so the script prints exactly one line. */
+function firstLineOf(error) {
+  let message = String(error);
+  if (error instanceof Error) {
+    message = error.message;
+  }
+  return message.split("\n")[0] ?? message;
+}
+
 /**
- * Opens the page in one viewport and waits for it to settle: the load event, a quiet network, and
- * web fonts, each with a time limit. A page that never settles is still measured, and the returned
- * notes say what did not finish.
+ * Opens the page in one viewport, in light mode, and waits for it to settle: the load event, a
+ * quiet network, and web fonts, each with a time limit. A page that never settles is still
+ * measured, and the returned notes say what did not finish. An HTTP error status refuses the page.
+ * It also returns the URL the browser ended on, which differs from the one asked after a redirect.
  */
 async function openPage(browser, viewport, pageUrl) {
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: 1,
+    colorScheme: COLOR_SCHEME,
   });
   const page = await context.newPage();
   const notes = [];
   try {
-    await page.goto(pageUrl, { waitUntil: "load", timeout: LOAD_TIMEOUT_MS });
+    const response = await page.goto(pageUrl, {
+      waitUntil: "load",
+      timeout: LOAD_TIMEOUT_MS,
+    });
+    // A file:// page has no HTTP status; response is null or reports 0 or 200.
+    const status = response?.status() ?? 0;
+    if (status >= 400) {
+      await context.close();
+      throw new MeasureRefusal(`the page answered HTTP ${status}`);
+    }
   } catch (error) {
+    if (error instanceof MeasureRefusal) {
+      throw error;
+    }
     if (!(error instanceof Error) || error.name !== "TimeoutError") {
       await context.close();
-      throw new MeasureRefusal(`the page did not open: ${String(error)}`);
+      throw new MeasureRefusal(`the page did not open: ${firstLineOf(error)}`);
     }
     notes.push(
       `the page did not finish loading within ${LOAD_TIMEOUT_MS / 1000} s; measured what was there`,
@@ -1178,7 +1383,7 @@ async function openPage(browser, viewport, pageUrl) {
       `web font ${family} failed to load; text that names it is drawn in a fallback font`,
     );
   }
-  return { context, page, notes };
+  return { context, page, notes, finalUrl: page.url() };
 }
 
 /**
@@ -1207,6 +1412,8 @@ async function readRenderedFamilies(page, blocks) {
       }
       if (best !== null) {
         block.renderedFamily = best.familyName;
+        // isCustomFont is true for a web font; its familyName is the name inside the font file.
+        block.renderedIsCustom = best.isCustomFont === true;
       }
     } catch {
       // The browser could not say; the declared list stands, with a note.
@@ -1216,10 +1423,10 @@ async function readRenderedFamilies(page, blocks) {
 }
 
 /**
- * Plans the one-screen crops of a full-page screenshot: full width, one viewport tall, top to
- * bottom, neighbors sharing crop.mjs's OVERLAP_FRACTION, the last one ending at the bottom of the
- * page. The first crop is always what shows before any scroll; a page no taller than the screen
- * gets that one crop only.
+ * Plans the one-screen crops of a full-page screenshot with crop.mjs's splitLength: full width,
+ * one viewport tall, top to bottom, neighbors sharing crop.mjs's OVERLAP_FRACTION. splitLength
+ * stretches the last crop to the bottom of the page rather than add a near copy, so the last crop
+ * can be up to one and a half screens tall. The first crop is always what shows before any scroll.
  *
  * @param {number} pageWidth
  * @param {number} pageHeight
@@ -1227,22 +1434,20 @@ async function readRenderedFamilies(page, blocks) {
  * @returns {{ x: number, y: number, width: number, height: number }[]}
  */
 export function planScreenCrops(pageWidth, pageHeight, screenHeight) {
-  if (pageHeight <= screenHeight) {
-    return [{ x: 0, y: 0, width: pageWidth, height: pageHeight }];
-  }
-  const step = screenHeight - Math.round(screenHeight * OVERLAP_FRACTION);
+  const pieces = splitLength(
+    pageHeight,
+    screenHeight,
+    Math.round(screenHeight * OVERLAP_FRACTION),
+  );
   const crops = [];
-  let top = 0;
-  while (top + screenHeight < pageHeight) {
-    crops.push({ x: 0, y: top, width: pageWidth, height: screenHeight });
-    top += step;
+  for (const piece of pieces) {
+    crops.push({
+      x: 0,
+      y: piece.start,
+      width: pageWidth,
+      height: piece.length,
+    });
   }
-  crops.push({
-    x: 0,
-    y: pageHeight - screenHeight,
-    width: pageWidth,
-    height: screenHeight,
-  });
   return crops;
 }
 
@@ -1335,13 +1540,17 @@ export async function measurePage(
   const lines = [];
   const texts = {};
   const viewports = [];
+  const finalUrls = new Set();
   try {
     for (const viewport of VIEWPORTS) {
-      const { context, page, notes } = await openPage(
+      const { context, page, notes, finalUrl } = await openPage(
         browser,
         viewport,
         pageUrl,
       );
+      if (finalUrl !== pageUrl) {
+        finalUrls.add(finalUrl);
+      }
       const screenshotName = `${viewport.name}.png`;
       const screenshotPath = join(outputFolder, screenshotName);
       await page.screenshot({
@@ -1384,9 +1593,17 @@ export async function measurePage(
   const facts = {
     version: FACTS_VERSION,
     source: pageArgument,
-    texts,
-    viewports,
+    color_scheme: COLOR_SCHEME,
+    notes: [],
   };
+  if (finalUrls.size > 0) {
+    facts.final_url = [...finalUrls].join(" ");
+    facts.notes.push(
+      `the browser ended on ${facts.final_url}, not on ${pageUrl}; the facts describe the page it ended on`,
+    );
+  }
+  facts.texts = texts;
+  facts.viewports = viewports;
   const factsPath = join(outputFolder, "facts.json");
   await writeFile(factsPath, `${formatFactsJson(facts)}\n`);
   lines.push(`facts ${factsPath}`);
@@ -1428,13 +1645,9 @@ export async function runMeasure(commandArguments, workingDirectory) {
     );
     return { exitCode: 0, lines };
   } catch (error) {
-    let reason = String(error);
-    if (error instanceof Error) {
-      reason = error.message;
-    }
     return {
       exitCode: EXIT_CANNOT_MEASURE,
-      lines: [`cannot measure: ${reason}`],
+      lines: [`cannot measure: ${firstLineOf(error)}`],
     };
   }
 }

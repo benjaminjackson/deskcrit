@@ -1,0 +1,126 @@
+<!doctype html>
+<!--
+  Hard cases for measure.mjs (PRD FR-79), from the review of crit-0a0.1. evals/measure/browser-check.mjs
+  measures this page and checks each case; hard-cases.facts.json is its committed output.
+  #link-heading: a heading whose text a light #bbbbbb link draws, so its contrast is about 1.9, not 21.
+  #mixed: black text with a smaller light span, so the block notes mixed sizes and colors.
+  #brand: an @font-face name ("Brand") whose file is Source Serif 4; no note about the font.
+  #missing: an @font-face whose file does not exist; the block notes that "Missing" is not drawn.
+  The SVG text is left out of the text blocks.
+  #under-scrim: under an overlay with pointer-events: none, so it is covered.
+  #on-pseudo: on a ::before that paints black, so its contrast is not measurable.
+  #on-faded-sibling: on a sibling with opacity 0.5, so its contrast is not measurable.
+  .sr-only, #off-page, #clip-path: hidden text that is left out; #aria-hidden is drawn and stays.
+  #address: lines joined by <br>, so its snippet joins them with a space.
+  The 65 .filler paragraphs push the list past its cap of 60; #last-heading, an h6 at the end, is still listed.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Hard cases</title>
+  <style>
+    @font-face { font-family: "Inter"; font-weight: 400; font-display: block; src: url("../../packs/_renderer/fonts/inter-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Brand"; font-weight: 400; font-display: block; src: url("../../packs/_renderer/fonts/source-serif-4-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Missing"; font-display: block; src: url("missing-font.woff2") format("woff2"); }
+    body { margin: 0; padding: 20px; background: #ffffff; color: #000000; font: 16px/24px "Inter", sans-serif; }
+    p, h2, h6 { margin: 0 0 16px; }
+    h2 { font-size: 24px; line-height: 32px; font-weight: 400; }
+    #link-heading a { color: #bbbbbb; text-decoration: none; }
+    #mixed span { color: #aaaaaa; font-size: 10px; }
+    #brand { font-family: "Brand", serif; }
+    #missing { font-family: "Missing", "Inter", sans-serif; }
+    .stack { position: relative; margin-bottom: 16px; }
+    .scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.8); pointer-events: none; }
+    .pseudo { position: relative; padding: 8px; margin-bottom: 16px; }
+    .pseudo::before { content: ""; position: absolute; inset: 0; background: #000000; z-index: 0; }
+    #on-pseudo { position: relative; z-index: 1; margin: 0; color: #ffffff; }
+    .faded-sibling { position: relative; padding: 8px; margin-bottom: 16px; }
+    .faded-sibling .backdrop { position: absolute; inset: 0; background: #000000; opacity: 0.5; }
+    #on-faded-sibling { position: relative; margin: 0; color: #ffffff; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    #off-page { position: absolute; left: -9999px; }
+    #clip-path { clip-path: inset(50%); }
+  </style>
+</head>
+<body>
+  <a class="sr-only" href="#main">Skip to the main content</a>
+  <h2 id="link-heading"><a href="#">A heading drawn by a light link</a></h2>
+  <p id="mixed">Black body text with <span>a small light gray aside</span> in it.</p>
+  <p id="brand">This paragraph uses the Brand family, which loads Source Serif 4.</p>
+  <p id="missing">This paragraph names a web font whose file does not exist.</p>
+  <svg width="300" height="40"><text x="0" y="20" fill="#bbbbbb" font-size="12">An SVG axis label</text></svg>
+  <div class="stack"><p id="under-scrim">Black text under a scrim that ignores the pointer.</p><div class="scrim"></div></div>
+  <div class="pseudo"><p id="on-pseudo">White text on a black before pseudo-element.</p></div>
+  <div class="faded-sibling"><div class="backdrop"></div><p id="on-faded-sibling">White text on a half-opacity black sibling.</p></div>
+  <p id="off-page">Text placed far off the page.</p>
+  <p id="clip-path">Text hidden by a clip path.</p>
+  <p id="aria-hidden" aria-hidden="true">Text hidden from screen readers but drawn.</p>
+  <p id="address">Line one of an address<br>Line two of an address<br>Line three</p>
+    <p class="filler">Filler paragraph 1 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 2 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 3 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 4 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 5 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 6 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 7 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 8 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 9 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 10 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 11 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 12 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 13 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 14 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 15 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 16 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 17 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 18 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 19 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 20 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 21 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 22 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 23 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 24 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 25 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 26 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 27 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 28 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 29 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 30 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 31 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 32 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 33 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 34 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 35 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 36 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 37 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 38 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 39 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 40 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 41 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 42 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 43 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 44 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 45 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 46 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 47 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 48 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 49 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 50 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 51 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 52 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 53 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 54 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 55 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 56 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 57 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 58 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 59 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 60 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 61 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 62 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 63 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 64 that fills the list of text blocks.</p>
+    <p class="filler">Filler paragraph 65 that fills the list of text blocks.</p>
+  <h6 id="last-heading">A heading at the end of the page</h6>
+</body>
+</html>

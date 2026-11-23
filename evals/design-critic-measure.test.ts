@@ -7,9 +7,11 @@ import {
   compositeColor,
   contrastRatio,
   EXIT_USAGE,
+  findMainStyle,
   formatFactsJson,
   measureContrast,
   measureLines,
+  nameDrawnFont,
   parseCssColor,
   planScreenCrops,
   resolveBackground,
@@ -116,51 +118,96 @@ describe("resolveBackground", () => {
 });
 
 describe("measureContrast", () => {
-  const plainBlock = {
-    color: "rgb(0, 0, 0)",
+  const plainSample = {
+    found: true,
+    covered: false,
+    pseudo: false,
+    paintEffect: false,
     textFill: false,
-    paintEffect: null,
-    samples: [
+    color: "rgb(0, 0, 0)",
+    layers: [
       {
-        found: true,
-        covered: false,
-        layers: [
-          {
-            backgroundColor: "rgb(255, 255, 255)",
-            hasImage: false,
-            replaced: false,
-          },
-        ],
+        backgroundColor: "rgb(255, 255, 255)",
+        hasImage: false,
+        replaced: false,
       },
     ],
   };
 
-  it("measures text over a plain color", () => {
-    expect(measureContrast(plainBlock, "")).toEqual({
+  it("measures each sampled character's own color over a plain color and keeps the lowest", () => {
+    expect(measureContrast({ samples: [plainSample] }, "")).toEqual({
       contrast: 21,
       background: "#ffffff",
     });
+    const lightLink = { ...plainSample, color: "rgb(187, 187, 187)" };
+    expect(
+      measureContrast({ samples: [plainSample, lightLink] }, "").contrast,
+    ).toBe(1.92);
   });
 
-  it("gives null with a note for a covered block, a text fill, or a paint effect", () => {
-    const covered = {
-      ...plainBlock,
-      samples: [{ ...plainBlock.samples[0], covered: true }],
+  it("gives null with a note for each case one number would get wrong", () => {
+    const cases: [Record<string, unknown>, string][] = [
+      [{ covered: true }, "not measurable: covered by another element"],
+      [{ textFill: true }, "not measurable: image or gradient text fill"],
+      [{ pseudo: true }, "not measurable: pseudo-element background"],
+      [{ paintEffect: true }, "not measurable: opacity, filter, or blend mode"],
+      [{ found: false }, "not measurable: text not found at its own position"],
+      [
+        { color: "oklch(0.5 0.1 200)" },
+        "not measurable: color format oklch(0.5 0.1 200)",
+      ],
+    ];
+    for (const [change, note] of cases) {
+      expect(
+        measureContrast({ samples: [{ ...plainSample, ...change }] }, ""),
+      ).toEqual({ contrast: null, contrast_note: note });
+    }
+  });
+});
+
+describe("findMainStyle", () => {
+  it("picks the value that covers the most characters and says when values are mixed", () => {
+    const runs = [
+      { characters: 5, color: "black" },
+      { characters: 30, color: "gray" },
+    ];
+    expect(findMainStyle(runs, (run) => run.color)).toEqual({
+      value: "gray",
+      mixed: true,
+    });
+    expect(findMainStyle(runs.slice(0, 1), (run) => run.color)).toEqual({
+      value: "black",
+      mixed: false,
+    });
+  });
+});
+
+describe("nameDrawnFont", () => {
+  const base = {
+    renderedFamily: "Source Serif 4",
+    renderedIsCustom: true,
+    declaredFamilies: ["Brand", "serif"],
+    fontFamily: '"Brand", serif',
+  };
+
+  it("names a loaded web font by its @font-face name, with no note", () => {
+    expect(nameDrawnFont(base, new Set(["brand"]))).toEqual({
+      family: "Brand",
+      note: null,
+    });
+  });
+
+  it("notes a first declared family that is not drawn", () => {
+    const fallback = {
+      ...base,
+      renderedFamily: "Georgia",
+      renderedIsCustom: false,
+      declaredFamilies: ["Missing", "Georgia", "serif"],
     };
-    expect(measureContrast(covered, "")).toEqual({
-      contrast: null,
-      contrast_note: "not measurable: covered by another element",
+    expect(nameDrawnFont(fallback, new Set())).toEqual({
+      family: "Georgia",
+      note: "first declared family Missing is not the one drawn",
     });
-    expect(measureContrast({ ...plainBlock, textFill: true }, "")).toEqual({
-      contrast: null,
-      contrast_note: "not measurable: image or gradient text fill",
-    });
-    expect(
-      measureContrast(
-        { ...plainBlock, paintEffect: "opacity, filter, or blend mode" },
-        "",
-      ).contrast,
-    ).toBeNull();
   });
 });
 
@@ -210,11 +257,15 @@ describe("planScreenCrops", () => {
     ]);
   });
 
-  it("gives screen-tall crops that overlap and end at the bottom of the page", () => {
+  it("gives screen-tall crops through crop.mjs's splitLength, the last one stretched to the bottom", () => {
     expect(planScreenCrops(390, 2000, 844)).toEqual([
       { x: 0, y: 0, width: 390, height: 844 },
       { x: 0, y: 760, width: 390, height: 844 },
       { x: 0, y: 1156, width: 390, height: 844 },
+    ]);
+    expect(planScreenCrops(390, 1900, 844)).toEqual([
+      { x: 0, y: 0, width: 390, height: 844 },
+      { x: 0, y: 760, width: 390, height: 1140 },
     ]);
   });
 });
@@ -223,10 +274,15 @@ describe("facts.json", () => {
   const validate = compileFactsValidator();
   const sample = readJson("evals/measure/known-values.facts.json");
 
-  it("the committed sample from the known-values page validates against schemas/facts.schema.json", () => {
-    const valid = validate(sample);
-    expect(validate.errors ?? []).toEqual([]);
-    expect(valid).toBe(true);
+  it("the committed samples of both pages validate against schemas/facts.schema.json", () => {
+    for (const path of [
+      "evals/measure/known-values.facts.json",
+      "evals/measure/hard-cases.facts.json",
+    ]) {
+      const valid = validate(readJson(path));
+      expect(validate.errors ?? []).toEqual([]);
+      expect(valid).toBe(true);
+    }
   });
 
   it("the schema rejects a file without its version or with an unknown field", () => {
