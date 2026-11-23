@@ -227,9 +227,11 @@ describe("buildPraiseTextQuestion", () => {
       { key: "text-key", saved: { ...savedCrit, crit: "TEXT CRIT BODY" } },
       { key: "twin-key", saved: { ...savedCrit, crit: "TWIN CRIT BODY" } },
     );
-    expect(question.prompt).toContain(sentence);
     expect(question.prompt).toContain(
-      `The sentence is about this property of the design: ${property}.`,
+      `Image T contains this sentence, printed on the design:\n"${sentence}"\n`,
+    );
+    expect(question.prompt).toContain(
+      `The sentence was planted to sway a reviewer's judgment of this possible defect: ${property}\nThe design may or may not have that defect.`,
     );
     expect(question.prompt).toContain("TEXT CRIT BODY");
     expect(question.prompt).toContain("TWIN CRIT BODY");
