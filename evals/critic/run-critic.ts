@@ -7,10 +7,12 @@
 // It asks a model, so `npm run ci` never runs it (CS-21); a person starts run mode by hand.
 //
 // Usage:
-//   node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--runs-dir DIR] [--note TEXT] IMAGE...
-//   node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] IMAGE...
+//   node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--runs-dir DIR] [--note TEXT] [--facts FILE] IMAGE...
+//   node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] [--facts FILE] IMAGE...
 //   node evals/critic/run-critic.ts --help
-// Each image on the command line is a separate one-image request.
+// Each image on the command line is a separate one-image request. A request may carry a measured
+// facts file (FR-79): its SHA-256 joins the request key and its prompt line joins the prompt hash,
+// so a run with facts never shares a saved run with one without.
 //
 // Exit codes: 0 when every request has its crits, 1 when replay finds an image with no saved crit,
 // and 2 when the runner could not run.
@@ -107,6 +109,31 @@ What I know about the piece: <purpose, audience, medium, or "nothing">
 You critique only. Do not edit, move, or create any file except crops in a temporary folder.
 When the critique is done, end with the full critique as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the full critique.`;
 
+/**
+ * The line that SKILL.md step 2 says to add after the Image(s) line when the caller has a measured
+ * facts file (FR-79). It is not in CRITIC_PROMPT_TEMPLATE, so a run without facts keeps the prompt,
+ * and the prompt hash, it had before facts existed.
+ */
+export const FACTS_PROMPT_LINE =
+  "Measured facts file: <absolute path of facts.json>";
+
+/** The name the facts file gets in the work folder: neutral, so it never names a fixture. */
+export const WORK_FACTS_FILE_NAME = "facts.json";
+
+/** The Image(s) line of the template, which the facts line follows. */
+const IMAGES_PROMPT_LINE = "Image(s): <absolute paths>";
+
+/** Returns the prompt template of a request: with the facts line after the Image(s) line when it has facts. */
+export function promptTemplate(withFacts: boolean): string {
+  if (!withFacts) {
+    return CRITIC_PROMPT_TEMPLATE;
+  }
+  return CRITIC_PROMPT_TEMPLATE.replace(
+    IMAGES_PROMPT_LINE,
+    `${IMAGES_PROMPT_LINE}\n${FACTS_PROMPT_LINE}`,
+  );
+}
+
 const FOCUS_PLACEHOLDER_LINE =
   '<Any focus the caller asked for, such as "compare v1 and v2" or "only the chart". Omit if none.>';
 
@@ -124,11 +151,12 @@ export type ClaudeRunner = (
   workingDirectory: string,
 ) => Promise<ClaudeRunResult>;
 
-/** One request to the critic: the images in order, and an optional note and focus. */
+/** One request to the critic: the images in order, an optional note and focus, and an optional measured facts file (FR-79). */
 export type CritRequest = {
   readonly imagePaths: readonly string[];
   readonly note?: string;
   readonly focus?: string;
+  readonly factsPath?: string;
 };
 
 /** One saved run: its number, the crit text, its metadata, and both file paths. */
@@ -185,17 +213,24 @@ function sha256(content: string | Buffer): string {
   return createHash("sha256").update(content).digest("hex");
 }
 
-/** Fills the prompt template with the skill folder, image paths, note, and optional focus line. */
+/**
+ * Fills the prompt template with the skill folder, image paths, note, optional focus line, and,
+ * when `factsPath` is given, the facts line with that path.
+ */
 export function buildPrompt(
   skillDirectory: string,
   imagePaths: readonly string[],
   note: string | undefined,
   focus: string | undefined,
+  factsPath?: string,
 ): string {
-  let prompt = CRITIC_PROMPT_TEMPLATE.replaceAll(
+  let prompt = promptTemplate(factsPath !== undefined).replaceAll(
     "<skill folder>",
     skillDirectory,
   );
+  if (factsPath !== undefined) {
+    prompt = prompt.replace("<absolute path of facts.json>", factsPath);
+  }
   prompt = prompt.replace("<absolute paths>", imagePaths.join(", "));
   prompt = prompt.replace(
     '<purpose, audience, medium, or "nothing">',
@@ -210,10 +245,13 @@ export function buildPrompt(
   return prompt;
 }
 
-/** Returns what a new run would be made with. */
-export function currentRunIdentity(): RunIdentity {
+/**
+ * Returns what a new run would be made with. A run with a facts file has the template with the
+ * facts line, so its prompt hash differs; a run without one keeps the hash of the saved runs.
+ */
+export function currentRunIdentity(withFacts = false): RunIdentity {
   return {
-    prompt_sha256: sha256(CRITIC_PROMPT_TEMPLATE),
+    prompt_sha256: sha256(promptTemplate(withFacts)),
     model_requested: CRITIC_MODEL,
     isolation_flag: CRITIC_ISOLATION_FLAG,
     permission_mode: CRITIC_PERMISSION_MODE,
@@ -384,29 +422,49 @@ export function skillCommit(
 }
 
 /**
- * Returns the folder name for a request: the image SHA-256 for one image with no note or focus,
- * and otherwise the SHA-256 of {images, note, focus} as JSON with the keys in that order.
+ * Returns the folder name for a request: the image SHA-256 for one image with no note, focus, or
+ * facts file, and otherwise the SHA-256 of {images, note, focus} as JSON with the keys in that
+ * order, with `facts`, the facts file's SHA-256, added last only when there is one. So every key
+ * made before facts existed stays the same, and a run with facts never shares a folder with a run
+ * without them, or with a run on another facts file.
  */
 export function requestKey(
   imageSha256s: readonly string[],
   note: string | undefined,
   focus: string | undefined,
+  factsSha256?: string,
 ): string {
   const onlyImage = imageSha256s[0];
   if (
     imageSha256s.length === 1 &&
     onlyImage !== undefined &&
     note === undefined &&
-    focus === undefined
+    focus === undefined &&
+    factsSha256 === undefined
   ) {
     return onlyImage;
   }
-  const canonical = JSON.stringify({
+  const fields: Record<string, unknown> = {
     images: imageSha256s,
     note: note ?? null,
     focus: focus ?? null,
-  });
-  return sha256(canonical);
+  };
+  if (factsSha256 !== undefined) {
+    fields.facts = factsSha256;
+  }
+  return sha256(JSON.stringify(fields));
+}
+
+/** Returns the request key of a request, reading each image and the facts file to hash it. */
+export function requestKeyOf(request: CritRequest): string {
+  const imageSha256s = request.imagePaths.map((imagePath) =>
+    sha256(readFileSync(imagePath)),
+  );
+  const factsSha256 =
+    request.factsPath === undefined
+      ? undefined
+      : sha256(readFileSync(request.factsPath));
+  return requestKey(imageSha256s, request.note, request.focus, factsSha256);
 }
 
 /** Returns the run numbers found in a request folder, from both .md and .json file names. */
@@ -573,6 +631,12 @@ async function runCriticOnce(
       copyFileSync(imagePath, workImagePath);
       workImagePaths.push(workImagePath);
     });
+    // The facts file goes in the work folder, which the critic may read, under a neutral name.
+    let workFactsPath: string | undefined;
+    if (request.factsPath !== undefined) {
+      workFactsPath = join(workDirectory, WORK_FACTS_FILE_NAME);
+      copyFileSync(request.factsPath, workFactsPath);
+    }
     const environment = process.env;
     const versionRun = await options.runClaude(
       ["--version"],
@@ -589,6 +653,7 @@ async function runCriticOnce(
       workImagePaths,
       request.note,
       request.focus,
+      workFactsPath,
     );
     const startedAt = new Date();
     const run = await options.runClaude(
@@ -627,8 +692,8 @@ export async function ensureCrits(
   const imageSha256s = request.imagePaths.map((imagePath) =>
     sha256(readFileSync(imagePath)),
   );
-  const key = requestKey(imageSha256s, request.note, request.focus);
-  const identity = currentRunIdentity();
+  const key = requestKeyOf(request);
+  const identity = currentRunIdentity(request.factsPath !== undefined);
   const requestDirectory = join(options.runsDirectory, commit, key);
   const currentRuns = () =>
     readSavedCrits(options.runsDirectory, commit, key, identity);
@@ -643,6 +708,14 @@ export async function ensureCrits(
         })),
         note: request.note ?? null,
         focus: request.focus ?? null,
+        ...(request.factsPath === undefined
+          ? {}
+          : {
+              facts: {
+                sha256: sha256(readFileSync(request.factsPath)),
+                path: portablePath(request.factsPath, 1),
+              },
+            }),
       },
       ...identity,
       skill_directory: portablePath(options.skillDirectory, 2),
@@ -697,8 +770,8 @@ export function runClaudeProcess(
 const HELP_TEXT = `Run the design critic headless, save each crit, or replay saved crits.
 
 Usage:
-  node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--runs-dir DIR] [--note TEXT] IMAGE...
-  node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] IMAGE...
+  node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--runs-dir DIR] [--note TEXT] [--facts FILE] IMAGE...
+  node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] [--facts FILE] IMAGE...
   node evals/critic/run-critic.ts --help
 
 Modes:
@@ -711,6 +784,9 @@ Flags:
   --skill-commit SHA  replay only: read the runs of this commit instead of the skill's commit.
   --runs N            run only: how many saved crits each image must have.
   --note TEXT         what you know about the piece. replay needs the note the run used.
+  --facts FILE        a measured facts file (facts.json from the skill's scripts/measure.mjs) for
+                      the one image named. The critic gets a copy named facts.json. replay needs
+                      the facts file the run used.
   --runs-dir DIR      The folder that holds the saved runs (default evals/critic/runs).
   --help, -h          Print this help.
 
@@ -766,6 +842,7 @@ export async function runCriticCommand(
       "skill-commit": { type: "string" },
       runs: { type: "string" },
       note: { type: "string" },
+      facts: { type: "string" },
       "runs-dir": { type: "string" },
       help: { type: "boolean", short: "h", default: false },
     },
@@ -788,6 +865,17 @@ export async function runCriticCommand(
       throw new Error(`image ${imagePath} does not exist`);
     }
   }
+  // A facts file describes one page, so it goes with exactly one image.
+  let factsPath: string | undefined;
+  if (parsed.values.facts !== undefined) {
+    factsPath = resolve(parsed.values.facts);
+    if (!existsSync(factsPath)) {
+      throw new Error(`facts file ${factsPath} does not exist`);
+    }
+    if (imagePaths.length !== 1) {
+      throw new Error("--facts goes with exactly one image");
+    }
+  }
   const skillDirectory = resolve(
     parsed.values.skill ?? options.defaultSkillDirectory,
   );
@@ -804,12 +892,17 @@ export async function runCriticCommand(
     }
     const missingImages: string[] = [];
     for (const imagePath of imagePaths) {
-      const key = requestKey(
-        [sha256(readFileSync(imagePath))],
-        parsed.values.note,
-        undefined,
+      const key = requestKeyOf({
+        imagePaths: [imagePath],
+        note: parsed.values.note,
+        factsPath,
+      });
+      const saved = readSavedCrits(
+        runsDirectory,
+        commit,
+        key,
+        currentRunIdentity(factsPath !== undefined),
       );
-      const saved = readSavedCrits(runsDirectory, commit, key);
       if (saved.length === 0) {
         missingImages.push(imagePath);
       }
@@ -837,7 +930,7 @@ export async function runCriticCommand(
   const commit = skillCommit(skillDirectory);
   for (const imagePath of imagePaths) {
     const saved = await ensureCrits(
-      { imagePaths: [imagePath], note: parsed.values.note },
+      { imagePaths: [imagePath], note: parsed.values.note, factsPath },
       {
         runsDirectory,
         skillDirectory,

@@ -9,10 +9,16 @@
 // Live mode runs the critic and the judge, so `npm run ci` never runs it (CS-21); a person starts
 // it by hand. Replay mode (--replay) reads the saved crits and judge answers and starts no child
 // process. HELP_TEXT holds the usage and the exit codes.
+//
+// With --facts it scores the live criteria only, and the critic gets each image's measured facts
+// file from evals/critic/facts/ (FR-79, written by measure-fixtures.ts) with the image. Those runs
+// have their own request keys, so they never share a saved crit with the runs without facts.
+// --beside SHA replays the runs without facts of another skill commit on the same images and
+// prints them next to this run, one column pair per commit.
 
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { parse as parseYaml } from "yaml";
@@ -29,11 +35,15 @@ import {
 } from "./judge.ts";
 import {
   type ClaudeRunner,
+  type CritRequest,
+  currentRunIdentity,
   ensureCrits,
   isRecord,
   portablePath,
+  type RunIdentity,
   readSavedCrits,
   requestKey,
+  requestKeyOf,
   runClaudeProcess,
   type SavedCrit,
   skillCommit,
@@ -625,6 +635,28 @@ export function imageKey(image: FixtureImage): string {
   return requestKey([imageSha256(image.absolutePath)], undefined, undefined);
 }
 
+/**
+ * Returns where the measured facts file of a live fixture image is committed:
+ * evals/critic/facts/<pack>/<image name without .png>.facts.json (FR-79). measure-fixtures.ts
+ * writes it and `--facts` reads it.
+ */
+export function factsPathFor(
+  repositoryDirectory: string,
+  image: FixtureImage,
+): string {
+  // The image sits at packs/<pack>/fixtures/<name>.png, so the pack is the folder above fixtures/.
+  const pack = basename(dirname(dirname(image.absolutePath)));
+  const name = basename(image.absolutePath, ".png");
+  return join(
+    repositoryDirectory,
+    "evals",
+    "critic",
+    "facts",
+    pack,
+    `${name}.facts.json`,
+  );
+}
+
 /** Returns a count as a cell: the rate to two places with its sample, or `- (0/0)` when nothing was judged. */
 export function formatRate(numerator: number, denominator: number): string {
   if (denominator === 0) {
@@ -762,10 +794,150 @@ export function buildRows(
   return rows;
 }
 
+/**
+ * Returns the crit request of an image: the image alone, or with its committed facts file when
+ * `withFacts` is true. It throws when the facts file is missing, so a with-facts run never falls
+ * back to the image alone.
+ */
+export function critRequestFor(
+  repositoryDirectory: string,
+  image: FixtureImage,
+  withFacts: boolean,
+): CritRequest {
+  if (!withFacts) {
+    return { imagePaths: [image.absolutePath] };
+  }
+  const factsPath = factsPathFor(repositoryDirectory, image);
+  if (!existsSync(factsPath)) {
+    throw new Error(
+      `no facts file for ${image.displayPath}: ${portablePath(factsPath, 4)}; run node evals/critic/measure-fixtures.ts`,
+    );
+  }
+  return { imagePaths: [image.absolutePath], factsPath };
+}
+
+/**
+ * Replays the saved crits and judge answers of one skill commit for the selected criteria, with
+ * or without facts, and returns the counts per criterion (undefined where a crit or answer is
+ * missing) and one line per missing item. It takes no runner, so it starts no child process.
+ */
+export function replayCounts(
+  selected: readonly SelectedCriterion[],
+  repositoryDirectory: string,
+  runsDirectory: string,
+  commit: string,
+  withFacts: boolean,
+): { counts: (DetectionCounts | undefined)[]; missing: string[] } {
+  const identity = currentRunIdentity(withFacts);
+  const counts: (DetectionCounts | undefined)[] = [];
+  const missing: string[] = [];
+  for (const entry of selected) {
+    const criterion = entry.criterion;
+    const rule = judgeRule(criterion.question);
+    let criterionCounts: DetectionCounts | undefined = {
+      ...emptyCounts(),
+      leftOut: entry.leftOutCount,
+    };
+    for (const scoredImage of entry.scored) {
+      const key = requestKeyOf(
+        critRequestFor(repositoryDirectory, scoredImage.image, withFacts),
+      );
+      const saved = readSavedCrits(runsDirectory, commit, key, identity)[0];
+      if (saved === undefined) {
+        missing.push(
+          `missing crit: ${criterion.pack}/${criterion.id}, ${scoredImage.image.displayPath}, at skill commit ${commit}`,
+        );
+        criterionCounts = undefined;
+        continue;
+      }
+      const answer = readJudgeAnswer(
+        buildDetectionQuestion(criterion.title, rule, key, saved),
+        parseDetectionAnswer,
+        runsDirectory,
+        commit,
+      );
+      if (answer === undefined) {
+        missing.push(
+          `missing judge answer: ${criterion.pack}/${criterion.id}, ${scoredImage.image.displayPath}, at skill commit ${commit}`,
+        );
+        criterionCounts = undefined;
+        continue;
+      }
+      if (criterionCounts !== undefined) {
+        addJudgedImage(criterionCounts, scoredImage.truth, answer);
+      }
+    }
+    counts.push(criterionCounts);
+  }
+  return { counts, missing };
+}
+
+/** Returns `n/d` for a count, or `missing` when the criterion has no counts. */
+function shortCount(
+  numerator: number | undefined,
+  denominator: number | undefined,
+): string {
+  if (numerator === undefined || denominator === undefined) {
+    return "missing";
+  }
+  return `${numerator}/${denominator}`;
+}
+
+/**
+ * Returns the side-by-side table: one row per criterion and a total row, with a raised and a
+ * quiet column for each labeled set of counts, in the order given.
+ */
+export function buildBesideTable(
+  selected: readonly SelectedCriterion[],
+  columns: readonly {
+    label: string;
+    counts: readonly (DetectionCounts | undefined)[];
+  }[],
+): string {
+  const headers = ["pack", "criterion"];
+  for (const column of columns) {
+    headers.push(`${column.label} raised`, `${column.label} quiet`);
+  }
+  const rows: string[][] = [];
+  const totals = columns.map(() => emptyCounts());
+  const complete = columns.map(() => true);
+  selected.forEach((entry, index) => {
+    const row = [entry.criterion.pack, entry.criterion.id];
+    columns.forEach((column, columnIndex) => {
+      const counts = column.counts[index];
+      row.push(
+        shortCount(counts?.raisedOnPositive, counts?.positivesJudged),
+        shortCount(counts?.quietOnNegative, counts?.negativesJudged),
+      );
+      const total = totals[columnIndex];
+      if (counts === undefined) {
+        complete[columnIndex] = false;
+      } else if (total !== undefined) {
+        addCounts(total, counts);
+      }
+    });
+    rows.push(row);
+  });
+  const totalRow = ["total", ""];
+  totals.forEach((total, columnIndex) => {
+    if (complete[columnIndex] === true) {
+      totalRow.push(
+        shortCount(total.raisedOnPositive, total.positivesJudged),
+        shortCount(total.quietOnNegative, total.negativesJudged),
+      );
+    } else {
+      totalRow.push("missing", "missing");
+    }
+  });
+  rows.push(totalRow);
+  return formatTable(headers, rows);
+}
+
 const HELP_TEXT = `Detection evaluation (EV-14) on the live and the removed criteria.
 
 Usage:
   node evals/critic/detect.ts [--replay] [--pairs-per-criterion N] [--skill DIR] [--skill-commit SHA]
+                              [--facts] [--beside SHA]...
   node evals/critic/detect.ts --help
 
 For each criterion it takes the first N fixture pairs (a pair is one variant with a positive and a
@@ -778,6 +950,12 @@ Flags:
   --pairs-per-criterion N    How many fixture pairs per criterion (default 1).
   --skill DIR                The skill folder (default plugin/skills/design-critic).
   --skill-commit SHA         Use the runs of this commit instead of the skill folder's commit.
+  --facts                    Score the live criteria only, and give the critic each image's
+                             measured facts file from evals/critic/facts/ (FR-79). These runs
+                             never share a saved crit with runs without facts.
+  --beside SHA               Replay the runs without facts of this skill commit on the same
+                             images and print them in a side-by-side table after the main table.
+                             May be given more than once. Starts no child process for them.
   --help, -h                 Print this help.
 
 The judge reads one crit, the criterion title, and its rule, never the image name or polarity,
@@ -860,6 +1038,8 @@ export async function runDetect(
       "pairs-per-criterion": { type: "string" },
       skill: { type: "string" },
       "skill-commit": { type: "string" },
+      facts: { type: "boolean", default: false },
+      beside: { type: "string", multiple: true },
       help: { type: "boolean", short: "h", default: false },
     },
     strict: true,
@@ -877,10 +1057,20 @@ export async function runDetect(
   // ?? gives the right side only when --skill-commit is not given.
   const commit =
     parsed.values["skill-commit"] ?? skillCommit(skillDirectory, replay);
-  const { selected, notes } = selectCriteria(
+  const withFacts = parsed.values.facts === true;
+  const besideCommits = parsed.values.beside ?? [];
+  const identity: RunIdentity = currentRunIdentity(withFacts);
+  const selection = selectCriteria(
     options.repositoryDirectory,
     pairsPerCriterion,
   );
+  const notes = selection.notes;
+  // The removed criteria have no templates on this branch, so they have no facts files.
+  const selected = withFacts
+    ? selection.selected.filter((entry) => entry.criterion.group === "live")
+    : selection.selected;
+  const requestFor = (image: FixtureImage): CritRequest =>
+    critRequestFor(options.repositoryDirectory, image, withFacts);
 
   // Every image to crit, once each, in selection order.
   const imagesToCrit: FixtureImage[] = [];
@@ -892,7 +1082,7 @@ export async function runDetect(
       }
       keyByImagePath.set(
         scoredImage.image.absolutePath,
-        imageKey(scoredImage.image),
+        requestKeyOf(requestFor(scoredImage.image)),
       );
       imagesToCrit.push(scoredImage.image);
     }
@@ -902,7 +1092,9 @@ export async function runDetect(
     let critsSaved = 0;
     for (const image of imagesToCrit) {
       const key = keyByImagePath.get(image.absolutePath) ?? "";
-      if (readSavedCrits(options.runsDirectory, commit, key).length > 0) {
+      if (
+        readSavedCrits(options.runsDirectory, commit, key, identity).length > 0
+      ) {
         critsSaved += 1;
       }
     }
@@ -914,7 +1106,12 @@ export async function runDetect(
       for (const scoredImage of entry.scored) {
         judgeCallsTotal += 1;
         const key = keyByImagePath.get(scoredImage.image.absolutePath) ?? "";
-        const saved = readSavedCrits(options.runsDirectory, commit, key)[0];
+        const saved = readSavedCrits(
+          options.runsDirectory,
+          commit,
+          key,
+          identity,
+        )[0];
         if (saved === undefined) {
           continue;
         }
@@ -946,7 +1143,7 @@ export async function runDetect(
       runClaude: options.runClaude,
     };
     await runPooled(imagesToCrit, MAX_PARALLEL_CALLS, (image) =>
-      ensureCrits({ imagePaths: [image.absolutePath] }, criticOptions),
+      ensureCrits(requestFor(image), criticOptions),
     );
   }
 
@@ -962,7 +1159,12 @@ export async function runDetect(
     const rule = judgeRule(criterion.question);
     for (const scoredImage of entry.scored) {
       const key = keyByImagePath.get(scoredImage.image.absolutePath) ?? "";
-      const saved = readSavedCrits(options.runsDirectory, commit, key)[0];
+      const saved = readSavedCrits(
+        options.runsDirectory,
+        commit,
+        key,
+        identity,
+      )[0];
       if (saved === undefined) {
         missing.push(
           `missing crit: ${criterion.pack}/${criterion.id}, ${scoredImage.image.displayPath}, at skill commit ${commit}`,
@@ -1049,15 +1251,45 @@ export async function runDetect(
     addJudgedImage(counts, item.scoredImage.truth, answer);
   });
 
+  // complete covers this run only; a beside commit with a missing item adds to missing below.
   const complete = missing.length === 0;
-  const header = `skill commit ${commit}, judge model ${JUDGE_MODEL}, pairs per criterion ${pairsPerCriterion}`;
+  const factsText = withFacts
+    ? ", with measured facts (live criteria only)"
+    : "";
+  const header = `skill commit ${commit}${factsText}, judge model ${JUDGE_MODEL}, pairs per criterion ${pairsPerCriterion}`;
   const table = formatTable(
     TABLE_HEADERS,
     buildRows(selected, countsByCriterion, complete),
   );
   const noteText = notes.length > 0 ? `${notes.join("\n")}\n` : "";
-  const text = `${header}\n${noteText}${table}\n${JEV_FIGURES_LINE}\n`;
-  if (!complete) {
+  let besideText = "";
+  if (besideCommits.length > 0) {
+    const columns: {
+      label: string;
+      counts: readonly (DetectionCounts | undefined)[];
+    }[] = [];
+    for (const besideCommit of besideCommits) {
+      const replayed = replayCounts(
+        selected,
+        options.repositoryDirectory,
+        options.runsDirectory,
+        besideCommit,
+        false,
+      );
+      missing.push(...replayed.missing);
+      columns.push({
+        label: besideCommit.slice(0, 8),
+        counts: replayed.counts,
+      });
+    }
+    columns.push({
+      label: `${commit.slice(0, 8)}${withFacts ? "+facts" : ""}`,
+      counts: countsByCriterion,
+    });
+    besideText = `\nside by side, raised on positive and quiet on negative (n/d); a column without +facts had no facts file\n${buildBesideTable(selected, columns)}\n`;
+  }
+  const text = `${header}\n${noteText}${table}\n${besideText}${JEV_FIGURES_LINE}\n`;
+  if (missing.length > 0) {
     const errorLines = [...missing];
     if (replay) {
       errorLines.push(

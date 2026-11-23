@@ -861,3 +861,93 @@ describe("runDetect live, with a stub critic and a stub judge", () => {
     expect(replayed.text).toBe(second.text);
   });
 });
+
+describe("runDetect --facts", () => {
+  it("runs the live criteria with their facts files apart from the runs without, and prints both side by side", async () => {
+    const repository = buildTinyRepository();
+    const runsDirectory = newFolder();
+    const factsDirectory = join(repository, "evals", "critic", "facts", "tiny");
+    mkdirSync(factsDirectory, { recursive: true });
+    for (const name of ["alpha", "beta"]) {
+      for (const polarity of ["positive", "negative"]) {
+        writeFileSync(
+          join(factsDirectory, `${name}.${polarity}.facts.json`),
+          `{"version":1,"source":"page.html","n":"${name}${polarity}"}\n`,
+        );
+      }
+    }
+    const critPrompts: string[] = [];
+    const stub: ClaudeRunner = async (args, _environment, cwd) => {
+      if (args[0] === "--version") {
+        return { stdout: "2.0.0 (Claude Code)", stderr: "", exitCode: 0 };
+      }
+      if (args.includes("--json-schema")) {
+        return {
+          stdout: judgeStdout(answerSaying("present")),
+          stderr: "",
+          exitCode: 0,
+        };
+      }
+      critPrompts.push(
+        `${args.at(-1) ?? ""}\nfiles: ${readdirSync(cwd).sort().join(",")}`,
+      );
+      return {
+        stdout: criticStdout(`Crit ${critPrompts.length}.`),
+        stderr: "",
+        exitCode: 0,
+      };
+    };
+    const options = {
+      repositoryDirectory: repository,
+      runsDirectory,
+      skillDirectory: SKILL_DIRECTORY,
+      runClaude: stub,
+    };
+    const without = await runDetect(["--skill-commit", COMMIT], options);
+    expect(without.exitCode).toBe(0);
+    expect(critPrompts).toHaveLength(6);
+    expect(critPrompts.join("\n")).not.toContain("Measured facts file");
+
+    const withFacts = await runDetect(
+      ["--skill-commit", COMMIT, "--facts"],
+      options,
+    );
+    expect(withFacts.exitCode).toBe(0);
+    // Only the 4 live images, each a new run, each with facts.json beside the image.
+    expect(critPrompts).toHaveLength(10);
+    for (const prompt of critPrompts.slice(6)) {
+      expect(prompt).toMatch(/\nMeasured facts file: .*\/facts\.json\n/);
+      expect(prompt).toContain("files: facts.json,image-1.png");
+    }
+    expect(withFacts.text).toContain(
+      `skill commit ${COMMIT}, with measured facts (live criteria only)`,
+    );
+    expect(withFacts.text).not.toMatch(/^removed +tiny +gamma/m);
+
+    const replayed = await runDetect(
+      ["--replay", "--skill-commit", COMMIT, "--facts", "--beside", COMMIT],
+      { ...options, runClaude: throwingRunner },
+    );
+    expect(replayed.errorText).toBe("");
+    expect(replayed.exitCode).toBe(0);
+    expect(replayed.text).toContain("01234567 raised");
+    expect(replayed.text).toContain("01234567+facts raised");
+    // Without facts the label flips beta.negative to shows-defect, so beta has 2 positives.
+    expect(replayed.text).toMatch(/^tiny +alpha +1\/1 +0\/1 +1\/1 +0\/1$/m);
+    expect(replayed.text).toMatch(/^total +3\/3 +0\/1 +3\/3 +0\/1$/m);
+  });
+
+  it("stops when an image has no facts file", async () => {
+    const repository = buildTinyRepository();
+    await expect(
+      runDetect(["--replay", "--skill-commit", COMMIT, "--facts"], {
+        repositoryDirectory: repository,
+        runsDirectory: newFolder(),
+        skillDirectory: SKILL_DIRECTORY,
+        runClaude: throwingRunner,
+      }),
+    ).rejects.toThrow(
+      /no facts file for packs\/tiny\/fixtures\/alpha\.positive\.png/,
+    );
+  });
+});
