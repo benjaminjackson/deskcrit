@@ -38,23 +38,10 @@ APPROVED = Regexp.union(APPROVED_NAMES.map { /\b#{Regexp.escape(_1)}\b/ } + [/Re
 # Tschichold's The Form of the Book was considered and not chosen.
 NOT_CHOSEN = /\*?The Form of the Book\*?/
 
-# GUIDELINES.md entries the critic never sees, with the reason. Benjamin Jackson
-# agreed on 2026-11-23 to drop popular psychology "laws": each is a lab finding
-# that screen design misapplies, and each repeats a better-sourced entry.
-EXCLUDED = {
-  "Hick's law" => "reaction time among equally likely choices; real menus are scanned or learned",
-  "Fitts's law" => "a still image does not show where the pointer starts; WCAG 2.5.8 covers target size",
-  "Miller's law (chunking)" => "about holding items in memory, not about items visible on screen",
-  "Aesthetic-usability effect" => "one small study of perceived, not actual, usability",
-  "Zeigarnik effect" => "memory for unfinished tasks; nothing to judge in a still image",
-  "Serial position effect" => "recall of spoken or read lists, misapplied to navigation order",
-  "Peak-end rule" => "about remembered experiences of a whole flow, not one still image",
-  "Choice overload" => "the jam study has not replicated reliably; repeats one-primary-action entries",
-  "Von Restorff effect (isolation effect)" => "repeats the one-dominant-element and primary-action entries",
-  "Tesler's law (conservation of complexity)" => "secondary sources only; about system behaviour a still image does not show",
-  "Proportion and scale relationships" => "Wong and Elam are off the reading list; the type-scale and scale-contrast entries cover it",
-  "Do not rely on the 4.5:1 ratio for dark backgrounds blindly" => "it says to prefer lighter weights, but APCA wants larger, heavier text at lower contrast; include it again once crit's GUIDELINES.md is fixed"
-}.freeze
+# The hand-written checklist: sections of yes-or-no questions, each naming the GUIDELINES.md
+# entries it stands for, plus the entries the critic never sees (see the comment at its top).
+CHECKLIST = YAML.load_file(File.join(SKILL, "checklist.yaml"))
+EXCLUDED = CHECKLIST.fetch("excluded")
 
 Entry = Struct.new(:title, :fields, :criteria, keyword_init: true) do
   def field(label) = fields.find { |name, _| name == label }&.last
@@ -74,10 +61,9 @@ Entry = Struct.new(:title, :fields, :criteria, keyword_init: true) do
   def summary = field("Rule").to_s.split(/(?<=[.!?])\s+/).first
 end
 
-# Splits GUIDELINES.md into { section prefix => [Entry] } and the candidates list.
+# Splits GUIDELINES.md into { section heading => [Entry] }.
 def parse_guidelines
   sections = Hash.new { |hash, key| hash[key] = [] }
-  candidates = []
   section = nil
   entry = nil
 
@@ -91,12 +77,10 @@ def parse_guidelines
       sections[section] << entry
     when /^- \*\*(.+?):\*\* ?(.*)/
       entry.fields << [$1, $2] if entry
-    when /^- (.+)/
-      candidates << $1 if section&.start_with?("Candidates")
     end
   end
 
-  [sections, candidates]
+  sections
 end
 
 # Loads every pack criterion and attaches it to the entry whose Defect range names it.
@@ -127,22 +111,47 @@ def render_entry(entry, file)
   out.join("\n")
 end
 
-def checklist_line(entry, file)
-  suffix = entry.off_list? ? " _(off-list source)_" : ""
-  "- [ ] **#{entry.title}.** #{entry.summary} → `references/#{file}.md`#{suffix}"
+# Finds the one entry a checklist reference names: a title, or { "section", "title" } when
+# two GUIDELINES.md sections hold the same title. Aborts when the reference does not resolve.
+def resolve(reference, sections)
+  title, prefix = reference.is_a?(Hash) ? reference.values_at("title", "section") : [reference, nil]
+  matches = sections.flat_map do |heading, entries|
+    next [] if prefix && !heading.start_with?(prefix)
+    entries.select { _1.title == title && _1.field("Rule") }.map { [heading, _1] }
+  end
+  abort "checklist.yaml names #{reference.inspect}, which is no GUIDELINES.md entry" if matches.empty?
+  abort "checklist.yaml names #{title.inspect}, which several sections hold; add its section" if matches.size > 1
+  matches.first
 end
 
-sections, candidates = parse_guidelines
+# The reference file name of a GUIDELINES.md section heading, from SECTIONS.
+def file_for(heading) = SECTIONS.find { heading.start_with?(_1.first) }[1]
+
+def checklist_line(question, sections)
+  targets = Array(question["entries"]).map do |reference|
+    heading, entry = resolve(reference, sections)
+    suffix = entry.off_list? ? " _(off-list source)_" : ""
+    "`references/#{file_for(heading)}.md` \"#{entry.title}\"#{suffix}"
+  end
+  targets = ["(no catalog entry: judge as taste or common sense, and say so)"] if question["gap"]
+  "- [ ] **#{question.fetch("question")}** → #{targets.join("; ")}"
+end
+
+# Aborts unless every entry the critic sees is under exactly one question.
+def check_every_entry_placed(sections)
+  placed = CHECKLIST.fetch("sections").flat_map { _1.fetch("questions") }
+    .flat_map { Array(_1["entries"]) }.map { resolve(_1, sections).last }
+  twice = placed.tally.select { |_, count| count > 1 }.keys
+  abort "checklist.yaml puts these entries under more than one question: #{twice.map(&:title).join("; ")}" if twice.any?
+  seen = sections.values.flatten.select { _1.field("Rule") && !EXCLUDED.key?(_1.title) }
+  unplaced = seen - placed
+  abort "checklist.yaml puts these entries under no question: #{unplaced.map(&:title).join("; ")}" if unplaced.any?
+end
+
+sections = parse_guidelines
 attach_criteria(sections.values.flatten)
+check_every_entry_placed(sections)
 FileUtils.mkdir_p(REFERENCES)
-
-checklist = [<<~MD]
-  # Checklist
-
-  Generated by `scripts/build.rb` from crit's GUIDELINES.md. Do not edit by hand.
-
-  One line per guideline, whole page first and detail last. Skip a section that does not apply to the piece (no chart, no interface). Each line names the reference file that holds its entry, under a `###` heading with the same title (find it with `grep -n -A12 "^### <title>" <file>`); open the entry when the line looks broken or you are not sure.
-MD
 
 SECTIONS.each do |prefix, file, label|
   heading = sections.keys.find { _1.start_with?(prefix) }
@@ -155,16 +164,23 @@ SECTIONS.each do |prefix, file, label|
     Generated by `scripts/build.rb` from the "#{heading}" section of crit's GUIDELINES.md and the #{file} pack. Do not edit by hand.
 
   MD
-
-  checklist << "## #{label}\n\n"
-  checklist << entries.map { checklist_line(_1, file) }.join("\n") << "\n\n"
 end
 
-checklist << "## Unchecked candidates\n\nFrom the reading list but not yet checked against the books. Use as prompts to look, not as rules to cite.\n\n"
-checklist << candidates.map { "- [ ] #{_1}" }.join("\n") << "\n"
+checklist = [<<~MD]
+  # Checklist
+
+  Generated by `scripts/build.rb` from `checklist.yaml` and crit's GUIDELINES.md. Do not edit by hand.
+
+  Each line is a question. Yes means the design is fine there; no means a defect. Each kind of defect has exactly one question, so file a defect under one line only. Sections run from the whole piece to the detail. When a question in "Charts and data" or "Interface" names a defect, file it there and not under a general question; text inside a chart or a control is still asked under "Text". Skip a section that does not apply (no chart, no controls). Each line names the reference files and entry titles it stands for. To open an entry, use the Read tool on the file the line names and find the `###` heading with the entry's title; it holds the Rule, Look for, How bad it gets, Fix, and Caveat. Open it when the answer is no or unsure. A line that names no entry is a defect the catalog does not cover: judge it as taste or common sense, and say so.
+MD
+
+CHECKLIST.fetch("sections").each do |section|
+  checklist << "\n## #{section.fetch("title")}\n\n#{section.fetch("scope")}\n\n"
+  checklist << section.fetch("questions").map { checklist_line(_1, sections) }.join("\n") << "\n"
+end
 File.write(File.join(REFERENCES, "checklist.md"), checklist.join)
 
 titles = sections.values.flatten.map(&:title)
 missing = EXCLUDED.keys - titles
-warn "EXCLUDED names entries GUIDELINES.md no longer has: #{missing.join("; ")}" if missing.any?
+warn "checklist.yaml excludes entries GUIDELINES.md no longer has: #{missing.join("; ")}" if missing.any?
 puts "Wrote #{sections.values.flatten.count { _1.field("Rule") && !EXCLUDED.key?(_1.title) }} entries; left out #{EXCLUDED.size - missing.size}."
