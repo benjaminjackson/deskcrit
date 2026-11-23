@@ -342,6 +342,60 @@ describe("extraction", () => {
     expect(readCrit(proseSmallerThings).type).toBe("unreadable");
   });
 
+  it('reads a Smaller things heading line that starts with "None" as an empty list', () => {
+    const base = sampleCrit("Weak.", ["One."], []);
+    for (const rest of [
+      "None.",
+      "None beyond the above.",
+      "None worth listing. The copy is good.",
+    ]) {
+      const crit = base.replace(
+        "**Smaller things.**\n",
+        `**Smaller things.** ${rest}\n`,
+      );
+      expect(smallerThings(crit)).toEqual([]);
+      expect(readCrit(crit).type).toBe("read");
+    }
+  });
+
+  it('keeps refusing other text on the Smaller things line, and a "None" line with items below it', () => {
+    const base = sampleCrit("Weak.", ["One."], []);
+    const nonetheless = base.replace(
+      "**Smaller things.**\n",
+      "**Smaller things.** Nonetheless the line is long.\n",
+    );
+    expect(readCrit(nonetheless)).toEqual({
+      type: "unreadable",
+      problem: "text on the line of the smaller-things heading",
+    });
+    const noneWithItem = base.replace(
+      "**Smaller things.**\n",
+      "**Smaller things.** None worth listing.\n- The line is long.\n",
+    );
+    expect(readCrit(noneWithItem)).toEqual({
+      type: "unreadable",
+      problem: 'text below a "None" smaller-things heading',
+    });
+  });
+
+  it('reads the saved crits whose Smaller things line says "None"', () => {
+    // bare-kpi-number.positive.png at 581fdaf runs 1 and 3, all-caps-long-text.positive.png at
+    // 8006d3a run 3: each wrote "**Smaller things.** None ..." (crit-576.11).
+    const paths = [
+      "581fdaf090d4c83ac390aec2cbd61002d2e4b35b/12a1a435e03c74d0fa9b893e6aeec8f7f53b00bc8e980e4a3218e11eaba04c11/1.md",
+      "581fdaf090d4c83ac390aec2cbd61002d2e4b35b/12a1a435e03c74d0fa9b893e6aeec8f7f53b00bc8e980e4a3218e11eaba04c11/3.md",
+      "8006d3a2831b64dd0305b88936ac253ce60b9c2d/25551a27a6f47a4b5a3cbdc8959e633b15d04e499e87f668e767939dc382ea8f/3.md",
+    ];
+    for (const path of paths) {
+      const reading = readCrit(readFileSync(join(SAVED_RUNS, path), "utf8"));
+      if (reading.type !== "read") {
+        throw new Error(`${path}: ${JSON.stringify(reading)}`);
+      }
+      expect(reading.sections.smallerThings).toEqual([]);
+      expect(reading.sections.rankedFindings.length).toBeGreaterThan(0);
+    }
+  });
+
   it("reports a heading that critic.md does not name", () => {
     const smallerToFix = sampleCrit("Weak.", ["One."], ["Two."]).replace(
       "**Smaller things.**",

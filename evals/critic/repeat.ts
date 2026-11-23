@@ -286,12 +286,22 @@ export function rankedFindings(markdown: string): string[] {
 /**
  * Returns the items under "Smaller things", up to the next section heading (EV-17). Items may be
  * bulleted with `-` or `*` or numbered. Returns an empty list when the crit has no such heading,
- * because critic.md says to omit the section when there is nothing to list. It throws when the
- * section holds text that is not a list item.
+ * because critic.md says to omit the section when there is nothing to list, and when the heading
+ * line goes on with text that starts with "None", such as "None beyond the above.", because that
+ * says the list is empty. It throws on any other text on the heading line, on a "None" line with
+ * text below it, and when the section holds text that is not a list item.
  */
 export function smallerThings(markdown: string): string[] {
   const section = readSection(markdown, "Smaller things");
   if (section === undefined) {
+    return [];
+  }
+  // \b is a word boundary, so "None." and "None worth listing" match and "Nonetheless" does not.
+  if (/^None\b/.test(section.headingRest)) {
+    const textBelow = section.lines.some((line) => line.trim() !== "");
+    if (textBelow) {
+      throw new Error('text below a "None" smaller-things heading');
+    }
     return [];
   }
   if (section.headingRest !== "") {
