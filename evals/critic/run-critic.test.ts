@@ -94,7 +94,10 @@ describe("ensureCrits", () => {
     expect(metadata.prompt_sha256).toMatch(/^[0-9a-f]{64}$/);
     expect(metadata.model_requested).toBe(CRITIC_MODEL);
     expect(metadata.permission_mode).toBe("dontAsk");
-    expect(["--bare", "--safe-mode"]).toContain(metadata.isolation_flag);
+    expect(metadata.isolation_flag).toBe("--safe-mode");
+    expect(JSON.parse(metadata.settings)).toEqual({
+      permissions: { blockReadsOutsideWorkingDirectories: true },
+    });
     // An image outside the repository is saved by its base name, and the skill by its last two
     // segments, so no committed file holds the user's home folder.
     expect(metadata.request.images[0].path).toBe(
@@ -370,8 +373,8 @@ describe("readSavedCrits", () => {
 
 describe("buildClaudeArguments", () => {
   it("holds the planned flags, puts the prompt last, and never skips permissions", () => {
-    const withoutKey = buildClaudeArguments("/skill", "the prompt", {});
-    expect(withoutKey).toEqual([
+    const args = buildClaudeArguments("/skill", "the prompt");
+    expect(args).toEqual([
       "-p",
       "--safe-mode",
       "--model",
@@ -390,19 +393,16 @@ describe("buildClaudeArguments", () => {
       "--permission-prompts",
       "none",
       "--strict-mcp-config",
+      "--settings",
+      '{"permissions":{"blockReadsOutsideWorkingDirectories":true}}',
       "--add-dir",
       "/skill",
       "--max-budget-usd",
       "5",
       "the prompt",
     ]);
-    const withKey = buildClaudeArguments("/skill", "the prompt", {
-      ANTHROPIC_API_KEY: "present",
-    });
-    expect(withKey[1]).toBe("--bare");
-    expect(withKey).not.toContain("--safe-mode");
-    expect(withKey).not.toContain("--dangerously-skip-permissions");
-    expect(withKey).not.toContain("--system-prompt");
+    expect(args).not.toContain("--dangerously-skip-permissions");
+    expect(args).not.toContain("--system-prompt");
   });
 });
 

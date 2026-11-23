@@ -54,12 +54,29 @@ export const CRITIC_MODEL = "claude-opus-5-5";
  */
 export const CRITIC_PERMISSION_MODE = "dontAsk";
 
-/** How a run was made. A saved run counts only when all four fields match the current values. */
+/**
+ * The isolation flag of the child. --safe-mode turns off the user's CLAUDE.md, skills, plugins,
+ * hooks, and MCP servers, while auth and permissions work normally (claude --help). It does not
+ * depend on the environment, so a run made on one machine replays on another.
+ */
+export const CRITIC_ISOLATION_FLAG = "--safe-mode";
+
+/**
+ * Settings passed to the child with --settings. blockReadsOutsideWorkingDirectories makes the file
+ * tools refuse reads outside the working folders, which are the work folder and the skill folder,
+ * so the critic cannot read fixture names or label files in the repository.
+ */
+export const CRITIC_SETTINGS = JSON.stringify({
+  permissions: { blockReadsOutsideWorkingDirectories: true },
+});
+
+/** How a run was made. A saved run counts only when every field matches the current values. */
 export type RunIdentity = {
   readonly prompt_sha256: string;
   readonly model_requested: string;
   readonly isolation_flag: string;
   readonly permission_mode: string;
+  readonly settings: string;
 };
 
 /**
@@ -180,26 +197,14 @@ export function buildPrompt(
   return prompt;
 }
 
-/**
- * Returns --bare when ANTHROPIC_API_KEY is present, because --bare skips the keychain and needs
- * the key, and --safe-mode otherwise. It reads only whether the key is present, never its value.
- */
-export function isolationFlagFor(environment: NodeJS.ProcessEnv): string {
-  if (environment.ANTHROPIC_API_KEY === undefined) {
-    return "--safe-mode";
-  }
-  return "--bare";
-}
-
-/** Returns what a new run would be made with in this environment. */
-export function currentRunIdentity(
-  environment: NodeJS.ProcessEnv = process.env,
-): RunIdentity {
+/** Returns what a new run would be made with. */
+export function currentRunIdentity(): RunIdentity {
   return {
     prompt_sha256: sha256(CRITIC_PROMPT_TEMPLATE),
     model_requested: CRITIC_MODEL,
-    isolation_flag: isolationFlagFor(environment),
+    isolation_flag: CRITIC_ISOLATION_FLAG,
     permission_mode: CRITIC_PERMISSION_MODE,
+    settings: CRITIC_SETTINGS,
   };
 }
 
@@ -212,24 +217,22 @@ function matchesIdentity(
     metadata.prompt_sha256 === identity.prompt_sha256 &&
     metadata.model_requested === identity.model_requested &&
     metadata.isolation_flag === identity.isolation_flag &&
-    metadata.permission_mode === identity.permission_mode
+    metadata.permission_mode === identity.permission_mode &&
+    metadata.settings === identity.settings
   );
 }
 
 /**
- * Returns the `claude` arguments for one crit. It uses --bare when ANTHROPIC_API_KEY is present,
- * because --bare skips the keychain and needs the key, and --safe-mode otherwise. It reads only
- * whether the key is present, never its value. The prompt goes last, after an option that takes
+ * Returns the `claude` arguments for one crit. The prompt goes last, after an option that takes
  * one value, so no option that takes a list can swallow it.
  */
 export function buildClaudeArguments(
   skillDirectory: string,
   prompt: string,
-  environment: NodeJS.ProcessEnv,
 ): string[] {
   return [
     "-p",
-    isolationFlagFor(environment),
+    CRITIC_ISOLATION_FLAG,
     "--model",
     CRITIC_MODEL,
     "--permission-mode",
@@ -246,6 +249,8 @@ export function buildClaudeArguments(
     "--permission-prompts",
     "none",
     "--strict-mcp-config",
+    "--settings",
+    CRITIC_SETTINGS,
     "--add-dir",
     skillDirectory,
     "--max-budget-usd",
@@ -513,7 +518,7 @@ async function runCriticOnce(
     );
     const startedAt = new Date();
     const run = await options.runClaude(
-      buildClaudeArguments(options.skillDirectory, prompt, environment),
+      buildClaudeArguments(options.skillDirectory, prompt),
       environment,
       workDirectory,
     );
