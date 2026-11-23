@@ -3,7 +3,6 @@
 // is asked (CS-21, CS-22). Each test works in its own temporary folder.
 
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import {
   mkdirSync,
   mkdtempSync,
@@ -17,15 +16,16 @@ import { describe, expect, it } from "vitest";
 import {
   buildClaudeArguments,
   type ClaudeRunner,
+  CRITIC_MODEL,
   CRITIC_PROMPT_TEMPLATE,
   ensureCrits,
   parseClaudeResult,
-  readSavedCrits,
   skillCommit,
 } from "./run-critic.ts";
 
 const COMMIT = "0123456789abcdef0123456789abcdef01234567";
 const RUNNER_FILE = join(import.meta.dirname, "run-critic.ts");
+const REPOSITORY_ROOT = join(import.meta.dirname, "..", "..");
 
 /** A successful result in the shape `claude -p --output-format json` prints. */
 function successStdout(crit: string): string {
@@ -92,6 +92,9 @@ describe("ensureCrits", () => {
       readFileSync(first?.metadataPath ?? "", "utf8"),
     );
     expect(metadata.prompt_sha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(metadata.model_requested).toBe(CRITIC_MODEL);
+    expect(metadata.permission_mode).toBe("dontAsk");
+    expect(["--bare", "--safe-mode"]).toContain(metadata.isolation_flag);
     // An image outside the repository is saved by its base name, and the skill by its last two
     // segments, so no committed file holds the user's home folder.
     expect(metadata.request.images[0].path).toBe(
@@ -166,6 +169,48 @@ describe("ensureCrits", () => {
     expect(readFileSync(join(requestDirectory, "3.md"), "utf8")).toBe(
       "Run three.",
     );
+  });
+
+  it("does not count a saved run made another way, and leaves its files untouched", async () => {
+    const { imagePath, runsDirectory } = setUp();
+    const first = recordingStub();
+    const [saved] = await ensureCrits(
+      { imagePaths: [imagePath] },
+      options(runsDirectory, first.runner),
+    );
+    const metadataPath = saved?.metadataPath ?? "";
+    // Make run 1 look like a run made with the alias "opus", as the first committed run was.
+    const oldMetadata = JSON.parse(readFileSync(metadataPath, "utf8"));
+    oldMetadata.model_requested = "opus";
+    writeFileSync(metadataPath, JSON.stringify(oldMetadata));
+    const metadataBefore = readFileSync(metadataPath);
+    const second = recordingStub(successStdout("New crit."));
+    const current = await ensureCrits(
+      { imagePaths: [imagePath] },
+      options(runsDirectory, second.runner),
+    );
+    expect(second.critCalls()).toHaveLength(1);
+    expect(current.map((crit) => crit.runNumber)).toEqual([2]);
+    expect(readFileSync(metadataPath)).toEqual(metadataBefore);
+  });
+
+  it("stops before any run when claude --version fails", async () => {
+    const { imagePath, runsDirectory } = setUp();
+    let critCalls = 0;
+    const brokenVersion: ClaudeRunner = async (args) => {
+      if (args[0] === "--version") {
+        return { stdout: "", stderr: "not found", exitCode: 127 };
+      }
+      critCalls += 1;
+      return { stdout: successStdout("x"), stderr: "", exitCode: 0 };
+    };
+    await expect(
+      ensureCrits(
+        { imagePaths: [imagePath] },
+        options(runsDirectory, brokenVersion),
+      ),
+    ).rejects.toThrow(/--version exited with code 127/);
+    expect(critCalls).toBe(0);
   });
 
   it("copies the image as image-1.png and keeps the original path out of the prompt", async () => {
@@ -253,21 +298,6 @@ describe("saved metadata", () => {
 });
 
 describe("readSavedCrits", () => {
-  it("returns the saved crits and cannot start a child process", async () => {
-    const { imagePath, runsDirectory } = setUp();
-    const stub = recordingStub();
-    await ensureCrits(
-      { imagePaths: [imagePath] },
-      options(runsDirectory, stub.runner),
-    );
-    const key = createHash("sha256")
-      .update(readFileSync(imagePath))
-      .digest("hex");
-    // readSavedCrits takes no runner, so it has no way to start a child process.
-    const replayed = readSavedCrits(runsDirectory, COMMIT, key);
-    expect(replayed.map((crit) => crit.crit)).toEqual(["A crit."]);
-  });
-
   it("replays through the command line without starting a child process", async () => {
     const { imagePath, runsDirectory } = setUp();
     const stub = recordingStub();
@@ -345,7 +375,9 @@ describe("buildClaudeArguments", () => {
       "-p",
       "--safe-mode",
       "--model",
-      "opus",
+      "claude-opus-5-5",
+      "--permission-mode",
+      "dontAsk",
       "--output-format",
       "json",
       "--no-session-persistence",
@@ -461,7 +493,20 @@ describe("the command line", () => {
     expect(help).toContain("[--note TEXT] IMAGE");
   });
 
-  it("keeps the prompt template in one constant with the skill's placeholders", () => {
-    expect(CRITIC_PROMPT_TEMPLATE).toContain("<skill folder>/agents/critic.md");
+  it("keeps the prompt template equal to the prompt block in step 2 of the skill's SKILL.md", () => {
+    const skillText = readFileSync(
+      join(REPOSITORY_ROOT, "plugin", "skills", "design-critic", "SKILL.md"),
+      "utf8",
+    );
+    const stepTwo = skillText.slice(skillText.indexOf("\n2. "));
+    const blockStart = stepTwo.indexOf("   ```\n") + "   ```\n".length;
+    const blockEnd = stepTwo.indexOf("\n   ```", blockStart);
+    // The block is indented three spaces under the list item; remove that indent from each line.
+    const block = stepTwo
+      .slice(blockStart, blockEnd)
+      .split("\n")
+      .map((line) => line.replace(/^ {3}/, ""))
+      .join("\n");
+    expect(block).toBe(CRITIC_PROMPT_TEMPLATE);
   });
 });

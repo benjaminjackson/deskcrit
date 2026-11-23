@@ -45,6 +45,23 @@ const EXIT_CODE_COULD_NOT_RUN = 2;
 const CHILD_TIMEOUT_MILLISECONDS = 20 * 60 * 1000;
 const MAX_BUDGET_USD = "5";
 
+/** The full model id the critic runs on. A full id, not the alias "opus", so a saved run names the model it was made with. */
+export const CRITIC_MODEL = "claude-opus-5-5";
+
+/**
+ * The permission mode of the child. In dontAsk mode, every call that would prompt is denied, and
+ * only the allow list and actions that need no approval run, whatever the user's settings say.
+ */
+export const CRITIC_PERMISSION_MODE = "dontAsk";
+
+/** How a run was made. A saved run counts only when all four fields match the current values. */
+export type RunIdentity = {
+  readonly prompt_sha256: string;
+  readonly model_requested: string;
+  readonly isolation_flag: string;
+  readonly permission_mode: string;
+};
+
 /**
  * The prompt from step 2 of the skill's SKILL.md, word for word. buildPrompt fills the
  * placeholders. Its SHA-256 is saved with each run as prompt_sha256, so a change to this text
@@ -164,6 +181,42 @@ export function buildPrompt(
 }
 
 /**
+ * Returns --bare when ANTHROPIC_API_KEY is present, because --bare skips the keychain and needs
+ * the key, and --safe-mode otherwise. It reads only whether the key is present, never its value.
+ */
+export function isolationFlagFor(environment: NodeJS.ProcessEnv): string {
+  if (environment.ANTHROPIC_API_KEY === undefined) {
+    return "--safe-mode";
+  }
+  return "--bare";
+}
+
+/** Returns what a new run would be made with in this environment. */
+export function currentRunIdentity(
+  environment: NodeJS.ProcessEnv = process.env,
+): RunIdentity {
+  return {
+    prompt_sha256: sha256(CRITIC_PROMPT_TEMPLATE),
+    model_requested: CRITIC_MODEL,
+    isolation_flag: isolationFlagFor(environment),
+    permission_mode: CRITIC_PERMISSION_MODE,
+  };
+}
+
+/** Returns true when saved metadata holds every field of the identity with the same value. */
+function matchesIdentity(
+  metadata: Record<string, unknown>,
+  identity: RunIdentity,
+): boolean {
+  return (
+    metadata.prompt_sha256 === identity.prompt_sha256 &&
+    metadata.model_requested === identity.model_requested &&
+    metadata.isolation_flag === identity.isolation_flag &&
+    metadata.permission_mode === identity.permission_mode
+  );
+}
+
+/**
  * Returns the `claude` arguments for one crit. It uses --bare when ANTHROPIC_API_KEY is present,
  * because --bare skips the keychain and needs the key, and --safe-mode otherwise. It reads only
  * whether the key is present, never its value. The prompt goes last, after an option that takes
@@ -174,13 +227,13 @@ export function buildClaudeArguments(
   prompt: string,
   environment: NodeJS.ProcessEnv,
 ): string[] {
-  const isolationFlag =
-    environment.ANTHROPIC_API_KEY === undefined ? "--safe-mode" : "--bare";
   return [
     "-p",
-    isolationFlag,
+    isolationFlagFor(environment),
     "--model",
-    "opus",
+    CRITIC_MODEL,
+    "--permission-mode",
+    CRITIC_PERMISSION_MODE,
     "--output-format",
     "json",
     "--no-session-persistence",
@@ -340,13 +393,16 @@ function listRunNumbers(requestDirectory: string): number[] {
 }
 
 /**
- * Reads the complete runs of one request in order of run number. A run is complete when its .json
- * exists. It takes no runner, so it cannot start a child process.
+ * Reads the complete runs of one request that were made the way a new run would be made, in order
+ * of run number. A run is complete when its .json exists, and it counts only when its prompt hash,
+ * model, isolation flag, and permission mode match `identity`. It takes no runner, so it cannot
+ * start a child process.
  */
 export function readSavedCrits(
   runsDirectory: string,
   commit: string,
   key: string,
+  identity: RunIdentity = currentRunIdentity(),
 ): SavedCrit[] {
   const requestDirectory = join(runsDirectory, commit, key);
   const uniqueNumbers = [...new Set(listRunNumbers(requestDirectory))];
@@ -358,12 +414,16 @@ export function readSavedCrits(
     if (!existsSync(metadataPath) || !existsSync(critPath)) {
       continue;
     }
+    const metadata = JSON.parse(readFileSync(metadataPath, "utf8"));
+    if (!matchesIdentity(metadata, identity)) {
+      continue;
+    }
     saved.push({
       runNumber,
       critPath,
       metadataPath,
       crit: readFileSync(critPath, "utf8"),
-      metadata: JSON.parse(readFileSync(metadataPath, "utf8")),
+      metadata,
     });
   }
   return saved;
@@ -440,6 +500,11 @@ async function runCriticOnce(
       environment,
       workDirectory,
     );
+    if (versionRun.exitCode !== 0) {
+      throw new Error(
+        `claude --version exited with code ${versionRun.exitCode}: ${versionRun.stderr.slice(0, 500)}`,
+      );
+    }
     const prompt = buildPrompt(
       options.skillDirectory,
       workImagePaths,
@@ -470,8 +535,9 @@ async function runCriticOnce(
 }
 
 /**
- * Makes sure a request has at least `runs` complete runs made with the current prompt template, and
- * starts only the missing ones. Returns every complete run with the current template, in order.
+ * Makes sure a request has at least `runs` complete runs made the way a new run would be made
+ * (same prompt template, model, isolation flag, and permission mode), and starts only the missing
+ * ones. Returns every such run, in order.
  */
 export async function ensureCrits(
   request: CritRequest,
@@ -483,12 +549,10 @@ export async function ensureCrits(
     sha256(readFileSync(imagePath)),
   );
   const key = requestKey(imageSha256s, request.note, request.focus);
-  const promptSha256 = sha256(CRITIC_PROMPT_TEMPLATE);
+  const identity = currentRunIdentity();
   const requestDirectory = join(options.runsDirectory, commit, key);
   const currentRuns = () =>
-    readSavedCrits(options.runsDirectory, commit, key).filter(
-      (saved) => saved.metadata.prompt_sha256 === promptSha256,
-    );
+    readSavedCrits(options.runsDirectory, commit, key, identity);
   let missing = runs - currentRuns().length;
   while (missing > 0) {
     const once = await runCriticOnce(request, options);
@@ -501,7 +565,7 @@ export async function ensureCrits(
         note: request.note ?? null,
         focus: request.focus ?? null,
       },
-      prompt_sha256: promptSha256,
+      ...identity,
       skill_directory: portablePath(options.skillDirectory, 2),
       skill_commit: commit,
       model_ids: once.result.modelIds,
@@ -692,12 +756,12 @@ export async function runCriticCommand(
 }
 
 /** Runs the command and sets the exit code: 2 when anything stopped the run. */
-export async function main(
-  argv: readonly string[] = process.argv.slice(2),
-  options: MainOptions = DEFAULT_MAIN_OPTIONS,
-): Promise<void> {
+export async function main(): Promise<void> {
   try {
-    const output = await runCriticCommand(argv, options);
+    const output = await runCriticCommand(
+      process.argv.slice(2),
+      DEFAULT_MAIN_OPTIONS,
+    );
     process.stdout.write(output.text);
     process.exitCode = output.exitCode;
   } catch (error) {
