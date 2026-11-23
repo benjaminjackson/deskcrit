@@ -23,7 +23,7 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { basename, dirname, extname, join, resolve } from "node:path";
+import { basename, dirname, extname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { formatTable } from "../support/format-table.ts";
@@ -93,7 +93,13 @@ export type SideBySideOptions = {
   readonly randomSeed: () => Buffer;
 };
 
-const HELP_TEXT = `Pair two unlabeled crits per page, then count the picks (PRD EV-19).
+/**
+ * Returns the help text. It is built at run time so the two run-critic.ts commands name the runs
+ * folder as an absolute path: run-critic.ts reads a relative --runs-dir from the current folder, so
+ * from a subfolder the private crits would land outside the folder that .gitignore lists.
+ */
+function buildHelpText(runsDirectory: string, outDirectory: string): string {
+  return `Pair two unlabeled crits per page, then count the picks (PRD EV-19).
 
 Usage:
   node evals/critic/side-by-side.ts prepare --base X --candidate Y [--note TEXT] [--runs-dir DIR] [--out DIR] IMAGE_FOLDER
@@ -101,25 +107,24 @@ Usage:
   node evals/critic/side-by-side.ts --help
 
 First make the crits, one command per skill version. Each SKILL_DIR is a design-critic skill folder
-checked out at that version, for example in its own git worktree. Run them from the repository
-root, give them only the image files of IMAGE_FOLDER, and use the same --note in all three
-commands, or none:
-  node evals/critic/run-critic.ts run --skill BASE_SKILL_DIR --runs-dir evals/critic/side-by-side/runs IMAGE_FOLDER/*.png
-  node evals/critic/run-critic.ts run --skill CANDIDATE_SKILL_DIR --runs-dir evals/critic/side-by-side/runs IMAGE_FOLDER/*.png
+checked out at that version, for example in its own git worktree. IMAGE_FILES is each image file
+of IMAGE_FOLDER (png, jpg, jpeg, or webp). Use the same --note in all three commands, or none:
+  node evals/critic/run-critic.ts run --skill BASE_SKILL_DIR --runs-dir ${runsDirectory} IMAGE_FILES
+  node evals/critic/run-critic.ts run --skill CANDIDATE_SKILL_DIR --runs-dir ${runsDirectory} IMAGE_FILES
 Each run makes a folder named after the skill commit under the runs folder.
 
 Modes:
   prepare  Read the saved crits and write, in the out folder, pages/page-NN.md (Crit A and Crit B
            in a random order per page), key.json (which version is A), and picks.txt. Starts no
-           model call. Refuses an out folder that already holds key.json.
+           model call. Refuses an out folder that exists and is not empty.
   record   Read key.json and picks.txt, map each pick back through the key, and print the wins.
 
 Flags:
   --base X, --candidate Y  A skill commit (a folder name under the runs folder) or the path of a
                            saved <commit> run folder.
   --note TEXT              The note the crits were made with.
-  --runs-dir DIR           The runs folder (default evals/critic/side-by-side/runs).
-  --out DIR                The out folder (default evals/critic/side-by-side/out).
+  --runs-dir DIR           The runs folder (default ${runsDirectory}).
+  --out DIR                The out folder (default ${outDirectory}).
   --help, -h               Print this help.
 
 How to pick: read pages/page-NN.md and the image it names, then replace each ? in picks.txt with
@@ -130,6 +135,7 @@ judged.
 
 Exit codes: 0 done, 1 missing crits or invalid picks, 2 could not run.
 `;
+}
 
 /** Returns the SHA-256 of bytes as lowercase hex. */
 function sha256(content: Buffer): string {
@@ -171,16 +177,8 @@ function listPageImages(imageFolder: string): string[] {
   const names = readdirSync(imageFolder).filter((name) =>
     IMAGE_EXTENSIONS.has(extname(name).toLowerCase()),
   );
-  // An explicit comparator, so the order does not depend on the locale.
-  names.sort((left, right) => {
-    if (left < right) {
-      return -1;
-    }
-    if (left > right) {
-      return 1;
-    }
-    return 0;
-  });
+  // sort() with no comparator compares UTF-16 code units, so the order does not depend on the locale.
+  names.sort();
   return names.map((name) => join(imageFolder, name));
 }
 
@@ -200,27 +198,34 @@ function escapeRegularExpression(text: string): string {
 }
 
 /**
- * Returns a pattern that matches a commit in full or any prefix of it of 7 or more characters,
- * ignoring case. The longest prefix comes first, so the whole commit is removed, not only its start.
+ * Returns a pattern that matches a commit's first 7 characters and any hex characters after them,
+ * ignoring case, so the full commit and every prefix of 7 or more characters are matched.
  */
 function commitPattern(commit: string): RegExp {
-  if (commit.length < SHORTEST_HIDDEN_PREFIX) {
-    return new RegExp(escapeRegularExpression(commit), "gi");
-  }
-  const prefixes: string[] = [];
-  for (
-    let length = commit.length;
-    length >= SHORTEST_HIDDEN_PREFIX;
-    length -= 1
-  ) {
-    prefixes.push(escapeRegularExpression(commit.slice(0, length)));
-  }
-  return new RegExp(`(?:${prefixes.join("|")})`, "gi");
+  const prefix = escapeRegularExpression(
+    commit.slice(0, SHORTEST_HIDDEN_PREFIX),
+  );
+  return new RegExp(`${prefix}[0-9a-f]*`, "gi");
+}
+
+/** Matches any run of non-space characters that holds skills/design-critic, such as an absolute skill path. */
+const SKILL_PATH_PATTERN = /\S*skills\/design-critic\S*/g;
+
+/** Returns true when a run folder name looks like a git commit: 7 to 40 hex characters. */
+function isCommitName(name: string): boolean {
+  return /^[0-9a-f]{7,40}$/i.test(name);
+}
+
+/** Returns true when a --base or --candidate value is a path, so it may be removed from crit text. */
+function isPathValue(value: string): boolean {
+  return value.includes("/") || value.includes(sep);
 }
 
 /**
- * Replaces with [removed] every text that could name a side: both commits and their prefixes of 7
- * or more characters, both side values and run folders, and each skill folder from the metadata.
+ * Replaces with [removed] every text that could name a side: any path that holds
+ * skills/design-critic (an absolute one names the worktree), the literal texts (side values that are
+ * paths, run folders, skill folders from the metadata), and both commits with their prefixes of 7
+ * or more characters.
  */
 export function hideSideNames(
   crit: string,
@@ -230,7 +235,7 @@ export function hideSideNames(
   // Longest first, so a run folder path is removed before the commit inside it.
   const sortedLiterals = literals.filter((literal) => literal !== "");
   sortedLiterals.sort((left, right) => right.length - left.length);
-  let text = crit;
+  let text = crit.replace(SKILL_PATH_PATTERN, REMOVED_TEXT);
   for (const literal of sortedLiterals) {
     text = text.replace(
       new RegExp(escapeRegularExpression(literal), "gi"),
@@ -260,26 +265,17 @@ function checkPageHidesCommits(
   }
 }
 
-/** Returns the skill_directory string of a crit's metadata, or an empty string when it has none. */
-function readSkillDirectory(metadata: Record<string, unknown>): string {
-  const skillDirectory = metadata.skill_directory;
-  if (typeof skillDirectory === "string") {
-    return skillDirectory;
-  }
-  return "";
-}
-
 /**
  * Reads both sides' crits of every page and writes the page files, key.json, and picks.txt. It
  * returns exit code 1 and the pages that lack a crit when either side has none, and writes nothing.
- * It throws when it could not run, including when the out folder already holds key.json.
+ * It throws when it could not run, including when the out folder exists and is not empty.
  */
 export function prepareSideBySide(input: PrepareInput): CommandResult {
   const outDirectory = resolve(input.outDirectory);
   const keyPath = join(outDirectory, "key.json");
-  if (existsSync(keyPath)) {
+  if (existsSync(outDirectory) && readdirSync(outDirectory).length > 0) {
     throw new Error(
-      `${keyPath} already exists, so its picks could be lost; pass another --out`,
+      `${outDirectory} exists and is not empty, so earlier picks could be lost; pass another --out`,
     );
   }
   const runsDirectory = resolve(input.runsDirectory);
@@ -338,8 +334,8 @@ export function prepareSideBySide(input: PrepareInput): CommandResult {
       baseCrit: baseCrits[0].crit,
       candidateCrit: candidateCrits[0].crit,
       skillDirectories: [
-        readSkillDirectory(baseCrits[0].metadata),
-        readSkillDirectory(candidateCrits[0].metadata),
+        String(baseCrits[0].metadata.skill_directory ?? ""),
+        String(candidateCrits[0].metadata.skill_directory ?? ""),
       ],
     });
   });
@@ -347,6 +343,7 @@ export function prepareSideBySide(input: PrepareInput): CommandResult {
     const lines = [
       "These pages have no saved crit on one side:",
       ...missingPages,
+      "Runs made with an older prompt, model, permission mode, or settings, or with a different --note, are not used.",
       "Run node evals/critic/run-critic.ts run for each skill version first; see --help.",
     ];
     return {
@@ -357,13 +354,16 @@ export function prepareSideBySide(input: PrepareInput): CommandResult {
   }
 
   const seed = input.randomSeed();
-  const commits = [base.commit, candidate.commit];
+  // Only a run folder named like a commit is hidden as one, so a folder named with a bare word,
+  // such as main, does not remove that word from the crits.
+  const commits = [base.commit, candidate.commit].filter(isCommitName);
   const keyPages: KeyPage[] = [];
   const pageFiles: { name: string; text: string }[] = [];
   for (const page of pages) {
+    // A side value that is a commit is removed by the commit pattern; a bare word is never removed.
     const literals = [
-      base.value,
-      candidate.value,
+      isPathValue(base.value) ? base.value : "",
+      isPathValue(candidate.value) ? candidate.value : "",
       base.runFolder,
       candidate.runFolder,
       ...page.skillDirectories,
@@ -508,6 +508,7 @@ export function recordPicks(
   }
   const problems: string[] = [];
   const picksByNumber = new Map<number, string>();
+  const unpickedNumbers = new Set<number>();
   const lines = picksText.split("\n");
   lines.forEach((rawLine, index) => {
     const line = rawLine.trim();
@@ -518,6 +519,7 @@ export function recordPicks(
     const unpicked = /^(\d+)\s+\?$/.exec(line);
     if (unpicked?.[1] !== undefined) {
       problems.push(`line ${lineNumber}: page ${unpicked[1]} still has ?`);
+      unpickedNumbers.add(Number(unpicked[1]));
       return;
     }
     const match = /^(\d+)\s+(A|B|none)$/i.exec(line);
@@ -540,7 +542,7 @@ export function recordPicks(
   });
   for (const page of keyFile.pages) {
     const pageNumber = Number(page.page);
-    if (!picksByNumber.has(pageNumber) && !hasUnpickedLine(lines, pageNumber)) {
+    if (!picksByNumber.has(pageNumber) && !unpickedNumbers.has(pageNumber)) {
       problems.push(`page ${page.page} has no pick`);
     }
   }
@@ -587,20 +589,6 @@ export function recordPicks(
   return { text: `${text}\n`, errorText: "", exitCode: 0 };
 }
 
-/** Returns true when picks.txt has a "NN ?" line for the page, which is reported on its own. */
-function hasUnpickedLine(
-  lines: readonly string[],
-  pageNumber: number,
-): boolean {
-  for (const rawLine of lines) {
-    const unpicked = /^(\d+)\s+\?$/.exec(rawLine.trim());
-    if (unpicked?.[1] !== undefined && Number(unpicked[1]) === pageNumber) {
-      return true;
-    }
-  }
-  return false;
-}
-
 /** Reads key.json and picks.txt from the out folder and runs recordPicks. It throws when either is missing. */
 function recordFromOutDirectory(outDirectory: string): CommandResult {
   const keyPath = join(outDirectory, "key.json");
@@ -634,7 +622,14 @@ export function runSideBySideCommand(
       allowPositionals: true,
     });
     if (parsed.values.help === true) {
-      return { text: HELP_TEXT, errorText: "", exitCode: 0 };
+      return {
+        text: buildHelpText(
+          resolve(options.runsDirectory),
+          resolve(options.outDirectory),
+        ),
+        errorText: "",
+        exitCode: 0,
+      };
     }
     const [mode, ...rest] = parsed.positionals;
     const outDirectory = resolve(parsed.values.out ?? options.outDirectory);
@@ -651,7 +646,9 @@ export function runSideBySideCommand(
       return recordFromOutDirectory(outDirectory);
     }
     if (mode !== "prepare") {
-      throw new Error(`name a mode, prepare or record\n\n${HELP_TEXT}`);
+      throw new Error(
+        `name a mode, prepare or record\n\n${buildHelpText(resolve(options.runsDirectory), resolve(options.outDirectory))}`,
+      );
     }
     const imageFolder = rest[0];
     if (imageFolder === undefined || rest.length > 1) {

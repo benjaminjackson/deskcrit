@@ -111,15 +111,18 @@ function readKey(outDirectory: string): KeyFile {
 describe("prepare", () => {
   it("writes pages and picks.txt that name neither commit, and a key.json that names both", () => {
     const setup = setUp(2);
-    const leakyCrit = [
-      `Skill commit ${BASE_COMMIT} and ${CANDIDATE_COMMIT.toUpperCase()}.`,
-      `Short ${BASE_COMMIT.slice(0, 7)} and ${CANDIDATE_COMMIT.slice(0, 9)}.`,
+    const baseCrit = [
+      `The base crit. Skill commit ${BASE_COMMIT} and ${CANDIDATE_COMMIT.toUpperCase()}.`,
       "Read plugin/skills/design-critic/references/checklist.md.",
       `Folder ${join(setup.runsDirectory, BASE_COMMIT)}.`,
     ].join("\n");
+    const candidateCrit = [
+      `The candidate crit. Short ${BASE_COMMIT.slice(0, 7)} and ${CANDIDATE_COMMIT.slice(0, 9)}.`,
+      "Read /Users/x/github/crit-xyz/plugin/skills/design-critic/agents/critic.md first.",
+    ].join("\n");
     for (const bytes of setup.imageBytes) {
-      writeRun(setup.runsDirectory, BASE_COMMIT, bytes, leakyCrit);
-      writeRun(setup.runsDirectory, CANDIDATE_COMMIT, bytes, leakyCrit);
+      writeRun(setup.runsDirectory, BASE_COMMIT, bytes, baseCrit);
+      writeRun(setup.runsDirectory, CANDIDATE_COMMIT, bytes, candidateCrit);
     }
     const output = prepare(setup);
     expect(output.errorText).toBe("");
@@ -140,9 +143,11 @@ describe("prepare", () => {
       }
       expect(text).not.toContain("plugin/skills/design-critic");
       expect(text).not.toContain(setup.runsDirectory);
-      expect(text).not.toContain("1.23");
+      expect(text).not.toContain("crit-xyz");
     }
     expect(written[0]).toContain("[removed]");
+    expect(written[0]).toContain("The base crit.");
+    expect(written[0]).toContain("The candidate crit.");
     expect(written[0]).toContain("## Crit A");
     expect(written[0]).toContain("## Crit B");
     expect(written[0]).toContain(join(setup.imageFolder, "page-1.png"));
@@ -202,6 +207,7 @@ describe("prepare", () => {
     );
     expect(output.errorText).not.toContain("page 01");
     expect(output.errorText).toContain("run-critic.ts run");
+    expect(output.errorText).toContain("with a different --note, are not used");
     expect(() => readdirSync(setup.outDirectory)).toThrow();
   });
 
@@ -228,7 +234,7 @@ describe("prepare", () => {
     expect(readKey(setup.outDirectory).candidate).toBe(CANDIDATE_COMMIT);
   });
 
-  it("refuses an out folder that already holds key.json, and leaves it unchanged", () => {
+  it("refuses an out folder that exists and is not empty, and leaves key.json unchanged", () => {
     const setup = setUp(2);
     writeBothSides(setup.runsDirectory, setup.imageBytes);
     expect(prepare(setup).exitCode).toBe(0);
@@ -238,7 +244,7 @@ describe("prepare", () => {
     );
     const second = prepare(setup);
     expect(second.exitCode).toBe(2);
-    expect(second.errorText).toContain("key.json already exists");
+    expect(second.errorText).toContain("is not empty");
     expect(readFileSync(join(setup.outDirectory, "key.json"), "utf8")).toBe(
       keyBefore,
     );
@@ -282,6 +288,31 @@ const HANDWRITTEN_KEY: KeyFile = {
     },
   ],
 };
+
+describe("hideSideNames", () => {
+  it("keeps a side value that is a bare word and removes one that is a path", () => {
+    const setup = setUp(1);
+    writeRun(
+      setup.runsDirectory,
+      "main",
+      "fake image 1",
+      "The main point is spacing.",
+    );
+    writeRun(
+      setup.runsDirectory,
+      CANDIDATE_COMMIT,
+      "fake image 1",
+      "Another crit.",
+    );
+    const output = prepare(setup, "main");
+    expect(output.errorText).toBe("");
+    const text = readFileSync(
+      join(setup.outDirectory, "pages", "page-01.md"),
+      "utf8",
+    );
+    expect(text).toContain("The main point is spacing.");
+  });
+});
 
 describe("record", () => {
   it("maps each pick through the key and counts the wins", () => {
@@ -341,7 +372,10 @@ describe("the command line", () => {
     });
     expect(help).toContain("prepare");
     expect(help).toContain("record");
-    expect(help).toContain("--runs-dir evals/critic/side-by-side/runs");
+    // The runs folder is absolute, so run-critic.ts saves there from any current folder.
+    expect(help).toContain(
+      `--runs-dir ${join(import.meta.dirname, "side-by-side", "runs")} IMAGE_FILES`,
+    );
     expect(help).toContain("Do not open key.json");
   });
 });
