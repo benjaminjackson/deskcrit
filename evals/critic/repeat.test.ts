@@ -152,7 +152,7 @@ const SEED_CRITS = [
 
 /**
  * The seeded answer: A1, B1, C1 match (in all 3 ranked lists); A2 matches Cs1 only (two runs); B2
- * is alone; the three smaller "Line long." match. So 3 groups hold a ranked finding, 1 is in all 3.
+ * is alone; the three smaller "Line long." match. So 3 of the 5 ranked findings are in all 3 runs.
  */
 const SEED_GROUPS = [
   ["A1", "B1", "C1"],
@@ -181,24 +181,26 @@ async function seedRuns(
       }
       sections.push(reading.sections);
     }
-    const question = buildRepeatQuestion(key, crits, sections);
-    await ensureJudgeAnswer(
-      question,
-      repeatAnswerParser(labelFindings(sections)),
-      {
-        runsDirectory,
-        skillCommit: COMMIT,
-        runClaude: async () => ({
-          stdout: judgeStdout({
-            reason: "stub",
-            groups: SEED_GROUPS,
-            verdicts_agree: true,
-          }),
-          stderr: "",
-          exitCode: 0,
-        }),
-      },
+    const findings = labelFindings(sections);
+    const question = buildRepeatQuestion(
+      key,
+      crits,
+      sections.map((section) => section.verdict),
+      findings,
     );
+    await ensureJudgeAnswer(question, repeatAnswerParser(findings), {
+      runsDirectory,
+      skillCommit: COMMIT,
+      runClaude: async () => ({
+        stdout: judgeStdout({
+          reason: "stub",
+          groups: SEED_GROUPS,
+          verdicts_agree: true,
+        }),
+        stderr: "",
+        exitCode: 0,
+      }),
+    });
   }
 }
 
@@ -278,11 +280,12 @@ describe("extraction", () => {
     );
   });
 
-  it("says a crit has no ranked list when the heading is missing or empty", () => {
+  it("says a crit has no ranked list only when the heading is present with no item", () => {
     expect(
       readCrit("**Verdict.** Fine.\n\n**Smaller things.**\n- One."),
     ).toEqual({
-      type: "no-ranked-list",
+      type: "unreadable",
+      problem: 'no "What would move it most" heading',
     });
     expect(readCrit(sampleCrit("Fine.", [], []))).toEqual({
       type: "no-ranked-list",
@@ -305,6 +308,25 @@ describe("extraction", () => {
       "**Smaller things.** The line is long and the dash is stray.\n",
     );
     expect(readCrit(proseSmallerThings).type).toBe("unreadable");
+  });
+
+  it("reports a heading that critic.md does not name", () => {
+    const smallerToFix = sampleCrit("Weak.", ["One."], ["Two."]).replace(
+      "**Smaller things.**",
+      "**Smaller things to fix.**",
+    );
+    expect(readCrit(smallerToFix)).toEqual({
+      type: "unreadable",
+      problem: 'unknown heading: "**Smaller things to fix.**"',
+    });
+    const rankedVariant = sampleCrit("Weak.", ["One."], ["Two."]).replace(
+      "**What would move it most**",
+      "**What would move it most (ranked)**",
+    );
+    expect(readCrit(rankedVariant)).toEqual({
+      type: "unreadable",
+      problem: 'no "What would move it most" heading',
+    });
   });
 });
 
@@ -368,9 +390,9 @@ describe("scoreImage", () => {
       ["Cs1"],
     ]);
     expect(score).toEqual({
-      rankedGroups: 2,
-      inAllRuns: 2,
-      inAllRankedLists: 2,
+      rankedFindings: 6,
+      inAllRuns: 6,
+      inAllRankedLists: 6,
     });
   });
 
@@ -378,7 +400,28 @@ describe("scoreImage", () => {
     const groups = findings.map((finding) => [finding.id]);
     const score = scoreImage(findings, groups);
     expect(score.inAllRuns).toBe(0);
-    expect(score.rankedGroups).toBe(6);
+    expect(score.rankedFindings).toBe(6);
+  });
+
+  it("counts findings, not groups: two problems in all 3 ranked lists and one own finding per run give 6 of 9", () => {
+    const threeRanked = labelFindings([
+      { verdict: "v", rankedFindings: ["a", "b", "c"], smallerThings: [] },
+      { verdict: "v", rankedFindings: ["a", "b", "c"], smallerThings: [] },
+      { verdict: "v", rankedFindings: ["a", "b", "c"], smallerThings: [] },
+    ]);
+    const score = scoreImage(threeRanked, [
+      ["A1", "B1", "C1"],
+      ["A2", "B2", "C2"],
+      ["A3"],
+      ["B3"],
+      ["C3"],
+    ]);
+    expect(score).toEqual({
+      rankedFindings: 9,
+      inAllRuns: 6,
+      inAllRankedLists: 6,
+    });
+    expect((score.inAllRuns / score.rankedFindings).toFixed(3)).toBe("0.667");
   });
 
   it("counts a match through smaller things in the first share and not the second", () => {
@@ -389,9 +432,9 @@ describe("scoreImage", () => {
       ["C2"],
     ]);
     expect(score).toEqual({
-      rankedGroups: 4,
-      inAllRuns: 2,
-      inAllRankedLists: 1,
+      rankedFindings: 6,
+      inAllRuns: 4,
+      inAllRankedLists: 3,
     });
   });
 });
@@ -405,11 +448,15 @@ describe("runRepeat --replay", () => {
     expect(output.exitCode).toBe(0);
     for (const fixture of REPEAT_FIXTURES) {
       expect(output.text).toMatch(
-        new RegExp(`^${fixture} +2/2/1 +0\\.333 +0\\.333 +yes$`, "m"),
+        new RegExp(`^${fixture} +2/2/1 +0\\.600 +0\\.600 +yes$`, "m"),
       );
     }
-    expect(output.text).toContain("mean share in all 3: 0.333");
-    expect(output.text).toContain("mean share in all 3 ranked lists: 0.333");
+    expect(output.text).toContain(
+      "mean share in all 3: 0.600 (10 of 10 images)",
+    );
+    expect(output.text).toContain(
+      "mean share in all 3 ranked lists: 0.600 (10 of 10 images)",
+    );
     expect(output.text).toContain("verdicts agree 10 of 10");
     expect(output.text).toContain(JEV_FIGURE_LINE);
   });
@@ -428,9 +475,26 @@ describe("runRepeat --replay", () => {
     expect(output.text).toMatch(
       new RegExp(`^${fixture} +2/2/0 +no ranked list`, "m"),
     );
-    expect(output.text).toContain("mean share in all 3: 0.333");
+    expect(output.text).toContain(
+      "mean share in all 3: 0.600 (9 of 10 images)",
+    );
     expect(output.text).toContain("verdicts agree 9 of 9");
     expect(output.text).toContain("1 of 10 images left out of the means");
+  });
+
+  it("exits 2 when every image is left out", async () => {
+    const runsDirectory = newRunsDirectory();
+    for (const fixture of REPEAT_FIXTURES) {
+      writeSavedCrits(runsDirectory, fixture, [
+        sampleCrit("Strong.", [], []),
+        sampleCrit("Strong.", [], []),
+        sampleCrit("Strong.", [], []),
+      ]);
+    }
+    const output = await replay(runsDirectory);
+    expect(output.exitCode).toBe(2);
+    expect(output.text).toContain("mean share in all 3: - (0 of 10 images)");
+    expect(output.errorText).toContain("every image was left out");
   });
 
   it("exits 2 and names the image when its third run is missing", async () => {

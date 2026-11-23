@@ -1,7 +1,7 @@
 // The repeat-run evaluation (PRD EV-17). The critic critiques each of 10 fixed fixture images 3
 // times, and the judge groups the findings of the 3 crits that name the same problem in the same
-// place. The report gives, per image, the share of ranked findings that appear in all 3 runs, and
-// whether the 3 verdicts agree. This is the noise floor the other critic evaluations are read
+// place. The report gives, per image, the share of the ranked findings of all 3 runs whose group
+// holds a finding of every run, and whether the 3 verdicts agree. This is the noise floor the other critic evaluations are read
 // against: one critic run has no measure of how much two runs differ.
 //
 // Live mode runs the critic and the judge, so `npm run ci` never runs it (CS-21); a person starts
@@ -9,7 +9,7 @@
 // process. HELP_TEXT holds the usage, the measures, and the exit codes.
 
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -43,8 +43,8 @@ const MAX_PARALLEL_CALLS = 4;
 /** How many crits of each image the evaluation compares (EV-17). */
 export const RUNS_PER_IMAGE = 3;
 
-/** The labels of runs 1, 2, and 3 in the judge prompt and in the finding ids. */
-const RUN_LABELS = ["A", "B", "C"] as const;
+/** The labels of runs 1, 2, and 3 in the judge prompt and in the finding ids, one letter each. */
+const RUN_LABELS = "ABC";
 
 /** The judge question name, saved with each answer. */
 const JUDGE_QUESTION_NAME = "repeat";
@@ -112,8 +112,8 @@ export type CritSections = {
 
 /**
  * What reading one crit gave: its sections, or why they could not be read. `no-ranked-list` means
- * the crit has no "What would move it most" heading or no item under it. `unreadable` means a
- * section is there but is not in the form critic.md asks for, so a count of its items could be
+ * the crit has a "What would move it most" heading with no item under it. `unreadable` means that
+ * heading is missing, or a section is not in the form critic.md asks for, so a count of its items could be
  * wrong; the evaluation says so instead of scoring a list it may have read short.
  */
 export type CritReading =
@@ -131,7 +131,7 @@ export type LabeledFinding = {
 
 /** The score of one image (EV-17). */
 export type ImageScore = {
-  readonly rankedGroups: number;
+  readonly rankedFindings: number;
   readonly inAllRuns: number;
   readonly inAllRankedLists: number;
 };
@@ -218,8 +218,9 @@ function readSection(
 /**
  * Splits the lines of a section into list items. `itemPattern` matches the first line of an item
  * at column 0 and captures its number when the list is numbered. An indented, blank, or other line
- * after an item continues it. It throws when non-blank text comes before the first item, because
- * then the list is not in the form critic.md asks for and items could be missed.
+ * after an item continues it. It throws when non-blank text comes before the first item, or when a
+ * line starts with `**` at column 0, because that is a heading critic.md does not name, such as
+ * "**Smaller things to fix.**", and the items under it would be read into the wrong section.
  */
 function splitListItems(
   lines: readonly string[],
@@ -227,6 +228,9 @@ function splitListItems(
 ): { number: string | undefined; text: string }[] {
   const items: { number: string | undefined; lines: string[] }[] = [];
   for (const line of lines) {
+    if (line.startsWith("**")) {
+      throw new Error(`unknown heading: "${line.trim().slice(0, 60)}"`);
+    }
     const match = itemPattern.exec(line);
     if (match !== null) {
       items.push({ number: match[1], lines: [line] });
@@ -251,14 +255,14 @@ function splitListItems(
 
 /**
  * Returns the numbered items under "What would move it most", up to the next section heading
- * (EV-17). Returns undefined when the crit has no such heading. It throws when the section holds
- * text that is not a numbered item, or when the numbers do not run 1, 2, 3 and so on, so a list
- * in another form is reported and never counted short.
+ * (EV-17), or an empty list when the heading has no item. It throws when the crit has no such
+ * heading, when the section holds text that is not a numbered item, or when the numbers do not run
+ * 1, 2, 3 and so on, so a list in another form is reported and never counted short.
  */
-export function rankedFindings(markdown: string): string[] | undefined {
+export function rankedFindings(markdown: string): string[] {
   const section = readSection(markdown, "What would move it most");
   if (section === undefined) {
-    return undefined;
+    throw new Error('no "What would move it most" heading');
   }
   if (section.headingRest !== "") {
     throw new Error("text on the line of the ranked-list heading");
@@ -314,7 +318,7 @@ export function verdict(markdown: string): string | undefined {
 export function readCrit(markdown: string): CritReading {
   try {
     const ranked = rankedFindings(markdown);
-    if (ranked === undefined || ranked.length === 0) {
+    if (ranked.length === 0) {
       return { type: "no-ranked-list" };
     }
     const verdictText = verdict(markdown);
@@ -335,6 +339,11 @@ export function readCrit(markdown: string): CritReading {
   }
 }
 
+/** Returns the label of a run from its place in the list: A for the first, B, then C. */
+function runLabel(runIndex: number): string {
+  return RUN_LABELS.charAt(runIndex);
+}
+
 /**
  * Gives every finding of the 3 crits its id: run label, then the item number for a ranked finding
  * (A1, A2) or "s" and the item number for a smaller thing (As1, As2).
@@ -344,10 +353,7 @@ export function labelFindings(
 ): LabeledFinding[] {
   const findings: LabeledFinding[] = [];
   sectionsByRun.forEach((sections, runIndex) => {
-    const run = RUN_LABELS[runIndex];
-    if (run === undefined) {
-      throw new Error(`more than ${RUN_LABELS.length} runs`);
-    }
+    const run = runLabel(runIndex);
     sections.rankedFindings.forEach((text, index) => {
       findings.push({ id: `${run}${index + 1}`, run, ranked: true, text });
     });
@@ -359,42 +365,41 @@ export function labelFindings(
 }
 
 /**
- * Returns the judge question for one image. Per run, the prompt gives the verdict, the ranked
- * findings, and the smaller things, each finding with its id. It names no image path and no
- * criterion.
+ * Returns the judge question for one image. Per critique, the prompt gives the verdict, the ranked
+ * findings, and the smaller things, each finding with its id. `verdicts` holds the verdict of runs
+ * A, B, and C in order, and `findings` comes from labelFindings, so it lists each run's ranked
+ * findings and then its smaller things. It names no image path and no criterion.
  */
 export function buildRepeatQuestion(
   key: string,
   crits: readonly SavedCrit[],
-  sectionsByRun: readonly CritSections[],
+  verdicts: readonly string[],
+  findings: readonly LabeledFinding[],
 ): JudgeQuestion {
-  const findings = labelFindings(sectionsByRun);
   const parts: string[] = [];
-  sectionsByRun.forEach((sections, runIndex) => {
-    const run = RUN_LABELS[runIndex] ?? "?";
-    parts.push(`Critique ${run}`);
-    parts.push(`Verdict: ${sections.verdict}`);
-    parts.push("Ranked findings:");
-    for (const finding of findings) {
-      if (finding.run === run && finding.ranked) {
-        parts.push(`[${finding.id}] ${finding.text}`);
+  let currentRun = "";
+  let inSmallerThings = false;
+  for (const finding of findings) {
+    if (finding.run !== currentRun) {
+      if (currentRun !== "") {
+        parts.push("");
       }
+      currentRun = finding.run;
+      inSmallerThings = false;
+      const runVerdict = verdicts[RUN_LABELS.indexOf(finding.run)] ?? "";
+      parts.push(`Critique ${finding.run}`);
+      parts.push(`Verdict: ${runVerdict}`);
+      parts.push("Ranked findings:");
     }
-    parts.push("Smaller things:");
-    let smallerCount = 0;
-    for (const finding of findings) {
-      if (finding.run === run && !finding.ranked) {
-        parts.push(`[${finding.id}] ${finding.text}`);
-        smallerCount += 1;
-      }
+    if (!finding.ranked && !inSmallerThings) {
+      inSmallerThings = true;
+      parts.push("Smaller things:");
     }
-    if (smallerCount === 0) {
-      parts.push("(none)");
-    }
-    parts.push("");
-  });
+    parts.push(`[${finding.id}] ${finding.text}`);
+  }
   const prompt = `${parts.join("\n")}
-Group the findings that name the same problem in the same place, even in different words. Every id appears in exactly one group. A group holds at most one id from each run. A finding with no match is a group of one. Then say whether the three verdicts agree on whether the design does its job and on the single biggest thing in the way.`;
+
+The letter of an id names its critique: A1 and As1 are findings of critique A. Group the findings that name the same problem in the same place, even in different words. Every id appears in exactly one group. A group holds at most one id from each critique. A finding with no match is a group of one. When one finding covers several findings of another critique, group it with the one that matches its main point, its bold first sentence. Then say whether the three verdicts agree on whether the design does its job and on the single biggest thing in the way.`;
   return {
     name: JUDGE_QUESTION_NAME,
     system: REPEAT_SYSTEM,
@@ -475,9 +480,9 @@ export function repeatAnswerParser(
 }
 
 /**
- * Scores one image (EV-17). Only groups that hold a ranked finding count. `inAllRuns` counts those
- * groups that hold an id from every run, ranked or smaller; `inAllRankedLists` counts those that
- * hold a ranked id from every run.
+ * Scores one image (EV-17). It counts ranked findings over all 3 runs. `inAllRuns` counts the
+ * ranked findings whose group holds an id from every run, ranked or smaller; `inAllRankedLists`
+ * counts the ranked findings whose group holds a ranked id from every run.
  */
 export function scoreImage(
   findings: readonly LabeledFinding[],
@@ -487,34 +492,34 @@ export function scoreImage(
   for (const finding of findings) {
     findingById.set(finding.id, finding);
   }
-  let rankedGroups = 0;
+  let rankedFindingCount = 0;
   let inAllRuns = 0;
   let inAllRankedLists = 0;
   for (const group of groups) {
     const runs = new Set<string>();
     const rankedRuns = new Set<string>();
+    let rankedInGroup = 0;
     for (const id of group) {
       const finding = findingById.get(id);
+      // The answer parser has checked every id, so this skip never happens; it satisfies the compiler.
       if (finding === undefined) {
-        throw new Error(`unknown finding id ${id}`);
+        continue;
       }
       runs.add(finding.run);
       if (finding.ranked) {
         rankedRuns.add(finding.run);
+        rankedInGroup += 1;
       }
     }
-    if (rankedRuns.size === 0) {
-      continue;
-    }
-    rankedGroups += 1;
+    rankedFindingCount += rankedInGroup;
     if (runs.size === RUNS_PER_IMAGE) {
-      inAllRuns += 1;
+      inAllRuns += rankedInGroup;
     }
     if (rankedRuns.size === RUNS_PER_IMAGE) {
-      inAllRankedLists += 1;
+      inAllRankedLists += rankedInGroup;
     }
   }
-  return { rankedGroups, inAllRuns, inAllRankedLists };
+  return { rankedFindings: rankedFindingCount, inAllRuns, inAllRankedLists };
 }
 
 /** Returns the mean of a list of numbers, or undefined when the list is empty. */
@@ -529,16 +534,20 @@ function mean(values: readonly number[]): number | undefined {
   return sum / values.length;
 }
 
+/** The judge question of an image whose 3 crits were all read, with the labeled findings it asks about. */
+type ReadyImage = {
+  readonly question: JudgeQuestion;
+  readonly findings: readonly LabeledFinding[];
+};
+
 /** What the evaluation knows about one image before it is scored. */
 type ImageState = {
   readonly fixture: string;
-  readonly key: string;
   readonly crits: readonly SavedCrit[];
   /** The reading of each crit, or undefined when fewer than 3 crits are saved. */
   readonly readings: readonly CritReading[] | undefined;
-  /** The judge question, or undefined when a crit is missing or cannot be read. */
-  readonly question: JudgeQuestion | undefined;
-  readonly findings: readonly LabeledFinding[];
+  /** The judge question and findings, or undefined when a crit is missing or cannot be read. */
+  readonly ready: ReadyImage | undefined;
 };
 
 /** Returns the request key of a one-image request with no note or focus: the image SHA-256. */
@@ -564,14 +573,7 @@ function readImageState(
     RUNS_PER_IMAGE,
   );
   if (crits.length < RUNS_PER_IMAGE) {
-    return {
-      fixture,
-      key,
-      crits,
-      readings: undefined,
-      question: undefined,
-      findings: [],
-    };
+    return { fixture, crits, readings: undefined, ready: undefined };
   }
   const readings = crits.map((crit) => readCrit(crit.crit));
   const sectionsByRun: CritSections[] = [];
@@ -581,43 +583,50 @@ function readImageState(
     }
   }
   if (sectionsByRun.length < RUNS_PER_IMAGE) {
-    return { fixture, key, crits, readings, question: undefined, findings: [] };
+    return { fixture, crits, readings, ready: undefined };
   }
+  const findings = labelFindings(sectionsByRun);
+  const verdicts = sectionsByRun.map((sections) => sections.verdict);
   return {
     fixture,
-    key,
     crits,
     readings,
-    question: buildRepeatQuestion(key, crits, sectionsByRun),
-    findings: labelFindings(sectionsByRun),
+    ready: {
+      question: buildRepeatQuestion(key, crits, verdicts, findings),
+      findings,
+    },
   };
 }
 
 /**
- * Returns why an image cannot be scored although all its crits are saved: `no ranked list` when a
- * run has none, else `unreadable` with the run and the problem. Returns undefined when every crit
- * was read.
+ * Returns why an image cannot be scored although all its crits are saved: `unreadable` with each
+ * run and its problem, or else `no ranked list`.
  */
-function describeUnscorable(
-  readings: readonly CritReading[],
-): string | undefined {
+function describeUnscorable(readings: readonly CritReading[]): string {
   const problems: string[] = [];
-  let noRankedList = false;
   readings.forEach((reading, index) => {
-    const run = RUN_LABELS[index] ?? "?";
-    if (reading.type === "no-ranked-list") {
-      noRankedList = true;
-    } else if (reading.type === "unreadable") {
-      problems.push(`run ${run}: ${reading.problem}`);
+    if (reading.type === "unreadable") {
+      problems.push(`run ${runLabel(index)}: ${reading.problem}`);
     }
   });
   if (problems.length > 0) {
     return `unreadable (${problems.join("; ")})`;
   }
-  if (noRankedList) {
-    return "no ranked list";
-  }
-  return undefined;
+  return "no ranked list";
+}
+
+/** Reads the saved judge answer of an image that is ready, or returns undefined when none is saved. */
+function readSavedAnswer(
+  ready: ReadyImage,
+  options: RepeatOptions,
+  commit: string,
+): RepeatAnswer | undefined {
+  return readJudgeAnswer(
+    ready.question,
+    repeatAnswerParser(ready.findings),
+    options.runsDirectory,
+    commit,
+  );
 }
 
 const HELP_TEXT = `Repeat-run evaluation (EV-17) on ${REPEAT_FIXTURES.length} fixed fixture images.
@@ -637,12 +646,14 @@ Flags:
   --help, -h          Print this help.
 
 The judge groups the findings of the ${RUNS_PER_IMAGE} crits of an image that name the same problem in the same
-place. Per image: the ranked findings of runs A/B/C; in-all-3, the share of groups with a ranked
-finding that hold a finding of every run, ranked or smaller; in-all-3-ranked, the share of those
-groups that hold a ranked finding of every run; and whether the verdicts agree. A crit whose
-ranked list is missing or not in the form critic.md asks for is reported and left out of the means.
+place. Per image: the ranked findings of runs A/B/C; in-all-3, the share of all ranked findings
+of the 3 runs whose group holds a finding of every run, ranked or smaller; in-all-3-ranked, the
+share of all ranked findings whose group holds a ranked finding of every run; and whether the
+verdicts agree. A crit whose ranked list is missing, empty, or not in the form critic.md asks for
+is named in its row and left out of the means.
 
-Exit codes: 0 the report is complete, 2 could not run or something is missing.
+Exit codes: 0 the report is complete, 2 could not run, something is missing, or every image was
+left out.
 `;
 
 /** Parses the command line, runs or replays the evaluation, and returns the output and exit code (EV-17). */
@@ -670,11 +681,6 @@ export async function runRepeat(
   // ?? gives the right side only when --skill-commit is not given.
   const commit =
     parsed.values["skill-commit"] ?? skillCommit(skillDirectory, replay);
-  for (const fixture of REPEAT_FIXTURES) {
-    if (!existsSync(join(options.repositoryDirectory, fixture))) {
-      throw new Error(`the fixture ${fixture} does not exist`);
-    }
-  }
 
   if (!replay) {
     await runLive(options, skillDirectory, commit);
@@ -684,22 +690,7 @@ export async function runRepeat(
   for (const fixture of REPEAT_FIXTURES) {
     states.push(readImageState(fixture, options, commit));
   }
-  const answers: (RepeatAnswer | undefined)[] = [];
-  for (const state of states) {
-    if (state.question === undefined) {
-      answers.push(undefined);
-      continue;
-    }
-    answers.push(
-      readJudgeAnswer(
-        state.question,
-        repeatAnswerParser(state.findings),
-        options.runsDirectory,
-        commit,
-      ),
-    );
-  }
-  return renderResult(states, answers, options, commit, replay);
+  return renderResult(states, options, commit, replay);
 }
 
 /**
@@ -718,13 +709,8 @@ async function runLive(
     const state = readImageState(fixture, options, commit);
     savedCrits += state.crits.length;
     if (
-      state.question !== undefined &&
-      readJudgeAnswer(
-        state.question,
-        repeatAnswerParser(state.findings),
-        options.runsDirectory,
-        commit,
-      ) !== undefined
+      state.ready !== undefined &&
+      readSavedAnswer(state.ready, options, commit) !== undefined
     ) {
       savedAnswers += 1;
     }
@@ -752,13 +738,13 @@ async function runLive(
     runClaude: options.runClaude,
   };
   await runPooled(REPEAT_FIXTURES, MAX_PARALLEL_CALLS, async (fixture) => {
-    const state = readImageState(fixture, options, commit);
-    if (state.question === undefined) {
+    const ready = readImageState(fixture, options, commit).ready;
+    if (ready === undefined) {
       return undefined;
     }
     return ensureJudgeAnswer(
-      state.question,
-      repeatAnswerParser(state.findings),
+      ready.question,
+      repeatAnswerParser(ready.findings),
       judgeOptions,
     );
   });
@@ -772,13 +758,24 @@ function formatShare(count: number, total: number): string {
   return (count / total).toFixed(3);
 }
 
+/** Returns one mean line: the label, the mean with 3 decimals, and how many images it is over. */
+function formatMeanLine(
+  label: string,
+  shares: readonly number[],
+  imageCount: number,
+): string {
+  const value = mean(shares);
+  const shown = value === undefined ? "-" : value.toFixed(3);
+  return `${label}: ${shown} (${shares.length} of ${imageCount} images)`;
+}
+
 /**
  * Prints one row per image and, when nothing is missing, the means, the verdict count, and the Jev
- * figure. Exit code 2 and a stderr line per missing crit or judge answer when anything is missing.
+ * figure. Exit code 2 and a stderr line per missing crit or judge answer when anything is missing,
+ * and exit code 2 when every image was left out, because then there is no measure.
  */
 function renderResult(
   states: readonly ImageState[],
-  answers: readonly (RepeatAnswer | undefined)[],
   options: RepeatOptions,
   commit: string,
   replay: boolean,
@@ -790,52 +787,49 @@ function renderResult(
   let leftOut = 0;
   let judged = 0;
   let verdictsAgree = 0;
-  states.forEach((state, index) => {
-    const answer = answers[index];
+  for (const state of states) {
     const counts = describeRankedCounts(state.readings);
     if (state.readings === undefined) {
       missing.push(
         `missing crits of ${state.fixture}: ${state.crits.length} of ${RUNS_PER_IMAGE} saved at skill commit ${commit}`,
       );
       rows.push([state.fixture, counts, "missing", "missing", "missing"]);
-      return;
+      continue;
     }
-    const unscorable = describeUnscorable(state.readings);
-    if (unscorable !== undefined || state.question === undefined) {
+    if (state.ready === undefined) {
       leftOut += 1;
-      const note = unscorable ?? "unreadable";
+      const note = describeUnscorable(state.readings);
       rows.push([state.fixture, counts, note, note, "-"]);
-      return;
+      continue;
     }
+    const answer = readSavedAnswer(state.ready, options, commit);
     if (answer === undefined) {
       const answerPath = judgeAnswerPath(
         options.runsDirectory,
         commit,
-        judgeKey(state.question),
+        judgeKey(state.ready.question),
       );
       missing.push(
         `missing judge answer for ${state.fixture}: ${portablePath(answerPath, 3)}`,
       );
       rows.push([state.fixture, counts, "missing", "missing", "missing"]);
-      return;
+      continue;
     }
-    const score = scoreImage(state.findings, answer.groups);
+    const score = scoreImage(state.ready.findings, answer.groups);
     judged += 1;
     if (answer.verdicts_agree) {
       verdictsAgree += 1;
     }
-    if (score.rankedGroups > 0) {
-      sharesInAllRuns.push(score.inAllRuns / score.rankedGroups);
-      sharesInAllRankedLists.push(score.inAllRankedLists / score.rankedGroups);
-    }
+    sharesInAllRuns.push(score.inAllRuns / score.rankedFindings);
+    sharesInAllRankedLists.push(score.inAllRankedLists / score.rankedFindings);
     rows.push([
       state.fixture,
       counts,
-      formatShare(score.inAllRuns, score.rankedGroups),
-      formatShare(score.inAllRankedLists, score.rankedGroups),
+      formatShare(score.inAllRuns, score.rankedFindings),
+      formatShare(score.inAllRankedLists, score.rankedFindings),
       answer.verdicts_agree ? "yes" : "no",
     ]);
-  });
+  }
   const table = formatTable(
     [
       "image",
@@ -857,13 +851,15 @@ function renderResult(
     };
   }
   const lines = [table];
-  const meanInAllRuns = mean(sharesInAllRuns);
-  const meanInAllRankedLists = mean(sharesInAllRankedLists);
   lines.push(
-    `mean share in all 3: ${meanInAllRuns === undefined ? "-" : meanInAllRuns.toFixed(3)}`,
+    formatMeanLine("mean share in all 3", sharesInAllRuns, states.length),
   );
   lines.push(
-    `mean share in all 3 ranked lists: ${meanInAllRankedLists === undefined ? "-" : meanInAllRankedLists.toFixed(3)}`,
+    formatMeanLine(
+      "mean share in all 3 ranked lists",
+      sharesInAllRankedLists,
+      states.length,
+    ),
   );
   lines.push(`verdicts agree ${verdictsAgree} of ${judged}`);
   if (leftOut > 0) {
@@ -872,7 +868,16 @@ function renderResult(
     );
   }
   lines.push(JEV_FIGURE_LINE);
-  return { text: `${lines.join("\n")}\n`, errorText: "", exitCode: 0 };
+  const text = `${lines.join("\n")}\n`;
+  if (judged === 0) {
+    return {
+      text,
+      errorText:
+        "every image was left out: no crit set could be scored, so there is no measure\n",
+      exitCode: EXIT_CODE_COULD_NOT_RUN,
+    };
+  }
+  return { text, errorText: "", exitCode: 0 };
 }
 
 /** Returns the ranked-finding counts of runs A, B, and C as "4/5/3", with "?" for a run that was not read. */
