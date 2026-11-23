@@ -20,6 +20,7 @@ import {
   type ClaudeRunner,
   CRITIC_ISOLATION_FLAG,
   CRITIC_PERMISSION_MODE,
+  isRecord,
   redactPaths,
 } from "./run-critic.ts";
 
@@ -58,42 +59,23 @@ export type JudgeOptions = {
   readonly runClaude: ClaudeRunner;
 };
 
-/** Returns true when a value is a plain object, so its fields can be read. */
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-/** Returns a copy of a JSON value with the keys of every object sorted, so equal values give equal JSON. */
-function sortKeys(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(sortKeys);
-  }
-  if (isRecord(value)) {
-    const sorted: Record<string, unknown> = {};
-    for (const key of Object.keys(value).sort()) {
-      sorted[key] = sortKeys(value[key]);
-    }
-    return sorted;
-  }
-  return value;
-}
-
 /**
  * Returns the key of a judge question: the SHA-256 of {model, name, system, prompt, schema, crits}
- * as JSON with sorted keys. The prompt embeds the crit text, so a changed prompt, schema, model,
- * or crit gives a new key and a new call.
+ * as JSON, in that key order. The prompt embeds the crit text, so a changed prompt, schema, model,
+ * or crit gives a new key and a new call. `model` is a parameter only so a test can change it.
  */
-export function judgeKey(question: JudgeQuestion): string {
-  const canonical = JSON.stringify(
-    sortKeys({
-      model: JUDGE_MODEL,
-      name: question.name,
-      system: question.system,
-      prompt: question.prompt,
-      schema: question.schema,
-      crits: question.crits,
-    }),
-  );
+export function judgeKey(
+  question: JudgeQuestion,
+  model: string = JUDGE_MODEL,
+): string {
+  const canonical = JSON.stringify({
+    model,
+    name: question.name,
+    system: question.system,
+    prompt: question.prompt,
+    schema: question.schema,
+    crits: question.crits,
+  });
   return createHash("sha256").update(canonical).digest("hex");
 }
 

@@ -11,7 +11,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
@@ -143,7 +143,7 @@ describe("judgeArguments", () => {
 });
 
 describe("judgeKey", () => {
-  it("changes when the prompt or the crit references change", () => {
+  it("changes when the prompt, crit references, model, system text, or schema change", () => {
     const baseKey = judgeKey(QUESTION);
     expect(judgeKey({ ...QUESTION })).toBe(baseKey);
     expect(judgeKey({ ...QUESTION, prompt: `${QUESTION.prompt} ` })).not.toBe(
@@ -152,6 +152,13 @@ describe("judgeKey", () => {
     expect(judgeKey({ ...QUESTION, crits: [{ key: "abc", run: 2 }] })).not.toBe(
       baseKey,
     );
+    expect(judgeKey(QUESTION, "claude-other-model")).not.toBe(baseKey);
+    expect(judgeKey({ ...QUESTION, system: `${QUESTION.system} ` })).not.toBe(
+      baseKey,
+    );
+    expect(
+      judgeKey({ ...QUESTION, schema: { ...QUESTION.schema, title: "x" } }),
+    ).not.toBe(baseKey);
   });
 });
 
@@ -165,7 +172,25 @@ describe("ensureJudgeAnswer and readJudgeAnswer", () => {
 
   it("saves the answer once, and a second request makes no call and leaves the file unchanged", async () => {
     const runsDirectory = newRunsDirectory();
-    const stub = recordingStub(judgeStdout({ about_color: true }));
+    // On macOS /var links to /private/var, so tools print the temp folder in either form.
+    const temporaryFolder = tmpdir();
+    const temporaryForms = [
+      temporaryFolder,
+      temporaryFolder.replace(/^\/private\/var\//, "/var/"),
+      temporaryFolder.replace(/^\/var\//, "/private/var/"),
+    ];
+    const result = JSON.parse(judgeStdout({ about_color: true }));
+    result.permission_denials = [
+      {
+        tool_name: "Read",
+        tool_input: { file_path: `${temporaryForms[1]}/crit-judge-x/a.txt` },
+      },
+      {
+        tool_name: "Read",
+        tool_input: { file_path: `${homedir()}/github/crit/package.json` },
+      },
+    ];
+    const stub = recordingStub(JSON.stringify(result));
     const options = {
       runsDirectory,
       skillCommit: COMMIT,
@@ -200,11 +225,16 @@ describe("ensureJudgeAnswer and readJudgeAnswer", () => {
       claude_version: CLAUDE_VERSION,
       name: QUESTION.name,
       answer: { about_color: true },
-      permission_denials: [],
     });
-    for (const text of collectStrings(saved, [])) {
-      expect(text.startsWith("/")).toBe(false);
-    }
+    const strings = collectStrings(saved, []);
+    expect(strings.filter((text) => text.startsWith("/"))).toEqual([]);
+    const leaks = strings.filter(
+      (text) =>
+        temporaryForms.some((form) => text.includes(form)) ||
+        text.includes(homedir()),
+    );
+    expect(leaks).toEqual([]);
+    expect(strings).toContain("<home>/github/crit/package.json");
   });
 
   it("returns the saved answer and leaves the file unchanged when another process saved it during the call", async () => {
