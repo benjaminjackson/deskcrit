@@ -1,0 +1,213 @@
+{
+  "version": 1,
+  "image": { "path": "desktop.png", "width": 1280, "height": 800 },
+  "crit_file": "crit.md",
+  "facts_file": "facts.json",
+  "jev_evidence_file": "jev-evidence.txt",
+  "findings": [
+    {
+      "id": "faint-body-copy",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The copy that sells the product is the faintest thing on the page",
+      "location": {
+        "description": "the lead paragraph, the three card descriptions and the footer text",
+        "viewport": "desktop",
+        "selector": "p.lead",
+        "box": [320, 201, 640, 96],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Low-vision readers and anyone in bright light lose the body copy, and everyone else treats it as fine print and skips it. It is the only place the page names studios, late-payment follow-up and the shared accountant link.",
+      "current": { "value": "2.52:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1 (something near #595959 or darker)",
+      "fix_direction": "Darken the body text to at least 4.5:1. Keep the light grey only for the footer, if anywhere.",
+      "source": "WCAG 1.4.3",
+      "jev": { "title": "Text reads as faint", "probability": 0.99 },
+      "closed_when": { "method": "measure", "check": "contrast of p.lead, div.cards > div.card > p in the desktop viewport is 4.5 or more" }
+    },
+    {
+      "id": "equal-primary-buttons",
+      "rank": 2,
+      "kind": "convention",
+      "title": "Two equal primary buttons give no hint which action the page wants",
+      "location": {
+        "description": "the 'Start free trial' and 'Book a demo' buttons",
+        "viewport": "desktop",
+        "selector": "div.actions > a.button:nth-of-type(1)",
+        "box": [482, 321, 152, 48],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The visitor has to choose between two identical filled blue buttons with no hint which one the page wants.",
+      "current": { "value": "both buttons filled blue, 152×48", "measured": false, "facts_field": null },
+      "target": "one high-emphasis action per view: 'Start free trial' filled, 'Book a demo' outlined or text",
+      "fix_direction": "Keep 'Start free trial' filled and make 'Book a demo' an outlined or text button. Better still, name what the trial button does, e.g. 'Send your first invoice free'.",
+      "source": "Material Design 3, Buttons",
+      "jev": { "title": "Secondary actions are styled as strongly as the primary one", "probability": 0.99 },
+      "closed_when": { "method": "look", "check": "A fresh critic sees one filled primary button and the other action styled clearly weaker" }
+    },
+    {
+      "id": "generic-headline",
+      "rank": 3,
+      "kind": "defect",
+      "title": "The headline could be anyone's, and the real reason to buy is buried in a grey paragraph",
+      "location": {
+        "description": "the headline and the lead paragraph under it",
+        "viewport": "desktop",
+        "selector": "h1",
+        "box": [184, 144, 912, 41],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The visitor can't tell what is different here, so nothing pushes them to act.",
+      "current": { "value": "headline 'Send invoices in minutes, not hours'; audience and advantage only in sentences three and four of the lead", "measured": false, "facts_field": null },
+      "target": "the audience and the sharpest benefit in the headline or a short subhead; the paragraph cut to one or two sentences",
+      "fix_direction": "Put the audience and the sharpest benefit in the headline or a short subhead, for example open with the pain of late payments ('Stop chasing clients for late payments') rather than speed. Then cut the paragraph to one or two sentences.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic can tell from the headline or subhead who the product is for and why it is different" }
+    },
+    {
+      "id": "centred-paragraphs",
+      "rank": 4,
+      "kind": "convention",
+      "title": "Multi-line paragraphs are centred, and the lead runs too long a line",
+      "location": {
+        "description": "the 4-line lead paragraph and the card descriptions",
+        "viewport": "desktop",
+        "selector": "p.lead",
+        "box": [320, 201, 640, 96],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Each line starts somewhere different, so the eye has to hunt for the start of the next one.",
+      "current": { "value": "86 characters per line, centred", "measured": true, "facts_field": "characters_per_line" },
+      "target": "multi-line text flush left; lead at no more than about 70 characters per line (45–75 range)",
+      "fix_direction": "Set multi-line text flush left. If you keep a centred hero, cut the lead to one or two short lines at no more than about 70 characters, and left-align the card text.",
+      "source": "Tschichold, The New Typography; Bringhurst 2.1.2 and 2.1.3",
+      "jev": { "title": "A paragraph is centered or right-aligned", "probability": 0.94 },
+      "closed_when": { "method": "measure", "check": "characters_per_line of p.lead in the desktop viewport is 75 or less, and the multi-line paragraphs are left-aligned in the new image" }
+    },
+    {
+      "id": "heavy-rules-and-borders",
+      "rank": 5,
+      "kind": "convention",
+      "title": "The heavy black rules and card borders are the strongest marks on the page",
+      "location": {
+        "description": "the full-width rules under the header and above the footer, and the outlines around each card",
+        "viewport": null,
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "They carry more visual weight than the card titles or the text inside them, so the page reads as wireframe scaffolding.",
+      "current": { "value": "near-black rules and card outlines heavier than the content", "measured": false, "facts_field": null },
+      "target": "rules and borders removed or replaced by space or a pale tint, so the content sets the weight",
+      "fix_direction": "Remove the rules and borders, or swap them for space or a pale tint.",
+      "source": "Lupton, Thinking with Type; Tufte on non-data ink",
+      "closed_when": { "method": "look", "check": "A fresh critic sees no rule or border heavier than the content it frames" }
+    },
+    {
+      "id": "section-title-not-heading",
+      "rank": null,
+      "kind": "convention",
+      "title": "The section title looks like body text",
+      "location": {
+        "description": "the section title 'Why studios use Quillfern'",
+        "viewport": "desktop",
+        "selector": "p.section-title",
+        "box": [184, 409, 912, 24],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "It is 16 px regular, the same as body text, so it doesn't read as a heading.",
+      "current": { "value": "16 px, weight 400", "measured": true, "facts_field": "font_size" },
+      "target": "a size step or bold weight above body text",
+      "fix_direction": "Give it a size step or bold weight.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "font_size of p.section-title in the desktop viewport is above 16, or font_weight is 600 or more" }
+    },
+    {
+      "id": "section-title-mismatch",
+      "rank": null,
+      "kind": "defect",
+      "title": "The heading promises reasons but the cards name feature categories",
+      "location": {
+        "description": "the heading 'Why studios use Quillfern' and the card titles Invoices, Reminders, Reports",
+        "viewport": "desktop",
+        "selector": "p.section-title",
+        "box": [184, 409, 912, 24],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The cards are named feature categories, not reasons, so the heading doesn't match what follows.",
+      "current": { "value": "heading 'Why studios use Quillfern' over cards titled Invoices, Reminders, Reports", "measured": false, "facts_field": null },
+      "target": "heading and card titles that agree",
+      "fix_direction": "Rename the heading ('What Quillfern does') or rewrite the card titles as outcomes ('Get paid without chasing').",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees a heading that names what the cards under it are" }
+    },
+    {
+      "id": "card-runt",
+      "rank": null,
+      "kind": "convention",
+      "title": "Card 1 ends with 'PDF.' alone on its last line",
+      "location": {
+        "description": "the description in the Invoices card",
+        "viewport": "desktop",
+        "selector": "div.cards > div.card:nth-of-type(1) > p",
+        "box": [206, 509, 249, 72],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A single word alone on the last line looks like a loose end.",
+      "current": { "value": "'PDF.' alone on the last line", "measured": false, "facts_field": null },
+      "target": "no one-word last line",
+      "fix_direction": "Rewrap or shorten the line.",
+      "source": "Bringhurst 2.4.2",
+      "closed_when": { "method": "look", "check": "A fresh critic sees no single word alone on the last line of the Invoices card text" }
+    },
+    {
+      "id": "nav-current-page",
+      "rank": null,
+      "kind": "convention",
+      "title": "Nothing in the navigation marks the current page",
+      "location": {
+        "description": "the navigation links Home / Features / Pricing / Help",
+        "viewport": "desktop",
+        "selector": "nav.site-nav",
+        "box": [492, 58, 297, 24],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Home, Features, Pricing and Help all look the same, so the visitor can't tell where they are.",
+      "current": { "value": "all four links styled alike", "measured": false, "facts_field": null },
+      "target": "the current item carries one cue, such as bold weight or an underline",
+      "fix_direction": "Give the current item one cue, such as bold weight or an underline.",
+      "source": "Laubheimer, NN/g, Menu-Design Checklist",
+      "jev": { "title": "The navigation menu does not mark the current page", "probability": 0.98 },
+      "closed_when": { "method": "look", "check": "A fresh critic sees one nav item marked as the current page" }
+    },
+    {
+      "id": "phone-layout-reflow",
+      "rank": null,
+      "kind": "defect",
+      "title": "On the phone the page scrolls sideways and the cards are squeezed",
+      "location": {
+        "description": "the whole page in the phone viewport, and the three cards in particular",
+        "viewport": null,
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The page scrolls sideways, and the side-by-side cards squeeze descriptions to 6–10 characters per line.",
+      "current": { "value": "page 428 px wide in a 390 px viewport; 6–10 characters per line in the card text", "measured": true, "facts_field": "page_width" },
+      "target": "no sideways scroll; cards stacked in one column below about 600 px",
+      "fix_direction": "Stack the cards in one column below about 600 px.",
+      "source": "WCAG 1.4.10 Reflow",
+      "closed_when": { "method": "measure", "check": "page_width equals width (390) in the phone viewport, and characters_per_line of div.card > p in the phone viewport is 45 or more" }
+    }
+  ]
+}

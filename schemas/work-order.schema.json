@@ -1,0 +1,328 @@
+{
+  "title": "deskcrit work order",
+  "description": "The work-order.json file that the design-critic skill writes beside the prose crit (docs/PRD.md FR-80): one entry per finding, for the coding agent that fixes the page. The work-order agent (plugin/skills/design-critic/agents/work-order.md) writes it from the finished crit, the image, the measured facts file of FR-79 when there is one, and the Jev evidence file of FR-78 when there is one. Written for JSON Schema draft 2020-12; the $schema keyword is left out by project rule, so a validator must be set to draft 2020-12. Every object rejects unknown fields, because the schema and the skill ship together. Pixel boxes are [x, y, width, height] in whole pixels of the image the critic saw. A box comes from the measured facts file or from a crop; when neither gives one, the box is null and box_source is none, never a guess. plugin/skills/design-critic/scripts/work-order.mjs checks what this schema cannot: that the ranked entries match the crit's ranked list one to one, and that each box is the box of the selector or crop it names.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "image",
+    "crit_file",
+    "facts_file",
+    "jev_evidence_file",
+    "findings"
+  ],
+  "properties": {
+    "version": {
+      "description": "The version of this format. A change that a reader of version 1 cannot read raises it.",
+      "const": 1
+    },
+    "image": {
+      "description": "The image the critic saw. Every box is in its pixels.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "width", "height"],
+      "properties": {
+        "path": {
+          "description": "The absolute path of the image, as the critic was given it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "crit_file": {
+      "description": "The path of the prose crit this work order was written from.",
+      "type": "string",
+      "minLength": 1
+    },
+    "facts_file": {
+      "description": "The path of the measured facts file (FR-79) the critic was given, or null when it had none.",
+      "type": ["string", "null"]
+    },
+    "jev_evidence_file": {
+      "description": "The path of the Jev evidence file (FR-78) the critic was given, or null when it had none.",
+      "type": ["string", "null"]
+    },
+    "findings": {
+      "description": "The ranked findings first, in rank order, one per item of the crit's \"What would move it most\" list. Then, with rank null, one entry per item of the crit's \"Smaller things\".",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    }
+  },
+  "$defs": {
+    "box": {
+      "description": "A pixel box: [x, y, width, height] in whole pixels of the image.",
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "finding": {
+      "description": "One finding of the crit.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "rank",
+        "kind",
+        "title",
+        "location",
+        "viewer_experience",
+        "current",
+        "target",
+        "fix_direction",
+        "source",
+        "closed_when"
+      ],
+      "properties": {
+        "id": {
+          "description": "A short lowercase name for the finding, unique in this file, such as faint-lead-text. The next round names the finding by it.",
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "rank": {
+          "description": "The number of the finding in the crit's \"What would move it most\" list, or null for an item of \"Smaller things\".",
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "kind": {
+          "description": "The claim kind the crit gave the finding (FR-77).",
+          "enum": ["defect", "convention", "taste"]
+        },
+        "title": {
+          "description": "The finding in a few words, as the crit names it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "location": {
+          "$ref": "#/$defs/location"
+        },
+        "viewer_experience": {
+          "description": "What the viewer meets, from the crit.",
+          "type": "string",
+          "minLength": 1
+        },
+        "current": {
+          "$ref": "#/$defs/current"
+        },
+        "target": {
+          "description": "The value or state that closes the finding, such as \"contrast of at least 4.5:1\" or \"one button looks primary\".",
+          "type": "string",
+          "minLength": 1
+        },
+        "fix_direction": {
+          "description": "The direction of the fix, from the crit. It says what the fix must achieve, not a redesign.",
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "description": "The source the crit cites, by author and work or by standard and number, or null when the crit cites none, as for a taste finding argued on its own terms.",
+          "type": ["string", "null"]
+        },
+        "jev": {
+          "$ref": "#/$defs/jev"
+        },
+        "closed_when": {
+          "$ref": "#/$defs/closedWhen"
+        }
+      }
+    },
+    "location": {
+      "description": "Where the finding is. The words always; a box and a selector when something real gives them.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "viewport",
+        "selector",
+        "box",
+        "box_source",
+        "crop"
+      ],
+      "properties": {
+        "description": {
+          "description": "Where it is, in words, as the crit says it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "viewport": {
+          "description": "The name of the facts file viewport whose screenshot is the image, such as desktop, or null when there is no facts file.",
+          "type": ["string", "null"]
+        },
+        "selector": {
+          "description": "The CSS selector of the element, copied from the facts file, or null when the facts file has no element for the finding.",
+          "type": ["string", "null"]
+        },
+        "box": {
+          "description": "The pixel box of the finding, or null when no box is known.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/box"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "box_source": {
+          "description": "Where the box comes from. facts: the box of the selector in the facts file. crop: the region of the crop named in crop, as the facts file or crop.mjs gives it. none: no box is known, and box is null.",
+          "enum": ["facts", "crop", "none"]
+        },
+        "crop": {
+          "description": "The path of a crop that shows the finding at full resolution, or null when there is none.",
+          "type": ["string", "null"]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "box_source": {
+                "const": "none"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "box": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "box": {
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "box_source": {
+                "const": "facts"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "selector": {
+                "type": "string"
+              },
+              "viewport": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "box_source": {
+                "const": "crop"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "crop": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "current": {
+      "description": "The value now. A measured value cites the facts file field; any other value is what the critic saw by eye.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "measured", "facts_field"],
+      "properties": {
+        "value": {
+          "description": "The value now, with its unit, such as \"2.52:1\" or \"13 px\", or what the eye sees, such as \"looks faint\".",
+          "type": "string",
+          "minLength": 1
+        },
+        "measured": {
+          "description": "True when the value comes from the facts file.",
+          "type": "boolean"
+        },
+        "facts_field": {
+          "description": "The facts file field the value comes from, such as contrast or font_size, or null when it was not measured.",
+          "type": ["string", "null"]
+        }
+      },
+      "if": {
+        "properties": {
+          "measured": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "facts_field": {
+            "type": "string"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "facts_field": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    "jev": {
+      "description": "Present only when the finding matches a criterion in the Jev evidence file (FR-78). Absent when Jev did not fire on it or there was no evidence file; an absent field is not evidence of anything.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "probability"],
+      "properties": {
+        "title": {
+          "description": "The criterion title, exactly as the evidence file lists it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "probability": {
+          "description": "Jev's probability that the defect is present, from the evidence file.",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "closedWhen": {
+      "description": "The check the next round uses to decide the finding is closed (FR-82).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "check"],
+      "properties": {
+        "method": {
+          "description": "measure: measure the page again and compare a facts file value with the target. look: a fresh critic looks at the new image.",
+          "enum": ["measure", "look"]
+        },
+        "check": {
+          "description": "The check in one sentence, such as \"contrast of p.lead in the desktop viewport is 4.5 or more\".",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
