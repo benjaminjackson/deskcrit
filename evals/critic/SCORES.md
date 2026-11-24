@@ -958,3 +958,27 @@ uniform-scale-praise                  praise   no        present     present    
 uniform-scale-condemn                 condemn  no        absent      absent         pass
 passed 12, failed 1, inconclusive 1 of 14
 ```
+
+### Repeat run, batch 2, at f724b27
+
+`node evals/critic/repeat.ts --replay --batch 2 --skill-commit f724b27f24ba173c1535ee48e9b7db41851ed0b2`
+
+```
+image                                                            findings(A/B/C)  in-all-3  in-all-3-ranked  verdicts-agree
+packs/accessibility/fixtures/chart-without-text.positive.png     2/2/3            0.429     0.429            no
+packs/art-direction/fixtures/mixed-level-of-detail.negative.png  2/2/2            0.500     0.500            yes
+packs/basics/fixtures/all-caps-long-text.positive.png            2/2/2            1.000     1.000            yes
+packs/basics/fixtures/centered-or-right-paragraphs.negative.png  2/2/2            1.000     1.000            yes
+packs/color/fixtures/accent-overused.positive.png                3/4/2            0.778     0.667            no
+packs/dataviz/fixtures/bar-axis-not-at-zero.negative.png         3/3/4            0.900     0.900            no
+packs/dataviz/fixtures/bare-kpi-number.positive.png              1/1/2            0.750     0.750            yes
+packs/layout/fixtures/everything-centered.negative.png           2/2/2            1.000     1.000            no
+packs/typography/fixtures/heading-indistinct.positive.png        3/4/3            1.000     0.600            yes
+packs/ux/fixtures/actions-look-like-plain-text.negative.png      3/2/2            0.714     0.429            no
+mean share in all 3: 0.807 (10 of 10 images)
+mean share in all 3 ranked lists: 0.727 (10 of 10 images)
+verdicts agree 5 of 10
+Jev (EV-17): Jev's largest probability movement was 0.08 (EV-6).
+```
+
+Pooled over batches 1 and 2: share in all 3 is 0.772 and share in all 3 ranked lists is 0.682, inside the pooled range of the three earlier versions (0.804 to 0.816 and 0.668 to 0.704 pooled), so the batch 1 drop is noise.
