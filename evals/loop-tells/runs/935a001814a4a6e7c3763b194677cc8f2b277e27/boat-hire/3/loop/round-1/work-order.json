@@ -1,0 +1,245 @@
+{
+  "version": 1,
+  "image": { "path": "/tmp/crit-loop-boat/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/tmp/crit-loop-boat/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/tmp/crit-loop-boat/round-1/phone.png", "width": 587, "height": 1291 },
+    { "viewport": "tablet", "path": "/tmp/crit-loop-boat/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "/tmp/crit-loop-boat/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/tmp/crit-loop-boat/round-1/crit.md",
+  "facts_file": "/tmp/crit-loop-boat/round-1/facts.json",
+  "findings": [
+    {
+      "id": "phone-layout-no-reflow",
+      "rank": 1,
+      "kind": "defect",
+      "title": "On the phone the page does not reflow, so the booking form is mostly off the screen",
+      "location": {
+        "description": "the whole page at phone width: hero text, nav, and booking form",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "A phone visitor sees only a sliver of the form and must scroll sideways to book. The hero text is squeezed into a 119 px column and the nav stacks into five lines.",
+      "current": { "value": "page 587 px wide in a 390 px viewport; p.lead 9.1 characters per line", "measured": true, "facts_field": "page_width" },
+      "target": "page width equal to the 390 px viewport, with everything in one column and the form fully on screen",
+      "fix_direction": "Below tablet width, stack everything into one column: headline, intro, form, then routes. Give the nav a phone treatment that fits on one row or folds away.",
+      "source": "WCAG 1.4.10 Reflow",
+      "closed_when": { "method": "measure", "check": "page_width in the phone viewport is 390 or less, and p.lead characters_per_line in the phone viewport is 30 or more" }
+    },
+    {
+      "id": "headline-weakest-text",
+      "rank": 2,
+      "kind": "defect",
+      "title": "Nothing leads, because the headline is styled as the weakest text in the hero",
+      "location": {
+        "description": "the h1 headline above the intro",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h1",
+        "box": [64, 129, 600, 30],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The darker intro paragraph wins over the pale headline, so the visitor has no clear first line to read and the offer takes a second pass to find.",
+      "current": { "value": "h1 22 px, weight 400, gray #6b7574; p.lead 20 px near-black; nav 20 px; logo 24 px", "measured": true, "facts_field": "font_size" },
+      "target": "a headline that is clearly the first thing seen: a real step up in size, in dark color, and a nav smaller than the lead",
+      "fix_direction": "Make the headline a real step larger and dark, perhaps a heavier weight or the serif from the logo. Bring the nav down toward 16 px so it stops matching the lead.",
+      "source": "Bringhurst 3.1.1; Dair chapters 8 and 9; Tschichold, The New Typography",
+      "closed_when": { "method": "measure", "check": "h1 font_size is clearly larger than p.lead font_size and the logo, h1 color has contrast of 4.5 or more, and nav.site-nav font_size is below p.lead font_size, in the desktop, tablet, phone and widescreen viewports" }
+    },
+    {
+      "id": "duplicate-primary-buttons",
+      "rank": 3,
+      "kind": "defect",
+      "title": "Two buttons do the same job, and the stronger style is on the weaker one",
+      "location": {
+        "description": "the filled hero button \"See boats and dates\"; the form's outlined \"Search\" button is the other",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "a.button",
+        "box": [64, 291, 196, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The visitor has to stop and work out which button to press, and whether the left one ignores what they set in the form.",
+      "current": { "value": "hero link filled, form Search outlined; both lead to available boats", "measured": false, "facts_field": null },
+      "target": "one booking action, with the form's Search as the filled primary",
+      "fix_direction": "Keep one action. Make the form's Search the filled primary, and remove the hero button or give it a different job.",
+      "source": "Material Design emphasis levels; Nielsen heuristic 8",
+      "closed_when": { "method": "look", "check": "A fresh critic sees the form's Search as the one filled primary button, and the hero button is gone or has a clearly different job." }
+    },
+    {
+      "id": "copy-buries-direct-booking",
+      "rank": 4,
+      "kind": "defect",
+      "title": "The copy buries the reason to book here, and the headline contradicts the routes",
+      "location": {
+        "description": "the headline and the intro text under it",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h1",
+        "box": [64, 129, 600, 30],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A skimming visitor stops before the direct-booking point at the end of the intro. \"For a week\" clashes with the 4-night and 10-night routes. \"No fee on top of the hire\" has no price to measure against, so the visitor must take it on trust.",
+      "current": { "value": "headline \"Hire a narrowboat for a week on the canal\"; direct-booking claim in the last sentence of the intro; no hire price shown", "measured": false, "facts_field": null },
+      "target": "the direct-booking point in the headline or the line straight under it, no \"for a week\" clash with the routes, and a fact that proves the claim",
+      "fix_direction": "Move the direct-booking point up into the headline or the line straight under it, and drop or loosen \"for a week\". Show the kind of fact that proves the claim, such as a from-price per week. The boatyard must supply that figure.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees the direct-booking point in the headline or the line under it, no \"for a week\" clash with the route list, and a boatyard-supplied fact that backs the no-fee claim." }
+    },
+    {
+      "id": "wide-screen-gap",
+      "rank": 5,
+      "kind": "defect",
+      "title": "On wide screens the page splits to the edges and leaves a hole in the middle",
+      "location": {
+        "description": "the space between the text column and the form, and the dead band under the hero button",
+        "viewport": "widescreen",
+        "viewports": ["desktop", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The eye must cross about 850 px of nothing to get from the pitch to the form at 1920 px, and the form looks like a sidebar instead of the point of the page. At 1280 px a dead band of about 270 px sits above the routes.",
+      "current": { "value": "text column ends at x 664 and form starts at x 1539 at 1920 px; about 270 px dead band at 1280 px", "measured": true, "facts_field": "left_edges" },
+      "target": "text and form sit as one group, with the gap above the routes closed",
+      "fix_direction": "Put the layout in a max-width container so the text and the form sit as one group, and close the gap above the routes.",
+      "source": "Arnheim on balance; Ruder on gathered space",
+      "closed_when": { "method": "look", "check": "A fresh critic sees the text and the form as one group in the desktop and widescreen viewports, with no wide empty band between them and none above the routes." }
+    },
+    {
+      "id": "no-picture-of-the-holiday",
+      "rank": 6,
+      "kind": "taste",
+      "title": "A holiday page with no picture of the holiday",
+      "location": {
+        "description": "the whole hero, which shows no boat and no water",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "People hire a narrowboat for the boat and the water, and the page shows neither.",
+      "current": { "value": "no picture besides the logo", "measured": false, "facts_field": null },
+      "target": "a real photo of the boatyard's own boats or a stretch of a route",
+      "fix_direction": "Add a real photo of the boatyard's own boats or a stretch of a route, and avoid stock pictures. The boatyard must supply the photo.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees a real photo of a boat or a route on the page, and it does not look like stock." }
+    },
+    {
+      "id": "low-contrast-gray-text",
+      "rank": null,
+      "kind": "defect",
+      "title": "The h1 and the gray route details are just under 4.5:1",
+      "location": {
+        "description": "the gray route details such as \"7 nights, 38 locks\" (the h1 has the same color)",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "ul > li:nth-of-type(1) > span:nth-of-type(2)",
+        "box": [531, 656, 133, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The gray text is slightly too faint for low-vision readers.",
+      "current": { "value": "4.46:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1",
+      "fix_direction": "Darken the gray slightly. The headline fix in finding 2 covers the h1.",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "contrast of the route detail spans (ul > li > span:nth-of-type(2)) and h1 in the desktop, phone, tablet and widescreen viewports is 4.5 or more" }
+    },
+    {
+      "id": "pale-form-field-borders",
+      "rank": null,
+      "kind": "defect",
+      "title": "The form field borders are pale gray on white",
+      "location": {
+        "description": "the start-date field, where the border is the only edge",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "input",
+        "box": [899, 294, 294, 43],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The fields are hard to see as fields, and the start-date field has no other edge.",
+      "current": { "value": "roughly 1.5:1 by eye", "measured": false, "facts_field": null },
+      "target": "border contrast of at least 3:1 against the white form",
+      "fix_direction": "Darken the field borders to at least 3:1.",
+      "source": "WCAG 1.4.11",
+      "closed_when": { "method": "look", "check": "A fresh critic sees clearly visible field borders on the form in all viewports, judged to be at least 3:1 against white." }
+    },
+    {
+      "id": "tablet-short-intro-lines",
+      "rank": null,
+      "kind": "defect",
+      "title": "On the tablet the intro runs 24 characters per line and ends with \"hire.\" alone",
+      "location": {
+        "description": "the intro paragraph on the tablet",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "p.lead",
+        "box": [64, 203, 236, 240],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The narrow column makes the intro choppy and leaves a single word on the last line.",
+      "current": { "value": "24.1 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "at least 45 characters per line, with no single-word last line",
+      "fix_direction": "Widen the text column or narrow the gap to the form.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "p.lead characters_per_line in the tablet viewport is 45 or more" }
+    },
+    {
+      "id": "phone-route-number-unit-break",
+      "rank": null,
+      "kind": "defect",
+      "title": "On the phone the route rows break a number from its unit",
+      "location": {
+        "description": "the route detail \"4 nights, 12 locks\" on the phone, which wraps to two lines",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "ul > li:nth-of-type(2) > span:nth-of-type(2)",
+        "box": [223, 1167, 103, 50],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A number such as \"12\" sits at the end of a line and its unit \"locks\" starts the next.",
+      "current": { "value": "route details wrap to 2 lines, separating number and unit", "measured": true, "facts_field": "lines" },
+      "target": "each number and its unit on the same line",
+      "fix_direction": "Join each number and unit with a non-breaking space, or stack the details under the route name.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees no route detail in the phone viewport where a number is split from its unit across lines." }
+    },
+    {
+      "id": "date-field-looks-like-free-text",
+      "rank": null,
+      "kind": "convention",
+      "title": "\"Sat 14 June\" looks like a free-text field, not a date picker",
+      "location": {
+        "description": "the start-date field in the form",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "input",
+        "box": [899, 294, 294, 43],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The visitor cannot tell whether to type a date or pick one.",
+      "current": { "value": "a plain text-looking field holding \"Sat 14 June\"", "measured": false, "facts_field": null },
+      "target": "a date input or picker if the field takes typed text",
+      "fix_direction": "If it takes typed text, constrain it to a date input or picker.",
+      "source": "Nielsen heuristic 5",
+      "closed_when": { "method": "look", "check": "A fresh critic sees the start-date field as a date input or picker, not free text." }
+    }
+  ]
+}

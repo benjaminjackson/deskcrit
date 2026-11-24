@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/loop-tells-harbor-tides-eCjW1g/crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/loop-tells-harbor-tides-eCjW1g/crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/loop-tells-harbor-tides-eCjW1g/crit-loop/round-1/phone.png", "width": 676, "height": 873 },
+    { "viewport": "tablet", "path": "<temp>/loop-tells-harbor-tides-eCjW1g/crit-loop/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/loop-tells-harbor-tides-eCjW1g/crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/loop-tells-harbor-tides-eCjW1g/crit-loop/round-1/crit.md",
+  "facts_file": "<temp>/loop-tells-harbor-tides-eCjW1g/crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "empty-hero-tide-table-low",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The right half of the hero is empty and the tide table sits low in small type",
+      "location": {
+        "description": "the hero headline block, with nothing to its right, and the small tide table below",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet", "widescreen"],
+        "selector": "h1",
+        "box": [64, 145, 400, 75],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The eye goes from the button into blank space, the hero looks like a picture failed to load, and the strongest asset, the tide table, reads as small print.",
+      "current": { "value": "hero text 400 px wide with nothing to its right; table cells 12 px, heading 13 px", "measured": true, "facts_field": "text_blocks.box" },
+      "target": "a large, readable preview of a posted Tidewell page (tides, gate times, pontoon depth, notices) fills the space right of the hero text",
+      "fix_direction": "First check whether a picture was meant to go here and did not load. If not, move a large, readable preview of the posted Tidewell page into the empty space.",
+      "source": "Arnheim, Art and Visual Perception, Balance; unslop: empty hero visual",
+      "closed_when": { "method": "look", "check": "In the desktop, tablet and widescreen images, a fresh critic sees a large readable preview of the posted page right of the hero text, and no blank area beside it." }
+    },
+    {
+      "id": "phone-sideways-scroll",
+      "rank": 2,
+      "kind": "defect",
+      "title": "On the phone the page scrolls sideways and the feature columns are off screen",
+      "location": {
+        "description": "the three point columns, which start at x 412 on the phone and are 6 to 7 characters wide on the tablet",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "div.points > div.point:nth-of-type(1) > p",
+        "box": [412, 594, 65, 279],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Phone visitors never see Lock gate times, Depth at the pontoon or Notices unless they swipe sideways; on the tablet the columns are a one-word-per-line staircase. The phone nav also wraps into a 2x2 cluster beside the logo.",
+      "current": { "value": "page_width 676 px in a 390 px viewport; 6 to 7 characters per line on the tablet", "measured": true, "facts_field": "page_width" },
+      "target": "no sideways scroll (page width equals viewport width) and the table and three points stacked in one column at full width below about tablet width",
+      "fix_direction": "Below about tablet width, stack the table and the three points into one column at full width.",
+      "source": "WCAG 1.4.10 Reflow; Bringhurst 40 to 50 characters per line",
+      "closed_when": { "method": "measure", "check": "page_width in the phone viewport equals 390, and characters_per_line of div.points > div.point > p in the phone and tablet viewports is 40 or more" }
+    },
+    {
+      "id": "tide-table-unlabeled-small-heading",
+      "rank": 3,
+      "kind": "defect",
+      "title": "The tide table has no date, no height reference, and a heading smaller than its neighbors",
+      "location": {
+        "description": "the heading 'Today at Porthmellin' above the tide table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [64, 503, 300, 20],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A stranger cannot tell whether the tides are live or a sample, a harbor master cannot tell it is what berth holders would see, and the heights have no reference level. The section that matters most ranks lowest.",
+      "current": { "value": "13 px", "measured": true, "facts_field": "font_size" },
+      "target": "table labeled as an example of the page Tidewell posts, with a date and a height reference; heading at least the 15 px of the point headings",
+      "fix_direction": "Label the table as an example of the page Tidewell posts, add the date and the height reference, and give the heading at least the rank of the point headings. The height reference is a fact only the maker can supply.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "font_size of h2 in the desktop, phone, tablet and widescreen viewports is 15 or more, and a fresh critic sees a date, an example label and a height reference near the table" }
+    },
+    {
+      "id": "no-comparison-with-current-way",
+      "rank": 4,
+      "kind": "taste",
+      "title": "Nothing sets Tidewell beside what harbor offices use now",
+      "location": {
+        "description": "the whole page; no element carries the comparison",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The reader has to take 'can stand behind' on trust, with nothing set against a whiteboard, a printed tide table, or answering the phone.",
+      "current": { "value": "no comparison with the office's current way of posting times", "measured": false, "facts_field": null },
+      "target": "one line or one image that puts Tidewell beside the office's current way of posting times",
+      "fix_direction": "Add one line or one image comparing Tidewell with the office's current way of posting times. The maker must supply it from what they know.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In every image, a fresh critic sees one line or image that sets Tidewell beside the office's current way of posting times." }
+    },
+    {
+      "id": "table-header-contrast",
+      "rank": null,
+      "kind": "defect",
+      "title": "The table column headers are too faint against white",
+      "location": {
+        "description": "the table column headers Tide, Time, Height",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "thead > tr > th:nth-of-type(1)",
+        "box": [64, 530, 140, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The headers that name the columns are hard to read.",
+      "current": { "value": "3.78:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1, for example the body gray #4d585e",
+      "fix_direction": "Darken the headers to the body gray (#4d585e).",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "contrast of thead > tr > th in the desktop, phone, tablet and widescreen viewports is 4.5 or more" }
+    },
+    {
+      "id": "too-many-type-sizes",
+      "rank": null,
+      "kind": "defect",
+      "title": "The 13 and 12 px sizes do not read as different levels",
+      "location": {
+        "description": "the page type scale, mainly the 13 px heading and the 12 px table text",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "Five sizes show on the page, but two of them sit too close to read as separate levels.",
+      "current": { "value": "30, 19, 15, 13 and 12 px", "measured": true, "facts_field": "type_sizes" },
+      "target": "13 px merged into 12 or 15 px",
+      "fix_direction": "Merge 13 into 12 or 15.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "type_sizes in the desktop, phone, tablet and widescreen viewports has no 13 px entry" }
+    },
+    {
+      "id": "points-off-hero-grid",
+      "rank": null,
+      "kind": "defect",
+      "title": "The point columns do not line up with the hero columns",
+      "location": {
+        "description": "the first of the three point columns in the bottom row",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet", "widescreen"],
+        "selector": "div.points > div.point:nth-of-type(1) > h3",
+        "box": [412, 503, 247, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "No column line runs down the page.",
+      "current": { "value": "point columns start at x 412; hero ends at x 464", "measured": true, "facts_field": "left_edges" },
+      "target": "the bottom row lines up with the hero's columns",
+      "fix_direction": "Line the bottom row up with the hero's columns.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, tablet and widescreen images, a fresh critic sees the bottom row start on a column line that the hero also uses." }
+    },
+    {
+      "id": "hero-paragraph-widow",
+      "rank": null,
+      "kind": "defect",
+      "title": "The last word 'quay.' sits alone on the last line of the hero paragraph",
+      "location": {
+        "description": "the hero paragraph under the headline",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "div.hero-text > p",
+        "box": [64, 291, 262, 116],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A lone word on the last line makes the paragraph look ragged.",
+      "current": { "value": "last line is one word, 'quay.'", "measured": false, "facts_field": null },
+      "target": "the last line holds more than one word",
+      "fix_direction": "Rebalance the line breaks of the paragraph.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the phone image, a fresh critic sees no single word alone on the last line of the hero paragraph." }
+    }
+  ]
+}

@@ -1,0 +1,245 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-1/phone.png", "width": 789, "height": 1140 },
+    { "viewport": "tablet", "path": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-1/tablet.png", "width": 789, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-1/crit.md",
+  "facts_file": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "no-reflow-phone-tablet",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The page does not reflow on phone or tablet",
+      "location": {
+        "description": "the headline in the two-column hero, squeezed to a column about one word wide; the whole page scrolls sideways",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "h1",
+        "box": [64, 175, 181, 322],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A bookshop owner who opens a link on a phone sees half a table and a page that slides sideways. The headline breaks into seven one-word lines, the trial button reads \"Start a / 30- / day / trial\", the three facts become narrow stair-step columns, and the nav wraps \"Shops using it\" onto three lines and \"Sign in\" onto two.",
+      "current": { "value": "789 px page width in a 390 px phone viewport and a 768 px tablet viewport", "measured": true, "facts_field": "page_width" },
+      "target": "page width equal to the viewport width, with no sideways scroll",
+      "fix_direction": "Below a breakpoint, stack the hero into one column: headline, paragraph, buttons, then the table at full width inside the margins. Stack the three facts. Collapse the nav, or keep only the logo and \"Sign in\".",
+      "source": "WCAG 2.2 SC 1.4.10 Reflow; Müller-Brockmann on margins",
+      "closed_when": { "method": "measure", "check": "page_width equals the viewport width in the phone and tablet viewports, and the h1 in the phone viewport has no more than 4 lines" }
+    },
+    {
+      "id": "signin-outranks-trial",
+      "rank": 2,
+      "kind": "convention",
+      "title": "\"Sign in\" outranks \"Start a 30-day trial\"",
+      "location": {
+        "description": "the filled dark brown \"Sign in\" button at the top right, against the pale beige trial button in the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "a.nav-signin",
+        "box": [1120, 18, 96, 45],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The eye goes to the action for existing customers, and a new visitor has to look for theirs. The trial button is hardly stronger than the outlined \"See how it works\" next to it, and both hero button edges look to be below 3:1 against the background, so the trial button does not read as the main action.",
+      "current": { "value": "\"Sign in\" is filled dark brown with white bold text; the trial button is a pale beige fill on a cream ground", "measured": false, "facts_field": null },
+      "target": "the trial button is the strongest button on the page; \"Sign in\" is a text link or an outline; the button edge reaches 3:1 against the background",
+      "fix_direction": "Give the brown fill to \"Start a 30-day trial\", and drop \"Sign in\" to a text link or an outline.",
+      "source": "Material Design 3 and NN/g on primary and secondary actions; WCAG 2.2 SC 1.4.11 for the button edge",
+      "closed_when": { "method": "look", "check": "In all four viewports a fresh critic sees the trial button as the strongest filled button on the page, with \"Sign in\" as a text link or an outline." }
+    },
+    {
+      "id": "ask-has-no-comparison",
+      "rank": 3,
+      "kind": "taste",
+      "title": "The ask has nothing to compare against",
+      "location": {
+        "description": "the whole page: nothing sets Shelfmark next to what the owner does now, and nothing follows the three facts",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "\"Start a 30-day trial\" asks the owner to trust the product, but the page does not show how their week changes. The page stops after the three facts, so the bottom third of the desktop view and the bottom half of the widescreen view are empty, with no second ask.",
+      "current": { "value": "no comparison with the owner's current tool or routine, and no ask after the three facts", "measured": false, "facts_field": null },
+      "target": "a comparison with something the owner already has and trusts, followed by a repeat of the ask",
+      "fix_direction": "Add a comparison with something the owner already has and trusts, in words the maker supplies (the kind of fact missing: what the owner uses now to know their stock). Repeat the ask after it.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees, after the three facts in the desktop, phone, tablet and widescreen viewports, a comparison with what the owner does now and a repeated trial ask." }
+    },
+    {
+      "id": "widescreen-hero-gap",
+      "rank": 4,
+      "kind": "convention",
+      "title": "The widescreen layout pulls apart",
+      "location": {
+        "description": "the hero text on the left and the table on the right, with an empty band between them; the three facts run in long lines",
+        "viewport": "widescreen",
+        "viewports": ["widescreen"],
+        "selector": "h1",
+        "box": [64, 157, 540, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The hero text ends at about x 575 and the table starts at x 1376, leaving an empty band about 800 px wide, so the headline and the table that proves it look like two unrelated things. The three facts stretch to 79 and 81 characters per line.",
+      "current": { "value": "79 and 81 characters per line in the first two facts, with an empty band about 800 px wide between hero text and table", "measured": true, "facts_field": "characters_per_line" },
+      "target": "the table sits near the hero text, as it does at 1280 px; fact lines of 45 to 75 characters",
+      "fix_direction": "Cap the content width so the table sits near the text, as it does at 1280 px.",
+      "source": "Arnheim on balance; Bringhurst's 45 to 75 characters",
+      "closed_when": { "method": "measure", "check": "characters_per_line of section.facts > p:nth-of-type(1) and p:nth-of-type(2) in the widescreen viewport is 75 or less, and the gap between the hero text and the table is much smaller than 800 px" }
+    },
+    {
+      "id": "table-gray-contrast",
+      "rank": null,
+      "kind": "defect",
+      "title": "The table headers and the date are too faint",
+      "location": {
+        "description": "the \"Mon 9 June\" date above the table and the table headers",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "span.preview-date",
+        "box": [1118, 161, 79, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The gray text is hard to read at 14 px.",
+      "current": { "value": "3.82:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1",
+      "fix_direction": "Darken that gray.",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "contrast of span.preview-date and thead > tr > th in all four viewports is 4.5 or more" }
+    },
+    {
+      "id": "too-many-type-sizes",
+      "rank": null,
+      "kind": "convention",
+      "title": "The type sizes are too close to read as levels",
+      "location": {
+        "description": "the nav at 16, the body at 15 and the table at 14 px",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The body paragraph is smaller than the nav, so the sizes do not read as levels.",
+      "current": { "value": "40, 20, 16, 15 and 14 px", "measured": true, "facts_field": "type_sizes" },
+      "target": "fewer sizes, with the body at least as large as the nav",
+      "fix_direction": "Set the body at least at the nav size and let weight or color separate the rest.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "type_sizes in all four viewports lists fewer than 5 sizes, and the body text size is at least the nav text size" }
+    },
+    {
+      "id": "headline-runt",
+      "rank": null,
+      "kind": "convention",
+      "title": "The headline ends with \"asks\" alone on the third line",
+      "location": {
+        "description": "the headline in the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "h1",
+        "box": [64, 157, 540, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A single word hangs on the last line.",
+      "current": { "value": "the last of 3 lines holds one word, \"asks\"", "measured": false, "facts_field": null },
+      "target": "a last line that carries more than one word",
+      "fix_direction": "Rebalance the measure so the last line carries more than one word.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop and widescreen viewports the last line of the h1 holds more than one word." }
+    },
+    {
+      "id": "table-rows-unsorted",
+      "rank": null,
+      "kind": "taste",
+      "title": "The rows of \"Reorder this week\" are not sorted by urgency",
+      "location": {
+        "description": "the rows of the \"Reorder this week\" table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The rows run 9, 6, 7, 5, 4 sold, with the titles at 0 on shelf mixed in, so the example reads as a random list and not as the product's judgment.",
+      "current": { "value": "rows sold this week run 9, 6, 7, 5, 4 with 0-on-shelf titles mixed in", "measured": false, "facts_field": null },
+      "target": "rows sorted by how urgent the reorder is",
+      "fix_direction": "Sort the rows by how urgent the reorder is.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new image the table rows follow a visible order of reorder urgency." }
+    },
+    {
+      "id": "no-order-quantity-column",
+      "rank": null,
+      "kind": "taste",
+      "title": "The table shows no column for how many copies to order",
+      "location": {
+        "description": "the \"Reorder this week\" table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The table promises a reorder list but gives no quantity to order.",
+      "current": { "value": "three columns: Title, On shelf, Sold this week", "measured": false, "facts_field": null },
+      "target": "if Shelfmark suggests a quantity, the example table shows that column",
+      "fix_direction": "If Shelfmark suggests a quantity, add that column to the example table. The maker must supply the quantity figures.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees a column for how many copies to order in the table, or the maker has said Shelfmark suggests none." }
+    },
+    {
+      "id": "table-edge-off-grid",
+      "rank": null,
+      "kind": "convention",
+      "title": "The table's left edge lines up with none of the three fact columns",
+      "location": {
+        "description": "the left edge of the table, at x 737",
+        "viewport": "desktop",
+        "viewports": ["desktop"],
+        "selector": "thead > tr > th:nth-of-type(1)",
+        "box": [737, 201, 209, 40],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The table looks placed by eye.",
+      "current": { "value": "table left edge at x 737; fact columns at x 64, 461 and 858", "measured": false, "facts_field": null },
+      "target": "the table's left edge shares an edge with the third or the middle fact column",
+      "fix_direction": "Align the table with the third column or the middle column.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop viewport the left edge of the table lines up with the left edge of the middle or the third fact column." }
+    },
+    {
+      "id": "your-vs-the-shops",
+      "rank": null,
+      "kind": "convention",
+      "title": "\"the shop's\" breaks the \"your\" voice of the first fact",
+      "location": {
+        "description": "the first fact: \"Sales come in from the shop's card reader\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(1)",
+        "box": [64, 501, 357, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The copy changes from \"your\" to \"the shop's\" right after \"Works with your till\".",
+      "current": { "value": "\"the shop's card reader\"", "measured": false, "facts_field": null },
+      "target": "\"your\" kept through the first fact",
+      "fix_direction": "Keep it as \"your\".",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new image the first fact says \"your\" and not \"the shop's\"." }
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/loop-tells-boat-hire-DFCGrJ/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/loop-tells-boat-hire-DFCGrJ/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/loop-tells-boat-hire-DFCGrJ/.crit-loop/round-1/phone.png", "width": 587, "height": 1291 },
+    { "viewport": "tablet", "path": "<temp>/loop-tells-boat-hire-DFCGrJ/.crit-loop/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/loop-tells-boat-hire-DFCGrJ/.crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/loop-tells-boat-hire-DFCGrJ/.crit-loop/round-1/crit.md",
+  "facts_file": "<temp>/loop-tells-boat-hire-DFCGrJ/.crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "phone-layout-not-adapting",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The phone layout does not adapt to the screen",
+      "location": { "description": "the opening paragraph, which wraps at about 12 characters a line on the phone", "viewport": "phone", "viewports": ["phone"], "selector": "p.lead", "box": [64, 409, 119, 540], "box_source": "facts", "crop": null },
+      "viewer_experience": "A visitor has to pan sideways to see the form and reads the sales pitch one word group at a time.",
+      "current": { "value": "587 px page width in a 390 px viewport", "measured": true, "facts_field": "page_width" },
+      "target": "one column with no sideways scrolling (page width equal to the 390 px viewport)",
+      "fix_direction": "Below tablet width, stack the page into one column with the form directly under the opening text, and fold the menu into a single row or a menu button.",
+      "source": "WCAG 2.2 SC 1.4.10 (Reflow)",
+      "closed_when": { "method": "measure", "check": "page_width in the phone viewport is 390 or less, and p.lead in the phone viewport has far more than 9 characters per line" }
+    },
+    {
+      "id": "headline-weakest-text",
+      "rank": 2,
+      "kind": "defect",
+      "title": "Nothing leads, and the headline is the weakest text on the page",
+      "location": { "description": "the h1 headline at top left", "viewport": "desktop", "viewports": ["desktop", "phone", "tablet", "widescreen"], "selector": "h1", "box": [64, 129, 600, 30], "box_source": "facts", "crop": null },
+      "viewer_experience": "The eye goes to the filled button first and finds the headline last; it reads as a subtitle. The page's real reason to book here sits at the end of the paragraph where few will reach it.",
+      "current": { "value": "22 px, regular weight, gray #6b7574 at 4.46:1 contrast, against 20 px near-black body text", "measured": true, "facts_field": "font_size" },
+      "target": "a headline clearly the first thing seen: larger by a real step than the body, darker than the body, not paler",
+      "fix_direction": "Make the headline larger by a real step and darker, and if wanted set it in the Source Serif the logo uses. Then decide whether the 'no agency, no fee' point belongs in it or right under it.",
+      "source": "Dair, Design with Type, ch. 8-9; Tschichold, The New Typography",
+      "closed_when": { "method": "measure", "check": "font_size of h1 in the desktop, phone, tablet and widescreen viewports is clearly larger than p.lead (20 px), and its color is at least as dark as p.lead" }
+    },
+    {
+      "id": "twin-primary-buttons",
+      "rank": 3,
+      "kind": "defect",
+      "title": "Two buttons do the same job, and the stronger one is not the form's button",
+      "location": { "description": "the filled 'See boats and dates' button under the opening paragraph", "viewport": "desktop", "viewports": ["desktop", "phone", "tablet", "widescreen"], "selector": "a.button", "box": [64, 291, 196, 47], "box_source": "facts", "crop": null },
+      "viewer_experience": "A visitor who filled in the form finds their 'Search' button looks secondary and wonders whether the filled button ignores what they chose.",
+      "current": { "value": "'See boats and dates' is filled; 'Search' is only outlined; both lead to a list of boats", "measured": false, "facts_field": null },
+      "target": "one primary (filled) action per view, and it is the form's 'Search' button",
+      "fix_direction": "Make 'Search' the one filled button, and either remove 'See boats and dates' or give it a different job.",
+      "source": "Material Design and Apple's guidelines (one primary action per view); Nielsen heuristic 8",
+      "closed_when": { "method": "look", "check": "In the new images of all viewports, 'Search' is the only filled button, and 'See boats and dates' is gone or visibly secondary with a different job." }
+    },
+    {
+      "id": "no-picture-of-holiday",
+      "rank": 4,
+      "kind": "taste",
+      "title": "A holiday sold with no picture of it",
+      "location": { "description": "the empty band below the 'See boats and dates' button", "viewport": "desktop", "viewports": ["desktop", "phone", "tablet", "widescreen"], "selector": null, "box": null, "box_source": "none", "crop": null },
+      "viewer_experience": "Without a boat or water the page could be any booking form, and the slow-holiday mood of the name 'Slowwater' never arrives.",
+      "current": { "value": "only type, a form and three route names; no picture", "measured": false, "facts_field": null },
+      "target": "one real photo of the company's own boats or its stretch of canal where the empty band sits",
+      "fix_direction": "The maker supplies one real photo of their own boats or canal and places it in the empty band below the button. A generic photo does not close this.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees one photo of boats or canal on the page, in the place of the empty band." }
+    },
+    {
+      "id": "copy-week-and-missing-price",
+      "rank": 5,
+      "kind": "defect",
+      "title": "The copy contradicts itself and leaves out the price",
+      "location": { "description": "the headline 'Hire a narrowboat for a week on the canal'", "viewport": "desktop", "viewports": ["desktop", "phone", "tablet", "widescreen"], "selector": "h1", "box": [64, 129, 600, 30], "box_source": "facts", "crop": null },
+      "viewer_experience": "A reader may think the company hires only by the week, and cannot check the 'no fee on top of the hire' claim against an agency's price.",
+      "current": { "value": "headline says 'for a week'; routes run 4, 7 and 10 nights; no price on the page", "measured": false, "facts_field": null },
+      "target": "headline that matches the 4, 7 and 10 night routes, and a price figure a visitor can compare",
+      "fix_direction": "Cut 'for a week' or make it match the shorter breaks. Add a starting price; the maker must supply it from their own price list, since the page has none.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees a headline that does not contradict the 4, 7 and 10 night routes, and a price or starting price on the page." }
+    },
+    {
+      "id": "too-many-close-type-sizes",
+      "rank": null,
+      "kind": "defect",
+      "title": "Five type sizes, three of them too close to read as separate levels",
+      "location": { "description": "the headline, opening paragraph and menu, set at 22 and 20 px, with the logo at 24 px", "viewport": "desktop", "viewports": ["desktop", "phone", "tablet", "widescreen"], "selector": null, "box": null, "box_source": "none", "crop": null },
+      "viewer_experience": "The type levels blur together, so no level reads as clearly higher than another.",
+      "current": { "value": "5 sizes: 24, 22, 20, 16, 14 px", "measured": true, "facts_field": "type_sizes" },
+      "target": "about three sizes, with weight or color for finer steps",
+      "fix_direction": "Keep about three sizes and use weight or color for finer steps.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "type_sizes in the desktop, phone, tablet and widescreen viewports lists about three sizes, and none are within a few px of each other" }
+    },
+    {
+      "id": "gray-text-just-under-contrast",
+      "rank": null,
+      "kind": "defect",
+      "title": "Route lengths and the headline are just under the 4.5:1 contrast minimum",
+      "location": { "description": "the headline in gray #6b7574 (the route lengths share the color)", "viewport": "desktop", "viewports": ["desktop", "phone", "tablet", "widescreen"], "selector": "h1", "box": [64, 129, 600, 30], "box_source": "facts", "crop": null },
+      "viewer_experience": "The gray text is slightly harder to read, mostly for low-vision readers.",
+      "current": { "value": "4.46:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1",
+      "fix_direction": "Darken the gray #6b7574 slightly.",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "violations in the desktop, phone, tablet and widescreen viewports lists no text-contrast entry for h1 or the route-length spans (contrast 4.5 or more)" }
+    },
+    {
+      "id": "scattered-empty-space",
+      "rank": null,
+      "kind": "defect",
+      "title": "The empty space is scattered, not planned",
+      "location": { "description": "the dead band between the button and 'Routes from Hartwell Junction', and the gap between text column and form card on widescreen", "viewport": "desktop", "viewports": ["desktop", "tablet", "widescreen"], "selector": null, "box": null, "box_source": "none", "crop": null },
+      "viewer_experience": "On widescreen the page reads as two pieces that tip apart; on tablet the lower third is blank.",
+      "current": { "value": "about 270 px dead band on desktop; about 900 px gap on widescreen with the form pinned to the far right edge; blank lower third on tablet", "measured": false, "facts_field": null },
+      "target": "content held in a centered maximum width, with the dead band closed",
+      "fix_direction": "Hold the content in a centered maximum width and close the dead band.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new desktop, tablet and widescreen images the content sits in a centered maximum width, the form card is not pinned to the far edge, and no dead band remains below the button." }
+    }
+  ]
+}

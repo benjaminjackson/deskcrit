@@ -1,0 +1,262 @@
+diff --git a/index.html b/index.html
+index 7154905..925647f 100644
+--- a/index.html
++++ b/index.html
+@@ -38,18 +38,18 @@
+             <tr><th>Title</th><th>On shelf</th><th>Sold this week</th></tr>
+           </thead>
+           <tbody>
+-            <tr><td>The Salt Road</td><td>1</td><td>9</td></tr>
+             <tr><td>A Year of Hedges</td><td>0</td><td>6</td></tr>
+-            <tr><td>Small Engines</td><td>2</td><td>7</td></tr>
+-            <tr><td>Notes from the Ferry</td><td>1</td><td>5</td></tr>
+             <tr><td>The Glass Orchard</td><td>0</td><td>4</td></tr>
++            <tr><td>The Salt Road</td><td>1</td><td>9</td></tr>
++            <tr><td>Notes from the Ferry</td><td>1</td><td>5</td></tr>
++            <tr><td>Small Engines</td><td>2</td><td>7</td></tr>
+           </tbody>
+         </table>
+       </div>
+     </section>
+ 
+     <section class="facts">
+-      <p><span class="fact-title">Works with your till.</span> Sales come in from the shop's card reader as they happen.</p>
++      <p><span class="fact-title">Works with your till.</span> Sales come in from your card reader as they happen.</p>
+       <p><span class="fact-title">Orders from your distributor.</span> One click sends the reorder list in the format they take.</p>
+       <p><span class="fact-title">Returns tracked.</span> Unsold copies due back are listed by date.</p>
+     </section>
+diff --git a/styles.css b/styles.css
+index 00b243b..41d5711 100644
+--- a/styles.css
++++ b/styles.css
+@@ -10,6 +10,11 @@
+   src: url("fonts/inter-latin-500-normal.woff2") format("woff2");
+ }
+ 
++/* Side margin: at least 64px, and wider on big screens so the content never grows past 1152px. */
++:root {
++  --page-margin: max(64px, calc((100% - 1152px) / 2));
++}
++
+ * {
+   box-sizing: border-box;
+ }
+@@ -31,7 +36,7 @@ a {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+-  padding: 18px 64px;
++  padding: 18px var(--page-margin);
+   border-bottom: 1px solid #ece6dc;
+ }
+ 
+@@ -43,20 +48,19 @@ a {
+ 
+ .site-nav {
+   display: flex;
++  flex-wrap: wrap;
+   align-items: center;
++  gap: 8px 28px;
+ }
+ 
+ .site-nav a {
+-  margin-left: 28px;
+   text-decoration: none;
++  white-space: nowrap;
+   color: #5c544b;
+ }
+ 
+ .site-nav .nav-signin {
+-  padding: 10px 22px;
+-  border-radius: 6px;
+-  background: #8a3b24;
+-  color: #ffffff;
++  color: #2a2622;
+   font-weight: 500;
+ }
+ 
+@@ -65,7 +69,7 @@ a {
+   justify-content: space-between;
+   align-items: center;
+   gap: 64px;
+-  padding: 64px 64px 48px;
++  padding: 64px var(--page-margin) 48px;
+ }
+ 
+ .hero-text {
+@@ -77,6 +81,8 @@ h1 {
+   font-size: 40px;
+   font-weight: 500;
+   line-height: 1.15;
++  /* Spread the words evenly over the lines, so no line holds one word alone. */
++  text-wrap: balance;
+ }
+ 
+ .hero-text p {
+@@ -86,6 +92,7 @@ h1 {
+ 
+ .actions {
+   display: flex;
++  flex-wrap: wrap;
+   gap: 12px;
+ }
+ 
+@@ -94,19 +101,20 @@ h1 {
+   padding: 10px 18px;
+   border-radius: 6px;
+   text-decoration: none;
+-  font-size: 15px;
++  white-space: nowrap;
+ }
+ 
+ .button-primary {
+-  border: 1px solid #d6cec2;
+-  background: #f3eee6;
+-  color: #5c544b;
++  border: 1px solid #8a3b24;
++  background: #8a3b24;
++  color: #ffffff;
++  font-weight: 500;
+ }
+ 
+ .button-secondary {
+-  border: 1px solid #d6cec2;
++  border: 1px solid #8f8477;
+   background: #fffdf9;
+-  color: #5c544b;
++  color: #2a2622;
+ }
+ 
+ .preview {
+@@ -119,13 +127,14 @@ h1 {
+ .preview-head {
+   display: flex;
+   justify-content: space-between;
++  align-items: baseline;
+   padding: 14px 18px;
+   border-bottom: 1px solid #ece6dc;
+   font-weight: 500;
+ }
+ 
+ .preview-date {
+-  color: #8a8178;
++  color: #6f665d;
+   font-weight: 400;
+   font-size: 14px;
+ }
+@@ -143,8 +152,15 @@ td {
+   border-bottom: 1px solid #f3eee6;
+ }
+ 
++/* Right-align the two number columns so the digits line up. */
++th:not(:first-child),
++td:not(:first-child) {
++  text-align: right;
++  font-variant-numeric: tabular-nums;
++}
++
+ th {
+-  color: #8a8178;
++  color: #6f665d;
+   font-weight: 400;
+ }
+ 
+@@ -152,16 +168,19 @@ tbody tr:last-child td {
+   border-bottom: none;
+ }
+ 
++/*
++  Three equal columns. Each is half of (content width - 480px table - 80px of gaps),
++  so the third column starts at the table's left edge. Percentages here are of the content width.
++*/
+ .facts {
+-  display: flex;
++  display: grid;
++  grid-template-columns: repeat(3, calc((100% - 560px) / 2));
+   gap: 40px;
+-  padding: 8px 64px 0;
++  padding: 8px var(--page-margin) 64px;
+ }
+ 
+ .facts p {
+-  flex: 1;
+   margin: 0;
+-  font-size: 15px;
+   color: #5c544b;
+ }
+ 
+@@ -169,3 +188,74 @@ tbody tr:last-child td {
+   color: #2a2622;
+   font-weight: 500;
+ }
++
++/* Tablet and phone: one column, so nothing runs past the screen edge. */
++@media (max-width: 960px) {
++  :root {
++    --page-margin: 32px;
++  }
++
++  .hero {
++    flex-direction: column;
++    align-items: stretch;
++    gap: 40px;
++    padding-top: 48px;
++  }
++
++  /* Hero text, table, and facts share one width, so they end at one right edge. */
++  .preview {
++    flex: none;
++    max-width: 540px;
++  }
++
++  .facts {
++    grid-template-columns: 1fr;
++    gap: 20px;
++  }
++
++  .facts p {
++    max-width: 540px;
++  }
++}
++
++/* Phone: put the nav on its own line under the logo. */
++@media (max-width: 600px) {
++  :root {
++    --page-margin: 20px;
++  }
++
++  .site-header {
++    flex-direction: column;
++    align-items: flex-start;
++    gap: 8px;
++  }
++
++  .site-nav {
++    gap: 8px 20px;
++  }
++
++  h1 {
++    font-size: 32px;
++  }
++
++  /* Tighter cells, so each header and title fits on one line. */
++  .preview-head {
++    padding: 14px 12px;
++  }
++
++  th,
++  td {
++    padding: 9px 8px;
++    white-space: nowrap;
++  }
++
++  th:first-child,
++  td:first-child {
++    padding-left: 12px;
++  }
++
++  th:last-child,
++  td:last-child {
++    padding-right: 12px;
++  }
++}

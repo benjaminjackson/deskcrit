@@ -1,0 +1,171 @@
+diff --git a/index.html b/index.html
+index bc23f5c..c930c73 100644
+--- a/index.html
++++ b/index.html
+@@ -20,7 +20,7 @@
+   <main>
+     <section class="hero">
+       <div class="hero-text">
+-        <h1>Hire a narrowboat for a week on the canal</h1>
++        <h1>Hire a narrowboat on the canal</h1>
+         <p class="lead">Pick a boat from one of our four bases, choose a route that fits your days, and book it here with the boatyard that keeps it. No agency in the middle, and no fee on top of the hire.</p>
+         <a class="button" href="#">See boats and dates</a>
+       </div>
+diff --git a/styles.css b/styles.css
+index c5c1406..3faef0e 100644
+--- a/styles.css
++++ b/styles.css
+@@ -33,6 +33,15 @@ a {
+   color: inherit;
+ }
+ 
++/* Hold every band of the page in one centered column on wide screens */
++.site-header,
++.hero,
++.routes {
++  max-width: 1120px;
++  margin-left: auto;
++  margin-right: auto;
++}
++
+ .site-header {
+   display: flex;
+   justify-content: space-between;
+@@ -42,14 +51,14 @@ a {
+ 
+ .logo {
+   font-family: "Source Serif 4", serif;
+-  font-size: 24px;
++  font-size: 20px;
+   text-decoration: none;
+ }
+ 
+ .site-nav a {
+   margin-left: 28px;
+   text-decoration: none;
+-  font-size: 20px;
++  font-size: 16px;
+ }
+ 
+ .hero {
+@@ -65,11 +74,12 @@ a {
+ }
+ 
+ h1 {
+-  margin: 0 0 14px;
+-  font-size: 22px;
++  margin: 0 0 16px;
++  font-family: "Source Serif 4", serif;
++  font-size: 36px;
+   font-weight: 400;
+-  line-height: 1.35;
+-  color: #6b7574;
++  line-height: 1.2;
++  color: #26302f;
+ }
+ 
+ .lead {
+@@ -79,14 +89,11 @@ h1 {
+   color: #26302f;
+ }
+ 
++/* A plain text link: the form's Search button is the one primary action */
+ .button {
+-  display: inline-block;
+-  padding: 11px 20px;
+-  border-radius: 6px;
+-  background: #2d5d5a;
+-  color: #ffffff;
+-  text-decoration: none;
++  color: #2d5d5a;
+   font-weight: 500;
++  text-underline-offset: 3px;
+ }
+ 
+ .search {
+@@ -105,8 +112,7 @@ h1 {
+ .search label {
+   display: block;
+   margin-bottom: 12px;
+-  font-size: 14px;
+-  color: #6b7574;
++  color: #5f6968;
+ }
+ 
+ .search select,
+@@ -129,8 +135,8 @@ h1 {
+   padding: 10px;
+   border: 1px solid #2d5d5a;
+   border-radius: 6px;
+-  background: #ffffff;
+-  color: #2d5d5a;
++  background: #2d5d5a;
++  color: #ffffff;
+   font: inherit;
+   font-weight: 500;
+ }
+@@ -155,11 +161,63 @@ h2 {
+ .routes li {
+   display: flex;
+   justify-content: space-between;
++  gap: 16px;
+   padding: 8px 0;
+   border-top: 1px solid #dfe3e0;
+-  color: #6b7574;
++  color: #5f6968;
++}
++
++/* Keep "7 nights, 38 locks" on one line */
++.routes li span:last-child {
++  white-space: nowrap;
+ }
+ 
+ .route-name {
+   color: #26302f;
+ }
++
++/* Tablets: stack the form under the opening text, one column */
++@media (max-width: 900px) {
++  .hero {
++    flex-direction: column;
++    align-items: stretch;
++    gap: 28px;
++  }
++
++  .search {
++    flex: none;
++    max-width: 600px;
++  }
++
++  .routes {
++    padding-bottom: 32px;
++  }
++}
++
++/* Phones and narrow windows: smaller margins, menu in one wrapping row */
++@media (max-width: 760px) {
++  .site-header {
++    flex-wrap: wrap;
++    gap: 8px 0;
++    padding: 16px 20px;
++  }
++
++  .site-nav {
++    display: flex;
++    flex-wrap: wrap;
++    gap: 4px 20px;
++  }
++
++  .site-nav a {
++    margin-left: 0;
++    white-space: nowrap;
++  }
++
++  .hero {
++    padding: 24px 20px 32px;
++  }
++
++  .routes {
++    padding: 0 20px 32px;
++  }
++}

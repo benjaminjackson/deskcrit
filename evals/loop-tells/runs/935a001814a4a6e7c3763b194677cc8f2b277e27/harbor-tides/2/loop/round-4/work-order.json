@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/crit-loop-tidewell/round-4/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/crit-loop-tidewell/round-4/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/crit-loop-tidewell/round-4/phone.png", "width": 390, "height": 1118 },
+    { "viewport": "tablet", "path": "<temp>/crit-loop-tidewell/round-4/tablet.png", "width": 768, "height": 1102 },
+    { "viewport": "widescreen", "path": "<temp>/crit-loop-tidewell/round-4/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/crit-loop-tidewell/round-4/crit.md",
+  "facts_file": "<temp>/crit-loop-tidewell/round-4/facts.json",
+  "findings": [
+    {
+      "id": "copy-gives-no-reason-to-trust",
+      "rank": 1,
+      "kind": "defect",
+      "title": "Nothing tells a harbor master where the tide numbers come from",
+      "location": {
+        "description": "the headline, the \"Today at Porthmellin\" table and the \"Set up your harbor\" button",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h1",
+        "box": [64, 140, 352, 75],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The headline promises numbers an office \"can stand behind\", and the next thing the viewer sees is a table that looks like live data, with no source and no example label. Nothing says how much work setup is.",
+      "current": { "value": "no tide data source, no name for who works out the gate times, no example label on the table, no line about setup effort next to the button", "measured": false, "facts_field": null },
+      "target": "The page names the tide data source and who works out the gate times, labels the table as an example, and has one line about setup effort next to \"Set up your harbor\".",
+      "fix_direction": "Name the tide data source and who works out the gate times, label the table as an example, and put one line about setup effort next to the button. These three facts are missing and only the maker can supply them.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, a fresh critic sees a named tide data source, a named party that works out the gate times, an example label on the \"Today at Porthmellin\" table, and one line about setup effort next to \"Set up your harbor\"." }
+    },
+    {
+      "id": "hero-shows-only-tides",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The hero table shows only what every tide site shows",
+      "location": {
+        "description": "the \"Today at Porthmellin\" table in the hero, which has only tide rows",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [464, 140, 752, 24],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The two things the copy says Tidewell adds, gate openings and pontoon depth, are only small paragraphs below the hero, so the hero looks like any tide site.",
+      "current": { "value": "4 tide rows (low water, high water, low water, high water); no gate openings, no pontoon depth", "measured": false, "facts_field": null },
+      "target": "The hero visual shows the day's gate openings and the pontoon depth, with the right-aligned times and light rules kept.",
+      "fix_direction": "Add the day's gate openings and the pontoon depth to the hero visual. Keep the right-aligned times and the light rules. The figures are missing from the page and the maker must supply them.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, tablet and widescreen images, the hero table shows gate openings and pontoon depth as well as the tide rows, with right-aligned times and light rules." }
+    },
+    {
+      "id": "tablet-hero-paragraph-77-characters",
+      "rank": null,
+      "kind": "defect",
+      "title": "The tablet hero paragraph still runs 77 characters per line",
+      "location": {
+        "description": "the hero paragraph under the headline on tablet",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "div.hero-text > p",
+        "box": [32, 231, 540, 48],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The lines run just over 75 characters, a little long to read comfortably.",
+      "current": { "value": "77 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "75 characters per line or fewer",
+      "fix_direction": "Narrow the tablet text width to about 520 px, or check the line break, so that \"visitor\" moves to the second line.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "characters_per_line of div.hero-text > p in the tablet viewport is 75 or fewer" }
+    }
+  ]
+}

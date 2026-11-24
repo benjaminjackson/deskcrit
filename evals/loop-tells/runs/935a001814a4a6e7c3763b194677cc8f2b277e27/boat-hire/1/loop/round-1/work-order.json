@@ -1,0 +1,224 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/loop-tells-boat-hire-d45jVj/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/loop-tells-boat-hire-d45jVj/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/loop-tells-boat-hire-d45jVj/.crit-loop/round-1/phone.png", "width": 587, "height": 1291 },
+    { "viewport": "tablet", "path": "<temp>/loop-tells-boat-hire-d45jVj/.crit-loop/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/loop-tells-boat-hire-d45jVj/.crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/loop-tells-boat-hire-d45jVj/.crit-loop/round-1/crit.md",
+  "facts_file": "<temp>/loop-tells-boat-hire-d45jVj/.crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "phone-layout-no-reflow",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The phone layout does not reflow, so the page scrolls sideways and the text is a column of single words",
+      "location": {
+        "description": "the lead paragraph, squeezed beside the search card on the phone",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "p.lead",
+        "box": [64, 409, 119, 540],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A visitor on a phone has to pan sideways to reach the form and read the pitch one word at a time. On tablet the lead runs about 24 characters per line because the card takes half the width.",
+      "current": { "value": "page 587 px wide in a 390 px viewport; lead 9.1 characters per line over 18 lines", "measured": true, "facts_field": "page_width, characters_per_line" },
+      "target": "No sideways scroll; one column below a breakpoint: headline, lead, search card, then routes; compact nav",
+      "fix_direction": "Stack everything in one column below a breakpoint: headline, lead, search card, then routes. Give the nav a compact form. On tablet, stop the card taking half the width so the lead gets a readable line length.",
+      "source": "WCAG 2.2 SC 1.4.10 (Reflow)",
+      "closed_when": { "method": "measure", "check": "page_width equals the viewport width in the phone viewport, and characters_per_line of p.lead in the phone and tablet viewports is well above 9 and 24" }
+    },
+    {
+      "id": "headline-quietest-text",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The headline is the quietest text on the page",
+      "location": {
+        "description": "the headline above the lead paragraph",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h1",
+        "box": [64, 129, 600, 30],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The line that says what the business does reads as a caption to its own paragraph, and the eye goes to the menu and the button instead.",
+      "current": { "value": "22 px, weight 400, #6b7574 at 4.46:1; nav 20 px at 12.75:1; lead 20 px", "measured": true, "facts_field": "font_size, font_weight, contrast" },
+      "target": "h1 clearly the largest and darkest text, with a real step above the lead and a heavier weight; nav at 16 px; about three levels: headline, 16 to 20 px text, 14 px labels",
+      "fix_direction": "Make the h1 clearly the largest and darkest text, with a real step above the lead and a heavier weight. Bring the nav down to the 16 px body size so it stops competing.",
+      "source": "Tschichold, The New Typography; Dair, Design with Type ch. 8-9; Bringhurst 3.1.1",
+      "closed_when": { "method": "measure", "check": "font_size of h1 is larger than the lead and nav, h1 weight is heavier than 400, h1 contrast is higher than the lead's, and nav.site-nav font_size is 16, in all viewports" }
+    },
+    {
+      "id": "two-calls-to-action",
+      "rank": 3,
+      "kind": "convention",
+      "title": "Two calls to action for one job, in two styles",
+      "location": {
+        "description": "the filled green \"See boats and dates\" button in the hero; the outlined \"Search\" button is in the card",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "a.button",
+        "box": [64, 291, 196, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The visitor has to work out which button to use and whether they differ. The real primary action, Search with the base, date, nights, and berths already set, looks secondary.",
+      "current": { "value": "hero button filled green; Search outlined in the same green", "measured": false, "facts_field": null },
+      "target": "one primary button per view",
+      "fix_direction": "Make Search the filled primary, and either remove the hero button or turn it into a text link that scrolls to the form on small screens.",
+      "source": "Material Design 3 and Apple HIG button emphasis",
+      "closed_when": { "method": "look", "check": "A fresh critic sees one filled primary button, Search, and the hero button either gone or shown as a text link, in all viewports" }
+    },
+    {
+      "id": "page-in-three-pieces",
+      "rank": 4,
+      "kind": "defect",
+      "title": "The page falls apart into three pieces with dead space between them",
+      "location": {
+        "description": "the empty band between the hero and the routes heading; on widescreen the card sits at the far right",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "h2",
+        "box": [64, 612, 1152, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The routes look like a separate leftover, not part of the plan-your-trip story. On widescreen the eye has to travel across empty space to reach the form.",
+      "current": { "value": "about 270 px gap between the button (ends y 338) and the h2 (y 612); on widescreen the card at x 1539 with about 850 px between it and the 600 px text column", "measured": true, "facts_field": "text_blocks box" },
+      "target": "gap above the routes no larger than other gaps on the page; card kept near the text on widescreen",
+      "fix_direction": "Cap the content width so the card stays near the text. Close the gap above the routes so they read as the next step from the selected base.",
+      "source": "Arnheim, Art and Visual Perception, ch. I and II",
+      "closed_when": { "method": "measure", "check": "the distance from the bottom of a.button to the top of h2 in the desktop viewport is close to the page's other gaps, and the left edge of div.search-title in the widescreen viewport is much closer to the right edge of p.lead than 850 px" }
+    },
+    {
+      "id": "no-picture-of-boat",
+      "rank": 5,
+      "kind": "taste",
+      "title": "No picture of a boat or the canal",
+      "location": {
+        "description": "the whole page, which has no picture",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The copy makes a good factual case, but nothing shows what a week on a narrowboat looks like, so nothing makes the visitor want to go.",
+      "current": { "value": "no picture on the page", "measured": false, "facts_field": null },
+      "target": "real photos of the actual boats or routes set into the hero, not a stock or generic image",
+      "fix_direction": "Set real photos of the actual boats or routes into the hero. The maker must supply the photos.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees a real photo of a boat or route in the hero in all viewports" }
+    },
+    {
+      "id": "faint-gray-text",
+      "rank": null,
+      "kind": "defect",
+      "title": "The h1 and the route details are just below the 4.5:1 contrast minimum",
+      "location": {
+        "description": "the h1 and the route details such as \"7 nights, 38 locks\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h1",
+        "box": [64, 129, 600, 30],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Low-vision readers lose the headline and the route details.",
+      "current": { "value": "4.46:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1",
+      "fix_direction": "Darken that gray a step.",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "contrast of h1 and the route detail spans (ul > li > span:nth-of-type(2)) in all viewports is 4.5 or more" }
+    },
+    {
+      "id": "nav-no-current-page",
+      "rank": null,
+      "kind": "convention",
+      "title": "The nav does not mark the current page",
+      "location": {
+        "description": "the top-right nav links",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "nav.site-nav",
+        "box": [790, 25, 426, 31],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The visitor cannot tell which page they are on.",
+      "current": { "value": "no cue for the active item", "measured": false, "facts_field": null },
+      "target": "one cue on the active item, such as a bolder weight or an underline",
+      "fix_direction": "Add one cue, such as a bolder weight or an underline, for the active item.",
+      "source": "Laubheimer, NN/g menu checklist",
+      "closed_when": { "method": "look", "check": "A fresh critic sees one nav item marked as current in all viewports" }
+    },
+    {
+      "id": "pale-field-borders",
+      "rank": null,
+      "kind": "convention",
+      "title": "The input and select borders look pale gray on white",
+      "location": {
+        "description": "the borders of the select and input fields in the search card",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "form.search > label:nth-of-type(1) > select",
+        "box": [899, 217, 294, 40],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The fields are hard to see as fields.",
+      "current": { "value": "pale gray on white, not measured", "measured": false, "facts_field": null },
+      "target": "border contrast of at least 3:1 against the card",
+      "fix_direction": "Measure the borders against the 3:1 minimum for component edges and darken them if they fall short.",
+      "source": "WCAG 1.4.11",
+      "closed_when": { "method": "look", "check": "A fresh critic judges the field borders clearly visible against white, at 3:1 or more, in all viewports" }
+    },
+    {
+      "id": "start-date-text-field",
+      "rank": null,
+      "kind": "convention",
+      "title": "\"Start date\" is a text field with no year and no visible picker",
+      "location": {
+        "description": "the \"Start date\" field showing \"Sat 14 June\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "input",
+        "box": [899, 294, 294, 43],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Visitors can type an invalid or unclear date.",
+      "current": { "value": "text field showing \"Sat 14 June\", no year, no picker", "measured": false, "facts_field": null },
+      "target": "a date input that accepts only valid dates",
+      "fix_direction": "Use a date input so visitors cannot type an invalid or unclear date.",
+      "source": "Nielsen 5",
+      "closed_when": { "method": "look", "check": "A fresh critic sees the Start date field as a date input with a visible picker and the year shown, in all viewports" }
+    },
+    {
+      "id": "phone-search-out-of-reach",
+      "rank": null,
+      "kind": "convention",
+      "title": "On the phone the search sits at the top right, in the part of the page that overflows",
+      "location": {
+        "description": "the \"Find a boat\" card on the phone",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "div.search-title",
+        "box": [270, 270, 294, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The main action is out of easy reach.",
+      "current": { "value": "card at x 270, running to x 564 in a 390 px viewport", "measured": true, "facts_field": "text_blocks box" },
+      "target": "search straight after the lead once the layout stacks",
+      "fix_direction": "Once the layout stacks, put the search straight after the lead.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "in the phone viewport, div.search-title is within 390 px of the left edge and its top is just below the bottom of p.lead" }
+    }
+  ]
+}

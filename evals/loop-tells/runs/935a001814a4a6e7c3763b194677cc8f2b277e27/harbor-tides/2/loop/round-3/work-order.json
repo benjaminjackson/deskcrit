@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/crit-loop-tidewell/round-3/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/crit-loop-tidewell/round-3/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/crit-loop-tidewell/round-3/phone.png", "width": 390, "height": 1118 },
+    { "viewport": "tablet", "path": "<temp>/crit-loop-tidewell/round-3/tablet.png", "width": 768, "height": 1102 },
+    { "viewport": "widescreen", "path": "<temp>/crit-loop-tidewell/round-3/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/crit-loop-tidewell/round-3/crit.md",
+  "facts_file": "<temp>/crit-loop-tidewell/round-3/facts.json",
+  "findings": [
+    {
+      "id": "copy-gives-no-reason-to-trust",
+      "rank": 1,
+      "kind": "defect",
+      "title": "Nothing tells a harbor master where the numbers come from",
+      "location": {
+        "description": "the headline that promises numbers a harbor office can stand behind, with the tide table and the button near it",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h1",
+        "box": [64, 140, 352, 75],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A harbor master who must answer for these numbers sees \"Today at Porthmellin\" as if it were live data, with no source and no sign that it is an example. Nothing near the button says how much work setup is.",
+      "current": { "value": "no tide data source, no named author of the gate times, no example label on the table, no line about setup effort next to the button", "measured": false, "facts_field": null },
+      "target": "The page names the tide data source and who works out the gate times, labels the table as an example, and has one line about setup effort next to \"Set up your harbor\".",
+      "fix_direction": "Name the tide data source and who works out the gate times, label the table as an example of a Tidewell page, and put one line about setup effort next to \"Set up your harbor\". The maker must supply all three facts: the data source, who works out the gate times, and how much work setup is.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, a fresh critic sees the tide data source named, who works out the gate times named, the table marked as an example, and one line about setup effort next to the \"Set up your harbor\" button." }
+    },
+    {
+      "id": "hero-shows-only-tides",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The hero table shows only what every tide site shows",
+      "location": {
+        "description": "the \"Today at Porthmellin\" table with four tide rows",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [464, 140, 752, 24],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The two things the copy says Tidewell adds, the gate openings and the depth at the visitor pontoon, appear only as small paragraphs further down the page. The hero shows only the tides.",
+      "current": { "value": "4 tide rows, no gate openings, no pontoon depth", "measured": false, "facts_field": null },
+      "target": "The hero visual shows the tides, the day's gate openings and the pontoon depth.",
+      "fix_direction": "Make the hero visual the full page a berth holder sees, with the tides, the day's gate openings and the pontoon depth. The gate and depth figures must come from the maker. Keep the table's right-aligned times and light rules when rows are added.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, tablet and widescreen images, a fresh critic sees gate openings and pontoon depth in the hero visual next to the tide rows." }
+    },
+    {
+      "id": "tablet-lines-just-over-75",
+      "rank": null,
+      "kind": "convention",
+      "title": "Tablet hero paragraph and first point paragraph run just over 75 characters per line",
+      "location": {
+        "description": "the hero paragraph under the headline on tablet",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "div.hero-text > p",
+        "box": [32, 231, 560, 48],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The shared 560 px width makes the hero paragraph run 77 characters per line and the first point paragraph 76. Each is only two lines, so the facts file does not flag them.",
+      "current": { "value": "77 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "no more than 75 characters per line",
+      "fix_direction": "Narrow the shared tablet width to about 540 px.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "characters_per_line of div.hero-text > p and of section.points > div.point:nth-of-type(1) > p in the tablet viewport is 75 or less" }
+    },
+    {
+      "id": "tablet-headline-breaks-mid-phrase",
+      "rank": null,
+      "kind": "taste",
+      "title": "Tablet headline breaks inside the phrase \"can stand behind\"",
+      "location": {
+        "description": "the headline on tablet",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "h1",
+        "box": [32, 140, 560, 75],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The wider headline breaks as \"...harbor office can / stand behind\". The break splits \"can stand behind\" and the second line is short.",
+      "current": { "value": "break after \"can\", short second line", "measured": false, "facts_field": null },
+      "target": "a break after \"harbor\"",
+      "fix_direction": "Break after \"harbor\" so the second line reads \"office can stand behind\".",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the tablet image, the headline's first line ends after \"harbor\" and \"can stand behind\" stays on one line." }
+    }
+  ]
+}

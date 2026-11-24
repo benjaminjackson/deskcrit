@@ -1,0 +1,251 @@
+diff --git a/index.html b/index.html
+index bc23f5c..c5d0fa7 100644
+--- a/index.html
++++ b/index.html
+@@ -22,10 +22,10 @@
+       <div class="hero-text">
+         <h1>Hire a narrowboat for a week on the canal</h1>
+         <p class="lead">Pick a boat from one of our four bases, choose a route that fits your days, and book it here with the boatyard that keeps it. No agency in the middle, and no fee on top of the hire.</p>
+-        <a class="button" href="#">See boats and dates</a>
++        <a class="hero-link" href="#find-a-boat">See boats and dates</a>
+       </div>
+ 
+-      <form class="search" aria-label="Find a boat">
++      <form class="search" id="find-a-boat" aria-label="Find a boat">
+         <div class="search-title">Find a boat</div>
+         <label>Base
+           <select><option>Hartwell Junction</option></select>
+diff --git a/styles.css b/styles.css
+index c5c1406..a6a891c 100644
+--- a/styles.css
++++ b/styles.css
+@@ -33,11 +33,24 @@ a {
+   color: inherit;
+ }
+ 
++/* Header, hero and routes share one centered column so the page does not
++   spread to the edges of wide screens. */
++.site-header,
++main {
++  max-width: 1120px;
++  margin: 0 auto;
++  padding-left: 64px;
++  padding-right: 64px;
++}
++
+ .site-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+-  padding: 22px 64px;
++  flex-wrap: wrap;
++  gap: 8px 28px;
++  padding-top: 22px;
++  padding-bottom: 22px;
+ }
+ 
+ .logo {
+@@ -46,51 +59,73 @@ a {
+   text-decoration: none;
+ }
+ 
++.site-nav {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 4px 28px;
++}
++
+ .site-nav a {
+-  margin-left: 28px;
+   text-decoration: none;
+-  font-size: 20px;
++  white-space: nowrap;
++}
++
++/* Two columns on wide screens: text and routes on the left, the search
++   card on the right. The hero section uses display: contents so its two
++   children take part in the main grid directly. */
++main {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) 340px;
++  column-gap: 64px;
++  align-items: start;
++  padding-top: 48px;
++  padding-bottom: 64px;
+ }
+ 
+ .hero {
+-  display: flex;
+-  justify-content: space-between;
+-  align-items: flex-start;
+-  gap: 64px;
+-  padding: 48px 64px 32px;
++  display: contents;
+ }
+ 
+ .hero-text {
++  grid-column: 1;
++  grid-row: 1;
+   max-width: 600px;
+ }
+ 
++.search {
++  grid-column: 2;
++  grid-row: 1 / span 2;
++}
++
++.routes {
++  grid-column: 1;
++  grid-row: 2;
++  max-width: 600px;
++  margin-top: 40px;
++}
++
+ h1 {
+-  margin: 0 0 14px;
+-  font-size: 22px;
++  margin: 0 0 16px;
++  font-family: "Source Serif 4", serif;
++  font-size: 40px;
+   font-weight: 400;
+-  line-height: 1.35;
+-  color: #6b7574;
++  line-height: 1.2;
++  color: #26302f;
+ }
+ 
+ .lead {
+-  margin: 0 0 28px;
++  margin: 0 0 20px;
+   font-size: 20px;
+   line-height: 1.5;
+-  color: #26302f;
++  color: #3e4948;
+ }
+ 
+-.button {
+-  display: inline-block;
+-  padding: 11px 20px;
+-  border-radius: 6px;
+-  background: #2d5d5a;
+-  color: #ffffff;
+-  text-decoration: none;
++.hero-link {
+   font-weight: 500;
++  color: #2d5d5a;
+ }
+ 
+ .search {
+-  flex: 0 0 340px;
+   padding: 22px;
+   border: 1px solid #dfe3e0;
+   border-radius: 8px;
+@@ -106,7 +141,7 @@ h1 {
+   display: block;
+   margin-bottom: 12px;
+   font-size: 14px;
+-  color: #6b7574;
++  color: #5c6665;
+ }
+ 
+ .search select,
+@@ -115,7 +150,7 @@ h1 {
+   width: 100%;
+   margin-top: 4px;
+   padding: 8px 10px;
+-  border: 1px solid #cfd5d2;
++  border: 1px solid #8a938f;
+   border-radius: 6px;
+   background: #ffffff;
+   font: inherit;
+@@ -126,19 +161,15 @@ h1 {
+ .search button {
+   width: 100%;
+   margin-top: 6px;
+-  padding: 10px;
+-  border: 1px solid #2d5d5a;
++  padding: 11px;
++  border: 0;
+   border-radius: 6px;
+-  background: #ffffff;
+-  color: #2d5d5a;
++  background: #2d5d5a;
++  color: #ffffff;
+   font: inherit;
+   font-weight: 500;
+ }
+ 
+-.routes {
+-  padding: 0 64px;
+-}
+-
+ h2 {
+   margin: 0 0 10px;
+   font-size: 16px;
+@@ -146,7 +177,6 @@ h2 {
+ }
+ 
+ .routes ul {
+-  max-width: 600px;
+   margin: 0;
+   padding: 0;
+   list-style: none;
+@@ -155,11 +185,57 @@ h2 {
+ .routes li {
+   display: flex;
+   justify-content: space-between;
++  gap: 16px;
+   padding: 8px 0;
+   border-top: 1px solid #dfe3e0;
+-  color: #6b7574;
++  color: #5c6665;
++  font-variant-numeric: tabular-nums;
+ }
+ 
+ .route-name {
+   color: #26302f;
+ }
++
++/* Below 900px there is not room for the card beside the text, so
++   everything stacks in one column: headline, lead, search card, routes. */
++@media (max-width: 900px) {
++  main {
++    grid-template-columns: minmax(0, 1fr);
++    padding-top: 32px;
++  }
++
++  .hero-text,
++  .search,
++  .routes {
++    grid-column: 1;
++    grid-row: auto;
++  }
++
++  /* In one column, text, card and routes fill the full width so their
++     right edge lines up with the nav. */
++  .hero-text,
++  .search,
++  .routes {
++    max-width: none;
++  }
++
++  .search {
++    margin-top: 28px;
++  }
++}
++
++@media (max-width: 600px) {
++  .site-header,
++  main {
++    padding-left: 20px;
++    padding-right: 20px;
++  }
++
++  h1 {
++    font-size: 32px;
++  }
++
++  .lead {
++    font-size: 18px;
++  }
++}

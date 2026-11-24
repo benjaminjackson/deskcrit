@@ -888,6 +888,67 @@ The recheck critic lists the added tell as a new problem in 36 of the 38 pairs a
 
 After review, the closed-new-problem count needs both the judge's yes and a status line that reads "closed, new problem" for the expected finding, and the status parser accepts a dash, parentheses, and numbered lists; the replay above did not change, because all 11 judge yeses already had that status line and no status line was misread. Two work orders, `work-orders/negative-letter-spacing-on-small-text.json` and `work-orders/too-many-type-sizes-and-weights-on-one-screen.json`, cite the title "Grid Systems in Visual Design"; the real title is "Grid Systems in Graphic Design", and the files stay as they are because they are frozen after the run.
 
+## Recheck critic on template tells, rerun (EV-24, crit-7hw.7)
+
+The same 38 pairs and work orders at skill commit `935a0018`, where step 5 of `agents/recheck.md` checks every element a fix added or changed against the whole checklist, not only the added ones. The first run above is at `4a9dc619`.
+
+```
+$ node evals/critic/recheck-tells.ts --replay --skill-commit 935a001814a4a6e7c3763b194677cc8f2b277e27
+pair                                                      closes  status               new problem   closed-new-problem  praised      quiet
+purple-to-blue-or-violet-to-pink-gradients                no                           yes           no                  no           no
+gradient-text-in-headings-numbers-or-the-logo             yes     closed, new problem  yes           yes                 no           no
+colored-glows-around-elements                             yes     closed, new problem  yes           yes                 no           no
+color-washes-and-blurred-blobs-behind-content             yes     worse                yes           no                  no           no
+neon-or-bright-colored-borders                            no                           yes           no                  no           no
+many-near-identical-tints-of-one-hue-for-text             no                           yes           no                  no           no
+every-element-highlighted                                 yes     closed, new problem  yes           yes                 no           no
+glass-cards-with-an-inner-highlight-and-a-colored-shadow  no                           yes           no                  no           no
+headings-at-weight-800-or-900                             yes     closed, new problem  yes           yes                 no           no
+uppercase-labels-with-wide-tracking                       no                           yes           no                  no           no
+too-many-type-sizes-and-weights-on-one-screen             yes     closed, new problem  yes           yes                 no           no
+numbers-in-mixed-formats                                  no                           yes           no                  no           no
+negative-letter-spacing-on-small-text                     yes     closed, new problem  yes           yes                 no           no
+italic-used-for-emphasis-in-interface-text                yes     closed, new problem  yes           yes                 no           no
+emoji-as-icons-or-status                                  no                           yes           no                  no           no
+emoji-inside-pills-and-counts                             no                           yes           no                  no           no
+icons-in-many-sizes-and-colors                            no                           yes           no                  no           no
+icons-nudged-off-the-column                               no                           yes           no                  no           no
+sparkle-icon-as-decoration                                no                           yes           no                  no           no
+glowing-pills-for-counts-and-status                       yes     closed, new problem  yes           yes                 no           no
+pro-new-and-beta-badges-everywhere                        no                           yes           no                  no           no
+every-element-a-full-pill                                 no                           yes           no                  no           no
+rainbow-glowing-or-pill-shaped-chart-bars                 no                           yes           no                  no           no
+every-chart-in-shades-of-the-accent                       no                           yes           no                  no           no
+sparklines-on-every-stat-card                             yes     closed, new problem  yes           yes                 no           no
+equal-cards-side-by-side-with-the-same-chart              no                           yes           yes                 no           no
+gradient-logo-tile-with-a-sparkle                         no                           yes           no                  no           no
+logo-mark-as-a-glossy-orb                                 no                           yes           no                  no           no
+pill-badge-above-the-headline                             yes     closed, new problem  yes           yes                 no           no
+hero-stacked-on-one-centered-axis                         no                           yes           no                  no           no
+three-or-more-buttons-in-the-hero                         no                           yes           no                  no           no
+feature-cards-with-an-emoji-and-a-bold-title              no                           yes           no                  no           no
+glossy-3d-blob-as-the-hero-visual                         no                           yes           no                  no           no
+stock-robots-glowing-brains-and-holograms                 no                           yes           no                  no           no
+image-that-does-not-blend-into-the-page                   yes     closed, new problem  yes           yes                 no           no
+a-visual-on-every-section                                 yes     closed, new problem  yes           yes                 no           no
+neutral-dark-template-look                                no                           yes           no                  no           no
+empty-box-or-generic-picture-as-the-hero-visual           no                           yes           no                  no           no
+Total                                                                                  1.00 (38/38)  0.92 (12/13)        0.00 (0/38)  0.00 (0/38)
+skill commit 935a001814a4a6e7c3763b194677cc8f2b277e27
+replay: node evals/critic/recheck-tells.ts --replay --skill-commit 935a001814a4a6e7c3763b194677cc8f2b277e27
+```
+
+| | first run (`4a9dc619`) | rerun (`935a0018`) |
+| --- | --- | --- |
+| new problem | 0.95 (36/38) | 1.00 (38/38) |
+| closed-new-problem | 0.85 (11/13) | 0.92 (12/13) |
+| praised | 0.00 (0/38) | 0.00 (0/38) |
+| quiet | 0.05 (2/38) | 0.00 (0/38) |
+
+The two restyle misses of the first run are caught. In the type sizes pair and the image that does not blend pair, the recheck now marks the expected finding "closed, new problem" and lists the tell as a new problem. The one expected finding without "closed, new problem" is in the color washes pair, which the first run caught: the recheck marks the finding "worse", because the blurred washes cross the nav and the feature row and give the hero no edge, so it judges the target not met. It still names the washes as a template tell under "New problems", so the tell is caught and not praised.
+
+The critic itself did not change: since `bb87b6f0`, the only change to `agents/critic.md`, `checklist.yaml`, and `references/` is one generated header line in `references/tells.md`. Its EV-23 rerun at `935a0018` (`node evals/critic/tells.ts --replay --skill-commit 935a001814a4a6e7c3763b194677cc8f2b277e27`) gives a Total row of 0.89 (34/38) raised on positive, 0.97 (37/38) quiet on negative, 0.00 (0/38) praised on positive, and 0.08 (3/38) praised on negative, against 0.92 (35/38), 1.00 (38/38), 0.00 (0/38), and 0.16 (6/38) at `bb87b6f0`. With the same critic text, these differences are between runs of one critic.
+
 # Template tells in the fix loop (EV-25, crit-7hw.6)
 
 The crit-loop skill ran headless 3 times on each of the 4 frozen pages in `evals/loop-tells/`, all 12 runs at once, at plugin commit `4a9dc619`. Each page has real defects whose quick fix is a template sign, such as a flat empty hero or a primary button that does not stand out (`evals/loop-tells/answers.json`). A fresh agent that saw no score did the realism pass before the runs. Every run ended by itself, with no run at the time limit, after 2 to 9 rounds. The judge (question name `loop-tell`) read the starting files, the diff, and the recheck crits of each run. It found no template sign in any final page, either from a new element or from a style change, and no recheck that praised a sign. The new elements the fixer added were plain: a gray panel with a 1 px border and thin rules. On the bookshop page the fixer moved the rust fill from Sign in to the primary button. Several rechecks said that they had checked the new elements against the template tells. In 10 of the 12 runs the loop put its loop folder inside the page folder. The runner copied that folder into `final-page/`, and those copies were removed before the commit, because `loop/` keeps the crits and work orders. `run.ts` now leaves such a folder out of the diff and the final page, and the judge step drops its files from the diff. The replay is `npm run eval:loop-tells`.
@@ -915,3 +976,43 @@ Runs whose final page adds a sign: 0 of 12
   by a style change: 0 of 12
 Runs where a recheck praised a sign: 0 of 12
 ```
+
+## Template tells in the fix loop, rerun (EV-25, crit-7hw.7)
+
+The same 4 frozen pages, 3 runs each, at plugin commit `935a0018`, where the fixer and the recheck critic check every element a fix added or changed against the template tells. The first run above is at `4a9dc619`. The replay is `node evals/loop-tells/run.ts replay --plugin-commit 935a001814a4a6e7c3763b194677cc8f2b277e27`.
+
+```
+EV-25 template signs in the fix loop, plugin commit 935a001814a4a6e7c3763b194677cc8f2b277e27
+
+page | run | loop exit | signs added | recheck praised
+harbor-tides | 1 | 1 | none | no
+harbor-tides | 2 | 1 | none | no
+harbor-tides | 3 | 0 | none | no
+garden-plots | 1 | 0 | none | no
+garden-plots | 2 | 0 | none | no
+garden-plots | 3 | 0 | none | no
+boat-hire | 1 | 0 | none | no
+boat-hire | 2 | 0 | none | no
+boat-hire | 3 | 1 | none | no
+bookshop-stock | 1 | 0 | none | no
+bookshop-stock | 2 | 0 | none | no
+bookshop-stock | 3 | 0 | none | no
+
+Runs scored: 12
+Runs whose final page adds a sign: 0 of 12
+  by a new element: 0 of 12
+  by a style change: 0 of 12
+Runs where a recheck praised a sign: 0 of 12
+```
+
+| | first run (`4a9dc619`) | rerun (`935a0018`) |
+| --- | --- | --- |
+| Runs whose final page adds a sign | 0 of 12 | 0 of 12 |
+| by a new element | 0 of 12 | 0 of 12 |
+| by a style change | 0 of 12 | 0 of 12 |
+| Runs where a recheck praised a sign | 0 of 12 | 0 of 12 |
+
+Nine runs ended by themselves after 2 to 5 rounds. Three runs (harbor-tides 1 and 2, boat-hire 3) have loop exit 1: the weekly usage limit of the plan stopped them in round 4, after the round-4 crit was saved, and not the stop rule of the loop. The judge scored their pages as they were when they stopped, and found no sign in them. They are kept as saved and not run again. The rechecks used the wider check: 12 recheck crits say they checked elements against the Template tells section, and some name restyled elements, for example "No changed element is a template tell. I checked the serif h1 at weight 400, the filled Search button, the underlined text link, and the darker borders."
+
+Decision: keep. The rule of crit-7hw.7 is to keep the change if EV-24 new-problem does not fall, its two restyle misses are caught or at least not worse, EV-25 adds no sign, and no praise appears. EV-24 new problem rose from 36/38 to 38/38, and both restyle misses (too many type sizes, image that does not blend) are now caught as "closed, new problem". Closed-new-problem rose from 11/13 to 12/13, and praised stayed at 0/38. EV-25 adds no sign in 12 of 12 runs, as in the first run, and no recheck praised a sign. Three EV-25 runs stopped early at the usage limit, so the EV-25 result is weaker evidence than the first run's 12 full runs.
+

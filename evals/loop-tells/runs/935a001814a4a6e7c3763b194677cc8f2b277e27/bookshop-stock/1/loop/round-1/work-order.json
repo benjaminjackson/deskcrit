@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "image": { "path": "/tmp/critloop-bookshop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/tmp/critloop-bookshop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/tmp/critloop-bookshop/round-1/phone.png", "width": 789, "height": 1140 },
+    { "viewport": "tablet", "path": "/tmp/critloop-bookshop/round-1/tablet.png", "width": 789, "height": 1024 },
+    { "viewport": "widescreen", "path": "/tmp/critloop-bookshop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/tmp/critloop-bookshop/round-1/crit.md",
+  "facts_file": "/tmp/critloop-bookshop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "no-reflow-phone-tablet",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The layout does not reflow on phone or tablet",
+      "location": {
+        "description": "the hero headline, squeezed into a 181 px column beside the table, and the page as a whole",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "h1",
+        "box": [64, 175, 181, 322],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The owner has to pan sideways and read a column of single words, and many will leave before they reach the table that makes the case.",
+      "current": { "value": "page 789 px wide in a 390 px viewport; headline 6.8 characters per line", "measured": true, "facts_field": "page_width" },
+      "target": "page width equal to the viewport width at phone and tablet; one column with the headline, paragraph, buttons, table and features at full width",
+      "fix_direction": "Below a breakpoint, stack to one column: headline and paragraph at full width, then the buttons on one line each, then the table at full width, then the three features one under another. Let the nav collapse or wrap as whole items.",
+      "source": "WCAG 2.2 SC 1.4.10 (Reflow)",
+      "closed_when": { "method": "measure", "check": "page_width equals the viewport width in the phone and tablet viewports, and characters_per_line of h1 in the phone and tablet viewports is well above 6.8 (no single-word lines)" }
+    },
+    {
+      "id": "sign-in-outranks-trial",
+      "rank": 2,
+      "kind": "defect",
+      "title": "\"Sign in\" outranks the trial, so the strongest call to action is for existing customers",
+      "location": {
+        "description": "the \"Start a 30-day trial\" button in the hero, and the \"Sign in\" button in the nav",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "a.button.button-primary",
+        "box": [64, 388, 171, 45],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A new owner's eye goes to the button that is not for them, and the action the page wants takes a second look to find.",
+      "current": { "value": "trial button is #5c544b on #f3eee6, weight 400, same as the outlined secondary button; Sign in is white on rust, weight 500", "measured": true, "facts_field": "text_blocks" },
+      "target": "one high-emphasis action: the trial button filled in the rust treatment, \"See how it works\" outlined, \"Sign in\" a plain nav link or quiet outline",
+      "fix_direction": "Give the trial button the filled rust treatment, keep \"See how it works\" outlined, and drop \"Sign in\" to a plain nav link or a quiet outline.",
+      "source": "Material Design 3, Buttons",
+      "closed_when": { "method": "look", "check": "In all four viewports, the \"Start a 30-day trial\" button is the only filled, saturated button, and \"Sign in\" is a plain link or quiet outline." }
+    },
+    {
+      "id": "trial-terms-and-proof",
+      "rank": 3,
+      "kind": "defect",
+      "title": "The ask leaves the owner to guess what the trial commits them to, and gives nothing to compare against",
+      "location": {
+        "description": "the \"Start a 30-day trial\" button and the empty space below the hero where the page ends",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "An owner of a small shop could read the trial as free for a month or as the first paid month, and the wrong reading stops them clicking. Nothing backs the claim, and the nav items \"Pricing\" and \"Shops using it\" lead to nothing on the page.",
+      "current": { "value": "the button says only \"Start a 30-day trial\"; the page ends after three one-line features with no comparison, price or named shop", "measured": false, "facts_field": null },
+      "target": "trial terms stated on the button or in one line under it, plus a comparison with the owner's current way of knowing what to reorder, plus the price or a named shop near the trial button",
+      "fix_direction": "State the trial terms on the button or in one line under it. Add a comparison with the owner's current way of knowing what to reorder, and bring the price or a named shop onto the page, or at least near the trial button. The maker must supply the real facts: the trial terms (free or paid, card needed, what happens after day 30), the price, and a real shop reference.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees the trial terms on or directly under the trial button, a comparison with the owner's current method, and a price or named shop on the page, in all four viewports." }
+    },
+    {
+      "id": "widescreen-hero-split",
+      "rank": 4,
+      "kind": "defect",
+      "title": "On widescreen the hero splits into two islands",
+      "location": {
+        "description": "the hero text block at the left and the reorder table pinned to the right margin, with the empty gap between them",
+        "viewport": "widescreen",
+        "viewports": ["widescreen"],
+        "selector": "h1",
+        "box": [64, 157, 540, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The eye has to cross the screen to connect the headline to its proof, and the feature lines run past a comfortable line length.",
+      "current": { "value": "about 770 px of empty space between the text and the table; feature lines at 79 to 81 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "table beside the text as on desktop; feature lines within 45 to 75 characters per line, on the same column lines as the hero",
+      "fix_direction": "Cap the content width so the table sits beside the text as it does on desktop, and keep the feature columns on the same column lines as the hero.",
+      "source": "Bringhurst 2.1.2; Arnheim, Balance; Ruder on gathered space",
+      "closed_when": { "method": "measure", "check": "characters_per_line of section.facts > p in the widescreen viewport is 75 or fewer, and the left edge of the table is within about 100 px of the right edge of the hero text in the widescreen viewport" }
+    },
+    {
+      "id": "table-header-contrast",
+      "rank": null,
+      "kind": "defect",
+      "title": "The table column headers and the date are too faint",
+      "location": {
+        "description": "the table column headers and the \"Mon 9 June\" date",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "thead > tr > th:nth-of-type(1)",
+        "box": [737, 201, 209, 40],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The labels that say what each column means are hard to read.",
+      "current": { "value": "3.82:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1",
+      "fix_direction": "Darken that gray.",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "contrast of thead > tr > th and span.preview-date in all four viewports is 4.5 or more" }
+    },
+    {
+      "id": "three-near-type-sizes",
+      "rank": null,
+      "kind": "convention",
+      "title": "Three type sizes 1 px apart read as small mistakes, not levels",
+      "location": {
+        "description": "the 16 px hero paragraph and nav, the 15 px buttons and feature lines, and the 14 px table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "Side by side the sizes look like small mistakes, not like levels of importance.",
+      "current": { "value": "16 px, 15 px and 14 px in use", "measured": true, "facts_field": "type_sizes" },
+      "target": "two sizes among these three, with finer distinctions made by weight or color",
+      "fix_direction": "Keep two of the three sizes, and make finer distinctions with weight or color.",
+      "source": "Bringhurst 3.1.1",
+      "closed_when": { "method": "measure", "check": "type_sizes in all four viewports lists no two sizes 1 px apart" }
+    },
+    {
+      "id": "headline-runt-asks",
+      "rank": null,
+      "kind": "convention",
+      "title": "The headline ends with \"asks\" alone on its third line",
+      "location": {
+        "description": "the hero headline",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "h1",
+        "box": [64, 157, 540, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A single word hangs alone on the last line of the headline.",
+      "current": { "value": "\"asks\" alone on line 3 of 3", "measured": false, "facts_field": null },
+      "target": "\"a customer asks\" kept together on one line",
+      "fix_direction": "Break the headline so \"a customer asks\" stays together.",
+      "source": "Bringhurst 2.4.2",
+      "closed_when": { "method": "look", "check": "In the desktop and widescreen images the last line of the headline holds more than one word, and \"a customer asks\" is on one line." }
+    },
+    {
+      "id": "table-no-order-quantity",
+      "rank": null,
+      "kind": "taste",
+      "title": "The reorder table shows copies on the shelf and sold, but not how many to order",
+      "location": {
+        "description": "the \"Reorder this week\" table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The owner has to work out the order themselves, which is the job the subhead says Shelfmark does for them.",
+      "current": { "value": "three columns: Title, On shelf, Sold this week; no quantity to order", "measured": false, "facts_field": null },
+      "target": "a quantity-to-order column if the product suggests a quantity; otherwise the table stays as it is",
+      "fix_direction": "If the product suggests a quantity, show it. If not, leave the table as it is. The maker must say whether the product suggests an order quantity. The crit marks this as common sense, not a published rule.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees an order-quantity column in the table in all four viewports, or the maker has confirmed that the product suggests no quantity." }
+    }
+  ]
+}

@@ -1,0 +1,244 @@
+@font-face {
+  font-family: "Inter";
+  font-weight: 400;
+  src: url("fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 500;
+  src: url("fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+:root {
+  /* Side padding: at least 64px, and wide enough to keep the content at most 1152px wide */
+  --page-pad: max(64px, calc((100% - 1152px) / 2));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  color: #2a2622;
+  background: #fffdf9;
+}
+
+a {
+  color: inherit;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 28px;
+  padding: 18px var(--page-pad);
+  border-bottom: 1px solid #ece6dc;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 28px;
+}
+
+.site-nav a {
+  text-decoration: none;
+  color: #5c544b;
+  white-space: nowrap;
+}
+
+.site-nav .nav-signin {
+  color: #2a2622;
+  font-weight: 500;
+}
+
+/* Hero and feature row share one three-column grid, so the table lines up with the third feature */
+.hero,
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 24px;
+  padding-left: var(--page-pad);
+  padding-right: var(--page-pad);
+}
+
+.hero {
+  align-items: center;
+  padding-top: 64px;
+  padding-bottom: 48px;
+}
+
+.hero-text {
+  grid-column: span 2;
+  max-width: 540px;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.hero-text p {
+  margin: 0 0 28px;
+  color: #5c544b;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.button {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.button-primary {
+  border: 1px solid #8a3b24;
+  background: #8a3b24;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.button-secondary {
+  border: 1px solid #d6cec2;
+  background: #fffdf9;
+  color: #2a2622;
+}
+
+.preview {
+  border: 1px solid #ece6dc;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.preview-head {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #ece6dc;
+  font-weight: 500;
+}
+
+.preview-date {
+  color: #5c544b;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th,
+td {
+  padding: 9px 10px;
+  text-align: left;
+  border-bottom: 1px solid #f3eee6;
+}
+
+th {
+  color: #5c544b;
+  font-weight: 400;
+  vertical-align: bottom;
+}
+
+/* Book titles stay on one line; the column headers may wrap on narrow screens */
+td:first-child {
+  white-space: nowrap;
+}
+
+/* Number columns are right-aligned so the digits line up */
+th + th,
+td + td {
+  text-align: right;
+}
+
+th:first-child,
+td:first-child {
+  padding-left: 16px;
+}
+
+th:last-child,
+td:last-child {
+  padding-right: 16px;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.facts {
+  padding-top: 8px;
+  padding-bottom: 64px;
+}
+
+.facts p {
+  margin: 0;
+  color: #5c544b;
+}
+
+.fact-title {
+  color: #2a2622;
+  font-weight: 500;
+}
+
+/* Narrow screens: one column, a smaller side margin and a smaller headline */
+@media (max-width: 900px) {
+  :root {
+    --page-pad: 24px;
+  }
+
+  .hero,
+  .facts {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    row-gap: 32px;
+    padding-top: 40px;
+  }
+
+  .hero-text {
+    grid-column: auto;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  .facts {
+    row-gap: 16px;
+  }
+}
+
+/* Phones: a smaller nav so all four links fit on one line under the logo */
+@media (max-width: 480px) {
+  .site-nav {
+    column-gap: 20px;
+    font-size: 14px;
+  }
+}

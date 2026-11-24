@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/crit-loop-tidewell/round-2/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/crit-loop-tidewell/round-2/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/crit-loop-tidewell/round-2/phone.png", "width": 390, "height": 1118 },
+    { "viewport": "tablet", "path": "<temp>/crit-loop-tidewell/round-2/tablet.png", "width": 768, "height": 1150 },
+    { "viewport": "widescreen", "path": "<temp>/crit-loop-tidewell/round-2/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/crit-loop-tidewell/round-2/crit.md",
+  "facts_file": "<temp>/crit-loop-tidewell/round-2/facts.json",
+  "findings": [
+    {
+      "id": "copy-gives-no-reason-to-trust",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The copy still gives no reason to trust the numbers",
+      "location": {
+        "description": "the headline, the tide table and the button in the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h1",
+        "box": [64, 140, 352, 75],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A harbor master who answers for the numbers cannot see where the tide data comes from or who works out the gate times. The table reads as a live harbor, not a sample, and nothing next to the button says what setup takes.",
+      "current": { "value": "no source for the tide data, no named gate-time author, no example label, no setup effort next to the button", "measured": false, "facts_field": null },
+      "target": "The page names the tide data source and who works out the gate times, labels the table as an example of a Tidewell page, and states the setup effort on one line next to the button.",
+      "fix_direction": "Name the tide data source and who works out the gate times, label the table as an example of a Tidewell page, and put the setup effort on one line next to \"Set up your harbor\". The maker must supply all three facts: the tide data source, who works out the gate times, and how long or how much work setup takes.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new image at desktop, phone, tablet and widescreen, a fresh critic sees a named tide data source, a named author of the gate times, a label marking the table as an example, and a line about setup effort next to the \"Set up your harbor\" button." }
+    },
+    {
+      "id": "hero-shows-only-tides",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The hero shows only tides and leaves an empty area on wide screens",
+      "location": {
+        "description": "the \"Today at Porthmellin\" table, and the space to its right on widescreen and beside the headline on tablet",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [464, 140, 560, 24],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Any tide site shows tide times. The lock gate times and pontoon depth, which the copy names as what Tidewell adds, are not on the page berth holders see. On widescreen the empty right third looks like something did not load.",
+      "current": { "value": "table shows tides only; about 620 px empty to the right of the table on widescreen", "measured": false, "facts_field": null },
+      "target": "The hero visual is the full berth holder's page with the tides, the day's gate openings and the pontoon depth, and it spans the empty area on widescreen.",
+      "fix_direction": "Make the hero visual the full berth holder's page: the tides plus the day's gate openings and the pontoon depth, and let it span the empty area on widescreen. The gate openings and depth figures must come from the maker.",
+      "source": "Arnheim, balance",
+      "closed_when": { "method": "look", "check": "In the new image at desktop, tablet and widescreen, the hero visual shows gate openings and pontoon depth as well as tides, and no wide empty area sits to its right on widescreen." }
+    },
+    {
+      "id": "table-ends-mid-column",
+      "rank": null,
+      "kind": "convention",
+      "title": "The tide table ends partway through the third column",
+      "location": {
+        "description": "the right edge of the tide table, under \"Today at Porthmellin\"",
+        "viewport": "desktop",
+        "viewports": ["desktop"],
+        "selector": "h2",
+        "box": [464, 140, 560, 24],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The table's right edge matches no column edge of the grid used by the row below.",
+      "current": { "value": "table ends at x=1024; third column spans 864 to 1216", "measured": true, "facts_field": "text_blocks" },
+      "target": "table right edge at 816 or 1216 on desktop",
+      "fix_direction": "End the table on a column edge, either 816 or 1216.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "the right edge of the tide table in the desktop viewport (the box of h2 plus its width, and the th:nth-of-type(3) box) is at x=816 or x=1216" }
+    },
+    {
+      "id": "tablet-three-right-edges",
+      "rank": null,
+      "kind": "convention",
+      "title": "On tablet the hero text, table and point paragraphs end at three different right edges",
+      "location": {
+        "description": "the hero paragraph, the tide table and the point paragraphs on tablet",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "div.hero-text > p",
+        "box": [32, 231, 400, 72],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The stacked blocks end at ragged right edges.",
+      "current": { "value": "400 px, 560 px and 510 px wide", "measured": true, "facts_field": "text_blocks" },
+      "target": "one shared width for the hero text, the table and the point paragraphs on tablet",
+      "fix_direction": "Give the hero text, the table and the point paragraphs one shared width.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "in the tablet viewport, div.hero-text > p, h2 (the table) and section.points > div.point > p have the same box width" }
+    },
+    {
+      "id": "phone-paragraphs-slightly-short",
+      "rank": null,
+      "kind": "taste",
+      "title": "On phone two point paragraphs run 41 and 43 characters per line",
+      "location": {
+        "description": "the first and second point paragraphs on phone",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "section.points > div.point:nth-of-type(1) > p",
+        "box": [20, 774, 350, 48],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A little under the 45 characters in the check, which is normal on a 390 px screen.",
+      "current": { "value": "43 and 41 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "no change; the crit says to leave it",
+      "fix_direction": "Leave it. The shortfall comes from the width of a phone.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees no change needed to the phone point paragraphs; this item needs no fix." }
+    }
+  ]
+}

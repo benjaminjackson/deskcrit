@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "image": {"viewport": "desktop", "path": "<temp>/loop-tells-garden-plots-iUjw8R/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800},
+  "images": [
+    {"viewport": "desktop", "path": "<temp>/loop-tells-garden-plots-iUjw8R/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800},
+    {"viewport": "phone", "path": "<temp>/loop-tells-garden-plots-iUjw8R/.crit-loop/round-1/phone.png", "width": 497, "height": 1070},
+    {"viewport": "tablet", "path": "<temp>/loop-tells-garden-plots-iUjw8R/.crit-loop/round-1/tablet.png", "width": 768, "height": 1024},
+    {"viewport": "widescreen", "path": "<temp>/loop-tells-garden-plots-iUjw8R/.crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080}
+  ],
+  "crit_file": "<temp>/loop-tells-garden-plots-iUjw8R/.crit-loop/round-1/crit.md",
+  "facts_file": "<temp>/loop-tells-garden-plots-iUjw8R/.crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "phone-layout-overflow",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The phone layout does not fit the screen",
+      "location": {"description": "the menu links, logo, plot card, and feature cards at phone width", "viewport": "phone", "viewports": ["phone"], "selector": "nav.site-nav > a:nth-of-type(1)", "box": [181, 24, 85, 19], "box_source": "facts", "crop": null},
+      "viewer_experience": "A coordinator who opens the link from a group email on a phone sees a page that looks unfinished: the menu runs over the logo, the plot card covers the end of the headline, and the cards are thin columns of one or two words.",
+      "current": {"value": "497 px page in a 390 px viewport; two menu links 19 px tall", "measured": true, "facts_field": "page_width"},
+      "target": "page fits the 390 px viewport with no sideways scroll; menu links at least 24 px tall; one column; menu folded into one control",
+      "fix_direction": "At phone width, stack everything in one column (headline, paragraph, button, plot card, then the cards one under another) and fold the menu into one control.",
+      "source": "WCAG 1.4.10 (Reflow); WCAG 2.5.8; Nielsen, Jakob's law",
+      "closed_when": {"method": "measure", "check": "page_width in the phone viewport is 390 or less, and violations in the phone viewport has no target-size entry for nav.site-nav links"}
+    },
+    {
+      "id": "card-titles-not-distinct",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The feature card titles and the section heading look the same as body text, so the cards cannot be scanned",
+      "location": {"description": "the four card titles, such as \"Waiting list\"", "viewport": "desktop", "viewports": ["desktop", "phone", "tablet", "widescreen"], "selector": "div.cards > div.card:nth-of-type(1) > h3", "box": [80, 510, 247, 23], "box_source": "facts", "crop": null},
+      "viewer_experience": "Each card reads as one sentence that starts with two odd words, so a coordinator who wants to know if it does rent has to read all four cards.",
+      "current": {"value": "15 px, weight 400, color #55604f, same as the body text", "measured": true, "facts_field": "font_weight"},
+      "target": "card titles and the h2 differ from their text in a way seen at a glance, for example by weight or the headline serif",
+      "fix_direction": "Make the four titles differ from their text in weight or in the headline serif; the size can stay. Give \"What Plotwise does\" the same treatment.",
+      "source": "Dair, Design with Type, ch. 8",
+      "closed_when": {"method": "measure", "check": "font_weight or font_family of div.cards > div.card > h3 and of h2 differs from div.cards > div.card > p in the desktop, phone, tablet and widescreen viewports"}
+    },
+    {
+      "id": "ambiguous-copy",
+      "rank": 3,
+      "kind": "defect",
+      "title": "Key lines of copy can be read two ways",
+      "location": {"description": "the \"free plot\" card text, the \"Free\" key, and the week and March lines", "viewport": "desktop", "viewports": ["desktop", "phone", "tablet", "widescreen"], "selector": "div.cards > div.card:nth-of-type(2) > p", "box": [371, 533, 247, 70], "box_source": "facts", "crop": null},
+      "viewer_experience": "\"Free\" can read as \"no charge\", and \"a week to say yes\" and \"rent is due in March\" can read as Plotwise's fixed rules, so a coordinator may decide it will not fit their garden.",
+      "current": {"value": "\"free\" used to mean empty; week and March shown as unqualified rules", "measured": false, "facts_field": null},
+      "target": "a word for \"free\" that cannot mean \"no charge\"; clear whether the week and the March date are the example garden's settings or the product's rules",
+      "fix_direction": "Edit the existing words: replace \"free\" with a word that means open or empty (for example \"the day a plot comes open\"). Say whether the week and March are the example garden's settings or the product's rules. Only the maker knows which is true, so the maker must supply that fact.",
+      "source": null,
+      "closed_when": {"method": "look", "check": "A fresh critic sees no use of \"free\" meaning empty in the cards and the plot card key, and sees that the week and March lines are marked as one garden's settings or as product rules"}
+    },
+    {
+      "id": "plot-card-misses-waiting-list",
+      "rank": 4,
+      "kind": "taste",
+      "title": "The plot card shows what a spreadsheet already does, not the waiting list the headline promises",
+      "location": {"description": "the plot card with the 12 plots and the Free/Taken key", "viewport": "desktop", "viewports": ["desktop", "phone", "tablet", "widescreen"], "selector": null, "box": null, "box_source": "none", "crop": null},
+      "viewer_experience": "The only picture on the page does not show what is different about Plotwise.",
+      "current": {"value": "the card shows free and taken plots, with no list and no next person", "measured": false, "facts_field": null},
+      "target": "the sample shows a free plot tied to the person it is offered to, in the same Elm Row example",
+      "fix_direction": "Let the sample show a free plot tied to the person it is being offered to, using the same Elm Row example. The maker must supply the person details.",
+      "source": null,
+      "closed_when": {"method": "look", "check": "A fresh critic sees in the plot card a free plot tied to the next person in line"}
+    },
+    {
+      "id": "widescreen-hero-islands",
+      "rank": 5,
+      "kind": "defect",
+      "title": "On widescreen the hero falls apart into two islands",
+      "location": {"description": "the headline block and the plot card, and the feature cards below", "viewport": "widescreen", "viewports": ["widescreen"], "selector": "h1", "box": [64, 135, 520, 138], "box_source": "facts", "crop": null},
+      "viewer_experience": "The plot card looks like it belongs to a different page, and the card text runs as one long line.",
+      "current": {"value": "about 850 px between the headline block (ends about 584 px) and the plot card (starts 1436 px); cards 439 px each", "measured": false, "facts_field": null},
+      "target": "content held to a width near the desktop layout, so the card sits close to the headline",
+      "fix_direction": "Cap the content width near the desktop layout.",
+      "source": null,
+      "closed_when": {"method": "look", "check": "In the widescreen image the plot card sits close to the headline block, and the content is held to a width near the desktop layout"}
+    },
+    {
+      "id": "taken-plots-low-contrast",
+      "rank": null,
+      "kind": "defect",
+      "title": "The taken plots are too pale, and status rests on color alone",
+      "location": {"description": "the \"Taken\" swatch and the taken plot tiles", "viewport": "desktop", "viewports": ["desktop", "phone", "tablet", "widescreen"], "selector": "div.plan-grid > div.plot.taken:nth-of-type(1)", "box": [817, 217, 58, 52], "box_source": "facts", "crop": null},
+      "viewer_experience": "Taken tiles are close to the white card, and status shows only by fill color plus the key.",
+      "current": {"value": "#e4e8df tile on white, looks well under 3:1", "measured": false, "facts_field": null},
+      "target": "taken mark at least 3:1 against its surround; free plots have a second cue",
+      "fix_direction": "Make the taken mark clearly visible, and give the free plots a second cue such as an outline or a word.",
+      "source": "WCAG 1.4.11; WCAG 1.4.1",
+      "closed_when": {"method": "look", "check": "A fresh critic sees the taken plots clearly set off from the white card and the free plots marked by more than fill color"}
+    },
+    {
+      "id": "headline-breaks-mid-phrase",
+      "rank": null,
+      "kind": "convention",
+      "title": "The headline breaks inside phrases",
+      "location": {"description": "the headline", "viewport": "desktop", "viewports": ["desktop", "widescreen"], "selector": "h1", "box": [64, 135, 520, 138], "box_source": "facts", "crop": null},
+      "viewer_experience": "The lines read \"for / your garden without the / spreadsheet\", which is harder to read than the tablet break.",
+      "current": {"value": "3 lines broken inside phrases", "measured": false, "facts_field": null},
+      "target": "line breaks at phrase boundaries, as in the tablet break",
+      "fix_direction": "Break the headline at phrase boundaries.",
+      "source": null,
+      "closed_when": {"method": "look", "check": "In the desktop and widescreen images the headline lines break at phrase boundaries"}
+    },
+    {
+      "id": "plot-offers-widow",
+      "rank": null,
+      "kind": "convention",
+      "title": "The \"Plot offers\" card ends with \"yes.\" alone on its last line",
+      "location": {"description": "the Plot offers card text", "viewport": "tablet", "viewports": ["desktop", "tablet"], "selector": "div.cards > div.card:nth-of-type(2) > p", "box": [243, 603, 119, 116], "box_source": "facts", "crop": null},
+      "viewer_experience": "A single word hangs on the last line.",
+      "current": {"value": "one-word last line \"yes.\"", "measured": false, "facts_field": null},
+      "target": "no one-word last line",
+      "fix_direction": "Rewrap the text or widen the measure.",
+      "source": null,
+      "closed_when": {"method": "look", "check": "In the desktop and tablet images the Plot offers card has no one-word last line"}
+    },
+    {
+      "id": "hero-paragraph-touches-card",
+      "rank": null,
+      "kind": "defect",
+      "title": "The hero paragraph runs right up to the plot card",
+      "location": {"description": "the hero paragraph next to the plot card", "viewport": "tablet", "viewports": ["tablet"], "selector": "div.hero-text > p", "box": [64, 335, 435, 70], "box_source": "facts", "crop": null},
+      "viewer_experience": "The text ends about 3 px from the card, so the two crowd each other.",
+      "current": {"value": "text ends at about 496 px, card starts at 499 px", "measured": false, "facts_field": null},
+      "target": "a clear gutter between the paragraph and the plot card",
+      "fix_direction": "Give the column a gutter.",
+      "source": null,
+      "closed_when": {"method": "look", "check": "In the tablet image there is a clear gap between the hero paragraph and the plot card"}
+    }
+  ]
+}

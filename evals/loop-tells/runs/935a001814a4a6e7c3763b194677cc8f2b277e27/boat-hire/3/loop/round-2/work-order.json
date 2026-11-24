@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "image": { "path": "/tmp/crit-loop-boat/round-2/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/tmp/crit-loop-boat/round-2/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/tmp/crit-loop-boat/round-2/phone.png", "width": 390, "height": 1223 },
+    { "viewport": "tablet", "path": "/tmp/crit-loop-boat/round-2/tablet.png", "width": 768, "height": 1135 },
+    { "viewport": "widescreen", "path": "/tmp/crit-loop-boat/round-2/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/tmp/crit-loop-boat/round-2/crit.md",
+  "facts_file": "/tmp/crit-loop-boat/round-2/facts.json",
+  "findings": [
+    {
+      "id": "no-fee-claim-without-number",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The no-fee claim has no number behind it",
+      "location": {
+        "description": "the intro under the headline",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "p.lead",
+        "box": [128, 241, 600, 90],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The visitor reads \"no fee on top of the hire\" but sees no price to judge it against, so they must take it on trust.",
+      "current": { "value": "no price or other boatyard fact shown near the claim", "measured": false, "facts_field": null },
+      "target": "a boatyard fact that proves the claim, such as a from-price per week for a boat at this base, shown near the intro or the form",
+      "fix_direction": "Show a fact that proves the claim near the intro or the form. The boatyard must supply the figure, such as a from-price per week for a boat at this base.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees a boatyard-supplied fact, such as a from-price, near the intro or the form in the desktop, phone, tablet and widescreen viewports." }
+    },
+    {
+      "id": "no-picture-of-the-holiday",
+      "rank": 2,
+      "kind": "taste",
+      "title": "A holiday page with no picture of the holiday",
+      "location": {
+        "description": "the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "section.hero",
+        "box": [128, 129, 600, 251],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "People hire a narrowboat for the boat and the water, and the page shows neither, so the page sells a form instead of a trip.",
+      "current": { "value": "no photo of a boat or a route on the page", "measured": false, "facts_field": null },
+      "target": "a real photo of the boatyard's own boats or a stretch of one of the listed routes, not a stock picture",
+      "fix_direction": "Add a real photo in the hero. The boatyard must supply the photo of its own boats or of a listed route.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees a real photo of a boat or a listed route in the hero in the desktop, phone, tablet and widescreen viewports." }
+    },
+    {
+      "id": "start-date-looks-like-free-text",
+      "rank": null,
+      "kind": "convention",
+      "title": "The start-date field looks like free text",
+      "location": {
+        "description": "the start date field in the search form",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "input",
+        "box": [835, 294, 294, 43],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The visitor cannot tell that the field wants a picked date.",
+      "current": { "value": "plain field holding \"Sat 14 June\" with no date-picker cue", "measured": false, "facts_field": null },
+      "target": "a date-input or calendar cue on the field",
+      "fix_direction": "Give the field a date-input or calendar cue so the visitor knows to pick a date.",
+      "source": "Nielsen heuristic 5",
+      "closed_when": { "method": "look", "check": "A fresh critic sees a date-picker or calendar cue on the start-date field in the desktop, phone, tablet and widescreen viewports." }
+    },
+    {
+      "id": "see-boats-link-duplicates-search",
+      "rank": null,
+      "kind": "convention",
+      "title": "The \"See boats and dates\" link leads to the same place as Search",
+      "location": {
+        "description": "the underlined \"See boats and dates\" link under the intro",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet", "desktop", "widescreen"],
+        "selector": "a.text-link",
+        "box": [20, 445, 156, 20],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "On the phone it sits above the form and is the first action the visitor reaches, yet it does the same job as Search.",
+      "current": { "value": "link leads to the same place as Search", "measured": false, "facts_field": null },
+      "target": "a link with a clearly different job, or no link",
+      "fix_direction": "Give the link a clearly different job, such as browsing all boats, or remove it.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees the link gone, or labeled for a different job than Search, in the phone, tablet, desktop and widescreen viewports." }
+    },
+    {
+      "id": "tablet-column-narrower-than-header",
+      "rank": null,
+      "kind": "convention",
+      "title": "On the tablet the content column ends before the nav does",
+      "location": {
+        "description": "the content column on the tablet, with very wide form fields",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "section.hero",
+        "box": [64, 129, 600, 251],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The right edges of the nav and the content do not line up, and the 554 px form fields are very wide.",
+      "current": { "value": "content column ends at x 664, nav ends at x 704", "measured": true, "facts_field": "text_blocks.box" },
+      "target": "content column and nav end at the same right edge, with shorter form fields",
+      "fix_direction": "Let the content take the header's full width so the right edges line up, which also shortens the 554 px form fields.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees the content column and the nav end at the same right edge in the tablet viewport." }
+    }
+  ]
+}
