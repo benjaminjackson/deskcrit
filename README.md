@@ -1,7 +1,110 @@
 # deskcrit
-A Claude Code plugin with a design critic: a Claude agent that critiques a picture of a design against a catalog of guidelines from an approved reading list, and a fix loop for coding agents.
 
-To install the plugin, see [plugin/README.md](plugin/README.md). This repository also holds the guideline packs, their fixtures, and the evaluations of the critic. `docs/PRD.md` is the specification.
+A Claude Code plugin that critiques a screenshot of a design the way a senior design director would, and gives your coding agent a ranked list of fixes.
+
+deskcrit is for people who build UI with Claude Code and want a second opinion on how the result looks before they ship it. The critic checks the image against about 220 guidelines from an approved reading list (Bringhurst, Müller-Brockmann, Tufte, WCAG, Nielsen Norman Group, and others, listed in [GUIDELINES.md](GUIDELINES.md)). It writes its findings as what a viewer of the page experiences, and it names the source of each rule.
+
+Status: in development. The repository is private, so you need read access to install the plugin.
+
+## What you get
+
+Given this page:
+
+![A one-screen landing page for an invoicing tool, with a centred headline, two blue buttons, and three outlined cards](evals/critic/work-order/bad-page/desktop.png)
+
+The critic writes a crit like this (shortened; the full text is in [crit.md](evals/critic/work-order/bad-page/crit.md)):
+
+> **Verdict.** It doesn't do its job yet. The case for the product (studios, late-payment follow-up, a shared link for your accountant) sits in grey text that fails contrast, so the visitor sees only a generic headline and two buttons asking for the same level of commitment.
+>
+> **What would move it most**
+> 1. **The copy that sells the product is the faintest thing on the page.** The lead paragraph, all three card descriptions and the footer are `#a3a3a3` on white at 2.52:1, well under the 4.5:1 minimum (WCAG 1.4.3). [...] Fix: darken the body text to at least 4.5:1.
+> 2. **Two equal primary buttons.** "Start free trial" and "Book a demo" are the same filled blue at the same 152×48 size, so the visitor has to choose between them with no hint which one the page wants. [...]
+
+Each crit also has a first read, the page's purpose as the critic understands it, smaller issues, what works, and what it could not judge from a still image.
+
+It also writes `work-order.json`, which a coding agent can act on: one entry per ranked finding, with the place on the page (a CSS selector and a pixel box when the page was measured), the current value, the target, and the source. See [work-order.json](evals/critic/work-order/bad-page/work-order.json) for the same page.
+
+## Requirements
+
+- [Claude Code](https://claude.com/claude-code).
+- Node.js 22 or later. The skill scripts use only Node's own modules, so the plugin needs no install step of its own.
+- Optional: the `playwright` package and its Chromium in the project you work in. With them, the critic measures the page (font sizes, line lengths, contrast, target sizes) in place of estimating from pixels. Install them with `npm install playwright` and `npx playwright install chromium`.
+
+If Playwright is missing, the skills show you the install commands and ask before they install anything. If you say no, the critic works from the image alone and says so in its answer. Its contrast and size findings are then estimates, not measurements.
+
+## Install
+
+1. In Claude Code, add the marketplace. You need read access to `benjaminjackson/deskcrit` and git credentials for GitHub:
+
+   ```
+   /plugin marketplace add benjaminjackson/deskcrit
+   ```
+
+2. Install the plugin:
+
+   ```
+   /plugin install deskcrit@deskcrit
+   ```
+
+3. Run `/plugin` and check that the `crit-loop` and `design-critic` skills are listed.
+
+## Use
+
+The plugin has two skills. You start them by asking in plain words, or by name.
+
+**Critique one image.** Give Claude a screenshot, mockup, poster, slide, or chart and ask for a crit:
+
+```
+/deskcrit:design-critic ~/Desktop/checkout.png
+```
+
+or "crit this screenshot". If you also give the page's URL or HTML file, the critic measures the page first. The skill saves `crit.md` and `work-order.json` next to the image (or next to the measured facts) and tells you the path of the work order.
+
+**Compare several images.** Give it 2 to 12 images and say which check you want:
+
+- "Are these consistent?" gives a consistency check that names each screen that breaks a pattern the others keep.
+- "Which is best?" gives a best pick, ranked by how well each version does its job.
+
+Each image also gets its own crit and work order. If you do not say which check you want, the skill asks. If another agent calls the skill and does not name the check, the skill refuses with one line.
+
+**Fix a page in a loop.** After Claude changes UI code, ask it to check the design and fix it, or run:
+
+```
+/deskcrit:crit-loop
+```
+
+Each round captures the page, fixes from the top of the work order, captures again at the same viewport, and starts a fresh critic that marks each finding closed, open, or worse. The loop stops when no ranked finding is left, or when two rounds in a row close nothing. It does not add content to close a finding: when a fix needs text or data that only you have, it leaves the finding open and tells you.
+
+The critic only critiques. It does not edit files.
+
+## Develop
+
+This repository holds the plugin, the guideline packs with their test images, and the evaluations of the critic. The npm package is development tooling only. It has no command and is not published.
+
+```
+npm ci
+npm run ci          # lint, type check, unit tests
+```
+
+| Path | What it holds |
+| --- | --- |
+| `plugin/` | The plugin: both skills, their agents, scripts, and references. [plugin/README.md](plugin/README.md) explains the scripts. |
+| `GUIDELINES.md` | The catalog of guidelines, each with its rule and source. |
+| `packs/` | Eight guideline packs, each with criteria and rendered test images. [packs/README.md](packs/README.md) explains how to render them. |
+| `schemas/` | JSON Schemas for packs, measured facts, and work orders. |
+| `evals/` | Evaluations of the critic, with saved crits that replay without a model call. |
+| `docs/PRD.md` | The specification. It decides what the code must do. |
+| `docs/CONSTITUTION.md` | The coding standards. |
+
+Notes for changes:
+
+- `plugin/skills/design-critic/references/` is built, not written by hand. After you change `checklist.yaml`, `GUIDELINES.md`, or a `pack.yaml`, run `ruby plugin/skills/design-critic/scripts/build.rb` from the repository root (Ruby 3.0 or later). `npm run ci` fails if the committed references differ from a fresh build.
+- The scripts under `packs/` and `evals/measure/` that render pages need their own install: `npm --prefix packs ci`, then `npm --prefix packs run setup`.
+- `npm run ci` never calls a model. The `npm run eval:critic:*` scripts replay saved crits. To make new crits, run the scripts in `evals/critic/` without `--replay`; these start `claude -p` and use your plan's usage.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 ## Credits
 
