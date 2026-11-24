@@ -1,0 +1,230 @@
+/*
+ * Template purple-to-blue-or-violet-to-pink-gradients (crit-7hw.2, EV-23). Moorly, an invented berth booking tool for small harbours. The positive fills the primary button and the selected berth, the two places the accent appears, with a violet-to-blue gradient; the negative keeps them in one solid accent.
+ * Copied from bases/landing-light.css (CONVENTIONS.md); the tell is drawn only under [data-defect="on"].
+ */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url("../../_renderer/fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+:root {
+  --page: #ffffff;
+  --text-strong: #1d2321;
+  --text-body: #3f4a46;
+  --text-quiet: #5f6b66;
+  --rule: #dfe3df;
+  --panel: #f3f2ec;
+  --soil: #d9d3c4;
+  --leaf: #b7c9b0;
+  --accent: #24507a;
+}
+
+body {
+  background: var(--page);
+  color: var(--text-body);
+}
+
+.site-header {
+  width: 1120px;
+  margin: 0 auto;
+  padding: 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.site-nav {
+  display: flex;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.site-nav a {
+  color: var(--text-body);
+  text-decoration: none;
+}
+
+.site-nav a[aria-current="page"] {
+  color: var(--text-strong);
+  font-weight: 500;
+}
+
+main {
+  width: 1120px;
+  margin: 0 auto;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 500px 1fr;
+  gap: 72px;
+  align-items: center;
+  padding: 56px 0 64px;
+}
+
+h1 {
+  font-size: 44px;
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--text-strong);
+  margin-bottom: 20px;
+}
+
+.lead {
+  font-size: 18px;
+  line-height: 1.55;
+  margin-bottom: 32px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.button {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.button-primary {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.link {
+  font-size: 15px;
+  color: var(--text-strong);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* The product preview: a plot map, on a panel that is clearly darker than the page. */
+.preview {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 16px;
+}
+
+.preview-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.preview-meta {
+  font-size: 13px;
+  color: var(--text-quiet);
+}
+
+.plot-map {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.plot {
+  height: 52px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text-body);
+  padding: 6px 8px;
+}
+
+.plot.taken {
+  background: var(--leaf);
+}
+
+.plot.free {
+  background: var(--page);
+  border: 1px dashed var(--soil);
+}
+
+.plot.selected {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.path {
+  grid-column: 1 / -1;
+  height: 28px;
+  background: var(--soil);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text-body);
+  padding: 4px 8px;
+}
+
+.preview-detail {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.detail-meta {
+  font-size: 13px;
+  color: var(--text-quiet);
+}
+
+.detail-fee {
+  font-size: 15px;
+  color: var(--text-strong);
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--rule);
+}
+
+.feature h2 {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text-strong);
+  margin-bottom: 8px;
+}
+
+.feature p {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+/* The tell: the accent surfaces get a violet-to-blue gradient fill. */
+[data-defect="on"] .button-primary,
+[data-defect="on"] .plot.selected {
+  background-image: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+}
