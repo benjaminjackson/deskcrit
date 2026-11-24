@@ -17,6 +17,7 @@ import { describe, expect, it } from "vitest";
 import {
   findingStatus,
   parsePairAnswers,
+  RECHECK_PROMPT_TEMPLATE,
   RECHECK_TELLS_DIRECTORY,
   runRecheckTells,
   workOrderFindingIds,
@@ -119,6 +120,53 @@ describe("findingStatus", () => {
     expect(findingStatus(recheck, "table-gap")).toBe("closed");
     expect(findingStatus(recheck, "other")).toBe("not found");
   });
+
+  it("accepts a dash or parentheses before new problem and a numbered list marker", () => {
+    const variants = [
+      "1. hero-flat: closed - new problem. A tell.",
+      "- hero-flat: closed (new problem: a tell).",
+      "- hero-flat: Closed \u2014 new problem.",
+    ];
+    for (const line of variants) {
+      expect(findingStatus(line, "hero-flat")).toBe("closed, new problem");
+    }
+    expect(findingStatus("2. table-gap: worse.", "table-gap")).toBe("worse");
+  });
+
+  it("reports unparsed, not closed, when other words follow closed", () => {
+    expect(findingStatus("- hero-flat: closed by eye.", "hero-flat")).toBe(
+      "unparsed",
+    );
+    expect(findingStatus("- hero-flat: mostly closed.", "hero-flat")).toBe(
+      "unparsed",
+    );
+  });
+});
+
+describe("RECHECK_PROMPT_TEMPLATE", () => {
+  it("is the step 3 prompt of crit-loop SKILL.md without the facts line", () => {
+    const skill = readFileSync(
+      join(REPOSITORY_DIRECTORY, "plugin", "skills", "crit-loop", "SKILL.md"),
+      "utf8",
+    );
+    // The prompt is the first fenced block after "3. Start a fresh recheck critic", indented by
+    // three spaces under the list item.
+    const afterStep = skill.slice(
+      skill.indexOf("3. Start a fresh recheck critic"),
+    );
+    const block = afterStep.split("```")[1];
+    if (block === undefined) {
+      throw new Error("no prompt block after step 3");
+    }
+    const prompt = block
+      .split("\n")
+      .slice(1)
+      .map((line) => line.replace(/^ {3}/, ""))
+      .filter((line) => !line.startsWith("Measured facts file:"))
+      .join("\n")
+      .trim();
+    expect(RECHECK_PROMPT_TEMPLATE).toBe(prompt);
+  });
 });
 
 describe("parsePairAnswers", () => {
@@ -198,10 +246,83 @@ describe("runRecheckTells with a stub critic and a stub judge", () => {
     );
     expect(output.exitCode).toBe(2);
     expect(output.errorText).toMatch(/recheck run failed: .*usage limit/);
+    expect(output.errorText).not.toContain("missing recheck of");
     const saved = readdirSync(join(folder, "results", "abc")).filter((name) =>
       name.endsWith(".md"),
     );
     expect(saved).toHaveLength(TELLS.length - 1);
+  });
+
+  it("names a failed judge call, judges the other pairs, and exits 2", async () => {
+    const folder = copyOfInputs();
+    let judgeCalls = 0;
+    const judgeFailsOnce: ClaudeRunner = async (
+      args,
+      environment,
+      workingDirectory,
+    ) => {
+      if (args.includes("--json-schema")) {
+        judgeCalls += 1;
+        if (judgeCalls === 1) {
+          return { exitCode: 1, stdout: "", stderr: "usage limit" };
+        }
+      }
+      return stub(args, environment, workingDirectory);
+    };
+    const output = await runRecheckTells(
+      ["--skill-commit", "abc", "--parallel", "1"],
+      {
+        repositoryDirectory: REPOSITORY_DIRECTORY,
+        recheckTellsDirectory: folder,
+        skillDirectory: SKILL_DIRECTORY,
+        runClaude: judgeFailsOnce,
+      },
+    );
+    expect(output.exitCode).toBe(2);
+    expect(judgeCalls).toBe(TELLS.length);
+    expect(output.errorText).toMatch(
+      new RegExp(`^judge failed: ${TELLS[0]?.template}: `, "m"),
+    );
+    const total = TELLS.length - 1;
+    expect(output.text).toContain(`1.00 (${total}/${total})`);
+  });
+
+  it("counts closed-new-problem only when the status line agrees with the judge", async () => {
+    const folder = copyOfInputs();
+    const judgeSaysClosed: ClaudeRunner = async (
+      args,
+      environment,
+      workingDirectory,
+    ) => {
+      if (args.includes("--json-schema")) {
+        return {
+          exitCode: 0,
+          stdout: judgeStdout({
+            reason: "stub",
+            lists_as_new_problem: true,
+            marks_closed_new_problem: true,
+            praises: false,
+          }),
+          stderr: "",
+        };
+      }
+      return stub(args, environment, workingDirectory);
+    };
+    const output = await runRecheckTells(["--skill-commit", "abc"], {
+      repositoryDirectory: REPOSITORY_DIRECTORY,
+      recheckTellsDirectory: folder,
+      skillDirectory: SKILL_DIRECTORY,
+      runClaude: judgeSaysClosed,
+    });
+    // The stub recheck has no "Finding status" line, so no expected finding reads
+    // "closed, new problem", and the judge's yes alone does not count.
+    const expected = parsePairAnswers(
+      readFileSync(join(folder, "answers.json"), "utf8"),
+      TELLS,
+    ).filter((answer) => answer.tellClosesFinding).length;
+    expect(output.text).toMatch(
+      new RegExp(`^Total .* 0\\.00 \\(0/${expected}\\)`, "m"),
+    );
   });
 
   it("exits 2 on a replay with nothing saved", async () => {

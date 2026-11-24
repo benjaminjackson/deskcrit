@@ -161,14 +161,6 @@ export type RecheckTellsOutput = {
   readonly exitCode: number;
 };
 
-/** The status words of recheck.md, longest first, so "closed, new problem" wins over "closed". */
-const FINDING_STATUSES = [
-  "closed, new problem",
-  "closed",
-  "open",
-  "worse",
-] as const;
-
 /** Returns the SHA-256 of a string or bytes as lowercase hex. */
 function sha256(content: string | Buffer): string {
   return createHash("sha256").update(content).digest("hex");
@@ -407,22 +399,51 @@ async function runRecheckOnce(
 }
 
 /**
- * Returns the status the recheck gave a finding under "Finding status" ("closed, new problem",
- * "closed", "open", or "worse"), or "not found" when no status line names the finding. A status
- * line looks like "- <id>: closed, new problem. ..." and may wrap the id or status in ** or `.
+ * Returns the status the recheck gave a finding under "Finding status": "closed, new problem",
+ * "closed", "open", or "worse"; "unparsed" when the line names the finding but its status is none
+ * of these; or "not found" when no status line names the finding. A status line looks like
+ * "- <id>: closed, new problem. ..." or "1. <id>: open. ...", and may wrap the id or status in ** or
+ * `. Between "closed" and "new problem" it accepts a comma, a dash, or parentheses.
  */
 export function findingStatus(recheck: string, findingId: string): string {
   for (const rawLine of recheck.split("\n")) {
     const line = rawLine.replaceAll("*", "").replaceAll("`", "").trim();
-    const prefix = `- ${findingId}:`;
-    if (!line.startsWith(prefix)) {
+    // A list marker is "-", "*" (removed above), or a number with a dot, such as "1.".
+    const withoutMarker = line.replace(/^(-|\d+\.)\s+/, "");
+    const prefix = `${findingId}:`;
+    if (withoutMarker === line || !withoutMarker.startsWith(prefix)) {
       continue;
     }
-    const rest = line.slice(prefix.length).trim().toLowerCase();
-    const status = FINDING_STATUSES.find((word) => rest.startsWith(word));
-    return status ?? "not found";
+    const rest = withoutMarker.slice(prefix.length).trim().toLowerCase();
+    return statusOf(rest);
   }
   return "not found";
+}
+
+/**
+ * Reads the status at the start of the text after "<id>:". A status word counts only when the
+ * text ends there or a ".", ":", or ";" follows it, so "closed by eye" is "unparsed", never "closed".
+ */
+function statusOf(rest: string): string {
+  const endsWord = (text: string): boolean => /^($|[.:;])/.test(text);
+  if (rest.startsWith("closed")) {
+    const afterClosed = rest.slice("closed".length);
+    if (endsWord(afterClosed)) {
+      return "closed";
+    }
+    // Strip the comma, dash, opening parenthesis, and spaces between "closed" and "new problem".
+    const joined = afterClosed.replace(/^[\s,\-\u2013\u2014(]+/, "");
+    if (joined.startsWith("new problem")) {
+      return "closed, new problem";
+    }
+    return "unparsed";
+  }
+  for (const word of ["open", "worse"]) {
+    if (rest.startsWith(word) && endsWord(rest.slice(word.length))) {
+      return word;
+    }
+  }
+  return "unparsed";
 }
 
 /**
@@ -556,6 +577,8 @@ export async function runRecheckTells(
   });
 
   const missing: string[] = [];
+  // The templates whose recheck run failed already have a line in missing.
+  const failedTemplates = new Set<string>();
   if (!replay) {
     const recheckOptions = {
       resultsDirectory,
@@ -570,6 +593,7 @@ export async function runRecheckTells(
         await ensureRecheck(input, recheckOptions);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
+        failedTemplates.add(input.template);
         missing.push(
           `recheck run failed: ${input.template}: ${message.slice(0, 300)}`,
         );
@@ -579,7 +603,7 @@ export async function runRecheckTells(
 
   const rechecks: (SavedRecheck | undefined)[] = inputs.map((input) => {
     const saved = readSavedRecheck(resultsDirectory, commit, recheckKey(input));
-    if (saved === undefined) {
+    if (saved === undefined && !failedTemplates.has(input.template)) {
       missing.push(
         `missing recheck of ${input.template} at skill commit ${commit}`,
       );
@@ -623,12 +647,32 @@ export async function runRecheckTells(
       skillCommit: commit,
       runClaude: options.runClaude,
     };
-    answers = await runPooled(questions, parallel, async (question) => {
-      if (question === undefined) {
-        return undefined;
-      }
-      return ensureJudgeAnswer(question, parseRecheckTellAnswer, judgeOptions);
-    });
+    // A failed judge call is named and the other pairs go on, so the report exits 2 and a later
+    // live run asks again.
+    answers = await runPooled(
+      [...questions.keys()],
+      parallel,
+      async (index) => {
+        const question = questions[index];
+        if (question === undefined) {
+          return undefined;
+        }
+        try {
+          return await ensureJudgeAnswer(
+            question,
+            parseRecheckTellAnswer,
+            judgeOptions,
+          );
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          missing.push(
+            `judge failed: ${tells[index]?.template}: ${message.slice(0, 300)}`,
+          );
+          return undefined;
+        }
+      },
+    );
   }
   return renderResult(
     tells,
@@ -694,7 +738,14 @@ function renderResult(
       quiet += isQuiet === true ? 1 : 0;
       if (pair.tellClosesFinding) {
         expectedJudged += 1;
-        closedNewProblem += answer.marks_closed_new_problem ? 1 : 0;
+        // Both must agree: the judge reads the tell in the status line, and the status line reads
+        // "closed, new problem" for the expected finding.
+        if (
+          answer.marks_closed_new_problem &&
+          status === "closed, new problem"
+        ) {
+          closedNewProblem += 1;
+        }
       }
     }
     rows.push([
