@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { runCompare } from "../plugin/skills/design-critic/scripts/compare-facts.mjs";
 
 // Checks the script that compares measured facts files across the pages of a set (PRD FR-84).
@@ -16,49 +16,51 @@ const validate = new Ajv2020({ strict: true, allowUnionTypes: true }).compile(
   schema,
 );
 
-/** A one-viewport facts file with one body block, one heading, and the given edge, width, size, color. */
-function makeFacts(options: {
+/** One viewport with one body block, one heading, and the given name, edge, width, size, color. */
+function makeViewport(options: {
+  name?: string;
   edge: number;
   width: number;
   bodySize: number;
   bodyColor: string;
 }) {
   return {
-    viewports: [
+    name: options.name ?? "desktop",
+    left_edges: [{ x: options.edge, blocks: 2 }],
+    type_sizes: [
+      { size: 32, blocks: 1, characters: 10 },
+      { size: options.bodySize, blocks: 1, characters: 200 },
+    ],
+    text_colors: [
       {
-        name: "desktop",
-        left_edges: [{ x: options.edge, blocks: 2 }],
-        type_sizes: [
-          { size: 32, blocks: 1, characters: 10 },
-          { size: options.bodySize, blocks: 1, characters: 200 },
-        ],
-        text_colors: [
-          {
-            color: options.bodyColor,
-            blocks: 2,
-            characters: 210,
-            example: "#body",
-          },
-        ],
-        text_blocks: [
-          {
-            selector: "#title",
-            box: [options.edge, 40, options.width, 40],
-            font_size: 32,
-            lines: 1,
-            characters_per_line: 10,
-          },
-          {
-            selector: "#body",
-            box: [options.edge, 100, options.width, 96],
-            font_size: options.bodySize,
-            lines: 4,
-            characters_per_line: 50,
-          },
-        ],
+        color: options.bodyColor,
+        blocks: 2,
+        characters: 210,
+        example: "#body",
+      },
+    ],
+    text_blocks: [
+      {
+        selector: "#title",
+        box: [options.edge, 40, options.width, 40],
+        font_size: 32,
+        lines: 1,
+        characters_per_line: 10,
+      },
+      {
+        selector: "#body",
+        box: [options.edge, 100, options.width, 96],
+        font_size: options.bodySize,
+        lines: 4,
+        characters_per_line: 50,
       },
     ],
   };
+}
+
+/** A facts file with one viewport made by makeViewport (named desktop unless options.name says). */
+function makeFacts(options: Parameters<typeof makeViewport>[0]) {
+  return { viewports: [makeViewport(options)] };
 }
 
 /** Writes the facts objects to files, runs the script, and returns the exit code and the output. */
@@ -148,6 +150,111 @@ describe("compare-facts.mjs", () => {
     expect(
       runCompare(["missing-1.json", "missing-2.json", "--out", "x.json"]),
     ).toBe(2);
+  });
+
+  describe("viewport names (FR-85)", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    for (const name of ["tablet", "w768"]) {
+      it(`compares the ${name} viewport when every file holds it`, () => {
+        const { code, output } = compare(
+          [
+            makeFacts({ ...base, name }),
+            makeFacts({ ...base, name, edge: 72 }),
+          ],
+          ["--viewport", name],
+        );
+        expect(code).toBe(0);
+        expect(output.viewport).toBe(name);
+        expect(validate(output)).toBe(true);
+        const kinds = output.differences.map(
+          (difference: { kind: string }) => difference.kind,
+        );
+        expect(kinds).toContain("left_edge");
+      });
+    }
+
+    it("refuses with one usage line that names a viewport missing from a file", () => {
+      const cases = [
+        [makeFacts(base), makeFacts(base)],
+        [makeFacts({ ...base, name: "tablet" }), makeFacts(base)],
+      ];
+      for (const factsList of cases) {
+        const errorSpy = vi
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
+        const { code } = compare(factsList, ["--viewport", "tablet"]);
+        expect(code).toBe(2);
+        expect(errorSpy).toHaveBeenCalledTimes(1);
+        const message = String(errorSpy.mock.calls[0]?.[0]);
+        expect(message.startsWith("usage:")).toBe(true);
+        expect(message).toContain("no viewport tablet in");
+        expect(message).not.toContain("\n");
+        errorSpy.mockRestore();
+      }
+    });
+
+    it("picks desktop when no --viewport is given", () => {
+      const twoViewports = (edge: number) => ({
+        viewports: [
+          makeViewport({ ...base, edge }),
+          makeViewport({ ...base, name: "tablet", edge: 10 }),
+        ],
+      });
+      const { code, output } = compare([twoViewports(40), twoViewports(72)]);
+      expect(code).toBe(0);
+      expect(output.viewport).toBe("desktop");
+      const edge = output.differences.find(
+        (difference: { kind: string }) => difference.kind === "left_edge",
+      );
+      expect(edge.pages.map((page: { value: number }) => page.value)).toEqual([
+        40, 72,
+      ]);
+    });
+
+    it("refuses a viewport name that is not allowed with the plain usage line", () => {
+      for (const name of ["wide", "w0768", "desktop-dark"]) {
+        const errorSpy = vi
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
+        const { code } = compare(
+          [makeFacts({ ...base, name }), makeFacts({ ...base, name })],
+          ["--viewport", name],
+        );
+        expect(code).toBe(2);
+        expect(errorSpy).toHaveBeenCalledTimes(1);
+        expect(errorSpy.mock.calls[0]?.[0]).toMatch(
+          /^usage: .*\[--viewport [^\]]*\]$/,
+        );
+        errorSpy.mockRestore();
+      }
+    });
+
+    it("keeps old outputs valid and refuses other names in the schema", () => {
+      const output = (viewport: string) => ({
+        version: 1,
+        viewport,
+        pages: [
+          { page: 1, file: "a.json" },
+          { page: 2, file: "b.json" },
+        ],
+        differences: [],
+      });
+      for (const viewport of [
+        "desktop",
+        "phone",
+        "tablet",
+        "widescreen",
+        "w768",
+      ]) {
+        expect(validate(output(viewport))).toBe(true);
+      }
+      for (const viewport of ["wide", "w0768", "desktop-dark"]) {
+        expect(validate(output(viewport))).toBe(false);
+      }
+    });
   });
 
   it("compares the committed measure facts files without error", () => {
