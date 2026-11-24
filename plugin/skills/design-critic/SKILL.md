@@ -58,7 +58,7 @@ Count the images first. The count picks the mode, and nothing else does.
    End with the section as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the section.
    ```
 
-   Join the section into the crit exactly as the agent wrote it, as its own paragraph right after "What's working": before "Couldn't judge from a still" when the crit has it, else before "Checklist". Write the joined crit over `crit.md`. With two or more images, skip this step: the section is about one piece.
+   Join the section into the crit exactly as the agent wrote it, as its own paragraph right after "What's working": before "Couldn't judge from a still" when the crit has it, else before "Checklist". Write the joined crit over `crit.md`.
 
 4. Give the critique to the user, joined with the section. Do not soften or trim it. Add your own comment only if the user asked for it.
 
@@ -83,7 +83,7 @@ Count the images first. The count picks the mode, and nothing else does.
 
 Use this mode for two or more images, once you know the mode from "Pick the mode". The person gets one crit and one work order per image, and then one consistency check or one best pick.
 
-1. For each image, run "Run it" steps 1, 2, and 4 with that one image: spawn all the critics in one message so they run at the same time, use the usual prompt, and when each crit is done, write its work order in its own work folder (the folder that holds that image's `facts.json`, else a new folder per image in the system temp folder, so no two work orders share a folder).
+1. For each image, run "Run it" steps 1, 2, 3, and 5 with that one image, so each crit has its "Where it could go further" section and its work order: spawn all the critics in one message so they run at the same time, use the usual prompt, and when each crit is done, write its work order in its own work folder (the folder that holds that image's `facts.json`, else a new folder per image in the system temp folder, so no two work orders share a folder).
 2. At the same time, make the contact sheet. Run `node <skill folder>/scripts/contact-sheet.mjs <image paths in order> --out <new folder in the system temp folder>`. It writes `sheet.png` and `tiles.json` in that folder. Then spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`, with this prompt and the placeholders filled. `<agent file>` is `set-critic.md` for the consistency check and `picker.md` for the best pick.
 
    ```
