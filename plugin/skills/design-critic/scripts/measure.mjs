@@ -536,6 +536,147 @@ export function nameDrawnFont(rawBlock, loadedFamilies) {
  * @param {object} raw what readPage returned, with each block's rendered font filled in
  * @returns {{ viewport: object, texts: Map<string, string> }}
  */
+/** WCAG 2.2 SC 1.4.3: the lowest contrast for normal text, and for large text. */
+export const TEXT_CONTRAST_MINIMUM = 4.5;
+export const LARGE_TEXT_CONTRAST_MINIMUM = 3;
+
+/** WCAG 2.2 SC 2.5.8: the smallest width and height of a pointer target, in CSS px. */
+export const TARGET_SIZE_MINIMUM = 24;
+
+/** Bringhurst 2.1.2: the most characters per line of paragraph text. */
+export const LINE_LENGTH_MAXIMUM = 75;
+
+/** A block counts as paragraph text for the line length rule when it has this many lines or more. */
+export const PARAGRAPH_MINIMUM_LINES = 3;
+
+/** The GUIDELINES.md entry title of each rule that findViolations checks. */
+export const VIOLATION_GUIDELINES = {
+  "text-contrast": "Text contrast (minimum)",
+  "large-text-contrast": "Text contrast (minimum)",
+  "target-size": "Target size (minimum)",
+  "line-length": "Line length (measure)",
+};
+
+/** The top-level note that says what the violations list covers and what it cannot see. */
+export const VIOLATIONS_NOTE =
+  "violations lists only text contrast under 4.5:1 (3:1 for large text: 24 px, or 18.66 px bold), targets under 24 px without room around them, and paragraph lines over 75 characters (blocks of 3 or more lines). It leaves out text in a disabled control, in a logo or an image, inline links in text, and small targets whose 24 px circles touch nothing. It cannot see non-text contrast (not measured), contrast marked not measurable, text that is only decoration, unstyled browser controls, and targets that are essential or have an equal control elsewhere; judge those by eye.";
+
+/**
+ * Returns true when text counts as large under WCAG: at least 18 pt (24 CSS px), or at least
+ * 14 pt (18.66 CSS px) and bold (weight 700 or more).
+ *
+ * @param {number} fontSize CSS px
+ * @param {number} fontWeight
+ */
+export function isLargeText(fontSize, fontWeight) {
+  return fontSize >= 24 || (fontSize >= 18.66 && fontWeight >= 700);
+}
+
+/** Returns the distance from a point to the nearest point of a box [x, y, width, height]. */
+function distanceToBox(pointX, pointY, box) {
+  const [left, top, width, height] = box;
+  const dx = Math.max(left - pointX, 0, pointX - (left + width));
+  const dy = Math.max(top - pointY, 0, pointY - (top + height));
+  return Math.hypot(dx, dy);
+}
+
+/**
+ * Returns the threshold violations of one viewport, checked in code against fixed numbers
+ * (FR-79): text contrast, target size, and line length. Each names its rule, the GUIDELINES.md
+ * entry, the measured value, the threshold, and the selector and box. It skips text and targets
+ * with an exemption the DOM shows. An undersized target passes when a 24 px circle centered on it
+ * touches no other target and no other undersized target's circle (WCAG 2.2 SC 2.5.8).
+ *
+ * @param {{ selector: string, box: number[], font_size: number, font_weight: number, lines: number, characters_per_line: number | null, contrast?: number | null }[]} textBlocks
+ * @param {(string | null)[]} blockExemptions the exemption of each text block, at the same index
+ * @param {{ selector: string, box: number[] }[]} targets
+ * @param {(string | null)[]} targetExemptions the exemption of each target, at the same index
+ */
+export function findViolations(
+  textBlocks,
+  blockExemptions,
+  targets,
+  targetExemptions,
+) {
+  const violations = [];
+  const addViolation = (rule, value, threshold, item) => {
+    violations.push({
+      rule,
+      guideline: VIOLATION_GUIDELINES[rule],
+      value,
+      threshold,
+      selector: item.selector,
+      box: item.box,
+    });
+  };
+  textBlocks.forEach((block, index) => {
+    const exempt = blockExemptions[index] !== null;
+    if (typeof block.contrast === "number" && !exempt) {
+      const large = isLargeText(block.font_size, block.font_weight);
+      const minimum = large
+        ? LARGE_TEXT_CONTRAST_MINIMUM
+        : TEXT_CONTRAST_MINIMUM;
+      if (block.contrast < minimum) {
+        addViolation(
+          large ? "large-text-contrast" : "text-contrast",
+          block.contrast,
+          minimum,
+          block,
+        );
+      }
+    }
+    if (
+      block.lines >= PARAGRAPH_MINIMUM_LINES &&
+      typeof block.characters_per_line === "number" &&
+      block.characters_per_line > LINE_LENGTH_MAXIMUM
+    ) {
+      addViolation(
+        "line-length",
+        block.characters_per_line,
+        LINE_LENGTH_MAXIMUM,
+        block,
+      );
+    }
+  });
+  const radius = TARGET_SIZE_MINIMUM / 2;
+  const isUndersized = (target) =>
+    target.box[2] < TARGET_SIZE_MINIMUM || target.box[3] < TARGET_SIZE_MINIMUM;
+  const centerOf = (target) => [
+    target.box[0] + target.box[2] / 2,
+    target.box[1] + target.box[3] / 2,
+  ];
+  targets.forEach((target, index) => {
+    if (!isUndersized(target) || targetExemptions[index] !== null) {
+      return;
+    }
+    const [centerX, centerY] = centerOf(target);
+    let crowded = false;
+    targets.forEach((other, otherIndex) => {
+      if (otherIndex === index) {
+        return;
+      }
+      if (isUndersized(other)) {
+        const [otherX, otherY] = centerOf(other);
+        // Two circles of the same radius overlap when their centers are closer than twice it.
+        if (Math.hypot(centerX - otherX, centerY - otherY) < radius * 2) {
+          crowded = true;
+        }
+      } else if (distanceToBox(centerX, centerY, other.box) < radius) {
+        crowded = true;
+      }
+    });
+    if (crowded) {
+      addViolation(
+        "target-size",
+        Math.min(target.box[2], target.box[3]),
+        TARGET_SIZE_MINIMUM,
+        target,
+      );
+    }
+  });
+  return violations;
+}
+
 export function summarizeViewport(raw) {
   const hiddenSelectors = new Set();
   for (const rawBlock of raw.blocks) {
@@ -555,6 +696,8 @@ export function summarizeViewport(raw) {
 
   const texts = new Map();
   const textBlocks = [];
+  // The WCAG exemption of each entry of textBlocks, at the same index, or null.
+  const blockExemptions = [];
   const listedBlocks = [];
   for (const rawBlock of raw.blocks) {
     if (hiddenSelectors.has(rawBlock.selector)) {
@@ -606,10 +749,14 @@ export function summarizeViewport(raw) {
       color: String(color.value),
       ...measureContrast(rawBlock, raw.canvasColor),
     };
+    if (rawBlock.exemption) {
+      notes.push(`exempt from the contrast minimum: ${rawBlock.exemption}`);
+    }
     if (notes.length > 0) {
       block.notes = notes;
     }
     textBlocks.push(block);
+    blockExemptions.push(rawBlock.exemption ?? null);
   }
 
   const typeSizes = [];
@@ -669,9 +816,17 @@ export function summarizeViewport(raw) {
   }
 
   const targets = [];
+  const targetExemptions = [];
   for (const target of raw.targets) {
     targets.push({ selector: target.selector, box: toPixelBox(target.box) });
+    targetExemptions.push(target.exemption ?? null);
   }
+  const violations = findViolations(
+    textBlocks,
+    blockExemptions,
+    targets,
+    targetExemptions,
+  );
 
   const notes = [...raw.notes];
   if (raw.pageWidth > raw.width) {
@@ -696,6 +851,7 @@ export function summarizeViewport(raw) {
     blocks_on_no_shared_edge: unsharedEdges,
     targets,
     targets_left_out: raw.targetsFound - raw.targets.length,
+    violations,
   };
   return { viewport, texts };
 }
@@ -720,6 +876,65 @@ export function summarizeViewport(raw) {
 function readPage(limits) {
   const pageHeight = document.documentElement.scrollHeight;
   const pageWidth = document.documentElement.scrollWidth;
+
+  /**
+   * Returns the WCAG exemption that the DOM shows for an element, or null: inside a disabled
+   * control, or inside a logo or an image (SC 1.4.3). A logo is an element whose class, id, or
+   * aria-label holds "logo"; an image is an svg or an element with role="img".
+   */
+  function exemptionOf(element) {
+    if (element.closest(":disabled, [aria-disabled='true']") !== null) {
+      return "disabled control";
+    }
+    const logoOrImage =
+      "svg, [role='img'], [class*='logo' i], [id*='logo' i], [aria-label*='logo' i]";
+    if (element.closest(logoOrImage) !== null) {
+      return "logo or image";
+    }
+    return null;
+  }
+
+  /**
+   * Returns the exemption of a text block: the one exemption that every text node of the block
+   * shares, such as a logo span inside a paragraph, or else the exemption of the block's owner.
+   */
+  function blockExemption(entries, owner) {
+    const found = [];
+    for (const entry of entries) {
+      if (entry.textNode !== undefined) {
+        found.push(exemptionOf(entry.textNode.parentElement));
+      }
+    }
+    const first = found[0];
+    if (
+      first !== undefined &&
+      first !== null &&
+      found.every((value) => value === first)
+    ) {
+      return first;
+    }
+    return exemptionOf(owner);
+  }
+
+  /**
+   * Returns true when a target is a link inside a sentence: drawn inline, with text of its parent
+   * outside it. WCAG SC 2.5.8 exempts such targets from the size minimum.
+   */
+  function isInlineInText(element) {
+    if (getComputedStyle(element).display !== "inline") {
+      return false;
+    }
+    const parent = element.parentElement;
+    if (parent === null) {
+      return false;
+    }
+    for (const node of parent.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== "") {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /** Returns a short CSS selector that matches only this element. */
   function buildSelector(element) {
@@ -1033,6 +1248,7 @@ function readPage(limits) {
       characterRects,
       textLeft,
       notes: candidate.notes,
+      exemption: blockExemption(entries, owner),
       samples: [],
       owner,
     });
@@ -1116,9 +1332,16 @@ function readPage(limits) {
   }
   const targets = [];
   for (const element of targetElements.slice(0, limits.maxTargets)) {
+    let exemption = null;
+    if (element.matches(":disabled, [aria-disabled='true']")) {
+      exemption = "disabled control";
+    } else if (isInlineInText(element)) {
+      exemption = "inline link in text";
+    }
     targets.push({
       selector: cachedSelector(element),
       box: pageBox(element.getBoundingClientRect()),
+      exemption,
     });
   }
 
@@ -1594,7 +1817,7 @@ export async function measurePage(
     version: FACTS_VERSION,
     source: pageArgument,
     color_scheme: COLOR_SCHEME,
-    notes: [],
+    notes: [VIOLATIONS_NOTE],
   };
   if (finalUrls.size > 0) {
     facts.final_url = [...finalUrls].join(" ");

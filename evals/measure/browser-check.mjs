@@ -1,7 +1,8 @@
 // The browser test of measure.mjs (PRD FR-79). It measures two committed pages with the real
 // script and Chromium and checks what each must give:
 //   known-values.html: 16 px Inter, 40 characters per line within 2, contrast 21 and 4.48, three
-//   cases with no contrast number, a hidden block left out, a 120 x 40 px button, light mode.
+//   cases with no contrast number, a hidden block left out, a 120 x 40 px button, light mode, and
+//   the desktop violations list: exactly #gray, #long, #pair-a, and #pair-b, with the exempt cases out.
 //   hard-cases.html: the cases from the review of crit-0a0.1, listed at the top of that page.
 // It also serves pages from a local HTTP server to check that a 404 is refused with one line, that
 // a redirect is recorded, and that a page that does not open gives one line. Then it compares the
@@ -113,6 +114,7 @@ function stableParts(document) {
       type_sizes: viewport.type_sizes,
       text_colors: viewport.text_colors,
       targets: viewport.targets,
+      violations: viewport.violations,
     });
   }
   return {
@@ -198,6 +200,23 @@ for (const viewport of known.facts.viewports) {
   );
 }
 check(known.facts.color_scheme === "light", "color_scheme is not light");
+// The violations list of the desktop viewport (crit-576.13): exactly these rules and selectors.
+const knownDesktop = known.facts.viewports.find(
+  (viewport) => viewport.name === "desktop",
+);
+const violationNames = (knownDesktop?.violations ?? []).map(
+  (violation) => `${violation.rule} ${violation.selector} ${violation.value}`,
+);
+const expectedViolations = [
+  "text-contrast #gray 4.48",
+  "line-length #long 90",
+  "target-size #pair-a 16",
+  "target-size #pair-b 16",
+];
+check(
+  JSON.stringify(violationNames) === JSON.stringify(expectedViolations),
+  `desktop violations ${JSON.stringify(violationNames)}, expected ${JSON.stringify(expectedViolations)}`,
+);
 compareWithSample("evals/measure/known-values.html", known);
 
 // The hard-cases page.
@@ -327,7 +346,8 @@ if (redirected.exitCode === 0) {
   );
   check(
     redirectedFacts.final_url === `${origin}/page` &&
-      redirectedFacts.notes.length === 1,
+      redirectedFacts.notes.length === 2 &&
+      redirectedFacts.notes[1].startsWith("the browser ended on"),
     `a redirect gave final_url ${redirectedFacts.final_url} and notes ${JSON.stringify(redirectedFacts.notes)}`,
   );
 } else {

@@ -2,7 +2,9 @@
   "version": 1,
   "source": "evals/measure/known-values.html",
   "color_scheme": "light",
-  "notes": [],
+  "notes": [
+    "violations lists only text contrast under 4.5:1 (3:1 for large text: 24 px, or 18.66 px bold), targets under 24 px without room around them, and paragraph lines over 75 characters (blocks of 3 or more lines). It leaves out text in a disabled control, in a logo or an image, inline links in text, and small targets whose 24 px circles touch nothing. It cannot see non-text contrast (not measured), contrast marked not measurable, text that is only decoration, unstyled browser controls, and targets that are essential or have an equal control elsewhere; judge those by eye."
+  ],
   "texts": {
     "#title": "Known values",
     "#body": "abcd efgh ijkl mnop qrst uvwx yzab cdefg abcd efgh ijkl mnop",
@@ -10,7 +12,12 @@
     "#on-gradient": "Text that sits on a gradient.",
     "#covered": "Text under an opaque box.",
     "#faded": "Text at half opacity.",
-    "#action": "Go"
+    "#action": "Go",
+    "#large": "Large text in mid gray.",
+    "main > p:nth-of-type(6)": "Acme",
+    "#off": "Off",
+    "#long": "abcd efgh ijkl mnop qrst uvwx yzab cdef ghij klmn opqr stuv ",
+    "#sentence": "Read the terms before you start."
   },
   "viewports": [
     {
@@ -18,9 +25,9 @@
       "width": 1280,
       "height": 800,
       "page_width": 1280,
-      "page_height": 800,
+      "page_height": 944,
       "notes": [],
-      "text_blocks_found": 7,
+      "text_blocks_found": 12,
       "text_blocks_left_out": 0,
       "text_blocks": [
         {"selector":"#title","box":[40,40,1200,40],"font_family":"Inter","font_size":32,"font_weight":400,"line_height":40,"line_height_ratio":1.25,"lines":1,"characters_per_line":12,"color":"#000000","contrast":21,"background":"#ffffff"},
@@ -29,31 +36,55 @@
         {"selector":"#on-gradient","box":[56,288,1168,24],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":24,"line_height_ratio":1.5,"lines":1,"characters_per_line":29,"color":"#000000","contrast":null,"contrast_note":"not measurable: background image"},
         {"selector":"#covered","box":[40,328,1200,24],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":24,"line_height_ratio":1.5,"lines":1,"characters_per_line":25,"color":"#000000","contrast":null,"contrast_note":"not measurable: covered by another element"},
         {"selector":"#faded","box":[40,376,1200,24],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":24,"line_height_ratio":1.5,"lines":1,"characters_per_line":21,"color":"#000000","contrast":null,"contrast_note":"not measurable: opacity, filter, or blend mode"},
-        {"selector":"#action","box":[40,424,120,40],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":null,"line_height_ratio":null,"lines":1,"characters_per_line":2,"color":"#ffffff","contrast":21,"background":"#000000","notes":["line height normal, one line"]}
+        {"selector":"#action","box":[40,424,120,40],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":null,"line_height_ratio":null,"lines":1,"characters_per_line":2,"color":"#ffffff","contrast":21,"background":"#000000","notes":["line height normal, one line"]},
+        {"selector":"#large","box":[40,464,1200,32],"font_family":"Inter","font_size":24,"font_weight":400,"line_height":32,"line_height_ratio":1.33,"lines":1,"characters_per_line":23,"color":"#888888","contrast":3.54,"background":"#ffffff"},
+        {"selector":"main > p:nth-of-type(6)","box":[40,520,1200,24],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":24,"line_height_ratio":1.5,"lines":1,"characters_per_line":4,"color":"#bbbbbb","contrast":1.92,"background":"#ffffff","notes":["exempt from the contrast minimum: logo or image"]},
+        {"selector":"#off","box":[40,568,120,40],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":null,"line_height_ratio":null,"lines":1,"characters_per_line":3,"color":"#aaaaaa","contrast":2,"background":"#eeeeee","notes":["line height normal, one line","exempt from the contrast minimum: disabled control"]},
+        {"selector":"#long","box":[40,632,1200,72],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":24,"line_height_ratio":1.5,"lines":3,"characters_per_line":90,"color":"#000000","contrast":21,"background":"#ffffff"},
+        {"selector":"#sentence","box":[40,856,1200,24],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":24,"line_height_ratio":1.5,"lines":1,"characters_per_line":32,"color":"#000000","contrast":21,"background":"#ffffff","notes":["mixed colors: color is the color of most characters"]}
       ],
       "type_sizes": [
         {"size":32,"blocks":1,"characters":11},
-        {"size":16,"blocks":6,"characters":224}
+        {"size":24,"blocks":1,"characters":19},
+        {"size":16,"blocks":10,"characters":477}
       ],
       "text_colors": [
-        {"color":"#000000","blocks":5,"characters":206,"example":"#title"},
+        {"color":"#000000","blocks":7,"characters":447,"example":"#title"},
         {"color":"#777777","blocks":1,"characters":27,"example":"#gray"},
+        {"color":"#888888","blocks":1,"characters":19,"example":"#large"},
+        {"color":"#0000ee","blocks":1,"characters":5,"example":"#sentence"},
+        {"color":"#bbbbbb","blocks":1,"characters":4,"example":"main > p:nth-of-type(6)"},
+        {"color":"#aaaaaa","blocks":1,"characters":3,"example":"#off"},
         {"color":"#ffffff","blocks":1,"characters":2,"example":"#action"}
       ],
       "spacing": [
-        {"px":24,"count":4,"example":"main"}
+        {"px":24,"count":8,"example":"main"},
+        {"px":48,"count":2,"example":"main"},
+        {"px":64,"count":1,"example":"main"}
       ],
       "left_edges": [
-        {"x":40,"blocks":5}
+        {"x":40,"blocks":9},
+        {"x":88,"blocks":2}
       ],
-      "blocks_on_no_shared_edge": 2,
+      "blocks_on_no_shared_edge": 1,
       "targets": [
-        {"selector":"#action","box":[40,424,120,40]}
+        {"selector":"#action","box":[40,424,120,40]},
+        {"selector":"#off","box":[40,568,120,40]},
+        {"selector":"#pair-a","box":[40,728,16,16]},
+        {"selector":"#pair-b","box":[58,728,16,16]},
+        {"selector":"#lone","box":[40,792,16,16]},
+        {"selector":"#in-text","box":[111,858,43,20]}
       ],
       "targets_left_out": 0,
+      "violations": [
+        {"rule":"text-contrast","guideline":"Text contrast (minimum)","value":4.48,"threshold":4.5,"selector":"#gray","box":[40,224,1200,24]},
+        {"rule":"line-length","guideline":"Line length (measure)","value":90,"threshold":75,"selector":"#long","box":[40,632,1200,72]},
+        {"rule":"target-size","guideline":"Target size (minimum)","value":16,"threshold":24,"selector":"#pair-a","box":[40,728,16,16]},
+        {"rule":"target-size","guideline":"Target size (minimum)","value":16,"threshold":24,"selector":"#pair-b","box":[58,728,16,16]}
+      ],
       "screenshot": "desktop.png",
       "crops": [
-        {"file":"desktop-01.png","box":[0,0,1280,800]}
+        {"file":"desktop-01.png","box":[0,0,1280,944]}
       ]
     },
     {
@@ -61,9 +92,9 @@
       "width": 390,
       "height": 844,
       "page_width": 390,
-      "page_height": 844,
+      "page_height": 1184,
       "notes": [],
-      "text_blocks_found": 7,
+      "text_blocks_found": 12,
       "text_blocks_left_out": 0,
       "text_blocks": [
         {"selector":"#title","box":[40,40,310,40],"font_family":"Inter","font_size":32,"font_weight":400,"line_height":40,"line_height_ratio":1.25,"lines":1,"characters_per_line":12,"color":"#000000","contrast":21,"background":"#ffffff"},
@@ -72,31 +103,54 @@
         {"selector":"#on-gradient","box":[56,384,278,24],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":24,"line_height_ratio":1.5,"lines":1,"characters_per_line":29,"color":"#000000","contrast":null,"contrast_note":"not measurable: background image"},
         {"selector":"#covered","box":[40,424,310,24],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":24,"line_height_ratio":1.5,"lines":1,"characters_per_line":25,"color":"#000000","contrast":null,"contrast_note":"not measurable: covered by another element"},
         {"selector":"#faded","box":[40,472,310,24],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":24,"line_height_ratio":1.5,"lines":1,"characters_per_line":21,"color":"#000000","contrast":null,"contrast_note":"not measurable: opacity, filter, or blend mode"},
-        {"selector":"#action","box":[40,520,120,40],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":null,"line_height_ratio":null,"lines":1,"characters_per_line":2,"color":"#ffffff","contrast":21,"background":"#000000","notes":["line height normal, one line"]}
+        {"selector":"#action","box":[40,520,120,40],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":null,"line_height_ratio":null,"lines":1,"characters_per_line":2,"color":"#ffffff","contrast":21,"background":"#000000","notes":["line height normal, one line"]},
+        {"selector":"#large","box":[40,560,310,32],"font_family":"Inter","font_size":24,"font_weight":400,"line_height":32,"line_height_ratio":1.33,"lines":1,"characters_per_line":23,"color":"#888888","contrast":3.54,"background":"#ffffff"},
+        {"selector":"main > p:nth-of-type(6)","box":[40,616,310,24],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":24,"line_height_ratio":1.5,"lines":1,"characters_per_line":4,"color":"#bbbbbb","contrast":1.92,"background":"#ffffff","notes":["exempt from the contrast minimum: logo or image"]},
+        {"selector":"#off","box":[40,664,120,40],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":null,"line_height_ratio":null,"lines":1,"characters_per_line":3,"color":"#aaaaaa","contrast":2,"background":"#eeeeee","notes":["line height normal, one line","exempt from the contrast minimum: disabled control"]},
+        {"selector":"#long","box":[40,728,310,216],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":24,"line_height_ratio":1.5,"lines":9,"characters_per_line":31.8,"color":"#000000","contrast":21,"background":"#ffffff"},
+        {"selector":"#sentence","box":[40,1096,310,24],"font_family":"Inter","font_size":16,"font_weight":400,"line_height":24,"line_height_ratio":1.5,"lines":1,"characters_per_line":32,"color":"#000000","contrast":21,"background":"#ffffff","notes":["mixed colors: color is the color of most characters"]}
       ],
       "type_sizes": [
         {"size":32,"blocks":1,"characters":11},
-        {"size":16,"blocks":6,"characters":224}
+        {"size":24,"blocks":1,"characters":19},
+        {"size":16,"blocks":10,"characters":477}
       ],
       "text_colors": [
-        {"color":"#000000","blocks":5,"characters":206,"example":"#title"},
+        {"color":"#000000","blocks":7,"characters":447,"example":"#title"},
         {"color":"#777777","blocks":1,"characters":27,"example":"#gray"},
+        {"color":"#888888","blocks":1,"characters":19,"example":"#large"},
+        {"color":"#0000ee","blocks":1,"characters":5,"example":"#sentence"},
+        {"color":"#bbbbbb","blocks":1,"characters":4,"example":"main > p:nth-of-type(6)"},
+        {"color":"#aaaaaa","blocks":1,"characters":3,"example":"#off"},
         {"color":"#ffffff","blocks":1,"characters":2,"example":"#action"}
       ],
       "spacing": [
-        {"px":24,"count":4,"example":"main"}
+        {"px":24,"count":8,"example":"main"},
+        {"px":48,"count":2,"example":"main"},
+        {"px":64,"count":1,"example":"main"}
       ],
       "left_edges": [
-        {"x":40,"blocks":5}
+        {"x":40,"blocks":9},
+        {"x":88,"blocks":2}
       ],
-      "blocks_on_no_shared_edge": 2,
+      "blocks_on_no_shared_edge": 1,
       "targets": [
-        {"selector":"#action","box":[40,520,120,40]}
+        {"selector":"#action","box":[40,520,120,40]},
+        {"selector":"#off","box":[40,664,120,40]},
+        {"selector":"#pair-a","box":[40,968,16,16]},
+        {"selector":"#pair-b","box":[58,968,16,16]},
+        {"selector":"#lone","box":[40,1032,16,16]},
+        {"selector":"#in-text","box":[111,1098,43,20]}
       ],
       "targets_left_out": 0,
+      "violations": [
+        {"rule":"text-contrast","guideline":"Text contrast (minimum)","value":4.48,"threshold":4.5,"selector":"#gray","box":[40,320,310,24]},
+        {"rule":"target-size","guideline":"Target size (minimum)","value":16,"threshold":24,"selector":"#pair-a","box":[40,968,16,16]},
+        {"rule":"target-size","guideline":"Target size (minimum)","value":16,"threshold":24,"selector":"#pair-b","box":[58,968,16,16]}
+      ],
       "screenshot": "phone.png",
       "crops": [
-        {"file":"phone-01.png","box":[0,0,390,844]}
+        {"file":"phone-01.png","box":[0,0,390,1184]}
       ]
     }
   ]
