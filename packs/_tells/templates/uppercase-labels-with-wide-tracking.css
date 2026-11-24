@@ -1,0 +1,163 @@
+/*
+ * Template tell "Uppercase labels with wide tracking" (FR-86, EV-23). The page is the final
+ * page of the EV-10 loop run of 2026-11-24, an invoicing tool for small studios named Quillfern
+ * (invented), set in Inter instead of Helvetica because a fixture uses repository fonts only.
+ * The defect sets the line above the headline in uppercase with 0.04em tracking, as the fixing
+ * agent of that run did. The clean side keeps the same line in sentence case with normal
+ * tracking, at the same size, weight, and color (the rule's own fix). The loop page's footer fell below the 800 px screen, so it is left out.
+ */
+
+:root {
+  --text-strong: #1c1c1c;
+  --text-body: #4a4a4a;
+  --text-quiet: #666666;
+  --rule: #e4e4e0;
+  --tint: #f6f5f2;
+  --action: #2563eb;
+}
+
+body {
+  color: var(--text-body);
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Header: logo on the left, navigation on the right, on one shared content width. */
+.site-header {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--text-strong);
+}
+
+.site-nav {
+  display: flex;
+  gap: 4px 24px;
+}
+
+.site-nav a {
+  color: var(--text-body);
+  text-decoration: none;
+}
+
+.site-nav a[aria-current="page"] {
+  color: var(--text-strong);
+  font-weight: 700;
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.hero {
+  padding: 64px 0 56px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--text-quiet);
+}
+
+[data-defect="on"] .eyebrow {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 18em;
+  text-wrap: balance;
+  margin: 0 0 20px;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+}
+
+.lead {
+  max-width: 30em;
+  margin: 0 0 32px;
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.button {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 6px;
+  border: 2px solid var(--action);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.button-primary {
+  background: var(--action);
+  color: #ffffff;
+}
+
+/* Secondary action: plain text with an underline, so only the trial button is filled. */
+.button-secondary {
+  border-color: transparent;
+  padding-left: 8px;
+  padding-right: 8px;
+  color: var(--text-strong);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.features {
+  padding: 0 0 64px;
+}
+
+.section-title {
+  margin: 0 0 24px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text-strong);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.card {
+  padding: 24px;
+  border-radius: 8px;
+  background: var(--tint);
+}
+
+.card h3 {
+  margin: 0 0 8px;
+  text-wrap: balance;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-strong);
+}
