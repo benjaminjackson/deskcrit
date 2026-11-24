@@ -127,3 +127,97 @@ Jev (EV-14): in the replay of npm run eval:agreement on 2026-11-23, 29 of the 32
 ```
 
 Reading, against noise of 2 or 3 images between two full runs: with facts, 34 of 37 positives raised and 37 of 37 negatives quiet; without facts at the same commit, 35 of 37 and 37 of 37. The two misses with facts (`color/saturated-large-areas`, `layout/no-dominant-element`) are judgments of area and dominance that the facts file does not measure, and the baseline missed both too. The criteria that turn on a measured value (`basics/text-reads-faint`, `typography/heading-indistinct`, `typography/headings-differ-only-in-size`, `layout/uniform-scale`) were already raised and quiet in every column, so this sample cannot show a gain from the numbers. 48 of the 74 crits with facts cite a facts field by name.
+
+# Jev evidence (EV-14, FR-78)
+
+- Date: 2026-11-24
+- Skill commit: `82b57a1fb5d229577d5e182bb0f7f2278ce9c3c5` (crit-0a0.6)
+- Pinned Jev model: `jev-1.14.0`. Jev's answers are the saved answers under `evals/agreement/runs/`, replayed through `dist/crit.js` with `--answers` and no key. No request went to TypeSafe, because EV-4 rule 5 forbids scoring the same fixture set again.
+- Sample: the variant-1 pair of each of the 37 live criteria, 74 images. Each image got the fires of its own pack only, because the saved answers cover only that pack.
+- Runs at this commit: 74 crits without Jev evidence and 35 with it, each judged once. 39 images had no fire, so their prompt has no evidence line and their crit is the one without Jev. 33 images had a fire on their own criterion, and 2 had fires only on other criteria of their pack. Judge prompt unchanged.
+- Command: `node evals/critic/detect.ts --replay --jev --beside 82b57a1fb5d229577d5e182bb0f7f2278ce9c3c5`
+
+The two columns at `82b57a1f` differ only in the Jev evidence file. The last table lists the 33 images where Jev fired on the image's own criterion.
+
+First read: `agents/critic.md` says to open the evidence file only after the first read. A saved crit holds only the final text, so the order cannot be checked from it. In 2 of the 35 runs with evidence, the first read itself says that the critic opened the file before it wrote the first read.
+
+```
+skill commit 82b57a1fb5d229577d5e182bb0f7f2278ce9c3c5, live criteria only, with Jev evidence on 35 of 74 images, judge model claude-opus-5-5, pairs per criterion 1
+side by side, raised on positive and quiet on negative (n/d); a column without +facts had no facts file
+pack           criterion                          82b57a1f raised  82b57a1f quiet  82b57a1f+jev raised  82b57a1f+jev quiet
+accessibility  chart-without-text                 1/1              1/1             1/1                  1/1
+accessibility  error-without-text                 1/1              1/1             1/1                  1/1
+accessibility  field-label-placeholder-only       1/1              1/1             1/1                  1/1
+accessibility  meaning-by-color-only              1/1              1/1             1/1                  1/1
+accessibility  running-text-italic-or-underlined  0/1              1/1             1/1                  1/1
+art-direction  mixed-level-of-detail              1/1              1/1             1/1                  1/1
+art-direction  mixed-rendering-styles             1/1              1/1             1/1                  1/1
+basics         all-caps-long-text                 1/1              1/1             1/1                  1/1
+basics         centered-or-right-paragraphs       1/1              1/1             1/1                  1/1
+basics         competing-primary-buttons          1/1              1/1             1/1                  1/1
+basics         decorative-face-for-paragraphs     1/1              1/1             1/1                  1/1
+basics         text-reads-faint                   1/1              1/1             1/1                  1/1
+color          accent-overused                    1/1              1/1             1/1                  1/1
+color          competing-saturated-hues           1/1              1/1             1/1                  1/1
+color          same-role-different-colors         1/1              1/1             1/1                  1/1
+color          saturated-large-areas              0/1              1/1             1/1                  1/1
+color          text-over-busy-image               1/1              0/1             1/1                  0/1
+color          vibrating-color-pair               1/1              1/1             1/1                  1/1
+dataviz        bar-axis-not-at-zero               1/1              1/1             1/1                  1/1
+dataviz        bare-kpi-number                    1/1              1/1             1/1                  1/1
+dataviz        chartjunk-decoration               1/1              1/1             1/1                  1/1
+dataviz        color-without-meaning              1/1              1/1             1/1                  1/1
+dataviz        heavy-gridlines-and-frames         1/1              1/1             1/1                  1/1
+dataviz        pie-too-many-slices                1/1              1/1             1/1                  1/1
+dataviz        rainbow-for-ordered-values         1/1              1/1             1/1                  1/1
+dataviz        three-d-chart                      1/1              1/1             1/1                  1/1
+layout         everything-centered                0/1              1/1             1/1                  1/1
+layout         heavy-rules-and-boxes              1/1              1/1             1/1                  1/1
+layout         no-dominant-element                0/1              1/1             1/1                  1/1
+layout         uniform-scale                      1/1              1/1             1/1                  1/1
+typography     heading-indistinct                 1/1              1/1             1/1                  1/1
+typography     heading-lines-collide              1/1              1/1             1/1                  1/1
+typography     headings-differ-only-in-size       1/1              1/1             1/1                  1/1
+ux             actions-look-like-plain-text       1/1              1/1             1/1                  1/1
+ux             duplicate-adjacent-actions         1/1              1/1             1/1                  1/1
+ux             no-current-location-shown          1/1              1/1             1/1                  1/1
+ux             required-fields-unmarked           1/1              1/1             1/1                  1/1
+total                                             33/37            36/37           37/37                36/37
+
+images where Jev fired on the image's own criterion: the judge answer without and with Jev evidence at this commit
+pack           criterion                          image         jev   without-jev    with-jev
+accessibility  chart-without-text                 shows-defect  fail  present        present
+accessibility  error-without-text                 shows-defect  fail  present        present
+accessibility  field-label-placeholder-only       shows-defect  fail  present        present
+accessibility  running-text-italic-or-underlined  shows-defect  warn  absent         present
+art-direction  mixed-level-of-detail              shows-defect  fail  present        present
+art-direction  mixed-rendering-styles             shows-defect  warn  present        present
+basics         all-caps-long-text                 shows-defect  fail  present        present
+basics         centered-or-right-paragraphs       shows-defect  fail  present        present
+basics         competing-primary-buttons          shows-defect  fail  present        present
+basics         decorative-face-for-paragraphs     shows-defect  fail  present        present
+basics         text-reads-faint                   shows-defect  fail  present        present
+color          accent-overused                    shows-defect  warn  present        present
+color          same-role-different-colors         shows-defect  fail  present        present
+color          saturated-large-areas              shows-defect  warn  not_mentioned  present
+color          text-over-busy-image               shows-defect  fail  present        present
+dataviz        bar-axis-not-at-zero               shows-defect  fail  present        present
+dataviz        bare-kpi-number                    shows-defect  fail  present        present
+dataviz        chartjunk-decoration               shows-defect  fail  present        present
+dataviz        color-without-meaning              shows-defect  fail  present        present
+dataviz        pie-too-many-slices                shows-defect  fail  present        present
+dataviz        rainbow-for-ordered-values         shows-defect  fail  present        present
+dataviz        three-d-chart                      shows-defect  fail  present        present
+layout         everything-centered                shows-defect  warn  not_mentioned  present
+layout         heavy-rules-and-boxes              shows-defect  fail  present        present
+layout         no-dominant-element                shows-defect  fail  absent         present
+layout         uniform-scale                      shows-defect  warn  present        present
+typography     heading-indistinct                 shows-defect  fail  present        present
+typography     heading-lines-collide              shows-defect  fail  present        present
+typography     headings-differ-only-in-size       shows-defect  warn  present        present
+ux             actions-look-like-plain-text       shows-defect  warn  present        present
+ux             duplicate-adjacent-actions         shows-defect  warn  present        present
+ux             no-current-location-shown          shows-defect  fail  present        present
+ux             required-fields-unmarked           shows-defect  fail  present        present
+Jev (EV-14): in the replay of npm run eval:agreement on 2026-11-23, 29 of the 32 live criteria with a label file agreed with Benjamin Jackson's labels at 0.8 or above, and 182 of 210 positive fixtures fired; Jev failed on the criteria removed under R-4.
+```
