@@ -4,12 +4,15 @@
 // act on (a CSS selector and a pixel box), where from an image alone it judges by eye (PRD FR-79).
 //
 // Usage:
-//   node measure.mjs PAGE [--out FOLDER]
+//   node measure.mjs PAGE [--out FOLDER] [--width N[,N...]]
 //
 // PAGE is a local HTML file or an http(s) URL. It writes, into FOLDER or a new folder in the system
-// temp folder: desktop.png (1280 px wide) and phone.png (390 px wide), both full-page screenshots
-// at device scale factor 1; one-screen crops of each through crop.mjs, named desktop-01.png and so
-// on; and facts.json, which schemas/facts.schema.json describes. It prints one line per file.
+// temp folder: desktop.png (1280 px wide), phone.png (390 px wide), tablet.png (768 px wide), and
+// wide.png (1920 px wide), all full-page screenshots at device scale factor 1; one-screen crops of
+// each through crop.mjs, named desktop-01.png and so on; and facts.json, which
+// schemas/facts.schema.json describes. It prints one line per file. With --width, it renders one
+// viewport per width in the order given instead, each 800 px tall and named w<N>, so --width 768
+// writes w768.png. Each N is a whole number from 200 to 3840.
 //
 // It uses Playwright, which it never installs. It looks for `playwright` first in the project of
 // the working directory, then in packs/ of the deskcrit checkout that holds this script. It opens
@@ -36,11 +39,24 @@ import {
 /** The version of the facts.json format; schemas/facts.schema.json requires this value. */
 export const FACTS_VERSION = 1;
 
-/** The two viewports: a laptop screen and a common phone, both at device scale factor 1. */
+/**
+ * The default viewports, all at device scale factor 1: a laptop screen, a common phone, a tablet
+ * held upright, and a large desktop screen (FR-79). Desktop stays first, because readers of
+ * facts.json take the first viewport as the desktop one.
+ */
 export const VIEWPORTS = [
   { name: "desktop", width: 1280, height: 800 },
   { name: "phone", width: 390, height: 844 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "wide", width: 1920, height: 1080 },
 ];
+
+/** The narrowest and widest width that --width accepts, in CSS pixels. */
+export const MIN_WIDTH = 200;
+export const MAX_WIDTH = 3840;
+
+/** The height of each viewport that --width asks for, in CSS pixels. */
+export const WIDTH_VIEWPORT_HEIGHT = 800;
 
 /** At most this many text blocks per viewport go into the file, so it fits a critic's context. */
 export const MAX_TEXT_BLOCKS = 60;
@@ -68,7 +84,7 @@ export const EXIT_CANNOT_MEASURE = 3;
 export const EXIT_TOOL_MISSING = 4;
 
 const USAGE =
-  "usage: node measure.mjs PAGE [--out FOLDER]   (PAGE is an HTML file or an http(s) URL)";
+  "usage: node measure.mjs PAGE [--out FOLDER] [--width N[,N...]]   (PAGE is an HTML file or an http(s) URL; each N a whole number from 200 to 3840)";
 
 // The version is the one that packs/package.json pins. Keep the two the same.
 const PLAYWRIGHT_MISSING =
@@ -1740,17 +1756,48 @@ export function formatFactsJson(value, depth = 0) {
 }
 
 /**
- * Measures the page in both viewports and writes the screenshots, crops, and facts.json. It returns
+ * Returns one viewport per width in a comma-separated list such as "768,1024", each 800 px tall and
+ * named w<N>, in the order given. It returns null when an item is not a whole number written
+ * without a leading zero, is outside 200 to 3840, or repeats an earlier item.
+ *
+ * @param {string} text
+ * @returns {{ name: string, width: number, height: number }[] | null}
+ */
+export function widthViewports(text) {
+  const viewports = [];
+  const seen = new Set();
+  for (const item of text.split(",")) {
+    if (!/^[1-9][0-9]*$/.test(item)) {
+      return null;
+    }
+    const width = Number(item);
+    if (width < MIN_WIDTH || width > MAX_WIDTH || seen.has(width)) {
+      return null;
+    }
+    seen.add(width);
+    viewports.push({
+      name: `w${width}`,
+      width,
+      height: WIDTH_VIEWPORT_HEIGHT,
+    });
+  }
+  return viewports;
+}
+
+/**
+ * Measures the page in each viewport and writes the screenshots, crops, and facts.json. It returns
  * the lines to print. It throws a MeasureRefusal when it cannot measure.
  *
  * @param {string} pageArgument
  * @param {string} outputFolder
  * @param {string} workingDirectory
+ * @param {{ name: string, width: number, height: number }[]} viewportList the viewports to render, in order; VIEWPORTS when left out
  */
 export async function measurePage(
   pageArgument,
   outputFolder,
   workingDirectory,
+  viewportList = VIEWPORTS,
 ) {
   const pageUrl = toPageUrl(pageArgument);
   const playwright = loadPlaywright(workingDirectory);
@@ -1771,7 +1818,7 @@ export async function measurePage(
   const viewports = [];
   const finalUrls = new Set();
   try {
-    for (const viewport of VIEWPORTS) {
+    for (const viewport of viewportList) {
       const { context, page, notes, finalUrl } = await openPage(
         browser,
         viewport,
@@ -1848,15 +1895,35 @@ export async function measurePage(
  * @returns {Promise<{ exitCode: number, lines: string[] }>}
  */
 export async function runMeasure(commandArguments, workingDirectory) {
-  const [pageArgument, flag, folderArgument, ...extra] = commandArguments;
-  const folderGiven = flag === "--out" && folderArgument !== undefined;
-  const wellFormed =
-    pageArgument !== undefined &&
-    extra.length === 0 &&
-    (flag === undefined || folderGiven);
-  if (!wellFormed) {
+  const [pageArgument, ...flagArguments] = commandArguments;
+  if (pageArgument === undefined) {
     return { exitCode: EXIT_USAGE, lines: [USAGE] };
   }
+  // Each flag takes one value and may come at most once, in either order.
+  let folderArgument;
+  let widthArgument;
+  for (let index = 0; index < flagArguments.length; index += 2) {
+    const flag = flagArguments[index];
+    const value = flagArguments[index + 1];
+    if (value === undefined) {
+      return { exitCode: EXIT_USAGE, lines: [USAGE] };
+    }
+    if (flag === "--out" && folderArgument === undefined) {
+      folderArgument = value;
+    } else if (flag === "--width" && widthArgument === undefined) {
+      widthArgument = value;
+    } else {
+      return { exitCode: EXIT_USAGE, lines: [USAGE] };
+    }
+  }
+  let viewportList = VIEWPORTS;
+  if (widthArgument !== undefined) {
+    viewportList = widthViewports(widthArgument);
+    if (viewportList === null) {
+      return { exitCode: EXIT_USAGE, lines: [USAGE] };
+    }
+  }
+  const folderGiven = folderArgument !== undefined;
   try {
     // Check the page before making the output folder, so a wrong path leaves nothing behind.
     toPageUrl(pageArgument);
@@ -1871,6 +1938,7 @@ export async function runMeasure(commandArguments, workingDirectory) {
       pageArgument,
       outputFolder,
       workingDirectory,
+      viewportList,
     );
     return { exitCode: 0, lines };
   } catch (error) {

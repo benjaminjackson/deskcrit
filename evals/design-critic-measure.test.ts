@@ -21,6 +21,8 @@ import {
   planScreenCrops,
   resolveBackground,
   runMeasure,
+  VIEWPORTS,
+  widthViewports,
 } from "../plugin/skills/design-critic/scripts/measure.mjs";
 
 // The no-browser checks of the design critic's measure script (PRD FR-79). They run in
@@ -317,11 +319,55 @@ describe("facts.json", () => {
   });
 });
 
+describe("viewports", () => {
+  it("renders four default viewports, desktop first", () => {
+    expect(VIEWPORTS).toEqual([
+      { name: "desktop", width: 1280, height: 800 },
+      { name: "phone", width: 390, height: 844 },
+      { name: "tablet", width: 768, height: 1024 },
+      { name: "wide", width: 1920, height: 1080 },
+    ]);
+  });
+
+  it("makes one 800 px tall viewport per --width item, in the order given", () => {
+    expect(widthViewports("768,1024")).toEqual([
+      { name: "w768", width: 768, height: 800 },
+      { name: "w1024", width: 1024, height: 800 },
+    ]);
+    expect(widthViewports("200,3840")).toHaveLength(2);
+  });
+});
+
 describe("runMeasure", () => {
   it("prints the usage line and exits 2 for a wrong command line", async () => {
     const result = await runMeasure([], repositoryRoot);
     expect(result.exitCode).toBe(EXIT_USAGE);
     expect(result.lines).toHaveLength(1);
+  });
+
+  it.each(["0", "199", "3841", "12a", "768,768", "768,", "0768", ""])(
+    "prints the usage line and exits 2 for --width %j",
+    async (widths) => {
+      const result = await runMeasure(
+        ["evals/measure/known-values.html", "--width", widths],
+        repositoryRoot,
+      );
+      expect(result.exitCode).toBe(EXIT_USAGE);
+      expect(result.lines).toHaveLength(1);
+      expect(result.lines[0]).toMatch(/^usage: /);
+    },
+  );
+
+  it("prints the usage line and exits 2 for a flag given twice or without its value", async () => {
+    for (const commandArguments of [
+      ["evals/measure/known-values.html", "--width", "768", "--width", "1024"],
+      ["evals/measure/known-values.html", "--out", "a", "--out", "b"],
+      ["evals/measure/known-values.html", "--width"],
+    ]) {
+      const result = await runMeasure(commandArguments, repositoryRoot);
+      expect(result.exitCode).toBe(EXIT_USAGE);
+      expect(result.lines).toHaveLength(1);
+    }
   });
 
   it("refuses a file that does not exist with one line and exit code 3", async () => {
