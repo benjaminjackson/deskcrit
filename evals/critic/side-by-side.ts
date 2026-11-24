@@ -8,7 +8,7 @@
 // start a model call; run-critic.ts run makes the crits first.
 //
 // Usage:
-//   node evals/critic/side-by-side.ts prepare --base X --candidate Y [--note TEXT] [--runs-dir DIR] [--out DIR] IMAGE_FOLDER
+//   node evals/critic/side-by-side.ts prepare --base X --candidate Y [--candidate-deep] [--note TEXT] [--runs-dir DIR] [--out DIR] IMAGE_FOLDER
 //   node evals/critic/side-by-side.ts record [--out DIR]
 //   node evals/critic/side-by-side.ts --help
 //
@@ -27,6 +27,7 @@ import { basename, dirname, extname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { formatTable } from "../support/format-table.ts";
+import { currentDeepRunIdentity, deepRequestKey } from "./deep-run.ts";
 import { readSavedCrits, requestKey } from "./run-critic.ts";
 
 const SIDE_BY_SIDE_DIRECTORY = join(import.meta.dirname, "side-by-side");
@@ -80,6 +81,8 @@ export type PrepareInput = {
   readonly imageFolder: string;
   readonly base: string;
   readonly candidate: string;
+  /** True when the candidate's crits are deep-mode crits (deep-run.ts), not single-critic crits. */
+  readonly candidateDeep?: boolean;
   readonly note: string | undefined;
   readonly runsDirectory: string;
   readonly outDirectory: string;
@@ -102,7 +105,7 @@ function buildHelpText(runsDirectory: string, outDirectory: string): string {
   return `Pair two unlabeled crits per page, then count the picks (PRD EV-19).
 
 Usage:
-  node evals/critic/side-by-side.ts prepare --base X --candidate Y [--note TEXT] [--runs-dir DIR] [--out DIR] IMAGE_FOLDER
+  node evals/critic/side-by-side.ts prepare --base X --candidate Y [--candidate-deep] [--note TEXT] [--runs-dir DIR] [--out DIR] IMAGE_FOLDER
   node evals/critic/side-by-side.ts record [--out DIR]
   node evals/critic/side-by-side.ts --help
 
@@ -111,7 +114,10 @@ checked out at that version, for example in its own git worktree. IMAGE_FILES is
 of IMAGE_FOLDER (png, jpg, jpeg, or webp). Use the same --note in all three commands, or none:
   node evals/critic/run-critic.ts run --skill BASE_SKILL_DIR --runs-dir ${runsDirectory} IMAGE_FILES
   node evals/critic/run-critic.ts run --skill CANDIDATE_SKILL_DIR --runs-dir ${runsDirectory} IMAGE_FILES
-Each run makes a folder named after the skill commit under the runs folder.
+Each run makes a folder named after the skill commit under the runs folder. To set the deep mode
+against the single critic of the same skill commit, make the candidate's crits with
+  node evals/critic/deep-run.ts run --skill SKILL_DIR --runs-dir ${runsDirectory} IMAGE_FILES
+and pass --candidate-deep, with the same commit as --base and --candidate.
 
 Modes:
   prepare  Read the saved crits and write, in the out folder, pages/page-NN.md (Crit A and Crit B
@@ -122,6 +128,8 @@ Modes:
 Flags:
   --base X, --candidate Y  A skill commit (a folder name under the runs folder) or the path of a
                            saved <commit> run folder.
+  --candidate-deep         Read the candidate's deep-mode crits (deep-run.ts). --base and
+                           --candidate may then name the same commit.
   --note TEXT              The note the crits were made with.
   --runs-dir DIR           The runs folder (default ${runsDirectory}).
   --out DIR                The out folder (default ${outDirectory}).
@@ -281,7 +289,8 @@ export function prepareSideBySide(input: PrepareInput): CommandResult {
   const runsDirectory = resolve(input.runsDirectory);
   const base = resolveSide(input.base, runsDirectory);
   const candidate = resolveSide(input.candidate, runsDirectory);
-  if (base.runFolder === candidate.runFolder) {
+  const candidateDeep = input.candidateDeep === true;
+  if (base.runFolder === candidate.runFolder && !candidateDeep) {
     throw new Error("--base and --candidate name the same run folder");
   }
   const imagePaths = listPageImages(resolve(input.imageFolder));
@@ -308,11 +317,15 @@ export function prepareSideBySide(input: PrepareInput): CommandResult {
     // readSavedCrits keeps only runs made the way run-critic.ts run makes them now, so both sides
     // were made with the same prompt, model, and permissions, and only the skill differs.
     const baseCrits = readSavedCrits(base.runsDirectory, base.commit, key);
-    const candidateCrits = readSavedCrits(
-      candidate.runsDirectory,
-      candidate.commit,
-      key,
-    );
+    // A deep crit has its own key and identity, so it is never read as the base's crit.
+    const candidateCrits = candidateDeep
+      ? readSavedCrits(
+          candidate.runsDirectory,
+          candidate.commit,
+          deepRequestKey([imageSha256], input.note, undefined),
+          currentDeepRunIdentity(),
+        )
+      : readSavedCrits(candidate.runsDirectory, candidate.commit, key);
     const lacking: string[] = [];
     if (baseCrits[0] === undefined) {
       lacking.push(`base ${base.value}`);
@@ -407,7 +420,10 @@ export function prepareSideBySide(input: PrepareInput): CommandResult {
     key_file_version: 1,
     seed: seed.toString("hex"),
     base: base.commit,
-    candidate: candidate.commit,
+    // The record table names the deep mode, since both sides may share one commit.
+    candidate: candidateDeep
+      ? `${candidate.commit} deep mode`
+      : candidate.commit,
     pages: keyPages,
   };
   const pickLines = [
@@ -613,6 +629,7 @@ export function runSideBySideCommand(
       options: {
         base: { type: "string" },
         candidate: { type: "string" },
+        "candidate-deep": { type: "boolean", default: false },
         note: { type: "string" },
         "runs-dir": { type: "string" },
         out: { type: "string" },
@@ -638,6 +655,7 @@ export function runSideBySideCommand(
         rest.length > 0 ||
         parsed.values.base !== undefined ||
         parsed.values.candidate !== undefined ||
+        parsed.values["candidate-deep"] === true ||
         parsed.values.note !== undefined ||
         parsed.values["runs-dir"] !== undefined
       ) {
@@ -664,6 +682,7 @@ export function runSideBySideCommand(
       imageFolder,
       base: parsed.values.base,
       candidate: parsed.values.candidate,
+      candidateDeep: parsed.values["candidate-deep"] === true,
       note: parsed.values.note,
       runsDirectory: parsed.values["runs-dir"] ?? options.runsDirectory,
       outDirectory,
