@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "image": { "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-yL51U3/crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-yL51U3/crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-yL51U3/crit-loop/round-1/phone.png", "width": 676, "height": 873 },
+    { "viewport": "tablet", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-yL51U3/crit-loop/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-yL51U3/crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-yL51U3/crit-loop/round-1/crit.md",
+  "facts_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-yL51U3/crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "no-reflow-on-narrow-screens",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The page does not reflow on narrow screens",
+      "location": {
+        "description": "the first feature note in the lower row, squeezed to a few characters per line",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "div.points > div.point:nth-of-type(1) > p",
+        "box": [412, 594, 65, 279],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A harbor master who opens the link on a phone sees a page that scrolls sideways and looks broken, on the device the product promises to serve.",
+      "current": { "value": "676 px page width in a 390 px viewport; feature notes at 4 to 7 characters per line", "measured": true, "facts_field": "page_width" },
+      "target": "no sideways scroll below tablet width; the table and each note stacked in one column at full width",
+      "fix_direction": "Below a tablet width, stack the lower row into one column: the table, then each note at full width. Let the nav collapse or sit on its own line.",
+      "source": "WCAG 2.2 SC 1.4.10 Reflow; Bringhurst on measure; Hochuli on staircases",
+      "closed_when": { "method": "measure", "check": "page_width equals the viewport width in the phone and tablet viewports, and characters_per_line of div.points > div.point > p is 30 or more in the phone and tablet viewports" }
+    },
+    {
+      "id": "proof-table-small-hero-empty",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The proof is the smallest thing on the page, and the hero has a hole where it belongs",
+      "location": {
+        "description": "the heading of the Today at Porthmellin table, smaller than the feature headings, under an empty right half of the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen", "tablet"],
+        "selector": "h2",
+        "box": [64, 503, 300, 20],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The viewer has to find the evidence for themselves, and most will not scroll their eye down to 12 px gray type. The empty area reads as a picture that failed to load.",
+      "current": { "value": "table at 12 px, heading at 13 px, below the 15 px feature headings; hero text 400 of 1152 px wide", "measured": true, "facts_field": "font_size" },
+      "target": "the sample table sits in the empty right half of the hero at a readable size, with a heading at least the level of the feature headings, and a line saying this is what berth holders see",
+      "fix_direction": "Give the sample of the berth holders' page the empty right half of the hero at a size people can read. Make its heading at least the level of the feature headings, and say that this is what berth holders see.",
+      "source": "Arnheim on balance; Ruder on gathered space; Muller-Brockmann and Lupton on distinct levels",
+      "closed_when": { "method": "look", "check": "a fresh critic sees the Porthmellin sample in the hero's right half at a readable size, with a heading at least as prominent as the feature headings, and no large empty hole in the desktop, widescreen and tablet viewports" }
+    },
+    {
+      "id": "headline-trust-unbacked",
+      "rank": 3,
+      "kind": "defect",
+      "title": "The headline promises trust, and nothing on the page backs it",
+      "location": {
+        "description": "the copy as a whole: the headline and the gate times note",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The reader has to guess who works out the gate openings, and the wrong guess is either more work for me or a black box I cannot vouch for. Nothing sets Tidewell next to what the office does now.",
+      "current": { "value": "\"Gate openings are worked out from each tide\" has no actor; no source for tide data; no comparison with the office's current way of working", "measured": false, "facts_field": null },
+      "target": "the gate times note names who works out the gate openings; the page states where the tide data comes from and what the office checks or approves; the page names what Tidewell sits next to in the office's current work",
+      "fix_direction": "Restore the verb's subject in the gate times note (\"Tidewell works out gate openings from each tide...\", if that is true). The maker must supply the source of the tide data, what the office checks or approves, and what the office does now (the comparison). Do not invent them.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "a fresh critic sees the gate times note name who works out the openings, and sees the source of the tide data and the office's part stated, in all viewports" }
+    },
+    {
+      "id": "table-headers-low-contrast",
+      "rank": null,
+      "kind": "defect",
+      "title": "The table headers are too faint",
+      "location": {
+        "description": "the Tide column header of the sample table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "thead > tr > th:nth-of-type(1)",
+        "box": [64, 530, 140, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The column labels are hard to read, and low-vision readers lose them.",
+      "current": { "value": "3.78:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1 (the body gray #4d585e is 7.31:1)",
+      "fix_direction": "Darken the table headers to the body gray (#4d585e).",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "contrast of thead > tr > th is 4.5 or more in the desktop, phone, tablet and widescreen viewports" }
+    },
+    {
+      "id": "feature-headings-barely-differ",
+      "rank": null,
+      "kind": "convention",
+      "title": "The feature headings barely separate from their body text",
+      "location": {
+        "description": "the first feature note heading",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.points > div.point:nth-of-type(1) > h3",
+        "box": [412, 503, 247, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The headings read as body text; the eye does not see a clear level between them.",
+      "current": { "value": "15 px, weight 500, same size as the 15 px, weight 400 body text", "measured": true, "facts_field": "font_size" },
+      "target": "one difference clearly stronger: a heavier weight or a clear size step",
+      "fix_direction": "Make one difference stronger: a heavier weight or a clear size step.",
+      "source": "Dair",
+      "closed_when": { "method": "measure", "check": "font_size or font_weight of div.points > div.point > h3 differs clearly from div.points > div.point > p in the desktop, phone, tablet and widescreen viewports" }
+    },
+    {
+      "id": "type-scale-twelve-and-thirteen",
+      "rank": null,
+      "kind": "convention",
+      "title": "The type scale has both 13 px and 12 px in the table area",
+      "location": {
+        "description": "the table heading, 13 px, over the 12 px table text",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [64, 503, 300, 20],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The two sizes read as one level picked twice.",
+      "current": { "value": "13 px and 12 px both in use", "measured": true, "facts_field": "type_sizes" },
+      "target": "one of the two sizes in use, not both",
+      "fix_direction": "Keep one of 12 px and 13 px.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "type_sizes lists only one of 12 and 13 in the desktop, phone, tablet and widescreen viewports" }
+    },
+    {
+      "id": "uneven-gutters",
+      "rank": null,
+      "kind": "convention",
+      "title": "The gutter after the table column differs from the gutter between feature columns",
+      "location": {
+        "description": "the gap after the table column and the gaps between the feature columns",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The row does not sit on one rhythm.",
+      "current": { "value": "48 px after the table column, 32 px between feature columns", "measured": false, "facts_field": null },
+      "target": "one interval for both gutters",
+      "fix_direction": "Use one interval for both gutters.",
+      "source": "Muller-Brockmann",
+      "closed_when": { "method": "look", "check": "a fresh critic sees equal gutters after the table column and between the feature columns in the desktop and widescreen viewports" }
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "image": { "path": "/tmp/crit-loop-boat/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/tmp/crit-loop-boat/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/tmp/crit-loop-boat/round-1/phone.png", "width": 587, "height": 1291 },
+    { "viewport": "tablet", "path": "/tmp/crit-loop-boat/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "/tmp/crit-loop-boat/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/tmp/crit-loop-boat/round-1/crit.md",
+  "facts_file": "/tmp/crit-loop-boat/round-1/facts.json",
+  "findings": [
+    {
+      "id": "phone-layout-no-reflow",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The phone layout does not reflow: the page is wider than the screen",
+      "location": {
+        "description": "the whole page on the phone: two columns side by side, stacked nav, narrow intro and headline",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "A phone visitor sees a jumbled page, scrolls sideways, and has to pan to reach the form.",
+      "current": { "value": "587 px page width on a 390 px screen", "measured": true, "facts_field": "page_width" },
+      "target": "Page width equal to the viewport width; one column below the tablet width in this order: headline, intro, form, routes; each route's nights and locks on one line.",
+      "fix_direction": "Below the tablet width, make the page one column in the order headline, intro, form, routes. Collapse the nav or let it wrap under the logo, and keep each route's nights and locks on one line.",
+      "source": "WCAG 1.4.10 Reflow; Bringhurst's 45 to 75 characters",
+      "closed_when": { "method": "measure", "check": "page_width in the phone viewport equals 390, p.lead characters_per_line in the phone viewport is 45 or more, and h1 lines in the phone viewport is 3 or fewer" }
+    },
+    {
+      "id": "headline-weak-no-picture",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The headline does not lead, and nothing on the page makes the trip look worth wanting",
+      "location": {
+        "description": "the headline \"Hire a narrowboat for a week on the canal\" above the intro",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h1",
+        "box": [64, 129, 600, 30],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The headline looks less important than its own paragraph, the eye skips to the button, and the words have to sell the trip alone with no picture.",
+      "current": { "value": "22 px, weight 400, #6b7574 at 4.46:1; type sizes 24, 22, 20, 16, 14; no picture", "measured": true, "facts_field": "font_size" },
+      "target": "Headline clearly the first thing seen: larger by a real step than the intro, darker, contrast of at least 4.5:1; three or four type sizes; a photo of the boats or the canal placed to work with the headline.",
+      "fix_direction": "Make the headline larger by a real step and darker, and cut the scale down to three or four sizes. Add a real photo of the boats or the canal, placed in the layout so that it works with the headline. The maker must supply the photo.",
+      "source": "Bringhurst, section 3.1.1; Tschichold; Dair, chapters 8 and 9",
+      "closed_when": { "method": "measure", "check": "h1 font_size is clearly above the p.lead size of 20 px and h1 contrast is 4.5 or more in the desktop, phone, tablet and widescreen viewports, and type_sizes lists 4 sizes or fewer; a fresh critic must also see a photo of the boats or canal beside the headline" }
+    },
+    {
+      "id": "two-buttons-one-task",
+      "rank": 3,
+      "kind": "defect",
+      "title": "Two buttons for one task, and the wrong one looks primary",
+      "location": {
+        "description": "the filled green \"See boats and dates\" button and the outline \"Search\" button in the form",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "a.button",
+        "box": [64, 291, 196, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The visitor cannot tell which button to press, or whether \"See boats and dates\" ignores what they put in the form.",
+      "current": { "value": "hero button filled green; form button is an outline", "measured": false, "facts_field": null },
+      "target": "One control for this action, in the filled primary style.",
+      "fix_direction": "Keep the form's \"Search\" button and give it the filled primary style. Remove the hero button, or give it a different job.",
+      "source": "Nielsen heuristic 8; Material Design emphasis levels",
+      "closed_when": { "method": "look", "check": "A fresh critic sees only one filled primary control for starting the search, in the form, in every viewport; the hero button is gone or has a different job." }
+    },
+    {
+      "id": "wide-layout-two-edges-and-hole",
+      "rank": 4,
+      "kind": "convention",
+      "title": "On wide screens the layout falls apart into two edges and a hole",
+      "location": {
+        "description": "the routes heading, which sits below the form's bottom edge and lines up with nothing",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "h2",
+        "box": [64, 612, 1152, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The eye goes from the button to the form and then has to jump back down-left to find the routes, which depend on the Base picker but sit far from it.",
+      "current": { "value": "about 850 px of empty space between the columns on widescreen; routes heading at y 612, below the form's bottom edge at 580", "measured": true, "facts_field": "box" },
+      "target": "A maximum content width with both columns on one grid; the routes follow straight after the hero; the routes visibly answer to the base the form has selected.",
+      "fix_direction": "Set a maximum content width and hold both columns on one grid. Close the gap under the hero so the routes follow straight after it, and let the routes visibly answer to the base the form has selected.",
+      "source": "Müller-Brockmann, one grid; Arnheim on balance; Norman on natural mapping",
+      "closed_when": { "method": "measure", "check": "h2 box top in the desktop and widescreen viewports is no more than the form's bottom edge (580) plus a normal section gap, and the form's right edge in the widescreen viewport is within a maximum content width of the text column's left edge" }
+    },
+    {
+      "id": "route-figures-contrast",
+      "rank": null,
+      "kind": "defect",
+      "title": "The nights-and-locks figures in the route list are just under 4.5:1",
+      "location": {
+        "description": "the nights-and-locks text in the first route row",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "ul > li:nth-of-type(1) > span:nth-of-type(2)",
+        "box": [531, 656, 133, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The figures are slightly too faint for some readers.",
+      "current": { "value": "4.46:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1",
+      "fix_direction": "Darken that gray one step.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "contrast of ul > li > span:nth-of-type(2) in the desktop, phone, tablet and widescreen viewports is 4.5 or more" }
+    },
+    {
+      "id": "tablet-intro-narrow-widow",
+      "rank": null,
+      "kind": "defect",
+      "title": "On the tablet the intro runs very narrow and ends with \"hire.\" alone",
+      "location": {
+        "description": "the intro paragraph on the tablet",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "p.lead",
+        "box": [64, 203, 236, 240],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The intro reads as a thin column of short lines with a single word alone on the last line.",
+      "current": { "value": "24.1 characters per line over 8 lines", "measured": true, "facts_field": "characters_per_line" },
+      "target": "A text column wide enough that the last line does not hold one word alone.",
+      "fix_direction": "Give the text column more of the width, or stack the form under it.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "characters_per_line of p.lead in the tablet viewport is above 24.1 and a fresh critic sees no single word alone on the last line" }
+    },
+    {
+      "id": "input-borders-faint",
+      "rank": null,
+      "kind": "defect",
+      "title": "The input and select borders look pale gray on white, probably under 3:1",
+      "location": {
+        "description": "the date input in the search form",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "input",
+        "box": [899, 294, 294, 43],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The fields are hard to see against the white card.",
+      "current": { "value": "pale gray border on white, not measured", "measured": false, "facts_field": null },
+      "target": "border contrast of at least 3:1 against the background",
+      "fix_direction": "Check the border contrast and darken the borders if they fail.",
+      "source": "WCAG 1.4.11",
+      "closed_when": { "method": "look", "check": "A fresh critic sees input and select borders that clearly stand out from the white card in every viewport." }
+    },
+    {
+      "id": "nav-no-current-page",
+      "rank": null,
+      "kind": "convention",
+      "title": "The nav does not mark the current page",
+      "location": {
+        "description": "the nav links at the top right",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "nav.site-nav",
+        "box": [790, 25, 426, 31],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A visitor cannot tell where they are in the site. This matters little on the home page.",
+      "current": { "value": "no item marked", "measured": false, "facts_field": null },
+      "target": "The current item carries one cue, such as weight or an underline.",
+      "fix_direction": "Give the current nav item one cue, such as weight or an underline, when the same nav appears on other pages.",
+      "source": "Laubheimer, NN/g",
+      "closed_when": { "method": "look", "check": "A fresh critic sees one cue on the current nav item in every viewport." }
+    },
+    {
+      "id": "berths-label-word",
+      "rank": null,
+      "kind": "convention",
+      "title": "The \"Berths\" label is a boatyard word for a field whose answer is \"4 people\"",
+      "location": {
+        "description": "the \"Berths\" label in the search form",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "form.search > label:nth-of-type(4)",
+        "box": [899, 427, 294, 66],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The label and the value use two different words for the same thing.",
+      "current": { "value": "label \"Berths\", value \"4 people\"", "measured": false, "facts_field": null },
+      "target": "The label and the value use the same word.",
+      "fix_direction": "Change the label to the word the value already uses (\"People\"), or make the value say berths.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees the same word in the label and the value of that field in every viewport." }
+    }
+  ]
+}

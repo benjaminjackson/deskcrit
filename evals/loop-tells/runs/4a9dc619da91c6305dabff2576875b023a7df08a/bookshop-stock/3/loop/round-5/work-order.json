@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "image": { "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-5/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-5/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-5/phone.png", "width": 390, "height": 1139 },
+    { "viewport": "tablet", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-5/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-5/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-5/crit.md",
+  "facts_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-5/facts.json",
+  "findings": [
+    {
+      "id": "table-lacks-recommendation",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The reorder card shows stock and sales but not the reorder decision",
+      "location": {
+        "description": "the \"Reorder this week\" card, with columns Title, On shelf and Sold this week",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.preview-head > span:nth-of-type(1)",
+        "box": [488, 159, 138, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The owner reads \"tells you which titles to reorder\", then sees only raw counts and has to work out the decision alone. Nothing compares Shelfmark with the till report or spreadsheet the shop uses now.",
+      "current": { "value": "3 columns: Title, On shelf, Sold this week; no decision column; no comparison line", "measured": false, "facts_field": null },
+      "target": "Each title shows the reorder decision, and a short line compares Shelfmark with how a shop works now.",
+      "fix_direction": "Add a column that states the decision for each title, and a short line that compares Shelfmark with how a shop works now. The maker must supply the column label, its values, and what the comparison says.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, the card shows a column that states the reorder decision for each title, and a short line compares Shelfmark with how a shop works now." }
+    },
+    {
+      "id": "headline-breaks-in-phrases",
+      "rank": 2,
+      "kind": "convention",
+      "title": "The headline breaks into four short pieces that split phrases",
+      "location": {
+        "description": "the hero headline \"Know what is on your shelves before a customer asks\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "h1",
+        "box": [64, 144, 341, 184],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The breaks fall inside phrases, so the main promise reads in four steps, and the column below is too narrow for the two buttons to sit side by side.",
+      "current": { "value": "4 lines of about 11 characters; hero text column 341 px wide", "measured": true, "facts_field": "text_blocks.h1.lines" },
+      "target": "A headline of three lines that break at phrase boundaries, as on tablet, with its top level with the card top.",
+      "fix_direction": "Let the hero text column be wider than one note column, for example by starting the card a little further right, so the headline is three lines that break at phrase boundaries, as it is on tablet. The headline top must stay level with the card top.",
+      "source": "ragged lines should break at phrase boundaries",
+      "closed_when": { "method": "measure", "check": "lines of h1 in the desktop and widescreen viewports is 3, the breaks fall at phrase boundaries in the new image, and the h1 top is level with the card top" }
+    },
+    {
+      "id": "till-not-named",
+      "rank": null,
+      "kind": "defect",
+      "title": "\"Works with your till\" names no till",
+      "location": {
+        "description": "the first feature note, \"Works with your till\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(1)",
+        "box": [64, 608, 341, 50],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A shop owner cannot tell whether Shelfmark works with the till they use.",
+      "current": { "value": "the note names no till", "measured": false, "facts_field": null },
+      "target": "The note names the tills Shelfmark works with.",
+      "fix_direction": "Name the tills Shelfmark works with. The maker must supply the list.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, the first feature note names the tills Shelfmark works with." }
+    }
+  ]
+}

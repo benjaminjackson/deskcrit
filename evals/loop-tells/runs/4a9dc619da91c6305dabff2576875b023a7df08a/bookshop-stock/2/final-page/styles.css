@@ -1,0 +1,275 @@
+@font-face {
+  font-family: "Inter";
+  font-weight: 400;
+  src: url("fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 500;
+  src: url("fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  color: #2a2622;
+  background: #fffdf9;
+}
+
+a {
+  color: inherit;
+}
+
+/* Holds every section to one centered width, so wide screens keep the
+   headline and the table a glance apart. */
+.site-header,
+main {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 28px;
+  padding: 18px 64px;
+}
+
+.header-rule {
+  border-bottom: 1px solid #ece6dc;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 28px;
+}
+
+.site-nav a {
+  text-decoration: none;
+  color: #5c544b;
+  white-space: nowrap;
+}
+
+.site-nav .nav-signin {
+  color: #2a2622;
+  font-weight: 500;
+}
+
+/* The hero is a text column and a 480 px table column; the notes below
+   sit in three equal columns. Both share the same side padding. */
+.hero,
+.facts {
+  display: grid;
+  column-gap: 64px;
+  padding-left: 64px;
+  padding-right: 64px;
+}
+
+.hero {
+  grid-template-columns: 1fr 480px;
+  align-items: center;
+  padding-top: 64px;
+  padding-bottom: 56px;
+}
+
+.hero-text {
+  max-width: 540px;
+}
+
+/* Keeps a phrase of the headline on one line. */
+.keep-together {
+  white-space: nowrap;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.hero-text p {
+  margin: 0 0 28px;
+  color: #5c544b;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.button {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.button-primary {
+  border: 1px solid #8a3b24;
+  background: #8a3b24;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.button-secondary {
+  border: 1px solid #d6cec2;
+  background: #fffdf9;
+  color: #2a2622;
+}
+
+.preview {
+  min-width: 0;
+  border: 1px solid #ece6dc;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.preview-head {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #ece6dc;
+  font-weight: 500;
+}
+
+.preview-date {
+  color: #5c544b;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th,
+td {
+  padding: 9px 18px;
+  text-align: left;
+  border-bottom: 1px solid #f3eee6;
+}
+
+th {
+  color: #5c544b;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.facts {
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 40px;
+  padding-top: 8px;
+  padding-bottom: 80px;
+}
+
+/* "pretty" stops a single word from ending a note on its own line. */
+.facts p {
+  margin: 0;
+  color: #5c544b;
+  text-wrap: pretty;
+}
+
+.fact-title {
+  color: #2a2622;
+  font-weight: 500;
+}
+
+/* Tablet and phone: one column, the table at full width under the
+   buttons, the notes one under another. */
+@media (max-width: 900px) {
+  .site-header,
+  .hero,
+  .facts {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .hero,
+  .facts {
+    grid-template-columns: 1fr;
+    row-gap: 24px;
+  }
+
+  .hero {
+    padding-top: 40px;
+    padding-bottom: 40px;
+    row-gap: 40px;
+  }
+
+  .hero-text {
+    max-width: 600px;
+  }
+
+  .preview {
+    max-width: 600px;
+  }
+
+  /* About 70 characters per line at most. */
+  .facts p {
+    max-width: 34em;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-nav {
+    gap: 4px 20px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  /* On a phone the headline wraps on its own; a forced phrase here
+     leaves a short line. */
+  .keep-together {
+    white-space: normal;
+  }
+
+  /* Narrow side padding gives the title column room. */
+  th,
+  td {
+    padding: 9px 8px;
+  }
+
+  th:first-child,
+  td:first-child {
+    padding-left: 12px;
+  }
+
+  th:last-child,
+  td:last-child {
+    padding-right: 16px;
+  }
+
+  .preview-head {
+    padding: 14px 12px;
+  }
+}

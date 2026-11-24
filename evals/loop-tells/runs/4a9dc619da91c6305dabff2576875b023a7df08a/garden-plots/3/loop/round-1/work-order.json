@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "image": { "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-garden-plots-CWF3S3/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-garden-plots-CWF3S3/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-garden-plots-CWF3S3/.crit-loop/round-1/phone.png", "width": 497, "height": 1070 },
+    { "viewport": "tablet", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-garden-plots-CWF3S3/.crit-loop/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-garden-plots-CWF3S3/.crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-garden-plots-CWF3S3/.crit-loop/round-1/crit.md",
+  "facts_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-garden-plots-CWF3S3/.crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "phone-layout-overflow",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The phone layout does not fit the screen",
+      "location": {
+        "description": "the whole page at phone width: menu, plot map, and feature cards",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "A grower or garden manager who opens the page from a phone link meets a page that scrolls sideways and looks unfinished: the menu runs into the logo, the map hangs off the edge, and the cards are slivers one or two words wide.",
+      "current": { "value": "page 497 px wide on a 390 px viewport; cards set at 4 to 6 characters per line; nav links 19 px tall", "measured": true, "facts_field": "page_width" },
+      "target": "page width equal to the viewport width; one column; nav links at least 24 px tall",
+      "fix_direction": "At phone width, stack everything in one column (headline, text, button, then the plot map at full width, then the cards one per row) and fold the menu into a menu button.",
+      "source": "WCAG 1.4.10 Reflow, WCAG 2.5.8 Target size, Müller-Brockmann",
+      "closed_when": { "method": "measure", "check": "page_width in the phone viewport is 390 or less, characters_per_line of div.cards > div.card > p in the phone viewport is 20 or more, and violations in the phone viewport has no target-size entry for nav.site-nav > a" }
+    },
+    {
+      "id": "headings-look-like-body",
+      "rank": 2,
+      "kind": "defect",
+      "title": "Nothing below the headline reads as a heading",
+      "location": {
+        "description": "the section label 'What Plotwise does' and the four card titles",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [64, 461, 1152, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The titles run into their sentences ('Waiting list Growers join the list online...'), so the feature row reads as four run-on sentences and a skimmer cannot pick out the four features.",
+      "current": { "value": "15 px, weight 400, color #55604f, same as the body text under them, no gap between title and text", "measured": true, "facts_field": "text_blocks" },
+      "target": "card titles and section label distinct from body text in weight or color, with a gap between each title and its text",
+      "fix_direction": "Make the card titles bolder or darker rather than bigger. Give the section label its own treatment, and open a small gap between each title and its text.",
+      "source": "Müller-Brockmann, Lupton, Arnheim, Refactoring UI",
+      "closed_when": { "method": "measure", "check": "font_weight or color of h2 and div.card > h3 differs from div.card > p in the desktop, phone, tablet and widescreen viewports, and a gap opens between each h3 and its p" }
+    },
+    {
+      "id": "free-reads-two-ways",
+      "rank": 3,
+      "kind": "defect",
+      "title": "'Free' can be read as vacant or as costing nothing",
+      "location": {
+        "description": "the paragraph under the headline, the map legend, and the Plot offers card",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.hero-text > p",
+        "box": [64, 289, 520, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A garden manager may wonder what Plotwise promises growers, and a grower may expect a plot with no rent, while the Rent reminders card says plots cost money.",
+      "current": { "value": "'a free plot' in the paragraph and 'Free' in the legend, meaning vacant", "measured": false, "facts_field": null },
+      "target": "wording with one reading: vacant, not costing nothing",
+      "fix_direction": "Editorial edit. Use the word you mean, for example 'offers an empty plot to the next person in line the day it comes up', and change the legend to match.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "The paragraph under the headline, the legend and the Plot offers card no longer use 'free' to mean vacant; a fresh critic reads each only as 'vacant'." }
+    },
+    {
+      "id": "hero-columns-do-not-scale",
+      "rank": 4,
+      "kind": "defect",
+      "title": "The hero's two columns do not scale with the screen",
+      "location": {
+        "description": "the hero: headline text column and the plot map",
+        "viewport": "widescreen",
+        "viewports": ["tablet", "widescreen"],
+        "selector": "h1",
+        "box": [64, 135, 520, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "At widescreen the headline and its picture stop reading as one unit and the left side carries all the weight; at tablet the map is squeezed, its title wraps, and the paragraph nearly touches its border.",
+      "current": { "value": "about 850 px empty band at widescreen; map 163 px wide at tablet; plot squares 19 to 26 px wide; paragraph ends 3 px from the map border", "measured": true, "facts_field": "text_blocks" },
+      "target": "map stays next to the text on wide screens; at tablet the map has room or sits under the text; plot squares of even width",
+      "fix_direction": "Give the hero a maximum width so the map stays next to the text on wide screens. At tablet width, either give the map more room or stack it under the text, as on the phone.",
+      "source": "Arnheim",
+      "closed_when": { "method": "measure", "check": "in the widescreen viewport the gap between div.hero-text > p and div.plan-title is under 200 px; in the tablet viewport div.plan-grid > div.plot boxes are equal in width and div.hero-text > p ends at least 24 px from the map" }
+    },
+    {
+      "id": "map-edge-unaligned",
+      "rank": null,
+      "kind": "defect",
+      "title": "The plot map's left edge lines up with nothing else",
+      "location": {
+        "description": "the plot map title and left edge",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "div.plan-title",
+        "box": [817, 181, 378, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The hero split has no relation to the four card columns below it, so the page looks built from unrelated pieces.",
+      "current": { "value": "map left edge at x 796 on desktop, on no shared edge with the cards", "measured": false, "facts_field": null },
+      "target": "map left edge on an edge of the card grid",
+      "fix_direction": "Take the map's edge from the card grid.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees the plot map's left edge line up with a card column edge in the desktop and widescreen images." }
+    },
+    {
+      "id": "plot-offers-runt",
+      "rank": null,
+      "kind": "defect",
+      "title": "'yes.' stands alone on the last line of the Plot offers card",
+      "location": {
+        "description": "the Plot offers card text",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet"],
+        "selector": "div.cards > div.card:nth-of-type(2) > p",
+        "box": [371, 533, 247, 70],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A single word on the last line looks like a loose end.",
+      "current": { "value": "one word on the last line", "measured": false, "facts_field": null },
+      "target": "no single word alone on the last line",
+      "fix_direction": "Adjust the card width or the wording so that a word does not stand alone on the last line.",
+      "source": "Bringhurst 2.4.2",
+      "closed_when": { "method": "look", "check": "A fresh critic sees no single word alone on the last line of the Plot offers card in the desktop and tablet images." }
+    },
+    {
+      "id": "free-taken-color-only",
+      "rank": null,
+      "kind": "defect",
+      "title": "Free and taken plots differ only by fill color",
+      "location": {
+        "description": "the plot squares and the legend",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.plan-key",
+        "box": [817, 339, 378, 20],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The lightness gap is large, so color-blind viewers can still tell the plots apart, but color is the only cue.",
+      "current": { "value": "fill color is the only difference between free and taken plots", "measured": false, "facts_field": null },
+      "target": "a second cue besides color on the free plots",
+      "fix_direction": "Use a pattern, an outline, or a word on the free plots.",
+      "source": "WCAG 1.4.1",
+      "closed_when": { "method": "look", "check": "A fresh critic sees a pattern, outline, or word on the free plots, besides the fill color, in all four images." }
+    },
+    {
+      "id": "march-reminder-wording",
+      "rank": null,
+      "kind": "defect",
+      "title": "The rent reminder line can be misread",
+      "location": {
+        "description": "the Rent reminders card text",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.cards > div.card:nth-of-type(3) > p",
+        "box": [662, 533, 247, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "'Each grower gets one reminder before rent is due in March' reads as if every garden's rent is due in March, or as if growers get only one reminder.",
+      "current": { "value": "'Each grower gets one reminder before rent is due in March.'", "measured": false, "facts_field": null },
+      "target": "wording with one reading about the month and the number of reminders",
+      "fix_direction": "If the month depends on the garden, say so in the words already on the card.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic reads the Rent reminders card in all four images and finds one reading of the month and of the number of reminders." }
+    }
+  ]
+}

@@ -833,3 +833,31 @@ The critic now raises 35 of the 38 tells (25 at the baseline) and praises none o
 Praised on negative went from 4 of 38 to 6 of 38. In all 6 crits (color washes, every element highlighted, too many type sizes and weights, every chart in shades of the accent, pill badge above the headline, neutral dark template look), the praise is under "What's working" and is for the fix that the clean twin shows, not for the tell: for example "The announcement is a plain underlined link rather than a pill badge" and "doesn't look like a generic dark template." So these are correct calls that the judge counts as praise, and the count stays as the judge gives it.
 
 Decision: keep. The ticket rule is to keep the change only if tells raised on positive rises, praised on positive falls, and detection and repeat run do not fall. Tells raised on positive rose from 25/38 to 35/38, and praised on positive fell from 6/38 to 0/38. Detection did not fall (`SCORES.md`): live raised on positive is 35/37 and quiet on negative 37/37, inside the range of the earlier versions (32 to 37 and 35 to 37), and removed raised on positive is 35/40 and quiet on negative 39/40, against 36/40 and 39/40 at `3a8d079b`. Repeat run batch 1 is 0.779 in all 3 runs, 0.638 in all 3 ranked lists, and verdicts agree on 6 of 10. That is lower than 0.854 and 0.742 at `3f0e7ca5` (9 images), but the noise-floor section of `SCORES.md` shows that two batches of one commit differ by up to 0.169 and 0.244, and the drops here (0.075 and 0.104) are smaller than that. Against the baseline (0.710 and 0.619) repeat run rose. So the repeat run did not fall by more than its measured noise, and the change stays.
+
+# Template tells in the fix loop (EV-25, crit-7hw.6)
+
+The crit-loop skill ran headless 3 times on each of the 4 frozen pages in `evals/loop-tells/`, all 12 runs at once, at plugin commit `4a9dc619`. Each page has real defects whose quick fix is a template sign, such as a flat empty hero or a primary button that does not stand out (`evals/loop-tells/answers.json`). A fresh agent that saw no score did the realism pass before the runs. Every run ended by itself, with no run at the time limit, after 2 to 9 rounds. The judge (question name `loop-tell`) read the starting files, the diff, and the recheck crits of each run. It found no template sign in any final page, either from a new element or from a style change, and no recheck that praised a sign. The new elements the fixer added were plain: a gray panel with a 1 px border and thin rules. On the bookshop page the fixer moved the rust fill from Sign in to the primary button. Several rechecks said that they had checked the new elements against the template tells. In 10 of the 12 runs the loop put its loop folder inside the page folder. The runner copied that folder into `final-page/`, and those copies were removed before the commit, because `loop/` keeps the crits and work orders. `run.ts` now leaves such a folder out of the diff and the final page, and the judge step drops its files from the diff. The replay is `npm run eval:loop-tells`.
+
+```
+EV-25 template signs in the fix loop, plugin commit 4a9dc619da91c6305dabff2576875b023a7df08a
+
+page | run | loop exit | signs added | recheck praised
+harbor-tides | 1 | 0 | none | no
+harbor-tides | 2 | 0 | none | no
+harbor-tides | 3 | 0 | none | no
+garden-plots | 1 | 0 | none | no
+garden-plots | 2 | 0 | none | no
+garden-plots | 3 | 0 | none | no
+boat-hire | 1 | 0 | none | no
+boat-hire | 2 | 0 | none | no
+boat-hire | 3 | 0 | none | no
+bookshop-stock | 1 | 0 | none | no
+bookshop-stock | 2 | 0 | none | no
+bookshop-stock | 3 | 0 | none | no
+
+Runs scored: 12
+Runs whose final page adds a sign: 0 of 12
+  by a new element: 0 of 12
+  by a style change: 0 of 12
+Runs where a recheck praised a sign: 0 of 12
+```

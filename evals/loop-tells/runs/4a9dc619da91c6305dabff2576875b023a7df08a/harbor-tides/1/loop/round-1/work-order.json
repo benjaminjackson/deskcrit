@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "image": { "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-1/phone.png", "width": 676, "height": 873 },
+    { "viewport": "tablet", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-1/crit.md",
+  "facts_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "phone-tablet-layout-breaks",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The phone and tablet layouts break: the page scrolls sideways and the feature columns shrink to single words",
+      "location": {
+        "description": "the three feature columns under the tide sample, and the nav, on phone and tablet",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "div.points > div.point:nth-of-type(1) > p",
+        "box": [412, 594, 65, 279],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Someone on the quay has to scroll sideways and then read a column of single words. Many will not.",
+      "current": { "value": "676 px page width in a 390 px viewport; feature columns 65-69 px wide at 4 to 7 characters per line (phone), 76 px wide at 6.6 to 7.3 characters per line (tablet)", "measured": true, "facts_field": "page_width" },
+      "target": "No sideways scroll on the phone (page width equal to viewport width); feature text at 45 to 75 characters per line, with headings that do not break mid-phrase; nav on one line or behind a menu",
+      "fix_direction": "Below tablet width, stack the tide sample and the three points into one column, and keep the nav to one line or put it behind a menu.",
+      "source": "WCAG 1.4.10 Reflow; Bringhurst on line length",
+      "closed_when": { "method": "measure", "check": "page_width in the phone viewport equals its width of 390; characters_per_line of div.points > div.point > p in the phone and tablet viewports is 45 or more; the h3 headings do not break mid-phrase" }
+    },
+    {
+      "id": "empty-hero-small-proof",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The hero's right side is empty, and the tide sample that shows the product is pushed down and set smaller than the feature headings",
+      "location": {
+        "description": "the 'Today at Porthmellin' heading and tide table, and the blank right half of the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [64, 503, 300, 20],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "After the button the eye has nowhere to go, and the one piece of proof reads as a footnote.",
+      "current": { "value": "table text 12 px under a 13 px heading, smaller than the 15 px feature headings", "measured": true, "facts_field": "font_size" },
+      "target": "The sample harbor page shown in the hero's empty right half, with its text at least at body size (15 px)",
+      "fix_direction": "Move the sample harbor page up into the empty right half of the hero, and set it at least at body size, so the first screen shows what a berth holder would see.",
+      "source": "Arnheim, Art and Visual Perception, on balance",
+      "closed_when": { "method": "measure", "check": "font_size of h2 and tbody td in the desktop, tablet and widescreen viewports is 15 or more, and the sample sits in the hero beside the headline in the desktop and widescreen viewports" }
+    },
+    {
+      "id": "sample-hides-differences",
+      "rank": 3,
+      "kind": "taste",
+      "title": "The sample shows only tide times, the one thing that is not different, and the page never compares Tidewell with what the harbor office uses now",
+      "location": {
+        "description": "the 'Today at Porthmellin' sample",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [64, 503, 300, 20],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Any tide table gives tide times. The claims about gate times, hourly depth and notices have to be taken on trust, and a harbor master cannot judge the gain.",
+      "current": { "value": "the sample shows four tide rows only; no gate times, pontoon depth or notice", "measured": false, "facts_field": null },
+      "target": "A sample that shows the whole page a berth holder gets, with gate times, pontoon depth and a notice in it, and a comparison with how the office posts these now",
+      "fix_direction": "Make the sample show gate times, pontoon depth and a notice. Add a comparison with the office's current way of posting these; the maker must supply the specifics of that current way and the figures for the sample.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "a fresh critic sees gate times, pontoon depth and a notice in the sample, and a comparison with the office's current way of posting these" }
+    },
+    {
+      "id": "table-header-contrast",
+      "rank": null,
+      "kind": "defect",
+      "title": "The table column headers Tide, Time and Height are too faint",
+      "location": {
+        "description": "the table header cells of the tide sample",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "thead > tr > th:nth-of-type(1)",
+        "box": [64, 530, 140, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The column labels are hard to read at 12 px.",
+      "current": { "value": "3.78:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1",
+      "fix_direction": "Darken the headers to the body gray.",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "contrast of thead > tr > th in the desktop, phone, tablet and widescreen viewports is 4.5 or more" }
+    },
+    {
+      "id": "too-many-type-sizes",
+      "rank": null,
+      "kind": "convention",
+      "title": "Five type sizes, and 13 and 12 are too close to read as different levels",
+      "location": {
+        "description": "the type sizes across the page",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The 13 px and 12 px levels blur together instead of marking different levels.",
+      "current": { "value": "five sizes: 30/19/15/13/12", "measured": true, "facts_field": "type_sizes" },
+      "target": "three or four type sizes, with the table heading matching the 15 px feature headings",
+      "fix_direction": "Use three or four sizes, and let the table heading match the 15 px feature headings.",
+      "source": "Bringhurst 3.1.1",
+      "closed_when": { "method": "measure", "check": "type_sizes in the desktop, phone, tablet and widescreen viewports lists four sizes or fewer, and font_size of h2 is 15" }
+    },
+    {
+      "id": "heading-baseline-step",
+      "rank": null,
+      "kind": "convention",
+      "title": "The table heading and the feature headings start at the same top but sit on different baselines",
+      "location": {
+        "description": "the 'Today at Porthmellin' heading beside the three feature headings",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "h2",
+        "box": [64, 503, 300, 20],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The lower row starts with a small step.",
+      "current": { "value": "13 px heading and 15 px headings both at y 503, on different baselines", "measured": true, "facts_field": "font_size" },
+      "target": "the headings on the same baseline",
+      "fix_direction": "Put them on the same baseline.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "a fresh critic sees the 'Today at Porthmellin' heading and the feature headings on one baseline in the desktop and widescreen viewports" }
+    },
+    {
+      "id": "straight-apostrophe",
+      "rank": null,
+      "kind": "convention",
+      "title": "The apostrophe in \"day's\" in the hero paragraph is straight",
+      "location": {
+        "description": "the hero paragraph under the headline",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.hero-text > p",
+        "box": [64, 236, 400, 70],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A straight mark in running text looks like a typewriter default.",
+      "current": { "value": "straight apostrophe in \"day's\"", "measured": false, "facts_field": null },
+      "target": "a curly apostrophe",
+      "fix_direction": "Use a curly apostrophe.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "a fresh critic sees a curly apostrophe in \"day's\" in the hero paragraph" }
+    }
+  ]
+}

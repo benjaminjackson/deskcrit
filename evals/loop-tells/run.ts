@@ -259,13 +259,33 @@ function roundNumbers(loopFolder: string): number[] {
   return numbers.sort((left, right) => left - right);
 }
 
-/** Copies the page files of a folder, leaving out git and node_modules. */
+/** Returns true when a path is a folder that holds a `round-<n>` folder, that is, a loop folder. */
+function isLoopFolder(path: string): boolean {
+  if (!statSync(path).isDirectory()) {
+    return false;
+  }
+  return readdirSync(path).some((name) => /^round-\d+$/.test(name));
+}
+
+/**
+ * Returns the names of the loop folders at the top of the page folder. Some loops put their loop
+ * folder there, and its crits and screenshots are not part of the page.
+ */
+function loopFoldersInPage(pageDirectory: string): string[] {
+  return readdirSync(pageDirectory).filter((name) =>
+    isLoopFolder(join(pageDirectory, name)),
+  );
+}
+
+/** Copies the page files of a folder, leaving out git, node_modules, and loop folders. */
 function copyPageFiles(fromDirectory: string, toDirectory: string): void {
+  const leftOut = [".git", "node_modules", ...loopFoldersInPage(fromDirectory)];
   cpSync(fromDirectory, toDirectory, {
     recursive: true,
     filter: (source) => {
-      const name = source.slice(fromDirectory.length);
-      return !name.startsWith("/.git") && !name.startsWith("/node_modules");
+      const name = source.slice(fromDirectory.length + 1);
+      const topName = name.split("/")[0] ?? "";
+      return !leftOut.includes(topName);
     },
   });
 }
@@ -340,7 +360,14 @@ export async function runOnce(
     git(workDirectory, ["add", "-A"]);
     writeFileSync(
       join(partialDirectory, "page.diff"),
-      git(workDirectory, ["diff", "--cached", "start"]),
+      git(workDirectory, [
+        "diff",
+        "--cached",
+        "start",
+        "--",
+        ".",
+        ...loopFoldersInPage(workDirectory).map((name) => `:(exclude)${name}`),
+      ]),
     );
     copyPageFiles(workDirectory, join(partialDirectory, "final-page"));
     rmSync(join(partialDirectory, "final-page", ".gitignore"), { force: true });
@@ -419,6 +446,24 @@ export async function runOnce(
   }
 }
 
+/**
+ * Returns a diff without the sections of files inside a loop folder. Some loops put their loop
+ * folder inside the page folder, so its crits, facts, and screenshots show in the diff, and they are
+ * not changes to the page. A loop folder is any folder that holds a `round-<n>` folder.
+ */
+export function dropLoopFiles(diff: string): string {
+  const sections = diff.split(/^(?=diff --git )/m);
+  const kept: string[] = [];
+  for (const section of sections) {
+    const header = section.split("\n")[0] ?? "";
+    if (/^diff --git /.test(header) && /(^|\/)round-\d+\//.test(header)) {
+      continue;
+    }
+    kept.push(section);
+  }
+  return kept.join("");
+}
+
 /** One saved run as the scoring step reads it. */
 export type SavedRun = {
   readonly page: string;
@@ -469,7 +514,7 @@ export function readSavedRun(
     page,
     run: runNumber,
     directory,
-    diff: readFileSync(join(directory, "page.diff"), "utf8"),
+    diff: dropLoopFiles(readFileSync(join(directory, "page.diff"), "utf8")),
     finalCrit,
     rechecks,
     exitCode: Number(metadata.exit_code),

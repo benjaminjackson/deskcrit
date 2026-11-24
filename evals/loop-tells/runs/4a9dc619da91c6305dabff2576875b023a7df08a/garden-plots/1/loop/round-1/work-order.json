@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "image": { "path": "/tmp/critloop-garden/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/tmp/critloop-garden/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/tmp/critloop-garden/round-1/phone.png", "width": 497, "height": 1070 },
+    { "viewport": "tablet", "path": "/tmp/critloop-garden/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "/tmp/critloop-garden/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/tmp/critloop-garden/round-1/crit.md",
+  "facts_file": "/tmp/critloop-garden/round-1/facts.json",
+  "findings": [
+    {
+      "id": "narrow-layouts-break",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The phone layout breaks and the tablet layout is squeezed",
+      "location": {
+        "description": "the menu in the header on the phone, which wraps into three lines on top of the logo; the same layout problem runs through the plot plan and the four feature cards on phone and tablet",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "nav.site-nav",
+        "box": [153, 22, 173, 70],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "On the phone the page scrolls sideways, the menu runs into the logo, the plot plan runs to the right edge, and the card descriptions become columns of single words. On the tablet the card text is cramped and each plot in the plan is a thin strip.",
+      "current": { "value": "497 px page width in a 390 px viewport; cards at 3.9 to 6.4 characters per line on the phone and 12 to 15 on the tablet; two menu links 19 px tall", "measured": true, "facts_field": "page_width" },
+      "target": "No sideways scroll (page width equal to the viewport width); card descriptions at 45 to 75 characters per line where the width allows; menu links at least 24 px tall",
+      "fix_direction": "Below a breakpoint, put everything in one column. Put the menu behind a single control or on its own row, put the plot plan under the headline at full width, and stack the cards one per row (two per row on the tablet).",
+      "source": "WCAG 1.4.10; WCAG 2.5.8; Bringhurst",
+      "closed_when": { "method": "measure", "check": "page_width equals the viewport width in the phone and tablet viewports; characters_per_line of div.cards > div.card > p is 45 or more in the phone and tablet viewports; no target-size violations for nav.site-nav > a in the phone viewport; nav.site-nav does not overlap a.logo in the phone viewport" }
+    },
+    {
+      "id": "card-titles-match-descriptions",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The card titles look the same as their descriptions",
+      "location": {
+        "description": "the card title \"Waiting list\", first of four card titles that match the text under them",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.cards > div.card:nth-of-type(1) > h3",
+        "box": [80, 510, 247, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "\"Waiting list Growers join the list online and see where they stand.\" reads as one run-on line, and the viewer has to work out where the label stops. On the phone the two merge completely.",
+      "current": { "value": "15 px, weight 400, color #55604f, the same as div.cards p and h2", "measured": true, "facts_field": "font_weight" },
+      "target": "Card titles distinct from the descriptions at a glance: darker (the #2f3a2c of the headline) and a step heavier, at the same size",
+      "fix_direction": "Keep the size and make the card titles darker (the #2f3a2c of the headline) and a step heavier, so they read as labels.",
+      "source": "Müller-Brockmann",
+      "closed_when": { "method": "measure", "check": "font_weight of div.cards h3 is above 400 and color of div.cards h3 is #2f3a2c in the desktop, phone, tablet and widescreen viewports" }
+    },
+    {
+      "id": "free-means-two-things",
+      "rank": 3,
+      "kind": "defect",
+      "title": "\"Free\" can be read two ways, and the wrong reading costs money",
+      "location": {
+        "description": "the subhead that says Plotwise offers a free plot to the next person in line; the second card and the legend use the same word",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.hero-text > p",
+        "box": [64, 289, 520, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A grower or a committee member can read \"a free plot\" as a plot with no rent to pay, and the \"Rent reminders\" card then seems to say the opposite.",
+      "current": { "value": "\"free\" is used for an unoccupied plot in the subhead (twice in one sentence), the second card, and the legend", "measured": false, "facts_field": null },
+      "target": "A word that only means unoccupied, in the subhead, the card, and the legend",
+      "fix_direction": "Use a word such as \"empty\" or \"vacant\" for this state in the subhead, the card, and the legend. The subhead then also stops using \"free\" twice in one sentence.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new image, the subhead, the second card, and the legend no longer use \"free\" for an unoccupied plot, and no text can be read as saying a plot costs no rent." }
+    },
+    {
+      "id": "picture-shows-empty-plots-not-queue",
+      "rank": 4,
+      "kind": "taste",
+      "title": "The picture shows which plots are empty, not the waiting list the headline sells",
+      "location": {
+        "description": "the plot plan titled \"Elm Row Gardens, plots 1 to 12\" at the right of the headline",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.plan-title",
+        "box": [817, 181, 378, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The plan shows two empty plots and stops there. The headline and subhead promise the queue and the offer to the next person, so the picture only illustrates the word \"garden\".",
+      "current": { "value": "a plan of 12 plots with 2 empty, titled \"Elm Row Gardens, plots 1 to 12\", which only names the subject", "measured": false, "facts_field": null },
+      "target": "A plan that shows the step the product automates, an empty plot linked to the next person in line, or a title that says what is happening in it",
+      "fix_direction": "Let the plan show the moment of the offer, or make its title say what is happening in it. The maker must supply the details.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic must see in the new image that the plot plan or its title shows an empty plot offered to the next person in line, not only which plots are empty." }
+    },
+    {
+      "id": "card-two-widow",
+      "rank": null,
+      "kind": "defect",
+      "title": "The second card's description ends with \"yes.\" alone on its last line",
+      "location": {
+        "description": "the description in the second card, \"A free plot goes to the next grower, who has a week to say yes.\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet"],
+        "selector": "div.cards > div.card:nth-of-type(2) > p",
+        "box": [371, 533, 247, 70],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "One short word sits alone on the last line of the card text.",
+      "current": { "value": "last line holds the single word \"yes.\"", "measured": false, "facts_field": null },
+      "target": "A last line with more than one short word",
+      "fix_direction": "Change the wording or the card width so the last line holds more than one short word.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop and tablet images, the last line of the second card's description holds more than one short word." }
+    },
+    {
+      "id": "headline-touches-plan",
+      "rank": null,
+      "kind": "defect",
+      "title": "On the phone, the last word of the headline touches the plot plan",
+      "location": {
+        "description": "the headline on the phone, whose last word \"spreadsheet\" touches the left edge of the plot plan",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "h1",
+        "box": [64, 171, 229, 276],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The last word of the headline runs into the plot plan.",
+      "current": { "value": "\"spreadsheet\" touches the left edge of the plot plan", "measured": false, "facts_field": null },
+      "target": "The plan stacked under the headline, with clear space between them",
+      "fix_direction": "Stack the plot plan under the headline, as in finding 1.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the phone image, no word of the headline touches the plot plan, and the plan lies under the headline." }
+    },
+    {
+      "id": "taken-swatch-too-faint",
+      "rank": null,
+      "kind": "taste",
+      "title": "The \"Taken\" swatch in the legend is very hard to see",
+      "location": {
+        "description": "the legend under the plot plan, whose \"Taken\" swatch (#e4e8df on white) is very hard to see",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.plan-key",
+        "box": [817, 339, 378, 20],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The swatch almost disappears against the white ground, so it does not read as a key mark.",
+      "current": { "value": "#e4e8df swatch on white, no outline", "measured": false, "facts_field": null },
+      "target": "A swatch that reads as a key mark",
+      "fix_direction": "Add a thin outline to the swatch.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new images, the \"Taken\" swatch in the legend has a visible outline and reads as a key mark on white." }
+    },
+    {
+      "id": "rent-due-in-march-unclear",
+      "rank": null,
+      "kind": "defect",
+      "title": "\"Each grower gets one reminder before rent is due in March\" can read as if rent is due in March for every garden",
+      "location": {
+        "description": "the description in the third card, \"Each grower gets one reminder before rent is due in March.\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.cards > div.card:nth-of-type(3) > p",
+        "box": [662, 533, 247, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A reader can take March as the rent date for every garden, when it may be only Elm Row's date.",
+      "current": { "value": "\"rent is due in March\" with no owner for the date", "measured": false, "facts_field": null },
+      "target": "Wording that makes clear whose date March is",
+      "fix_direction": "If March is only Elm Row's date, say that, or say that the date is the garden's own.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new images, the third card's description makes clear whose date March is, and cannot be read as rent due in March for every garden." }
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "image": { "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-1/phone.png", "width": 789, "height": 1140 },
+    { "viewport": "tablet", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-1/tablet.png", "width": 789, "height": 1024 },
+    { "viewport": "widescreen", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-1/crit.md",
+  "facts_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "no-reflow-below-desktop",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The layout does not adapt below desktop width, so the page scrolls sideways and the text is crushed",
+      "location": {
+        "description": "the headline in the hero text column, 181 px wide on phone and tablet",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "h1",
+        "box": [64, 175, 181, 322],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A shop owner who opens the page from a link on their phone sees a broken page before they read the promise: a one-word-wide headline, a table that runs off the screen, and thin columns of single words.",
+      "current": { "value": "page 789 px wide in a 390 px viewport (phone) and in 768 px (tablet); h1 column 181 px wide, about 7 characters per line", "measured": true, "facts_field": "notes" },
+      "target": "page width equal to the viewport width; hero and feature notes in one column below desktop width; 45 to 75 characters per line",
+      "fix_direction": "Below about desktop width, stack the hero in one column with the table under the text, put the three notes in one column, and collapse the navigation into a pattern people know from phone sites.",
+      "source": "WCAG 1.4.10 Reflow; Bringhurst 2.1.2 and 2.4.6; Müller-Brockmann on the type area",
+      "closed_when": { "method": "measure", "check": "page_width equals the viewport width in the phone and tablet viewports, and characters_per_line of h1 and div.hero-text > p in the phone and tablet viewports is 45 or more" }
+    },
+    {
+      "id": "trial-not-primary-action",
+      "rank": 2,
+      "kind": "convention",
+      "title": "The trial is not styled as the primary action; \"Sign in\" is",
+      "location": {
+        "description": "the \"Start a 30-day trial\" button in the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "a.button.button-primary",
+        "box": [64, 388, 171, 45],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The strongest call goes to people who already have an account, and the real ask for new visitors looks almost the same as the secondary one.",
+      "current": { "value": "trial button: beige tint #f3eee6, text #5c544b, weight 400, 15 px; \"Sign in\": white on dark red #8a3b24, weight 500", "measured": true, "facts_field": "text_blocks" },
+      "target": "the trial button is the one filled, saturated button; \"See how it works\" is outlined; \"Sign in\" is a text link or an outline",
+      "fix_direction": "Give the trial button the filled dark red treatment and keep \"See how it works\" outlined. Then tone \"Sign in\" down to a text link or an outline so that it does not compete.",
+      "source": "Material Design 3 and Apple HIG on emphasis levels; Gerstner on repeated elements",
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, \"Start a 30-day trial\" is the only filled saturated button, \"See how it works\" is outlined, and \"Sign in\" is a text link or an outline." }
+    },
+    {
+      "id": "table-lacks-recommendation",
+      "rank": 3,
+      "kind": "defect",
+      "title": "The table shows the numbers but not the answer the headline promises",
+      "location": {
+        "description": "the hero paragraph that promises which titles to reorder, and the \"Reorder this week\" table beside it",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.hero-text > p",
+        "box": [64, 311, 540, 50],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The viewer has to compare \"On shelf\" with \"Sold this week\" and work out the decision, and the row order looks random. There is also nothing that sets Shelfmark next to what a shop does now, so the value is taken on trust.",
+      "current": { "value": "table columns are only \"On shelf\" and \"Sold this week\"; no column states what to reorder; no comparison with the shop's current way of working", "measured": false, "facts_field": null },
+      "target": "the table shows the output itself, such as a column for what Shelfmark recommends, and the page sets Shelfmark next to what a shop does now",
+      "fix_direction": "Show the output itself, such as a column for what Shelfmark recommends; the maker must supply the label and the values. Add a comparison with what a shop does now (a spreadsheet, the till's own sales report, a count on Monday); the maker must supply what that comparison states.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new images, the table has a column that states the reorder decision for each title, and the page sets Shelfmark next to what a shop does now." }
+    },
+    {
+      "id": "widescreen-hero-two-islands",
+      "rank": 4,
+      "kind": "convention",
+      "title": "On widescreen the hero splits into two islands",
+      "location": {
+        "description": "the headline at the left of the hero, about 800 px away from the table at the right edge",
+        "viewport": "widescreen",
+        "viewports": ["widescreen"],
+        "selector": "h1",
+        "box": [64, 157, 540, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The table reads as a separate widget, and the eye has to travel across the screen to connect the promise to the proof. The three notes below sit on thirds that neither hero block shares.",
+      "current": { "value": "text at x 64 to about 570; table at x 1377; about 800 px of empty space between them", "measured": true, "facts_field": "left_edges" },
+      "target": "the table stays next to the text it proves, and the page follows one grid",
+      "fix_direction": "Limit the content width, or keep the hero columns at a fixed ratio so that the table stays next to the text it proves.",
+      "source": "Müller-Brockmann, one grid governs the page; Ruder on white space",
+      "closed_when": { "method": "look", "check": "In the widescreen image, the hero table sits next to the hero text with no large empty gap, and the three notes share the grid of the hero." }
+    },
+    {
+      "id": "table-header-gray-contrast",
+      "rank": null,
+      "kind": "defect",
+      "title": "The table column headers and the date have a contrast of 3.82:1",
+      "location": {
+        "description": "the \"Title\" column header of the table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "thead > tr > th:nth-of-type(1)",
+        "box": [737, 201, 209, 40],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The column labels and the date are hard to read for many people.",
+      "current": { "value": "3.82:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1",
+      "fix_direction": "Darken that gray (#8a8178) to the body gray #5c544b.",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "contrast of thead > tr > th and span.preview-date in the desktop, phone, tablet and widescreen viewports is 4.5 or more" }
+    },
+    {
+      "id": "type-sizes-one-pixel-apart",
+      "rank": null,
+      "kind": "convention",
+      "title": "The type sizes 16, 15 and 14 are each one pixel apart",
+      "location": {
+        "description": "the body-size text across the page: hero paragraph, feature notes, button labels, table text",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The hero paragraph, the feature notes, the button labels and the table text read as almost the same level, not as clearly different levels.",
+      "current": { "value": "sizes 16, 15 and 14 px", "measured": true, "facts_field": "type_sizes" },
+      "target": "only 16 and 14 px, with further distinctions made by weight or color",
+      "fix_direction": "Use 16 and 14 only, and make further distinctions with weight or color.",
+      "source": "Bringhurst; Refactoring UI",
+      "closed_when": { "method": "measure", "check": "type_sizes in the desktop, phone, tablet and widescreen viewports lists no size of 15 px" }
+    },
+    {
+      "id": "headline-lonely-last-word",
+      "rank": null,
+      "kind": "taste",
+      "title": "The headline ends with \"asks\" alone on its third line",
+      "location": {
+        "description": "the headline",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "h1",
+        "box": [64, 157, 540, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A single word on the last line makes the headline look unfinished.",
+      "current": { "value": "3 lines; the last line holds the single word \"asks\"", "measured": false, "facts_field": null },
+      "target": "a last line that holds more than one word",
+      "fix_direction": "Set the measure so that the last line holds more than one word.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop and widescreen images, the last line of the headline holds more than one word." }
+    },
+    {
+      "id": "notes-line-length-widescreen",
+      "rank": null,
+      "kind": "convention",
+      "title": "On widescreen the feature notes run 79 to 81 characters per line, and the second ends with \"take.\" alone",
+      "location": {
+        "description": "the second feature note",
+        "viewport": "widescreen",
+        "viewports": ["widescreen"],
+        "selector": "section.facts > p:nth-of-type(2)",
+        "box": [675, 501, 571, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The lines are too long to track comfortably, and the last word sits alone on its line.",
+      "current": { "value": "79 to 81 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "75 characters per line or fewer, and a last line of more than one word",
+      "fix_direction": "Set the measure of the notes to 75 characters or fewer so that the second note does not end with \"take.\" alone.",
+      "source": "Bringhurst, 2.1.2",
+      "closed_when": { "method": "measure", "check": "characters_per_line of section.facts > p in the widescreen viewport is 75 or less" }
+    },
+    {
+      "id": "feature-notes-copy",
+      "rank": null,
+      "kind": "defect",
+      "title": "\"Returns tracked.\" has no verb and \"Works with your till\" does not say which tills",
+      "location": {
+        "description": "the third feature note, \"Returns tracked.\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(3)",
+        "box": [859, 501, 357, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The notes do not say what Shelfmark does for the shop owner, and the owner cannot tell whether their till works with it.",
+      "current": { "value": "\"Returns tracked.\" has no verb; \"Works with your till\" names no till", "measured": false, "facts_field": null },
+      "target": "each note has a verb and ends on what the owner can now do; the tills it supports are named",
+      "fix_direction": "Restore the verb in \"Returns tracked.\" and end on what the owner can now do. For \"Works with your till\", name the tills it supports; the maker must supply which tills.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new images, \"Returns tracked.\" has a verb and ends on what the owner can now do, and the note about the till names the tills it supports." }
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "image": { "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-F6I13x/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-F6I13x/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-F6I13x/.crit-loop/round-1/phone.png", "width": 789, "height": 1140 },
+    { "viewport": "tablet", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-F6I13x/.crit-loop/round-1/tablet.png", "width": 789, "height": 1024 },
+    { "viewport": "widescreen", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-F6I13x/.crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-F6I13x/.crit-loop/round-1/crit.md",
+  "facts_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-F6I13x/.crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "no-reflow-narrow-screens",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The layout does not collapse on narrow screens, so the page scrolls sideways",
+      "location": {
+        "description": "the whole page on phone and tablet, starting with the headline squeezed into a narrow column",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "h1",
+        "box": [64, 175, 181, 322],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Bookshop owners who open the page from a phone link see a broken page: a headline seven lines tall, a table that runs off the edge, and buttons that wrap to 3 or 4 lines.",
+      "current": { "value": "789 px page width at the 390 px phone and 768 px tablet widths; headline 7 lines at 6.8 characters per line", "measured": true, "facts_field": "page_width" },
+      "target": "page width equal to the viewport width at phone and tablet, with everything stacked in one column and each button on one line",
+      "fix_direction": "Below a tablet width, stack everything in one column: headline, paragraph, buttons, table, then the facts one under another. Let the table use the full width and keep each button on one line.",
+      "source": "WCAG 1.4.10 (Reflow)",
+      "closed_when": { "method": "measure", "check": "page_width equals the viewport width in the phone and tablet viewports, and the h1 in the phone viewport is 3 lines or fewer with more than 15 characters per line" }
+    },
+    {
+      "id": "sign-in-outshouts-trial",
+      "rank": 2,
+      "kind": "convention",
+      "title": "The strongest button is Sign in, not the trial new visitors need",
+      "location": {
+        "description": "the filled rust Sign in button in the header, against the faint Start a 30-day trial button",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "a.nav-signin",
+        "box": [1120, 18, 96, 45],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A first-time visitor's eye goes to the exit meant for existing customers, and the trial looks optional.",
+      "current": { "value": "Sign in is white on #8a3b24 at weight 500; Start a 30-day trial is weight 400 gray on #f3eee6, barely separate from the #fffdf9 page", "measured": true, "facts_field": "text_blocks" },
+      "target": "one high-emphasis button per view, and it is Start a 30-day trial",
+      "fix_direction": "Give the trial the rust fill and the heavier weight. Bring Sign in down to an outlined button or a plain nav link like its neighbors. Leave See how it works as the outlined secondary.",
+      "source": "Material Design 3 \"Buttons\"",
+      "closed_when": { "method": "look", "check": "In all viewports, Start a 30-day trial is the only filled, saturated button and Sign in is an outlined button or plain nav link." }
+    },
+    {
+      "id": "copy-misses-fit-for-this-shop",
+      "rank": 3,
+      "kind": "defect",
+      "title": "The copy does not say which tills work or what returns tracking saves the owner",
+      "location": {
+        "description": "the fact lines under the hero, starting with Works with your till",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(1)",
+        "box": [64, 501, 357, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "An owner whose till is not named will assume it is not supported. The line Returns tracked. has no verb and leaves the owner to work out what it means for them.",
+      "current": { "value": "\"Works with your till\" names no tills or card readers; \"Returns tracked.\" has no verb", "measured": false, "facts_field": null },
+      "target": "the till line names the kind of fact an owner checks (which tills or card readers work); the returns line has a verb and ends on what the date list means for the owner, said to \"you\"",
+      "fix_direction": "For the till line, the missing fact is the list of supported tills or card readers; the maker must supply it. For the returns line, restore a verb and end on what the date list means for the owner, said to \"you\", using only what the page already claims. Separately, the page never compares Shelfmark with what the owner does now (such as walking the shelves on Monday or reading the till's own sales report); say what kind of comparison would help and leave the maker to write it.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "The till line names or points to the supported tills or card readers, the returns line has a verb and says what the owner gets, and the page compares Shelfmark with the owner's current routine." }
+    },
+    {
+      "id": "widescreen-hero-gap",
+      "rank": 4,
+      "kind": "convention",
+      "title": "On widescreen, the headline and its table proof sit about 770 px apart",
+      "location": {
+        "description": "the headline at the left edge and the Reorder this week table far to the right",
+        "viewport": "widescreen",
+        "viewports": ["widescreen"],
+        "selector": "h1",
+        "box": [64, 157, 540, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The table reads as a separate widget across an empty field, and the eye has to travel the full width to connect it to the headline.",
+      "current": { "value": "hero text at x=64 to 604, table at x=1377 (about 770 px apart)", "measured": true, "facts_field": "text_blocks" },
+      "target": "the space inside the hero group is smaller than the space between the hero and the facts below it",
+      "fix_direction": "Cap the width of the content area, or keep the table at a fixed distance from the text, so the pair stays together as the screen gets wider.",
+      "source": "proximity (Space shows the groups)",
+      "closed_when": { "method": "measure", "check": "in the widescreen viewport, the table's first left edge (left_edges) is within about 200 px of the right edge of h1 (x=604)" }
+    },
+    {
+      "id": "faint-table-headers",
+      "rank": null,
+      "kind": "defect",
+      "title": "Table headers and the date are too faint at 3.82:1",
+      "location": {
+        "description": "the table column headers and the date Mon 9 June",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "thead > tr > th:nth-of-type(1)",
+        "box": [737, 201, 209, 40],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The labels that explain the table are hard to read.",
+      "current": { "value": "3.82:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1",
+      "fix_direction": "Darken them from #8a8178 to the body gray #5c544b, which still reads as secondary.",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "contrast of thead > tr > th and span.preview-date in all viewports is 4.5 or more, and violations has no text-contrast entry" }
+    },
+    {
+      "id": "too-many-close-type-sizes",
+      "rank": null,
+      "kind": "convention",
+      "title": "Five type sizes, three of them too close to read as levels",
+      "location": {
+        "description": "type sizes across the page: 16, 15, and 14 px",
+        "viewport": null,
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "Sizes 16, 15, and 14 px differ too little to signal different levels.",
+      "current": { "value": "40, 20, 16, 15, and 14 px", "measured": true, "facts_field": "type_sizes" },
+      "target": "one body size and one small size in place of 16, 15, and 14 px",
+      "fix_direction": "Fold 16, 15, and 14 into one body size and one small size, and use weight or color for the rest.",
+      "source": "Bringhurst 3.1.1",
+      "closed_when": { "method": "measure", "check": "type_sizes in all viewports lists no more than 4 sizes and no two sizes within 2 px of each other" }
+    },
+    {
+      "id": "headline-lone-word",
+      "rank": null,
+      "kind": "taste",
+      "title": "The headline leaves \"asks\" alone on its third line",
+      "location": {
+        "description": "the headline, third line",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "h1",
+        "box": [64, 157, 540, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The phrase \"a customer asks\" is split across lines.",
+      "current": { "value": "3 lines at 22.5 characters per line, with \"asks\" alone on the last", "measured": true, "facts_field": "characters_per_line" },
+      "target": "the headline breaks after \"shelves\", with \"before a customer asks\" together",
+      "fix_direction": "Use a slightly narrower or wider measure so the break falls after \"shelves\".",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop and widescreen viewports, the headline does not leave \"asks\" alone on a line." }
+    },
+    {
+      "id": "fact-lines-too-long",
+      "rank": null,
+      "kind": "convention",
+      "title": "Fact lines run 79 and 81 characters, and \"take.\" is alone on a line",
+      "location": {
+        "description": "the middle fact line, where \"take.\" sits alone on the second line",
+        "viewport": "widescreen",
+        "viewports": ["widescreen"],
+        "selector": "section.facts > p:nth-of-type(2)",
+        "box": [675, 501, 571, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Long lines in one of three columns are tiring to read, and the lone word makes a ragged end.",
+      "current": { "value": "79 and 81 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "no more than 75 characters per line and no single word alone on the last line",
+      "fix_direction": "Narrow the columns.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "characters_per_line of section.facts > p in the widescreen viewport is 75 or less, and no fact line ends with a single word alone" }
+    },
+    {
+      "id": "empty-bottom-third",
+      "rank": null,
+      "kind": "taste",
+      "title": "The page ends at about y=548 and nothing follows up the nav links",
+      "location": {
+        "description": "the empty area below the facts",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The bottom third of the desktop screen is empty, and nothing answers the Pricing and Shops using it links.",
+      "current": { "value": "content ends at about y=548 of 800", "measured": false, "facts_field": null },
+      "target": "the page below the facts follows up on the Pricing and Shops using it nav links",
+      "fix_direction": "Add content below the facts that follows up on the nav links Pricing and Shops using it. The maker must supply the pricing and shop facts.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop and widescreen viewports, content below the facts answers the Pricing and Shops using it nav links." }
+    }
+  ]
+}

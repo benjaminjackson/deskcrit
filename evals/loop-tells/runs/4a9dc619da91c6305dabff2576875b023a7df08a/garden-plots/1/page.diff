@@ -1,0 +1,137 @@
+diff --git a/index.html b/index.html
+index 71eff7a..8261ff6 100644
+--- a/index.html
++++ b/index.html
+@@ -21,11 +21,11 @@
+     <section class="hero">
+       <div class="hero-text">
+         <h1>Run the waiting list for your garden without the spreadsheet</h1>
+-        <p>Plotwise keeps the plots, the growers, and the waiting list in one place, and offers a free plot to the next person in line the day it comes free.</p>
++        <p>Plotwise keeps the plots, the growers, and the waiting list in one place, and offers a plot to the next person in line the day it falls empty.</p>
+         <a class="button" href="#">Add your garden</a>
+       </div>
+       <div class="hero-plan" aria-label="Plot plan">
+-        <div class="plan-title">Elm Row Gardens, plots 1 to 12</div>
++        <div class="plan-title">Elm Row Gardens: plots 3 and 8 go to the next in line</div>
+         <div class="plan-grid">
+           <div class="plot taken">1</div>
+           <div class="plot taken">2</div>
+@@ -40,7 +40,7 @@
+           <div class="plot taken">11</div>
+           <div class="plot taken">12</div>
+         </div>
+-        <div class="plan-key"><span class="swatch free"></span>Free <span class="swatch taken"></span>Taken</div>
++        <div class="plan-key"><span class="swatch free"></span>Empty <span class="swatch taken"></span>Taken</div>
+       </div>
+     </section>
+ 
+@@ -53,7 +53,7 @@
+         </div>
+         <div class="card">
+           <h3>Plot offers</h3>
+-          <p>A free plot goes to the next grower, who has a week to say yes.</p>
++          <p>An empty plot goes to the next grower, who has a week to say yes.</p>
+         </div>
+         <div class="card">
+           <h3>Rent reminders</h3>
+diff --git a/styles.css b/styles.css
+index 322f46b..c159f9a 100644
+--- a/styles.css
++++ b/styles.css
+@@ -140,6 +140,7 @@ h1 {
+ .swatch.taken {
+   margin-left: 16px;
+   background: #e4e8df;
++  border: 1px solid #b9c1b1;
+ }
+ 
+ .swatch.free {
+@@ -169,13 +170,85 @@ h2 {
+ }
+ 
+ .card h3 {
+-  margin: 0;
++  margin: 0 0 4px;
+   font-size: 15px;
+-  font-weight: 400;
+-  color: #55604f;
++  font-weight: 500;
++  color: #2f3a2c;
+ }
+ 
+ .card p {
+   margin: 0;
+   color: #55604f;
++  /* Ask the browser to balance the last lines, so one short word is not left alone */
++  text-wrap: pretty;
++}
++
++/* Tablet: stack the plot plan under the headline, two cards per row */
++@media (max-width: 900px) {
++  .site-header {
++    padding: 18px 24px;
++  }
++
++  .hero {
++    flex-direction: column;
++    align-items: stretch;
++    gap: 32px;
++    padding: 40px 24px 40px;
++  }
++
++  .hero-plan {
++    width: 100%;
++    max-width: 560px;
++  }
++
++  .features {
++    padding: 8px 24px 40px;
++  }
++
++  .cards {
++    flex-wrap: wrap;
++  }
++
++  .card {
++    /* Two cards per row: half the row minus half the 12px gap */
++    flex: 1 1 calc(50% - 6px);
++  }
++}
++
++/* Phone: menu on its own row, one card per row */
++@media (max-width: 600px) {
++  .site-header {
++    flex-direction: column;
++    align-items: flex-start;
++    gap: 8px;
++    padding: 16px 20px;
++  }
++
++  .site-nav {
++    display: flex;
++    flex-wrap: wrap;
++    column-gap: 20px;
++  }
++
++  .site-nav a {
++    margin-left: 0;
++    /* Vertical padding makes each link at least 24px tall to tap */
++    padding: 4px 0;
++  }
++
++  .hero {
++    padding: 32px 20px;
++  }
++
++  h1 {
++    font-size: 32px;
++  }
++
++  .features {
++    padding: 8px 20px 32px;
++  }
++
++  .card {
++    flex-basis: 100%;
++  }
+ }

@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "image": { "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-2/desktop.png", "width": 1280, "height": 835 },
+  "images": [
+    { "viewport": "desktop", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-2/desktop.png", "width": 1280, "height": 835 },
+    { "viewport": "phone", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-2/phone.png", "width": 390, "height": 1343 },
+    { "viewport": "tablet", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-2/tablet.png", "width": 768, "height": 1115 },
+    { "viewport": "widescreen", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-2/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-2/crit.md",
+  "facts_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-2/facts.json",
+  "findings": [
+    {
+      "id": "notes-omit-owner-checks",
+      "rank": 1,
+      "kind": "taste",
+      "title": "The feature notes leave out what a shop owner checks first",
+      "location": {
+        "description": "the three feature notes under the hero, from \"Works with your till.\" to \"Returns are tracked for you.\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(1)",
+        "box": [128, 495, 208, 124],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The owner cannot tell whether their own till, card reader, or distributor is supported, or who handles returns. Nothing sets Shelfmark next to the method they use now, so the page asks them to start a trial on trust.",
+      "current": { "value": "The notes name no till, card reader, or distributor, and \"Returns are tracked for you\" does not say who tracks them", "measured": false, "facts_field": null },
+      "target": "The notes state the supported tills and card readers, the distributors that receive reorder lists, and who tracks returns, and set Shelfmark against what the owner does now. The maker must supply these facts and the comparison (such as a stock count, a spreadsheet, or the till's own report); they are not invented here.",
+      "fix_direction": "The maker supplies three facts and one comparison: the tills and card readers supported, the distributors reorder lists go to, and who tracks the returns. Then change \"Returns are tracked for you\" to say who does it, and add the comparison with what the owner does now.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees, in the notes under the hero at every viewport, named tills or card readers, named distributors, a statement of who tracks returns, and a comparison with what the owner does now." }
+    },
+    {
+      "id": "feature-notes-narrow-columns",
+      "rank": null,
+      "kind": "defect",
+      "title": "Two of the three feature notes run at about 20 characters per line",
+      "location": {
+        "description": "the row of three feature notes under the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(1)",
+        "box": [128, 495, 208, 124],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The row reads as choppy and lopsided: two notes wrap to 4 and 5 lines next to a wide note of 2 lines.",
+      "current": { "value": "21.3 and 19.5 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "no note at about 20 characters per line; Bringhurst's range is 45 to 75",
+      "fix_direction": "Give the three notes equal columns, or stack them under the hero.",
+      "source": "Bringhurst, 45 to 75 characters per line",
+      "closed_when": { "method": "measure", "check": "characters_per_line of section.facts > p:nth-of-type(1) and section.facts > p:nth-of-type(2) in the desktop and widescreen viewports is 45 or more" }
+    },
+    {
+      "id": "tablet-note-measure-long",
+      "rank": null,
+      "kind": "defect",
+      "title": "The second feature note runs too long a line on the tablet",
+      "location": {
+        "description": "the second feature note on the tablet",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "section.facts > p:nth-of-type(2)",
+        "box": [24, 801, 600, 50],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The line is long enough that the eye loses its place on the return sweep.",
+      "current": { "value": "81 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "75 characters per line or fewer",
+      "fix_direction": "Cap the notes' width so the second note stays at 75 characters per line or fewer.",
+      "source": "Bringhurst, 45 to 75 characters per line",
+      "closed_when": { "method": "measure", "check": "characters_per_line of section.facts > p:nth-of-type(2) in the tablet viewport is 75 or fewer" }
+    },
+    {
+      "id": "phone-table-headers-wrap",
+      "rank": null,
+      "kind": "defect",
+      "title": "Table headers wrap to two lines on the phone",
+      "location": {
+        "description": "the column headers of the reorder table on the phone, \"On shelf\" and \"Sold this week\"",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "thead > tr > th:nth-of-type(2)",
+        "box": [176, 570, 76, 62],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The headers break into two lines and the narrow table looks cramped.",
+      "current": { "value": "\"On shelf\" and \"Sold this week\" each wrap to two lines", "measured": false, "facts_field": null },
+      "target": "\"On shelf\" and \"Sold this week\" each fit on one line",
+      "fix_direction": "Shorten or tighten the column headers so \"On shelf\" and \"Sold this week\" fit on one line.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees the \"On shelf\" and \"Sold this week\" headers each on one line in the phone image." }
+    },
+    {
+      "id": "closing-button-no-reason",
+      "rank": null,
+      "kind": "taste",
+      "title": "The closing section repeats the trial button with no words",
+      "location": {
+        "description": "the closing section: a hairline rule and a lone trial button",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "section.closing > a.button.button-primary",
+        "box": [128, 716, 181, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The viewer meets the same ask a second time with no new reason to act.",
+      "current": { "value": "a rule and a bare repeat of the trial button", "measured": false, "facts_field": null },
+      "target": "the repeated button has a reason to click now, or the rule and button are dropped",
+      "fix_direction": "Add one line from the page's own copy, such as the Monday reorder list, or drop the rule and the button.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees, at every viewport, either a line of words with the closing button or no closing rule and button." }
+    },
+    {
+      "id": "headline-break-splits-phrase",
+      "rank": null,
+      "kind": "taste",
+      "title": "The headline break splits \"on your shelves\"",
+      "location": {
+        "description": "the headline, broken after \"on\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "h1",
+        "box": [128, 142, 480, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The phrase \"on your shelves\" is cut across two lines.",
+      "current": { "value": "lines read \"Know what is on / your shelves before / a customer asks\"", "measured": false, "facts_field": null },
+      "target": "the headline breaks after \"is\" or after \"shelves\", so \"on your shelves\" stays whole",
+      "fix_direction": "Break the headline after \"is\" or after \"shelves\".",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees the headline in the desktop and widescreen images with \"on your shelves\" on one line." }
+    }
+  ]
+}

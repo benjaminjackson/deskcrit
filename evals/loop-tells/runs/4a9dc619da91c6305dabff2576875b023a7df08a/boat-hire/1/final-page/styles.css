@@ -1,0 +1,257 @@
+@font-face {
+  font-family: "Inter";
+  font-weight: 400;
+  src: url("fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 500;
+  src: url("fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-weight: 400;
+  src: url("fonts/source-serif-4-latin-400-normal.woff2") format("woff2");
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  color: #26302f;
+  background: #f7f8f6;
+}
+
+a {
+  color: inherit;
+}
+
+/* Header and main content share one centered width, so the form stays near the text on wide screens. */
+.site-header,
+.hero {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 22px 48px;
+}
+
+.logo {
+  font-family: "Source Serif 4", serif;
+  font-size: 26px;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  gap: 28px;
+}
+
+.site-nav a {
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 64px;
+  padding: 56px 48px 64px;
+}
+
+.hero-text {
+  flex: 1 1 auto;
+  max-width: 600px;
+}
+
+h1 {
+  margin: 0 0 18px;
+  font-family: "Source Serif 4", serif;
+  font-size: 44px;
+  font-weight: 400;
+  line-height: 1.12;
+  color: #1c2625;
+}
+
+.lead {
+  margin: 0 0 20px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: #26302f;
+}
+
+.text-link {
+  color: #2d5d5a;
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+
+.search {
+  flex: 0 0 340px;
+  padding: 24px;
+  border: 1px solid #dfe3e0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.search-title {
+  margin-bottom: 14px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.search label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #5a6463;
+}
+
+.search select,
+.search input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid #8a9491;
+  border-radius: 6px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 16px;
+  color: #26302f;
+}
+
+.search button {
+  width: 100%;
+  margin-top: 6px;
+  padding: 11px;
+  border: 0;
+  border-radius: 6px;
+  background: #2d5d5a;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.routes {
+  margin-top: 48px;
+}
+
+h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.routes ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.routes li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid #dfe3e0;
+  color: #5a6463;
+}
+
+.routes li:last-child {
+  border-bottom: 1px solid #dfe3e0;
+}
+
+.route-name {
+  color: #26302f;
+}
+
+.route-facts {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tablet: stack the form under the text so the lead keeps a readable line length. */
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  /* "display: contents" removes the text column's own box, so its children become items of the
+     hero column. That lets "order" put the form between the intro text and the routes. */
+  .hero-text {
+    display: contents;
+  }
+
+  /* Cap only the running text for line length; the routes list spans the full width, like the form. */
+  .hero-text > h1,
+  .hero-text > .lead {
+    max-width: 640px;
+  }
+
+  .text-link {
+    align-self: flex-start;
+    margin-bottom: 32px;
+  }
+
+  .search {
+    order: 1;
+    flex: none;
+  }
+
+  .routes {
+    order: 2;
+  }
+}
+
+/* Phone: logo above a single row of nav links, smaller headline, narrower page margins. */
+@media (max-width: 560px) {
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 18px 20px 8px;
+  }
+
+  .site-nav {
+    flex-wrap: wrap;
+    gap: 6px 20px;
+  }
+
+  .site-nav a {
+    font-size: 15px;
+  }
+
+  .hero {
+    padding: 32px 20px 48px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  .lead {
+    font-size: 17px;
+  }
+
+  .search {
+    padding: 20px;
+  }
+}

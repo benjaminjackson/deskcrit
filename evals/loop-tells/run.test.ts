@@ -15,6 +15,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { ClaudeRunner } from "../critic/run-critic.ts";
 import {
   buildJudgeQuestion,
+  dropLoopFiles,
   JUDGE_QUESTION_NAME,
   type LoopRunner,
   loopArguments,
@@ -50,7 +51,7 @@ afterEach(() => {
  * A stub loop: it edits styles.css in the work folder, writes a loop folder with two rounds in the
  * temp folder, and prints a stream-json line that names the loop folder, as a real run would.
  */
-function stubLoop(calls: string[][]): LoopRunner {
+function stubLoop(calls: string[][], loopFolderInPage = false): LoopRunner {
   return async (args, workingDirectory) => {
     calls.push([...args]);
     const stylesPath = join(workingDirectory, "styles.css");
@@ -58,8 +59,13 @@ function stubLoop(calls: string[][]): LoopRunner {
       stylesPath,
       `${readFileSync(stylesPath, "utf8")}\nh1 { font-size: 48px; }\n`,
     );
-    const loopFolder = mkdtempSync(join(tmpdir(), "crit-loop-stub-"));
-    temporaryDirectories.push(loopFolder);
+    let loopFolder = join(workingDirectory, ".crit-loop");
+    if (loopFolderInPage) {
+      mkdirSync(loopFolder);
+    } else {
+      loopFolder = mkdtempSync(join(tmpdir(), "crit-loop-stub-"));
+      temporaryDirectories.push(loopFolder);
+    }
     for (const round of [1, 2]) {
       mkdirSync(join(loopFolder, `round-${round}`));
       writeFileSync(
@@ -294,6 +300,38 @@ describe("run, score, and replay with stubs", () => {
     expect(question.prompt).not.toContain("crit of round 1");
     expect(question.prompt).not.toContain("boat-hire");
     expect(question.prompt).toContain("style change");
+  });
+
+  it("leaves a loop folder inside the page out of the diff and the final page", async () => {
+    const runsDirectory = makeTemporaryDirectory();
+    const options = {
+      ...stubOptions(runsDirectory, [], NO_SIGN_ANSWER, []),
+      runLoop: stubLoop([], true),
+    };
+    await runCommand(["run"], options);
+    const savedDirectory = join(
+      runsDirectory,
+      readCommit(runsDirectory),
+      "garden-plots",
+      "1",
+    );
+    const diff = readFileSync(join(savedDirectory, "page.diff"), "utf8");
+    expect(diff).toContain("+h1 { font-size: 48px; }");
+    expect(diff).not.toContain(".crit-loop");
+    expect(existsSync(join(savedDirectory, "final-page", ".crit-loop"))).toBe(
+      false,
+    );
+    expect(existsSync(join(savedDirectory, "loop", "round-2", "crit.md"))).toBe(
+      true,
+    );
+  });
+
+  it("drops the diff sections of files inside a loop folder", () => {
+    const diff =
+      "diff --git a/.crit-loop/round-1/crit.md b/.crit-loop/round-1/crit.md\n+crit\ndiff --git a/styles.css b/styles.css\n+h1 {}\n";
+    expect(dropLoopFiles(diff)).toBe(
+      "diff --git a/styles.css b/styles.css\n+h1 {}\n",
+    );
   });
 
   it("refuses a judge answer that names a sign not in the list", () => {

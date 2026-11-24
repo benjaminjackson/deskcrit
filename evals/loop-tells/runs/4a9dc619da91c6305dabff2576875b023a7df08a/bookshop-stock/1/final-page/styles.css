@@ -1,0 +1,258 @@
+@font-face {
+  font-family: "Inter";
+  font-weight: 400;
+  src: url("fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 500;
+  src: url("fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+/* Side padding that grows on wide screens, so the content never gets wider
+   than 1152px and stays centred. max() picks the larger of the two values. */
+:root {
+  --page-side: max(64px, calc((100% - 1152px) / 2));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  color: #2a2622;
+  background: #fffdf9;
+}
+
+a {
+  color: inherit;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px var(--page-side);
+  border-bottom: 1px solid #ece6dc;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.site-nav a {
+  text-decoration: none;
+  color: #5c544b;
+  white-space: nowrap;
+}
+
+.site-nav .nav-signin {
+  color: #2a2622;
+  font-weight: 500;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 64px;
+  padding: 64px var(--page-side) 48px;
+}
+
+.hero-text {
+  max-width: 600px;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+/* Keeps the phrase on one line so the headline breaks before it. */
+.keep {
+  white-space: nowrap;
+}
+
+.hero-text p {
+  max-width: 540px;
+  margin: 0 0 28px;
+  color: #5c544b;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.button {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.button-primary {
+  border: 1px solid #8a3b24;
+  background: #8a3b24;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.button-secondary {
+  border: 1px solid #d6cec2;
+  background: #fffdf9;
+  color: #5c544b;
+}
+
+.preview {
+  flex: 0 0 480px;
+  border: 1px solid #ece6dc;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.preview-head {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #ece6dc;
+  font-weight: 500;
+}
+
+.preview-date {
+  color: #5c544b;
+  font-weight: 400;
+  font-size: 13px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th,
+td {
+  padding: 9px 18px;
+  text-align: left;
+  border-bottom: 1px solid #f3eee6;
+}
+
+th {
+  color: #5c544b;
+  font-weight: 400;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.facts {
+  display: flex;
+  gap: 40px;
+  padding: 8px var(--page-side) 64px;
+}
+
+.facts p {
+  flex: 1;
+  margin: 0;
+  color: #5c544b;
+  /* Avoids a single word alone on the last line, in browsers that support it. */
+  text-wrap: pretty;
+}
+
+.fact-title {
+  color: #2a2622;
+  font-weight: 500;
+}
+
+/* Below this width the text and the table no longer fit side by side,
+   so the hero and the facts stack in one column. */
+@media (max-width: 1000px) {
+  .hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 40px;
+  }
+
+  .hero-text {
+    max-width: 600px;
+  }
+
+  .preview {
+    flex: none;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .facts {
+    flex-direction: column;
+    gap: 16px;
+    max-width: calc(600px + 2 * var(--page-side));
+  }
+
+  .facts p {
+    max-width: 36em;
+  }
+
+  /* The title gets its own line, so each sentence fits on one line
+     at tablet width and no line ends with one or two words. */
+  .fact-title {
+    display: block;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --page-side: 24px;
+  }
+
+  .site-header {
+    flex-wrap: wrap;
+    gap: 8px 0;
+  }
+
+  .site-nav {
+    gap: 18px;
+  }
+
+  .hero {
+    padding-top: 40px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  /* On a phone the phrase must be free to wrap, or it runs off the screen. */
+  .keep {
+    white-space: normal;
+  }
+
+  th,
+  td {
+    padding: 9px 12px;
+  }
+
+  th,
+  td:first-child {
+    white-space: nowrap;
+  }
+}

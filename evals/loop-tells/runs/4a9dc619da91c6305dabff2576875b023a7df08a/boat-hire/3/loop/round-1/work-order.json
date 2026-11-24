@@ -1,0 +1,266 @@
+{
+  "version": 1,
+  "image": { "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-boat-hire-kkoLNi/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-boat-hire-kkoLNi/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-boat-hire-kkoLNi/.crit-loop/round-1/phone.png", "width": 587, "height": 1291 },
+    { "viewport": "tablet", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-boat-hire-kkoLNi/.crit-loop/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-boat-hire-kkoLNi/.crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-boat-hire-kkoLNi/.crit-loop/round-1/crit.md",
+  "facts_file": "/private/var/folders/vc/nzb3z6c10kzf769vr4z81cjw0000gn/T/loop-tells-boat-hire-kkoLNi/.crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "phone-no-reflow",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The phone layout does not reflow, so the booking form is mostly off the screen",
+      "location": {
+        "description": "the Search button of the Find a boat card, past the right edge on the phone",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "button",
+        "box": [270, 628, 294, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A phone visitor must pan sideways to use the page, and the one tool that books a boat is hidden. The navigation stacks in five lines and the text columns are about 9 characters wide.",
+      "current": { "value": "page 587 px wide in a 390 px viewport", "measured": true, "facts_field": "page_width" },
+      "target": "page width equal to the viewport width, no sideways scroll, form in full view",
+      "fix_direction": "Below about the tablet width, stack the page into one column with the form in full view, and collapse the navigation into a menu or a single row.",
+      "source": "WCAG 1.4.10 (Reflow)",
+      "closed_when": { "method": "measure", "check": "page_width of the phone viewport is 390 or less, and the button box in the phone viewport lies within 0 to 390 px" }
+    },
+    {
+      "id": "two-competing-actions",
+      "rank": 2,
+      "kind": "defect",
+      "title": "Two starting points compete, and the form's own submit button is styled as the lesser one",
+      "location": {
+        "description": "the filled See boats and dates button on the left, against the outlined Search button in the form",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "a.button",
+        "box": [64, 291, 196, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The visitor must stop and work out which button to use, and the filled one skips the base, dates, nights and berths they could fill in beside it.",
+      "current": { "value": "one filled button and one outlined button that both appear to start a search", "measured": false, "facts_field": null },
+      "target": "one filled primary action per view",
+      "fix_direction": "Pick one start, usually the prefilled form with its Search button as the single filled primary. Remove the other button or demote it to a text link.",
+      "source": "Material Design 3, Buttons; NN/g on button emphasis",
+      "closed_when": { "method": "look", "check": "a fresh critic sees only one filled primary action in each viewport, and no second button that leads to the same result" }
+    },
+    {
+      "id": "headline-weaker-than-lead",
+      "rank": 3,
+      "kind": "defect",
+      "title": "The headline is weaker than the paragraph under it, and the claim that sets this company apart sits at the end of that paragraph",
+      "location": {
+        "description": "the h1 above the lead paragraph",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h1",
+        "box": [64, 129, 600, 30],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The headline looks smaller than its own text, nothing reads as the title, and the reason to book direct comes last.",
+      "current": { "value": "22 px, weight 400, #6b7574, contrast 4.46:1", "measured": true, "facts_field": "contrast" },
+      "target": "headline the largest and darkest text on the page, a clear step above the lead, contrast of at least 4.5:1, three or four type sizes with real gaps, and the direct-booking claim in the first read",
+      "fix_direction": "Make the headline the largest and darkest text, a clear step above the lead, and drop the sizes to three or four with real gaps. Move the direct-booking claim forward, for example by folding the existing words 'book it here with the boatyard that keeps it, no fee on top' into the headline or a line right under it.",
+      "source": "Bringhurst 3.1.1; Dair, Design with Type, chapters 8 and 9; Tschichold",
+      "closed_when": { "method": "measure", "check": "h1 font_size is larger than p.lead font_size, and h1 contrast is 4.5 or more, in the desktop, phone, tablet and widescreen viewports" }
+    },
+    {
+      "id": "no-boat-or-canal-picture",
+      "rank": 4,
+      "kind": "taste",
+      "title": "There is no picture of a boat or the canal",
+      "location": {
+        "description": "the large empty middle of the hero, beside the form",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "People buy a week on a narrowboat as a holiday and want to see the boat and the water; the headline carries the whole idea alone.",
+      "current": { "value": "only a form and a list, no image", "measured": false, "facts_field": null },
+      "target": "one real photograph of the company's own boats or canal in the hero beside the form",
+      "fix_direction": "Add one real photograph of the company's own boats or canal, set into the hero beside the form. The maker must supply the photograph; a stock shot would not do the same job.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "a fresh critic sees a real photograph of a boat or the canal in the hero of the desktop and widescreen views" }
+    },
+    {
+      "id": "route-details-faint",
+      "rank": null,
+      "kind": "defect",
+      "title": "The route details are gray at 4.46:1, just under the minimum",
+      "location": {
+        "description": "the route details such as 7 nights, 38 locks",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "ul > li:nth-of-type(1) > span:nth-of-type(2)",
+        "box": [531, 656, 133, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The details are slightly too faint for low-vision readers.",
+      "current": { "value": "4.46:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1",
+      "fix_direction": "Darken the route details to clear 4.5:1.",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "contrast of ul > li > span:nth-of-type(2) in the desktop, phone, tablet and widescreen viewports is 4.5 or more" }
+    },
+    {
+      "id": "locks-count-unexplained",
+      "rank": null,
+      "kind": "convention",
+      "title": "38 locks has no point of reference for a first-time hirer",
+      "location": {
+        "description": "the 38 locks count in the first route",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "ul > li:nth-of-type(1) > span:nth-of-type(2)",
+        "box": [531, 656, 133, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A first-time hirer cannot tell whether 38 locks is a gentle week or hard work.",
+      "current": { "value": "a bare lock count with no meaning given", "measured": false, "facts_field": null },
+      "target": "the lock count says what it means for the hirer",
+      "fix_direction": "Tell the hirer what the count means for them. This needs a fact only the company has, such as how hard or gentle the week is; the maker must supply it.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "a fresh critic sees that the route details say what the lock count means for the hirer, in words from the company" }
+    },
+    {
+      "id": "routes-far-from-base-field",
+      "rank": null,
+      "kind": "convention",
+      "title": "Routes from Hartwell Junction depends on the Base field but sits far from it",
+      "location": {
+        "description": "the Routes from Hartwell Junction heading, about 280 px below the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "h2",
+        "box": [64, 612, 1152, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "It reads as a separate section and will not obviously change when the base changes.",
+      "current": { "value": "about 280 px below the hero, far from the Base field", "measured": false, "facts_field": null },
+      "target": "the routes section is near the Base field or visibly tied to it",
+      "fix_direction": "Move it nearer the form, or tie it to the form visibly.",
+      "source": "Norman, natural mapping",
+      "closed_when": { "method": "look", "check": "a fresh critic sees the routes section near the form or visibly tied to the Base field in the desktop and widescreen views" }
+    },
+    {
+      "id": "widescreen-content-spread",
+      "rank": null,
+      "kind": "convention",
+      "title": "On widescreen the content is pinned to the two side edges with about 850 px of empty space between",
+      "location": {
+        "description": "the hero text on the left and the form card on the right",
+        "viewport": "widescreen",
+        "viewports": ["widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The eye must cross the whole screen from the headline to the form.",
+      "current": { "value": "about 850 px of empty space between the two columns", "measured": false, "facts_field": null },
+      "target": "the two columns sit together",
+      "fix_direction": "Cap the content width so the two columns sit together.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "a fresh critic sees the hero text and the form close together in the widescreen view, with no wide empty gap between them" }
+    },
+    {
+      "id": "phone-number-unit-split",
+      "rank": null,
+      "kind": "convention",
+      "title": "On the phone, route details split a number from its unit",
+      "location": {
+        "description": "the 4 nights, 12 / locks detail of the second route",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "ul > li:nth-of-type(2) > span:nth-of-type(2)",
+        "box": [223, 1167, 103, 50],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The number 12 sits on one line and its unit locks on the next, as does 61 and locks.",
+      "current": { "value": "2 lines, number and unit split", "measured": true, "facts_field": "lines" },
+      "target": "each number stays on the same line as its unit",
+      "fix_direction": "Keep the number and its unit together.",
+      "source": "Bringhurst 2.4.6",
+      "closed_when": { "method": "look", "check": "a fresh critic sees no number split from its unit in the route details in the phone view" }
+    },
+    {
+      "id": "start-date-no-date-cue",
+      "rank": null,
+      "kind": "convention",
+      "title": "Start date looks like a plain text field with no calendar cue",
+      "location": {
+        "description": "the Start date input in the Find a boat card",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "input",
+        "box": [899, 294, 294, 43],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "If it does not open a date picker, visitors can type dates the system cannot read.",
+      "current": { "value": "looks like a plain text field", "measured": false, "facts_field": null },
+      "target": "the field shows that it is a date picker",
+      "fix_direction": "Show that it is a date picker.",
+      "source": "Nielsen 5",
+      "closed_when": { "method": "look", "check": "a fresh critic sees a cue on the Start date field that it opens a date picker" }
+    },
+    {
+      "id": "field-borders-pale",
+      "rank": null,
+      "kind": "convention",
+      "title": "The borders of the input and select fields look pale against the white card",
+      "location": {
+        "description": "the borders of the input and select fields in the Find a boat card",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "input",
+        "box": [899, 294, 294, 43],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Pale field borders are hard to see for low-vision readers.",
+      "current": { "value": "pale borders, not measured", "measured": false, "facts_field": null },
+      "target": "border contrast of at least 3:1 against the card",
+      "fix_direction": "Measure the borders against 3:1, and darken them if they fall short.",
+      "source": "WCAG 1.4.11",
+      "closed_when": { "method": "look", "check": "a fresh critic sees field borders that stand clear of the white card in every viewport" }
+    },
+    {
+      "id": "tablet-lead-widow",
+      "rank": null,
+      "kind": "convention",
+      "title": "On the tablet the lead paragraph ends with hire. alone on its last line",
+      "location": {
+        "description": "the last line of the lead paragraph on the tablet",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "p.lead",
+        "box": [64, 203, 236, 240],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A single word alone on the last line looks unfinished.",
+      "current": { "value": "last line holds one word", "measured": false, "facts_field": null },
+      "target": "no one-word last line in the lead paragraph",
+      "fix_direction": "Rebalance the lines so the last line holds more than one word.",
+      "source": "Bringhurst 2.4.2",
+      "closed_when": { "method": "look", "check": "a fresh critic sees no one-word last line in the lead paragraph in the tablet view" }
+    }
+  ]
+}
