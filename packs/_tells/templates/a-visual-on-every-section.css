@@ -1,0 +1,284 @@
+/*
+ * Template for "A visual on every section" (crit-7hw.2, FR-54, EV-23), copied from the
+ * landing-dark base and made 1280 x 1568 px, the tallest viewport the renderer takes (FR-7), through the crit-viewport tag, so the image shows
+ * the whole page. A landing page for Kilnroom, an invented app that books space in the kiln
+ * firings of a pottery studio. The hero shows the product on both sides. With the defect on,
+ * each of the three sections after the hero also shows its own flat decorative illustration (a
+ * vase, stacked bowls, a kiln) beside its text. With it off, those are hidden with
+ * display, the fix that the rule names: one visual, in the hero. Two weights (400 and 500).
+ */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url("../../_renderer/fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+:root {
+  --ground: #13322c;
+  --raised: #1b3f38;
+  --text-strong: #f3ecdc;
+  --text-body: #d6cfbe;
+  --text-quiet: #aaa592;
+  --rule: #2f5850;
+  --accent: #e3a53c;
+  --on-accent: #1c1a12;
+}
+
+html,
+body {
+  width: 1280px;
+  height: 1568px;
+  background: var(--ground);
+  color: var(--text-body);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  color: var(--text-strong);
+}
+
+.site-header,
+main,
+.site-footer {
+  width: 1120px;
+  margin: 0 auto;
+}
+
+.site-header {
+  padding: 28px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  color: var(--text-strong);
+}
+
+.site-nav {
+  display: flex;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.site-nav a {
+  color: var(--text-body);
+  text-decoration: none;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 480px;
+  gap: 72px;
+  align-items: center;
+  padding: 32px 0 48px;
+}
+
+h1 {
+  font-size: 52px;
+  line-height: 1.1;
+  margin-bottom: 24px;
+}
+
+.lead {
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.button {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.button-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.link {
+  font-size: 15px;
+  color: var(--text-strong);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* The product preview: one firing with its shelves. */
+.firing {
+  background: var(--raised);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.firing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 16px;
+}
+
+.firing-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.firing-meta {
+  font-size: 15px;
+  color: var(--text-quiet);
+}
+
+.shelves {
+  list-style: none;
+  font-size: 15px;
+}
+
+.shelves li {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.shelf-name,
+.shelf-state {
+  color: var(--text-quiet);
+}
+
+.shelf-who {
+  color: var(--text-strong);
+}
+
+.shelf-open .shelf-state {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* The sections after the hero. Each keeps the same height on both sides. */
+.band {
+  display: flex;
+  gap: 72px;
+  align-items: center;
+  min-height: 300px;
+  padding: 32px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.band-text {
+  flex: 1;
+}
+
+h2 {
+  font-size: 28px;
+  margin-bottom: 24px;
+}
+
+h3 {
+  font-size: 18px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.step-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.step-list p,
+.plan p,
+.facts {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.band-lead {
+  font-size: 18px;
+  line-height: 1.6;
+  max-width: 600px;
+  margin-bottom: 24px;
+}
+
+.facts {
+  padding-left: 18px;
+}
+
+.plans {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  max-width: 640px;
+}
+
+.plan {
+  padding-top: 20px;
+  border-top: 2px solid var(--text-quiet);
+}
+
+.plan .price {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  color: var(--text-strong);
+  margin-bottom: 8px;
+}
+
+/* A decorative illustration, flat, in the page's own colors. Hidden on the clean side. */
+.art {
+  display: none;
+  flex: none;
+  width: 280px;
+  height: 228px;
+}
+
+.art-fill {
+  fill: var(--raised);
+  stroke: var(--text-quiet);
+  stroke-width: 2;
+}
+
+.art-band {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 6;
+}
+
+.art-line {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: 2;
+}
+
+.site-footer {
+  padding: 32px 0;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  gap: 32px;
+  font-size: 15px;
+  color: var(--text-quiet);
+}
+
+/* The defect: every section has its own decorative illustration. */
+[data-defect="on"] .art {
+  display: block;
+}

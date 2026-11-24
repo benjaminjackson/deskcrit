@@ -1,0 +1,400 @@
+/*
+ * Template tell "Glass cards with an inner highlight and a colored shadow" (FR-86, EV-23), on the
+ * dashboard base. Spokeway (invented) runs the bike share of an invented city. The main panel shows
+ * the fleet's own map, drawn in neutral grays, with two cards laid over it, as fleet tools do: the
+ * map is the one real product visual behind the cards, not a color wash. The defect draws the two
+ * cards as frosted glass: a see-through white fill with a backdrop blur, a white inner highlight
+ * along the top edge, a white edge, and a blue shadow. The clean side draws them as plain white
+ * raised surfaces with a hairline edge and a small neutral shadow, the rule's own fix. The map's
+ * streets curve and cross at odd angles, so they do not read as a decorative grid.
+ */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url("../../_renderer/fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+:root {
+  --page: #f6f6f4;
+  --surface: #ffffff;
+  --text-strong: #1e2226;
+  --text-body: #454c53;
+  --text-quiet: #646b72;
+  --rule: #e1e3e5;
+  --neutral-bar: #c5cad0;
+  --neutral-line: #a9b0b7;
+  --accent: #1f5fa8;
+}
+
+html,
+body {
+  display: flex;
+  background: var(--page);
+  color: var(--text-body);
+  font-size: 14px;
+}
+
+.sidebar {
+  width: 232px;
+  height: 800px;
+  padding: 24px 16px;
+  background: var(--surface);
+  border-right: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-strong);
+  padding: 0 12px 24px;
+}
+
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.side-nav a {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--text-body);
+  text-decoration: none;
+}
+
+.side-nav a[aria-current="page"] {
+  background: var(--page);
+  color: var(--text-strong);
+  font-weight: 500;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.shop-name {
+  margin-top: auto;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--text-quiet);
+}
+
+.content {
+  flex: 1;
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.range {
+  color: var(--text-quiet);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+}
+
+.stat {
+  padding: 16px 20px;
+}
+
+.stat + .stat {
+  border-left: 1px solid var(--rule);
+}
+
+.stat-label {
+  color: var(--text-quiet);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-strong);
+  margin: 2px 0;
+}
+
+.stat-note {
+  font-size: 12px;
+  color: var(--text-quiet);
+}
+
+.charts {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 16px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+h2 {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.legend {
+  font-size: 12px;
+  color: var(--text-quiet);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.key {
+  display: inline-block;
+  width: 12px;
+  height: 2px;
+  margin-left: 10px;
+}
+
+.key-now {
+  background: var(--accent);
+}
+
+.key-before {
+  background: var(--neutral-line);
+}
+
+.line-chart {
+  width: 100%;
+  height: 210px;
+  display: block;
+}
+
+.bar-chart {
+  width: 300px;
+  height: 210px;
+  display: block;
+}
+
+.grid {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+
+.axis {
+  stroke: var(--neutral-line);
+  stroke-width: 1;
+}
+
+.tick {
+  font-size: 12px;
+  fill: var(--text-quiet);
+}
+
+.series-before {
+  fill: none;
+  stroke: var(--neutral-line);
+  stroke-width: 2;
+}
+
+.series-now {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.bar {
+  fill: var(--neutral-bar);
+}
+
+.bar-lead {
+  fill: var(--accent);
+}
+
+.bar-value {
+  font-size: 12px;
+  fill: var(--text-strong);
+}
+
+.table-panel h2 {
+  margin-bottom: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  font-weight: 500;
+  color: var(--text-quiet);
+  text-align: left;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+td {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.map-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.map-frame {
+  position: relative;
+  flex: 1;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.map {
+  display: block;
+  width: 100%;
+  height: 228px;
+}
+
+.land {
+  fill: #e2e5e2;
+}
+
+.park {
+  fill: #d3d9cf;
+}
+
+.water {
+  fill: #c8d0d7;
+}
+
+.road {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 4;
+}
+
+.road-main {
+  stroke-width: 7;
+}
+
+.station {
+  fill: #6b737a;
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+
+.station-alert {
+  fill: var(--accent);
+}
+
+.map-label {
+  font-size: 12px;
+  fill: #646b72;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 10px;
+}
+
+.dot-station {
+  background: #6b737a;
+}
+
+.dot-alert {
+  background: var(--accent);
+}
+
+.map-card {
+  position: absolute;
+  top: 12px;
+  width: 190px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid var(--rule);
+  box-shadow: 0 1px 2px rgba(30, 34, 38, 0.08);
+}
+
+.map-card-left {
+  left: 12px;
+}
+
+.map-card-right {
+  right: 12px;
+  top: auto;
+  bottom: 12px;
+}
+
+.map-card-label {
+  font-size: 12px;
+  color: var(--text-quiet);
+}
+
+.map-card-value {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.map-card-note {
+  font-size: 12px;
+  color: var(--text-quiet);
+}
+
+[data-defect="on"] .map-card {
+  background-color: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(14px) saturate(140%);
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 12px 32px rgba(31, 95, 168, 0.32);
+}
