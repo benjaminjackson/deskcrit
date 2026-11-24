@@ -4,12 +4,18 @@
 // act on (a CSS selector and a pixel box), where from an image alone it judges by eye (PRD FR-79).
 //
 // Usage:
-//   node measure.mjs PAGE [--out FOLDER]
+//   node measure.mjs PAGE [--out FOLDER] [--desktop] [--phone] [--tablet] [--widescreen] [--width N[,N...]]
 //
 // PAGE is a local HTML file or an http(s) URL. It writes, into FOLDER or a new folder in the system
-// temp folder: desktop.png (1280 px wide) and phone.png (390 px wide), both full-page screenshots
-// at device scale factor 1; one-screen crops of each through crop.mjs, named desktop-01.png and so
-// on; and facts.json, which schemas/facts.schema.json describes. It prints one line per file.
+// temp folder: desktop.png (1280 px wide), phone.png (390 px wide), tablet.png (768 px wide), and
+// widescreen.png (1920 px wide), all full-page screenshots at device scale factor 1; one-screen
+// crops of each through crop.mjs, named desktop-01.png and so on; and facts.json, which
+// schemas/facts.schema.json describes. It prints one line per file. The flags --desktop, --phone,
+// --tablet, and --widescreen each pick that one viewport, and --width adds one viewport per width,
+// each 800 px tall and named w<N>, so --width 768 writes w768.png. Each N is a whole number from
+// 200 to 3840. With any of these flags it renders only the viewports they pick: the named ones
+// first, in the order desktop, phone, tablet, widescreen, then the w<N> ones in the order given.
+// With none of them it renders all four named viewports.
 //
 // It uses Playwright, which it never installs. It looks for `playwright` first in the project of
 // the working directory, then in packs/ of the deskcrit checkout that holds this script. It opens
@@ -26,6 +32,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { parseArgs } from "node:util";
 import {
   decodePng,
   encodeCrop,
@@ -36,11 +43,25 @@ import {
 /** The version of the facts.json format; schemas/facts.schema.json requires this value. */
 export const FACTS_VERSION = 1;
 
-/** The two viewports: a laptop screen and a common phone, both at device scale factor 1. */
+/**
+ * The default viewports, all at device scale factor 1: a laptop screen, a common phone, a tablet
+ * held upright, and a large desktop screen (FR-79, FR-85). Desktop is first only in this default
+ * order; with the flags that pick viewports or with --width it may not be, so a reader of facts.json
+ * finds a viewport by its name and never by its position.
+ */
 export const VIEWPORTS = [
   { name: "desktop", width: 1280, height: 800 },
   { name: "phone", width: 390, height: 844 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "widescreen", width: 1920, height: 1080 },
 ];
+
+/** The narrowest and widest width that --width accepts, in CSS pixels. */
+const MIN_WIDTH = 200;
+const MAX_WIDTH = 3840;
+
+/** The height of each viewport that --width asks for, in CSS pixels. */
+const WIDTH_VIEWPORT_HEIGHT = 800;
 
 /** At most this many text blocks per viewport go into the file, so it fits a critic's context. */
 export const MAX_TEXT_BLOCKS = 60;
@@ -68,7 +89,7 @@ export const EXIT_CANNOT_MEASURE = 3;
 export const EXIT_TOOL_MISSING = 4;
 
 const USAGE =
-  "usage: node measure.mjs PAGE [--out FOLDER]   (PAGE is an HTML file or an http(s) URL)";
+  "usage: node measure.mjs PAGE [--out FOLDER] [--desktop] [--phone] [--tablet] [--widescreen] [--width N[,N...]]   (PAGE is an HTML file or an http(s) URL; each flag at most once; each N a whole number from 200 to 3840)";
 
 // The version is the one that packs/package.json pins. Keep the two the same.
 const PLAYWRIGHT_MISSING =
@@ -1740,17 +1761,49 @@ export function formatFactsJson(value, depth = 0) {
 }
 
 /**
- * Measures the page in both viewports and writes the screenshots, crops, and facts.json. It returns
+ * Returns one viewport per width in a comma-separated list such as "768,1024", each 800 px tall and
+ * named w<N>, in the order given. It returns null when an item is not a whole number written
+ * without a leading zero, is outside 200 to 3840, or repeats an earlier item.
+ *
+ * @param {string} text
+ * @returns {{ name: string, width: number, height: number }[] | null}
+ */
+export function widthViewports(text) {
+  const viewports = [];
+  for (const item of text.split(",")) {
+    if (!/^[1-9][0-9]*$/.test(item)) {
+      return null;
+    }
+    const width = Number(item);
+    if (width < MIN_WIDTH || width > MAX_WIDTH) {
+      return null;
+    }
+    if (viewports.some((viewport) => viewport.width === width)) {
+      return null;
+    }
+    viewports.push({
+      name: `w${width}`,
+      width,
+      height: WIDTH_VIEWPORT_HEIGHT,
+    });
+  }
+  return viewports;
+}
+
+/**
+ * Measures the page in each viewport and writes the screenshots, crops, and facts.json. It returns
  * the lines to print. It throws a MeasureRefusal when it cannot measure.
  *
  * @param {string} pageArgument
  * @param {string} outputFolder
  * @param {string} workingDirectory
+ * @param {{ name: string, width: number, height: number }[]} viewportList the viewports to render, in order: any of VIEWPORTS, any from widthViewports, or both; VIEWPORTS when left out
  */
 export async function measurePage(
   pageArgument,
   outputFolder,
   workingDirectory,
+  viewportList = VIEWPORTS,
 ) {
   const pageUrl = toPageUrl(pageArgument);
   const playwright = loadPlaywright(workingDirectory);
@@ -1771,7 +1824,7 @@ export async function measurePage(
   const viewports = [];
   const finalUrls = new Set();
   try {
-    for (const viewport of VIEWPORTS) {
+    for (const viewport of viewportList) {
       const { context, page, notes, finalUrl } = await openPage(
         browser,
         viewport,
@@ -1840,6 +1893,75 @@ export async function measurePage(
 }
 
 /**
+ * Reads the arguments after the script path into the page, the output folder (undefined when
+ * --out is not given), and the viewports to render, in order. It returns null for a wrong command
+ * line: no page, an unknown flag, a flag given twice, a value missing, or a bad --width list.
+ *
+ * @param {string[]} commandArguments
+ * @returns {{ pageArgument: string, folderArgument: string | undefined, viewportList: { name: string, width: number, height: number }[] } | null}
+ */
+export function readCommandLine(commandArguments) {
+  let parsed;
+  try {
+    // parseArgs from node:util reads the flags. strict makes it throw on an unknown flag, on a
+    // missing value, and on a value that looks like a flag, such as `--out --phone`; tokens lists
+    // each flag as it was given, so a flag given twice can be found.
+    parsed = parseArgs({
+      args: commandArguments,
+      options: {
+        out: { type: "string" },
+        width: { type: "string" },
+        desktop: { type: "boolean" },
+        phone: { type: "boolean" },
+        tablet: { type: "boolean" },
+        widescreen: { type: "boolean" },
+      },
+      allowPositionals: true,
+      strict: true,
+      tokens: true,
+    });
+  } catch {
+    return null;
+  }
+  const { values, positionals, tokens } = parsed;
+  if (positionals.length !== 1) {
+    return null;
+  }
+  const pageArgument = positionals[0];
+  const pickedNames = new Set();
+  const givenFlags = new Set();
+  for (const token of tokens) {
+    if (token.kind !== "option") {
+      continue;
+    }
+    if (givenFlags.has(token.name)) {
+      return null;
+    }
+    givenFlags.add(token.name);
+    if (VIEWPORTS.some((viewport) => viewport.name === token.name)) {
+      pickedNames.add(token.name);
+    }
+  }
+  const folderArgument = values.out;
+  const widthArgument = values.width;
+  let viewportList = VIEWPORTS;
+  if (pickedNames.size > 0 || widthArgument !== undefined) {
+    // The named viewports keep the order of VIEWPORTS, whatever order their flags came in.
+    viewportList = VIEWPORTS.filter((viewport) =>
+      pickedNames.has(viewport.name),
+    );
+    if (widthArgument !== undefined) {
+      const widthList = widthViewports(widthArgument);
+      if (widthList === null) {
+        return null;
+      }
+      viewportList = [...viewportList, ...widthList];
+    }
+  }
+  return { pageArgument, folderArgument, viewportList };
+}
+
+/**
  * Runs the command and returns the lines to print and the exit code. A refusal or any other error
  * becomes one "cannot measure:" line and exit code 3, or exit code 4 when Playwright or Chromium is missing. It writes nothing to the terminal itself.
  *
@@ -1848,15 +1970,12 @@ export async function measurePage(
  * @returns {Promise<{ exitCode: number, lines: string[] }>}
  */
 export async function runMeasure(commandArguments, workingDirectory) {
-  const [pageArgument, flag, folderArgument, ...extra] = commandArguments;
-  const folderGiven = flag === "--out" && folderArgument !== undefined;
-  const wellFormed =
-    pageArgument !== undefined &&
-    extra.length === 0 &&
-    (flag === undefined || folderGiven);
-  if (!wellFormed) {
+  const commandLine = readCommandLine(commandArguments);
+  if (commandLine === null) {
     return { exitCode: EXIT_USAGE, lines: [USAGE] };
   }
+  const { pageArgument, folderArgument, viewportList } = commandLine;
+  const folderGiven = folderArgument !== undefined;
   try {
     // Check the page before making the output folder, so a wrong path leaves nothing behind.
     toPageUrl(pageArgument);
@@ -1871,6 +1990,7 @@ export async function runMeasure(commandArguments, workingDirectory) {
       pageArgument,
       outputFolder,
       workingDirectory,
+      viewportList,
     );
     return { exitCode: 0, lines };
   } catch (error) {

@@ -30,6 +30,7 @@ import {
   formatFactsJson,
   measurePage,
   parseCssColor,
+  VIEWPORTS,
 } from "../../plugin/skills/design-critic/scripts/measure.mjs";
 import { keepFixtureViewport } from "./measure-fixtures.ts";
 import {
@@ -105,7 +106,16 @@ async function measureOnce(url: string): Promise<{
   folder: string;
 }> {
   const folder = mkdtempSync(join(tmpdir(), "crit-thresholds-"));
-  await measurePage(url, folder, join(REPOSITORY_DIRECTORY, "packs"));
+  // Render only the desktop viewport, the one VIEWPORT keeps.
+  const desktopViewports = VIEWPORTS.filter(
+    (viewport) => viewport.name === "desktop",
+  );
+  await measurePage(
+    url,
+    folder,
+    join(REPOSITORY_DIRECTORY, "packs"),
+    desktopViewports,
+  );
   const facts = JSON.parse(await readFile(join(folder, "facts.json"), "utf8"));
   const kept = keepFixtureViewport(facts, VIEWPORT);
   const viewport = onlyViewport(kept);
