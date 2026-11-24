@@ -586,3 +586,29 @@ Jev (EV-14): in the replay of npm run eval:agreement on 2026-11-23, 29 of the 32
 ```
 
 Reading, against noise of 2 or 3 images between two full runs of one critic: deep mode raised 71 of 77 positives and left 75 of 77 negatives quiet; the single critic raised 70 of 77 and left 76 of 77 quiet. Six rows differ, three each way, so this sample shows no difference in detection. Deep mode raised the two live misses of the single critic (`color/saturated-large-areas`, `layout/no-dominant-element`), and newly raised two defects on negative images (`color/text-over-busy-image`, `layout/picture-off-text-lines`). EV-19, the blind side-by-side, has not run.
+
+# Where it could go further (EV-19, OQ-28)
+
+Run on 2026-11-24 (crit-0a0.5). Ten real pages from Benjamin Jackson's bookmarks, captured full page at 1280 px wide and cut at 3200 px, after a slow scroll that waits until every image in the captured area has loaded and after cookie banners and sign-up popups are closed. The pages are not committed: `evals/critic/side-by-side/` is in `.gitignore`, because a crit of a real page describes the page.
+
+The first candidate (skill commit `a08b4975`) wrote the section only when the ranked list held two findings or fewer. It wrote it on 1 of the 10 pages, so the pairs would have shown run-to-run difference and not the section. The pairs Benjamin Jackson judged set the base critic (`e9d03b22`) against a version that writes the section on every crit (`39e113d3`, branch `crit-0a0.5-always`).
+
+He judged 5 of the 10 pages blind and stopped, because the same version won each time. `side-by-side.ts record` refuses an incomplete picks file, so the picks were mapped through `key.json` with jq:
+
+```
+01 abstrategies.png picked B = candidate
+02 anthropic.png picked A = candidate
+03 datawrapper.png picked B = candidate
+04 favikon.png picked B = candidate
+05 grilli.png picked A = candidate
+```
+
+The candidate won 5 of 5. With two equal versions, 5 of 5 happens about 1 time in 32.
+
+A review of the paired crits, with the base run a second time (`a08b4975` on the 9 pages where it did not write the section) as the noise check, found:
+
+- The section took no space from the rest. Ranked lists averaged 487 words in the base, 541 in the candidate, and 476 in the noise check. The base ranked 3.6 findings on average and the candidate 3.8.
+- Two runs of one prompt share about 2 of every 3 to 4 ranked findings, and the base and the candidate overlap at the same rate. So the ranked findings that only one crit of a pair had are run-to-run difference.
+- The section repeated a ranked finding on 6 pages, moved taste ideas out of the ranked list, "Smaller things", or "What's working", and reused the same few suggestions: own one color, let one number lead, commit to the typeface.
+
+Decision (Benjamin Jackson, 2026-11-24): "that section should appear on every crit". He approved three rules against the review's problems. Also: "we can accept the critic will not flag every single thing on every single run."
