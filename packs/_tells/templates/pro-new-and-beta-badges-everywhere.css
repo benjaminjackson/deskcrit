@@ -1,0 +1,274 @@
+/*
+ * Template tell "PRO, New, and Beta badges everywhere" (FR-86, EV-23). The billing settings
+ * of Inkmoor, an invented booking and deposit tool for tattoo studios, on the app-screen
+ * base. The clean side carries one quiet text badge, New on the Integrations link, which the
+ * rule allows. The defect adds three more in the same quiet style: Beta on the Reports link,
+ * New on the Consent forms link, and PRO on the top plan. The badge text is 13 px, a size the
+ * page already uses, so the badges add no size for "Too many type sizes and weights on one
+ * screen"; they have small square corners and no glow.
+ */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url("../../_renderer/fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+:root {
+  --page: #ffffff;
+  --muted-surface: #f5f5f3;
+  --text-strong: #202124;
+  --text-body: #464a50;
+  --text-quiet: #63676d;
+  --rule: #dcdee1;
+  --field-border: #b9bdc3;
+  --accent: #0e6e6e;
+}
+
+body {
+  color: var(--text-body);
+  font-size: 14px;
+}
+
+.top-bar {
+  height: 56px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.top-nav {
+  display: flex;
+  gap: 28px;
+}
+
+.top-nav a,
+.settings-nav a {
+  color: var(--text-body);
+  text-decoration: none;
+}
+
+.top-nav a[aria-current="page"] {
+  color: var(--text-strong);
+  font-weight: 500;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 48px;
+  padding: 24px 32px;
+}
+
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-nav a {
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.settings-nav a[aria-current="page"] {
+  background: var(--muted-surface);
+  color: var(--text-strong);
+  font-weight: 500;
+}
+
+.settings {
+  width: 820px;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-strong);
+  margin-bottom: 12px;
+}
+
+.block {
+  padding: 14px 0;
+  border-top: 1px solid var(--rule);
+}
+
+h2 {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-strong);
+  margin-bottom: 12px;
+}
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.plan {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  column-gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+
+.plan input {
+  grid-row: 1 / span 3;
+  align-self: start;
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+
+.plan-current {
+  border-color: var(--accent);
+}
+
+.plan-name {
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.plan-detail {
+  font-size: 13px;
+  color: var(--text-quiet);
+}
+
+.plan-price {
+  font-size: 13px;
+  color: var(--text-body);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+input[type="text"],
+select {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--field-border);
+  border-radius: 6px;
+  background: var(--page);
+  color: var(--text-strong);
+  font: inherit;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.check input {
+  accent-color: var(--accent);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.button {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 500;
+}
+
+.button-primary {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #ffffff;
+}
+
+.button-secondary {
+  background: var(--page);
+  border: 1px solid var(--field-border);
+  color: var(--text-strong);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  font-weight: 500;
+  color: var(--text-quiet);
+  text-align: left;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+td {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.num {
+  text-align: right;
+  padding-right: 32px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Badges: quiet outlined text, on both sides. */
+.top-nav a,
+.settings-nav a,
+.plan-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  padding: 0 6px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--text-quiet);
+}
+
+.badge-extra {
+  display: none;
+}
+
+/* The tell: a badge on three more elements. */
+[data-defect="on"] .badge-extra {
+  display: inline-block;
+}

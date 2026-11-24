@@ -1,0 +1,230 @@
+/*
+ * Template for "Feature cards with an emoji and a bold title" (crit-7hw.2, FR-54, EV-23),
+ * copied from the landing-light base. A landing page for Pantrylog, an invented tool that
+ * keeps stock counts for food banks. The row of three feature cards has a bold title and one
+ * line of text on both sides. With the defect on, each card shows one emoji above its title;
+ * with it off, each shows a line icon in one size, stroke, and color, the fix that the rule
+ * names. The page uses two weights, 400 and 700, so the bold titles add no third weight.
+ */
+
+@font-face {
+  font-family: "Noto Color Emoji";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("../../_renderer/fonts/noto-color-emoji-subset-400-normal.woff2") format("woff2");
+}
+
+:root {
+  --page: #ffffff;
+  --text-strong: #1d2321;
+  --text-body: #3f4a46;
+  --text-quiet: #5f6b66;
+  --rule: #dfe3df;
+  --panel: #f3f2ec;
+  --accent: #2f6b3a;
+  --short: #9a3b1f;
+}
+
+body {
+  background: var(--page);
+  color: var(--text-body);
+}
+
+.site-header {
+  width: 1120px;
+  margin: 0 auto;
+  padding: 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.site-nav {
+  display: flex;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.site-nav a {
+  color: var(--text-body);
+  text-decoration: none;
+}
+
+.site-nav a[aria-current="page"] {
+  color: var(--text-strong);
+  font-weight: 700;
+}
+
+main {
+  width: 1120px;
+  margin: 0 auto;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 500px 1fr;
+  gap: 72px;
+  align-items: center;
+  padding: 40px 0 48px;
+}
+
+h1 {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-strong);
+  margin-bottom: 20px;
+}
+
+.lead {
+  font-size: 18px;
+  line-height: 1.55;
+  margin-bottom: 32px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.button {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.button-primary {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.link {
+  font-size: 15px;
+  color: var(--text-strong);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* The product preview: the stock list of one pantry. */
+.preview {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.preview-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.preview-meta {
+  font-size: 13px;
+  color: var(--text-quiet);
+}
+
+.stock {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.stock th {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-quiet);
+  text-align: left;
+  padding: 8px 0;
+}
+
+.stock td {
+  padding: 9px 0;
+  border-top: 1px solid var(--rule);
+  color: var(--text-strong);
+}
+
+.stock th:nth-child(2),
+.stock td:nth-child(2) {
+  text-align: right;
+  padding-right: 32px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stock .short td {
+  color: var(--short);
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding-top: 32px;
+  border-top: 1px solid var(--rule);
+}
+
+.feature {
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.feature .emoji {
+  display: none;
+  font-family: "Noto Color Emoji";
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+.feature .icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 16px;
+  fill: none;
+  stroke: var(--text-strong);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.feature h2 {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text-strong);
+  margin-bottom: 8px;
+}
+
+.feature p {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+/* The defect: one emoji per card in place of the line icon. */
+[data-defect="on"] .feature .emoji {
+  display: block;
+}
+
+[data-defect="on"] .feature .icon {
+  display: none;
+}

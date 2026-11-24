@@ -1,0 +1,280 @@
+/*
+ * Template for "Stock robots, glowing brains, and holograms" (crit-7hw.2, FR-54, EV-23),
+ * copied from the landing-light base. A landing page for Minutehand, an invented service that
+ * writes notes from video calls. With the defect on, the hero visual is a flat stock robot
+ * head with circuit lines around it. With it off, the hero shows what the AI produces, a set
+ * of call notes drawn in HTML and CSS, the fix that the rule names. Both visuals are in the
+ * DOM on both sides; display shows one. Two weights (400 and 500).
+ */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url("../../_renderer/fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+:root {
+  --page: #ffffff;
+  --text-strong: #1d2a33;
+  --text-body: #3d4a54;
+  --text-quiet: #5c6974;
+  --rule: #dde2e6;
+  --panel: #f1f4f6;
+  --line: #b8c4cc;
+  --accent: #1f5f8b;
+}
+
+body {
+  background: var(--page);
+  color: var(--text-body);
+}
+
+.site-header {
+  width: 1120px;
+  margin: 0 auto;
+  padding: 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.site-nav {
+  display: flex;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.site-nav a {
+  color: var(--text-body);
+  text-decoration: none;
+}
+
+.site-nav a[aria-current="page"] {
+  color: var(--text-strong);
+  font-weight: 500;
+}
+
+main {
+  width: 1120px;
+  margin: 0 auto;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 500px 1fr;
+  gap: 72px;
+  align-items: center;
+  padding: 48px 0 56px;
+}
+
+h1 {
+  font-size: 44px;
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--text-strong);
+  margin-bottom: 20px;
+}
+
+.lead {
+  font-size: 18px;
+  line-height: 1.55;
+  margin-bottom: 32px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.button {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.button-primary {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.link {
+  font-size: 15px;
+  color: var(--text-strong);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* The robot: flat shapes in the page's own blue and grays, no glow and no gradient. */
+.robot {
+  display: none;
+}
+
+.robot svg {
+  display: block;
+  width: 548px;
+  height: 380px;
+}
+
+.robot .trace {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 3;
+}
+
+.robot .node {
+  fill: var(--page);
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.robot .antenna {
+  stroke: var(--text-strong);
+  stroke-width: 6;
+}
+
+.robot .antenna-tip,
+.robot .eye {
+  fill: var(--accent);
+}
+
+.robot .head,
+.robot .body {
+  fill: var(--panel);
+  stroke: var(--text-strong);
+  stroke-width: 4;
+}
+
+.robot .face {
+  fill: var(--text-strong);
+}
+
+.robot .eye {
+  fill: #ffffff;
+}
+
+.robot .mouth {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.robot .ear,
+.robot .neck {
+  fill: var(--line);
+}
+
+/* The product preview: notes from one call. */
+.notes {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.notes-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.notes-meta {
+  font-size: 13px;
+  color: var(--text-quiet);
+}
+
+.notes h2 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-quiet);
+  margin-bottom: 8px;
+}
+
+.decided {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-strong);
+  padding-left: 18px;
+  margin-bottom: 20px;
+}
+
+.decided li + li {
+  margin-top: 4px;
+}
+
+.todo {
+  list-style: none;
+  font-size: 15px;
+}
+
+.todo li {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.who {
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.what {
+  color: var(--text-body);
+}
+
+.when {
+  color: var(--text-quiet);
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--rule);
+}
+
+.feature h3 {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text-strong);
+  margin-bottom: 8px;
+}
+
+.feature p {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+/* The defect: the robot takes the place of the notes. */
+[data-defect="on"] .robot {
+  display: block;
+}
+
+[data-defect="on"] .notes {
+  display: none;
+}
