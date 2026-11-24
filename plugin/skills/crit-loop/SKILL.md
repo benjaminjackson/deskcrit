@@ -1,6 +1,6 @@
 ---
 name: crit-loop
-description: Use after you change UI code (HTML, CSS, components) and want to check the design and fix it. Runs the design-critic skill, fixes from the top of its work order, captures the page again at the same viewport, and has a fresh critic mark each finding closed, open, or worse, until no ranked finding is left or two rounds in a row close nothing.
+description: Use after you change UI code (HTML, CSS, components) and want to check the design and fix it. Runs the design-critic skill, fixes from the top of its work order, captures the page again at the same viewport, and has a fresh critic mark each finding closed, closed with a new problem, open, or worse, until no ranked finding is left or two rounds in a row close nothing.
 ---
 
 # The fix loop
@@ -27,6 +27,7 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 ## Each round after that
 
 1. Fix from the top of the last work order. Wait until the work-order agent has finished and the work order exists, and fix from it, not from `crit.md`: the work order has the measured places and targets that the prose leaves out. Take the findings in `rank` order. Each has a `location` (with a `selector` and a `box` when one was measured), a `target`, and a `fix_direction`. Fix as many as you can do well in one pass, from the top; the findings with `rank` null come last. Never add content; the last section of this file says what you may change in the copy.
+   The rule against new content still holds, so a fix adds only an element that carries no content, such as a divider, a button that wraps an action already on the page, or a background. Before you commit such a fix, check the new element against the template tells. Open `<design-critic folder>/references/checklist.md`, find the "Template tells" section, and open the entries of each question there that the new element could fail with `node <design-critic folder>/scripts/entries.mjs "<title>"`. When the element has a stock form that an entry names, such as a gradient, a glow, or a colored border, use a plain form instead: a solid color, a flat edge, a thin rule.
 2. Capture into `<loop folder>/round-<n>`, the same way as in round 1.
 3. Start a fresh recheck critic with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`. Use this prompt, with the placeholders filled, and the facts line only when this round has a `facts.json`:
 
@@ -47,7 +48,7 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
    With a facts file of several viewports, write `Before images: <absolute paths of the last round's screenshots>` and `After images: <absolute paths of this round's screenshots>` in place of the two image lines, both in the order of the facts file viewports.
 
 4. Save its final message as `crit.md` in the round folder, exactly as it wrote it.
-5. Count the findings it marked closed under "Finding status", and check the stop rule below.
+5. Count the findings it marked closed under "Finding status", and check the stop rule below. A finding marked "closed, new problem" counts as closed: your fix added a template tell, and the recheck lists that tell as a new problem, so the next work order holds it.
 6. If you do not stop, write the new work order with step 5 of the design-critic skill's `SKILL.md`: this round's `crit.md`, this round's images, and its facts file. Then start the next round.
 
 A finding marked worse is not progress. Fix it before the findings ranked below it.

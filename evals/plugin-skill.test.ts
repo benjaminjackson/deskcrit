@@ -117,7 +117,10 @@ function listCommandLines(text: string, programName: string): string[] {
  */
 function splitWords(commandLine: string): string[] {
   // Each match is a run of placeholders and plain characters with no space outside the brackets.
-  return commandLine.match(/(?:<[^>]+>|[^\s<])+/g) ?? [];
+  const words = commandLine.match(/(?:<[^>]+>|[^\s<])+/g) ?? [];
+  // A word in double quotes, such as "<title>", loses its quotes, as it does in a shell, so a
+  // quoted placeholder is swapped like any other placeholder.
+  return words.map((word) => word.replace(/^"(.*)"$/, "$1"));
 }
 
 /**
@@ -283,11 +286,13 @@ type MissingInputResult = { exitCode: number; output: string };
 
 /**
  * The missing-input result of each script the skill may run. measure.mjs checks the page before it
- * looks for Playwright, so no browser opens. A script the skill names that is not in this table
+ * looks for Playwright, so no browser opens. entries.mjs exits 2 for a usage error too, so its
+ * row checks the "not found:" line, which the usage line does not hold. A script the skill names that is not in this table
  * fails the test, so a new script gets a row here.
  */
 const MISSING_INPUT_RESULTS: Record<string, MissingInputResult> = {
   "measure.mjs": { exitCode: 3, output: "does not exist" },
+  "entries.mjs": { exitCode: 2, output: "not found:" },
 };
 
 /**
