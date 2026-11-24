@@ -624,3 +624,31 @@ The section moved out of `agents/critic.md` into a second agent, `agents/go-furt
 ```
 
 The candidate won 3 of 3. The scores of the candidate are in `evals/critic/SCORES.md`: the repeat-run figures are back inside the range of the two base batches, and two of the three detection images that slipped at `aefb4967` are caught again.
+
+# Set evaluation (EV-21, FR-83)
+
+## Run 1 (sets version 1)
+
+One run per set at skill commit `73574a3c`, the saved runs committed in `75d0da5`. `node evals/critic/sets.ts` printed:
+
+```
+set     kind                        answer  critic said             right tile  break found  false break
+set-01  component style             tile 4  tile 3, tile 4, tile 6  yes         found        -
+set-02  content edge or column      tile 3  tile 2, tile 3, tile 4  yes         found        -
+set-03  type scale                  tile 5  tile 4, tile 5          yes         found        -
+set-04  palette                     tile 2  tile 2                  yes         found        -
+set-05  illustration or icon style  tile 3  tile 3                  yes         found        -
+set-06  navigation place            tile 4  tile 2, tile 3, tile 4  yes         found        -
+set-07  navigation name             tile 3  tile 3, tile 6          yes         found        -
+set-08  clean                       none    tile 2, tile 3, tile 4  -           -            yes
+set-09  clean                       none    tile 2, tile 3, tile 4  -           -            yes
+set-10  clean                       none    tile 3, tile 4, tile 5  -           -            yes
+
+break found (judge): 7 of 7
+right tile named: 7 of 7
+false break on a clean set: 3 of 3
+```
+
+The critic found all 7 planted breaks. It also named extra tiles on 5 of the 7 broken sets and reported breaks on all 3 clean sets. The extra breaks that were checked by hand are real flaws of the generated screens, not invented ones: in set-09 the "Messages" screen is a new-patient form and the "Patients" screen repeats the appointments table of "Today", and in set-08 the title "Rate quotes" differs from its nav item "Rates". So `answers.json` called sets clean that were not, and the "false break" and extra-tile counts of this run do not measure the critic. Also, "right tile named" counted a Breaks line that named the planted tile among others.
+
+Decision (Benjamin Jackson, 2026-11-23): "Repair, then rerun". Version 2 of the sets removes every unplanned difference, keeps the planted breaks and `answers.json`, and is frozen after its first run (crit-j8y.8).
