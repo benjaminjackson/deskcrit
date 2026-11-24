@@ -31,17 +31,9 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
    Measured facts file: <absolute path of facts.json>
    ```
 
-   When there is one image, first run `node <skill folder>/scripts/jev-evidence.mjs <absolute image path>` with Bash, from the user's working folder. It asks Jev only when `crit` runs and `TYPESAFE_API_KEY` is set, and it prints nothing otherwise. When it prints a path, add this line right after the `Image(s)` line, and after the facts line when there is one, with that path filled:
-
-   ```
-   Jev evidence file: <absolute path the script printed>
-   ```
-
-   When it prints nothing, add nothing: the prompt stays as above. Never read, print, or pass on the key, and do not tell the critic which criteria Jev did not fire on.
-
 3. Give the critique to the user as the agent wrote it. Do not soften or trim it. Add your own comment only if the user asked for it.
 
-4. Write the work order, the JSON a coding agent acts on (schema: `schemas/work-order.schema.json` in the deskcrit repository). Pick the work folder: the folder that holds `facts.json` when there is one, else the image's folder. Save the critique there as `crit.md`, exactly as the agent wrote it, with the Write tool. Then spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "sonnet"`, with this prompt, the placeholders filled, and the facts and Jev lines only when the critic had those files:
+4. Write the work order, the JSON a coding agent acts on (schema: `schemas/work-order.schema.json` in the deskcrit repository). Pick the work folder: the folder that holds `facts.json` when there is one, else the image's folder. Save the critique there as `crit.md`, exactly as the agent wrote it, with the Write tool. Then spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "sonnet"`, with this prompt, the placeholders filled, and the facts line only when the critic had that file:
 
    ```
    Time matters here: do not spend time that can be avoided, and the earlier a correct result is obtained, the better.
@@ -51,7 +43,6 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
    Crit file: <absolute path of crit.md>
    Image: <absolute path of the image>
    Measured facts file: <absolute path of facts.json>
-   Jev evidence file: <absolute path of the evidence file>
    Write in: <absolute path of the work folder>
 
    When the work order is done, end with its absolute path as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with that path.
@@ -67,8 +58,7 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
 - `agents/deep-mode.md`, `agents/section-critic.md`, `agents/director.md`, and `references/checklist-<section>.md`: the deep mode, one critic per checklist section and a director who merges and ranks their reports.
 - `agents/work-order.md`: the instructions of the agent that turns the finished crit into `work-order.json`.
 - `scripts/work-order.mjs`: checks a work order against its crit, image, and facts file: one entry per ranked finding, and every pixel box taken from the facts file or a crop.
-- `scripts/jev-evidence.mjs`: runs `crit report --json` when it can and writes the criteria Jev fired on to the evidence file.
-- `agents/recheck.md` and `scripts/jev-recheck.mjs`: the recheck critic and the Jev recheck of the crit-loop skill, which check a fix against the last work order.
+- `agents/recheck.md`: the recheck critic of the crit-loop skill, which checks a fix against the last work order.
 - `scripts/build.rb`: makes `references/` from this repository's `GUIDELINES.md` and `packs/`.
 
 ## Update the references

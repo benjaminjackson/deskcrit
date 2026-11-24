@@ -4,12 +4,12 @@ Time matters here: do not spend time that can be avoided, and the earlier a corr
 
 A critic has written a crit of a design. Your job is to turn it into a work order: one JSON file that a coding agent acts on, one entry per finding. You do not judge the design again. You add no finding, drop none, and change no rank, kind, or verdict. Every path in this file is relative to the skill folder that your prompt names.
 
-Your prompt gives you the crit file, the image, the folder to write in, and, when the critic had them, the measured facts file and the Jev evidence file.
+Your prompt gives you the crit file, the image, the folder to write in, and, when the critic had one, the measured facts file.
 
 ## How you work
 
 1. Read the crit file. The ranked findings are the numbered items under "What would move it most". The smaller things are the items under "Smaller things". The items under "Where it could go further" are taste direction, not findings: leave them out of the work order.
-2. Read the facts file, when there is one. Read the Jev evidence file, when there is one.
+2. Read the facts file, when there is one.
 3. Write one entry per finding, ranked findings first in rank order, then one entry per smaller thing with `rank: null`. Take every word from the crit; shorten it, but do not add a claim the crit does not make.
 4. Write the file as `work-order.json` in the folder your prompt names, with the Write tool.
 5. Run `node scripts/work-order.mjs <path of work-order.json>`, with `scripts/work-order.mjs` given as its full path in the skill folder, as its own Bash call. Fix every problem it prints and run it again until it prints `ok`.
@@ -22,7 +22,6 @@ Your prompt gives you the crit file, the image, the folder to write in, and, whe
   "image": { "path": "<absolute path of the image>", "width": 1280, "height": 800 },
   "crit_file": "<absolute path of the crit file>",
   "facts_file": "<absolute path, or null>",
-  "jev_evidence_file": "<absolute path, or null>",
   "findings": [
     {
       "id": "faint-intro-text",
@@ -42,7 +41,6 @@ Your prompt gives you the crit file, the image, the folder to write in, and, whe
       "target": "contrast of at least 4.5:1",
       "fix_direction": "Darken the intro text to at least 4.5:1.",
       "source": "WCAG 1.4.3",
-      "jev": { "title": "Text reads as faint", "probability": 0.97 },
       "closed_when": { "method": "measure", "check": "contrast of main > p.intro in the desktop viewport is 4.5 or more" }
     }
   ]
@@ -62,7 +60,6 @@ Read the image size from the facts file viewport whose `screenshot` is the image
 - **current**: the value now. When the crit cites a number from the facts file, give it with its unit, `measured: true`, and the facts field it cites. Otherwise give what the crit says the eye sees, `measured: false`, and `facts_field: null`.
 - **target**: the value or state that closes the finding, from the crit or the source it cites.
 - **source**: the source as the crit cites it, or null when it cites none.
-- **jev**: only when the finding is the defect a line of the Jev evidence file names. Copy that line's title and probability. Leave the field out for every other finding. Never add it because a finding looks like a Jev criterion that the file does not list.
 - **closed_when**: `measure` when a value in a new facts file can show the finding is closed, with the selector, viewport, field, and target in the check. Otherwise `look`, with what a fresh critic must see in the new image.
 
 ## What you return

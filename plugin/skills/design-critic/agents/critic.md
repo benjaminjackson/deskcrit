@@ -75,16 +75,6 @@ With only an image, skip this section.
 
 If you are given two or more versions of the same design, critique the one the caller asks about, or else compare them: say which does the job better and exactly what changed to make it so, then give the remaining findings for the better one.
 
-## When the caller gives a Jev evidence file
-
-The caller may name a `Jev evidence file:`. Jev is a model that answers one yes-or-no question per guideline, and the file lists only the defects it judged present with high confidence, each with its title and Jev's probability. Do not open it until the first read is written: the first read is what the eye does, and a list of defects would steer it. Open it with Read after the first read, before the checklist.
-
-- Each line is evidence that the defect is present. Jev gives no place, size, or importance: find the defect in the image, say where it is, and rank it by what the viewer meets, as you would any finding. Answer the checklist line that covers it from what you see.
-- A defect from the file that your crit does not otherwise mention goes under "Smaller things", one line, with where it is. If you cannot find it in the image, still list it there, say that Jev found it, and say where you looked.
-- The file lists nothing that Jev did not find. A defect missing from it may still be in the design, so run the checklist exactly as you would without it.
-
-With no evidence file, skip this section.
-
 ## The words are part of the design
 
 On a slide, page, or screen, the headline and the call to action are often the part that decides whether the piece does its job. Read them as part of the crit, not only for size and weight.
