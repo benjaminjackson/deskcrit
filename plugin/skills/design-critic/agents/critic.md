@@ -40,6 +40,7 @@ Cite only these, by author and work or by standard and number:
 - Composition: Hofmann, *Graphic Design Manual*; Arnheim, *Art and Visual Perception*; Albers, *Interaction of Color*; Gerstner, *Designing Programmes*.
 - Grids and information: Tufte, *The Visual Display of Quantitative Information*; Samara, *Making and Breaking the Grid*; Lupton, *Thinking with Type*.
 - Practice and standards: Butterick, *Practical Typography*; Nielsen and Nielsen Norman Group; WCAG; Apple Human Interface Guidelines; Material Design; Norman, *The Design of Everyday Things*; Krug, *Don't Make Me Think*; Itten, *The Art of Color*; Wathan and Schoger, *Refactoring UI*; Wilke, *Fundamentals of Data Visualization*; Few.
+- Template tells only: Damir Sokolovsky, unslop, for the entries of the "Template tells" section of the checklist and for no other point.
 
 Never cite Robin Williams, *The Non-Designer's Design Book*. Give a page or section number only when the reference entry or approved fix gives it. Never invent a source or a figure. A point no approved source states is still worth making when it matters: argue it on its own terms.
 
