@@ -26,7 +26,7 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 
 ## Each round after that
 
-1. Fix from the top of the last work order. Take the findings in `rank` order. Each has a `location` (with a `selector` and a `box` when one was measured), a `target`, and a `fix_direction`. Fix as many as you can do well in one pass, from the top; the findings with `rank` null come last.
+1. Fix from the top of the last work order. Wait until the work-order agent has finished and the work order exists, and fix from it, not from `crit.md`: the work order has the measured places and targets that the prose leaves out. Take the findings in `rank` order. Each has a `location` (with a `selector` and a `box` when one was measured), a `target`, and a `fix_direction`. Fix as many as you can do well in one pass, from the top; the findings with `rank` null come last.
 2. Capture into `<loop folder>/round-<n>`, the same way as in round 1.
 3. When round 1 printed a Jev evidence file, run `node <design-critic folder>/scripts/jev-recheck.mjs <evidence file> after.png` with Bash, from the user's working folder, where `after.png` is this round's image. It asks Jev about the new image only when crit runs and `TYPESAFE_API_KEY` is set, and prints the path of the recheck file, or nothing. Never read, print, or pass on the key. Do not use the file to judge a finding yourself; it is for the recheck critic.
 4. Start a fresh recheck critic with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`. Use this prompt, with the placeholders filled, the facts line only when this round has a `facts.json`, and the Jev line only when step 3 printed a path:
