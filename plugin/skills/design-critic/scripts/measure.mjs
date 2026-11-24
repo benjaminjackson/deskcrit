@@ -4,7 +4,7 @@
 // act on (a CSS selector and a pixel box), where from an image alone it judges by eye (PRD FR-79).
 //
 // Usage:
-//   node measure.mjs PAGE [--out FOLDER] [--desktop] [--phone] [--tablet] [--widescreen] [--width N[,N...]]
+//   node measure.mjs PAGE [--out FOLDER] [--desktop] [--phone] [--tablet] [--widescreen] [--width N[,N...]] [--dark]
 //
 // PAGE is a local HTML file or an http(s) URL. It writes, into FOLDER or a new folder in the system
 // temp folder: desktop.png (1280 px wide), phone.png (390 px wide), tablet.png (768 px wide), and
@@ -17,10 +17,19 @@
 // first, in the order desktop, phone, tablet, widescreen, then the w<N> ones in the order given.
 // With none of them it renders all four named viewports.
 //
+// Without --dark it renders in light mode only. With --dark it also checks each viewport for a dark
+// mode (PRD FR-85): first whether the page's computed colors change when the system asks for dark,
+// then, if not, whether a visible control named dark, light, theme, or appearance makes the page
+// darker. When one does, it writes a dark entry named <name>-dark right after the light one, with
+// <name>-dark.png and its crops, and facts.json records how it found dark mode; when none does, a
+// note says so.
+//
 // It uses Playwright, which it never installs. It looks for `playwright` first in the project of
 // the working directory, then in packs/ of the deskcrit checkout that holds this script. It opens
 // the page in a new browser context with no cookies, follows no link, and runs no script of its own
-// in the page other than code that reads layout and styles and scrolls the window.
+// in the page other than code that reads layout and styles and scrolls the window. Only with --dark
+// does it click anything: at most two theme controls per viewport, never a link, a submit button,
+// or a control inside a form, each in a fresh context.
 //
 // Exit codes: 0 when it measured, 2 for a wrong command line, 3 when it cannot measure because the
 // page cannot be opened (404, redirect, does not load), 4 when Playwright or its Chromium is missing.
@@ -75,8 +84,23 @@ export const TEXT_SNIPPET_LENGTH = 60;
 /** Characters per line is measured on at most this many characters of a block, so a huge block cannot stall the run. */
 export const MAX_MEASURED_CHARACTERS = 1500;
 
-/** The color scheme the page is rendered in; a page with a dark mode is measured in its light mode. */
+/** The color scheme the page is rendered in; a page with a dark mode is measured in its light mode, and in its dark mode too only with --dark. */
 const COLOR_SCHEME = "light";
+
+/** A theme control's name holds one of these whole words; "Highlights", "Lightbox", and "Flight" do not match. */
+const THEME_CONTROL_PATTERN = /\b(dark|light|theme|appearance)\b/i;
+
+/** The roles a theme control may have; a link is never one of them. */
+const THEME_CONTROL_ROLES = [
+  "button",
+  "switch",
+  "checkbox",
+  "menuitem",
+  "radio",
+];
+
+/** How long to wait, after a click on a theme control or a dark load, for the network and for transitions. */
+const THEME_SETTLE_TIMEOUT_MS = 2_000;
 
 /** How long to wait for the page's load event before measuring what is there. */
 const LOAD_TIMEOUT_MS = 30_000;
@@ -89,7 +113,7 @@ export const EXIT_CANNOT_MEASURE = 3;
 export const EXIT_TOOL_MISSING = 4;
 
 const USAGE =
-  "usage: node measure.mjs PAGE [--out FOLDER] [--desktop] [--phone] [--tablet] [--widescreen] [--width N[,N...]]   (PAGE is an HTML file or an http(s) URL; each flag at most once; each N a whole number from 200 to 3840)";
+  "usage: node measure.mjs PAGE [--out FOLDER] [--desktop] [--phone] [--tablet] [--widescreen] [--width N[,N...]] [--dark]   (PAGE is an HTML file or an http(s) URL; each flag at most once; each N a whole number from 200 to 3840)";
 
 // The version is the one that packs/package.json pins. Keep the two the same.
 const PLAYWRIGHT_MISSING =
@@ -1560,16 +1584,21 @@ function firstLineOf(error) {
 }
 
 /**
- * Opens the page in one viewport, in light mode, and waits for it to settle: the load event, a
+ * Opens the page in one viewport, in light mode unless the caller names dark, and waits for it to settle: the load event, a
  * quiet network, and web fonts, each with a time limit. A page that never settles is still
  * measured, and the returned notes say what did not finish. An HTTP error status refuses the page.
  * It also returns the URL the browser ended on, which differs from the one asked after a redirect.
  */
-async function openPage(browser, viewport, pageUrl) {
+async function openPage(
+  browser,
+  viewport,
+  pageUrl,
+  colorScheme = COLOR_SCHEME,
+) {
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: 1,
-    colorScheme: COLOR_SCHEME,
+    colorScheme,
   });
   const page = await context.newPage();
   const notes = [];
@@ -1790,6 +1819,460 @@ export function widthViewports(text) {
   return viewports;
 }
 
+// ---------------------------------------------------------------------------------------------
+// Dark mode, only with --dark (PRD FR-85). The pure functions here are tested without a browser.
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * Returns true when a control's accessible name or text holds one of the whole words dark, light,
+ * theme, or appearance, so the control may switch the page's color scheme.
+ *
+ * @param {string} name
+ * @returns {boolean}
+ */
+export function isThemeControlName(name) {
+  return THEME_CONTROL_PATTERN.test(name);
+}
+
+/**
+ * Returns true when two color probes (see readColorProbe) differ in any value that both hold. A key
+ * that is null on either side, because its element was not found in that load, is left out, so an
+ * element that only one load has does not count as a dark mode.
+ *
+ * @param {Record<string, string | null>} lightProbe
+ * @param {Record<string, string | null>} darkProbe
+ * @returns {boolean}
+ */
+export function colorsDiffer(lightProbe, darkProbe) {
+  for (const [key, lightValue] of Object.entries(lightProbe)) {
+    const darkValue = darkProbe[key];
+    if (lightValue === null || darkValue === null || darkValue === undefined) {
+      continue;
+    }
+    if (lightValue !== darkValue) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Returns the name of a viewport's dark entry, which also names its screenshot and crops.
+ *
+ * @param {string} name
+ * @returns {string}
+ */
+export function darkViewportName(name) {
+  return `${name}-dark`;
+}
+
+/**
+ * Returns the relative luminance of the page background in a color probe: the body's background
+ * over the html element's background over white, the color a browser shows behind the page.
+ *
+ * @param {Record<string, string | null>} probe
+ * @returns {number}
+ */
+export function pageBackgroundLuminance(probe) {
+  let color = { red: 255, green: 255, blue: 255, alpha: 1 };
+  for (const key of ["html background-color", "body background-color"]) {
+    const layer = parseCssColor(probe[key] ?? "");
+    if (layer !== null) {
+      color = compositeColor(layer, color);
+    }
+  }
+  return relativeLuminance(color);
+}
+
+/**
+ * Joins the dark-mode results of the viewports into the top-level dark_mode record and its notes.
+ * The system setting wins over a toggle, and a toggle over none. When some viewports have a dark
+ * entry and others do not, each viewport without one gets a note with its reason. When none has
+ * one, one top-level note gives the reasons.
+ *
+ * @param {{ name: string, foundBy: "system_setting" | "toggle" | "none", control?: { name: string, selector: string }, reason?: string }[]} results one per light viewport, in order
+ * @returns {{ darkMode: { found_by: string, control?: { name: string, selector: string } }, notes: string[], viewportNotes: Map<string, string> }}
+ */
+export function summarizeDarkMode(results) {
+  const viewportNotes = new Map();
+  const bySystem = results.some(
+    (result) => result.foundBy === "system_setting",
+  );
+  const byToggle = results.find((result) => result.foundBy === "toggle");
+  if (!bySystem && byToggle === undefined) {
+    const reasons = [];
+    for (const result of results) {
+      if (result.reason !== undefined && !reasons.includes(result.reason)) {
+        reasons.push(result.reason);
+      }
+    }
+    return {
+      darkMode: { found_by: "none" },
+      notes: [
+        `--dark: no dark mode was found, so no -dark entry is written: ${reasons.join("; ")}`,
+      ],
+      viewportNotes,
+    };
+  }
+  for (const result of results) {
+    if (result.foundBy === "none") {
+      viewportNotes.set(
+        result.name,
+        `--dark: no dark entry for this viewport, though other viewports have one: ${result.reason}`,
+      );
+    }
+  }
+  if (bySystem) {
+    return {
+      darkMode: { found_by: "system_setting" },
+      notes: [],
+      viewportNotes,
+    };
+  }
+  return {
+    darkMode: { found_by: "toggle", control: byToggle.control },
+    notes: [],
+    viewportNotes,
+  };
+}
+
+/**
+ * Runs inside the page. Reads the computed text and background color of html, body, and each
+ * selector given, and the image each img element chose, into one flat object. A selector whose
+ * element is missing gives null.
+ *
+ * @param {string[]} selectors
+ */
+function readColorProbe(selectors) {
+  const probe = {};
+  const elements = [
+    ["html", document.documentElement],
+    ["body", document.body],
+  ];
+  for (const selector of selectors) {
+    let element = null;
+    try {
+      element = document.querySelector(selector);
+    } catch {
+      // A selector this page cannot read counts as missing.
+    }
+    elements.push([selector, element]);
+  }
+  for (const [key, element] of elements) {
+    if (element === null) {
+      probe[`${key} color`] = null;
+      probe[`${key} background-color`] = null;
+      continue;
+    }
+    const style = getComputedStyle(element);
+    probe[`${key} color`] = style.color;
+    probe[`${key} background-color`] = style.backgroundColor;
+  }
+  const images = document.querySelectorAll("img");
+  for (let index = 0; index < images.length; index += 1) {
+    probe[`img ${index} currentSrc`] = images[index].currentSrc;
+  }
+  return probe;
+}
+
+/**
+ * Waits up to THEME_SETTLE_TIMEOUT_MS for the network to go quiet and for every running transition
+ * or finite animation to end, so colors are read after a theme change and not halfway through it.
+ */
+async function waitForThemeToSettle(page) {
+  try {
+    await page.waitForLoadState("networkidle", {
+      timeout: THEME_SETTLE_TIMEOUT_MS,
+    });
+  } catch {
+    // The network is still busy; read the colors anyway.
+  }
+  await page.evaluate((timeout) => {
+    const finishing = [];
+    for (const animation of document.getAnimations()) {
+      // An animation that repeats forever never finishes, so only finite ones are awaited.
+      if (animation.effect?.getComputedTiming().endTime !== Infinity) {
+        finishing.push(animation.finished.catch(() => undefined));
+      }
+    }
+    return Promise.race([
+      Promise.all(finishing),
+      new Promise((resolveTimer) => setTimeout(resolveTimer, timeout)),
+    ]);
+  }, THEME_SETTLE_TIMEOUT_MS);
+}
+
+/**
+ * Runs inside the page on one element. Says whether a script may click it as a theme control (not
+ * in a link, not a submit button, not inside a form), and gives its name, a CSS selector that finds
+ * it, and its place in document order.
+ *
+ * @param {Element} element
+ */
+function describeThemeControl(element) {
+  const control = element.tagName === "LABEL" ? element.control : element;
+  const inForm =
+    element.closest("form") !== null ||
+    (control !== null &&
+      control !== undefined &&
+      control.form !== null &&
+      control.form !== undefined);
+  const inLink = element.closest("a[href]") !== null;
+  const type = (element.getAttribute("type") ?? "").toLowerCase();
+  const isSubmit =
+    (element.tagName === "BUTTON" && type === "submit") ||
+    (element.tagName === "INPUT" && (type === "submit" || type === "image"));
+  const name = (element.getAttribute("aria-label") ?? element.textContent ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+  let selector;
+  if (
+    element.id &&
+    document.querySelectorAll(`#${CSS.escape(element.id)}`).length === 1
+  ) {
+    selector = `#${CSS.escape(element.id)}`;
+  } else {
+    const steps = [];
+    let node = element;
+    while (node !== null && node !== document.documentElement) {
+      let position = 1;
+      let sibling = node.previousElementSibling;
+      while (sibling !== null) {
+        if (sibling.tagName === node.tagName) {
+          position += 1;
+        }
+        sibling = sibling.previousElementSibling;
+      }
+      steps.unshift(`${node.tagName.toLowerCase()}:nth-of-type(${position})`);
+      node = node.parentElement;
+    }
+    selector = ["html", ...steps].join(" > ");
+  }
+  const order = [...document.querySelectorAll("*")].indexOf(element);
+  return { clickable: !inForm && !inLink && !isSubmit, name, selector, order };
+}
+
+/**
+ * Finds the visible theme controls a script may click: elements with a control role whose name is
+ * a theme word, and buttons and labels whose text is one. It returns them with their locators,
+ * those named dark first, then in document order.
+ */
+async function findThemeControls(page) {
+  const locators = [];
+  for (const role of THEME_CONTROL_ROLES) {
+    locators.push(page.getByRole(role, { name: THEME_CONTROL_PATTERN }));
+  }
+  locators.push(
+    page
+      .locator("button, [role=button], label")
+      .filter({ hasText: THEME_CONTROL_PATTERN }),
+  );
+  const controls = new Map();
+  for (const locator of locators) {
+    for (const item of await locator.all()) {
+      if (!(await item.isVisible())) {
+        continue;
+      }
+      const described = await item.evaluate(describeThemeControl);
+      if (!described.clickable || controls.has(described.selector)) {
+        continue;
+      }
+      controls.set(described.selector, { ...described, locator: item });
+    }
+  }
+  const sorted = [...controls.values()];
+  sorted.sort((first, second) => {
+    const firstDark = /dark/i.test(first.name) ? 0 : 1;
+    const secondDark = /dark/i.test(second.name) ? 0 : 1;
+    if (firstDark !== secondDark) {
+      return firstDark - secondDark;
+    }
+    return first.order - second.order;
+  });
+  return sorted;
+}
+
+/**
+ * Clicks a theme control and reports whether the page is now darker than the light render. It
+ * returns "darker", "same", or the address the click moved the page to.
+ */
+async function clickThemeControl(page, control, selectors, lightLuminance) {
+  const addressBefore = page.url();
+  await control.locator.click({ timeout: THEME_SETTLE_TIMEOUT_MS });
+  await waitForThemeToSettle(page);
+  if (page.url() !== addressBefore) {
+    return { outcome: "moved", address: page.url() };
+  }
+  const probe = await page.evaluate(readColorProbe, selectors);
+  if (pageBackgroundLuminance(probe) < lightLuminance) {
+    return { outcome: "darker" };
+  }
+  return { outcome: "same" };
+}
+
+/**
+ * Looks for a dark mode in one viewport and, when it finds one, measures it as that viewport's
+ * dark entry. First it loads the page with the system set to dark and compares its colors with the
+ * light load's; when they differ, it measures that load. Otherwise it opens a fresh light page,
+ * clicks the first theme control, and, when that opened a menu, a newly shown control named dark.
+ * A click counts only when the page background is then darker than the light render's.
+ *
+ * @returns the dark-mode result for summarizeDarkMode, the dark entry or null, its texts, and the URL the browser ended on
+ */
+async function measureDarkMode(
+  browser,
+  viewport,
+  pageUrl,
+  outputFolder,
+  lines,
+  selectors,
+  lightProbe,
+) {
+  const entryName = darkViewportName(viewport.name);
+  const systemDark = await openPage(browser, viewport, pageUrl, "dark");
+  await waitForThemeToSettle(systemDark.page);
+  const darkProbe = await systemDark.page.evaluate(readColorProbe, selectors);
+  if (colorsDiffer(lightProbe, darkProbe)) {
+    const measured = await measureViewport(
+      systemDark.page,
+      viewport,
+      entryName,
+      systemDark.notes,
+      outputFolder,
+      lines,
+    );
+    await systemDark.context.close();
+    return {
+      result: { name: viewport.name, foundBy: "system_setting" },
+      measured,
+      finalUrl: systemDark.finalUrl,
+    };
+  }
+  await systemDark.context.close();
+
+  const lightLuminance = pageBackgroundLuminance(lightProbe);
+  const toggled = await openPage(browser, viewport, pageUrl);
+  const noDark = (reason) => ({
+    result: { name: viewport.name, foundBy: "none", reason },
+    measured: null,
+    finalUrl: toggled.finalUrl,
+  });
+  try {
+    const controls = await findThemeControls(toggled.page);
+    if (controls.length === 0) {
+      return noDark(
+        "the colors do not change when the system asks for dark, and no control named dark, light, theme, or appearance is visible",
+      );
+    }
+    const first = controls[0];
+    let clicked = first;
+    let click = await clickThemeControl(
+      toggled.page,
+      first,
+      selectors,
+      lightLuminance,
+    );
+    if (click.outcome === "same") {
+      // The first click may have opened a menu; a second click is allowed only on a control named
+      // dark that was not visible before it.
+      const shownBefore = new Set(controls.map((control) => control.selector));
+      const shownNow = await findThemeControls(toggled.page);
+      const second = shownNow.find(
+        (control) =>
+          /dark/i.test(control.name) && !shownBefore.has(control.selector),
+      );
+      if (second !== undefined) {
+        clicked = second;
+        click = await clickThemeControl(
+          toggled.page,
+          second,
+          selectors,
+          lightLuminance,
+        );
+      }
+    }
+    if (click.outcome === "moved") {
+      return noDark(
+        `clicking the control "${clicked.name}" moved the page to ${click.address}, so its dark mode was not measured`,
+      );
+    }
+    if (click.outcome === "same") {
+      return noDark(
+        `the colors do not change when the system asks for dark, and clicking the control "${clicked.name}" did not make the page background darker`,
+      );
+    }
+    const measured = await measureViewport(
+      toggled.page,
+      viewport,
+      entryName,
+      toggled.notes,
+      outputFolder,
+      lines,
+    );
+    return {
+      result: {
+        name: viewport.name,
+        foundBy: "toggle",
+        control: { name: clicked.name, selector: clicked.selector },
+      },
+      measured,
+      finalUrl: toggled.finalUrl,
+    };
+  } finally {
+    await toggled.context.close();
+  }
+}
+
+/**
+ * Measures one open page as one facts entry: writes `<entryName>.png` and its crops, reads the
+ * page, and summarizes it. The light entry and the dark entry of a viewport both go through here.
+ * It leaves the page open and returns the entry, its texts, and the raw blocks and targets.
+ */
+async function measureViewport(
+  page,
+  viewport,
+  entryName,
+  notes,
+  outputFolder,
+  lines,
+) {
+  const screenshotName = `${entryName}.png`;
+  const screenshotPath = join(outputFolder, screenshotName);
+  await page.screenshot({
+    path: screenshotPath,
+    fullPage: true,
+    animations: "disabled",
+  });
+  lines.push(`screenshot ${screenshotPath}`);
+  const crops = await writeCrops(
+    outputFolder,
+    { ...viewport, name: entryName },
+    screenshotPath,
+  );
+  for (const crop of crops) {
+    lines.push(`crop ${join(outputFolder, crop.file)}`);
+  }
+  const raw = await page.evaluate(readPage, {
+    maxBlocks: MAX_TEXT_BLOCKS,
+    maxTargets: MAX_TARGETS,
+    snippetLength: TEXT_SNIPPET_LENGTH,
+    maxCharacters: MAX_MEASURED_CHARACTERS,
+  });
+  await readRenderedFamilies(page, raw.blocks);
+  const summary = summarizeViewport({
+    ...raw,
+    name: entryName,
+    width: viewport.width,
+    height: viewport.height,
+    notes,
+  });
+  return {
+    entry: { ...summary.viewport, screenshot: screenshotName, crops },
+    texts: summary.texts,
+    raw,
+  };
+}
+
 /**
  * Measures the page in each viewport and writes the screenshots, crops, and facts.json. It returns
  * the lines to print. It throws a MeasureRefusal when it cannot measure.
@@ -1798,12 +2281,14 @@ export function widthViewports(text) {
  * @param {string} outputFolder
  * @param {string} workingDirectory
  * @param {{ name: string, width: number, height: number }[]} viewportList the viewports to render, in order: any of VIEWPORTS, any from widthViewports, or both; VIEWPORTS when left out
+ * @param {boolean} dark true for --dark: also look for a dark mode and measure it (FR-85)
  */
 export async function measurePage(
   pageArgument,
   outputFolder,
   workingDirectory,
   viewportList = VIEWPORTS,
+  dark = false,
 ) {
   const pageUrl = toPageUrl(pageArgument);
   const playwright = loadPlaywright(workingDirectory);
@@ -1823,6 +2308,7 @@ export async function measurePage(
   const texts = {};
   const viewports = [];
   const finalUrls = new Set();
+  const darkResults = [];
   try {
     for (const viewport of viewportList) {
       const { context, page, notes, finalUrl } = await openPage(
@@ -1833,41 +2319,50 @@ export async function measurePage(
       if (finalUrl !== pageUrl) {
         finalUrls.add(finalUrl);
       }
-      const screenshotName = `${viewport.name}.png`;
-      const screenshotPath = join(outputFolder, screenshotName);
-      await page.screenshot({
-        path: screenshotPath,
-        fullPage: true,
-        animations: "disabled",
-      });
-      lines.push(`screenshot ${screenshotPath}`);
-      const crops = await writeCrops(outputFolder, viewport, screenshotPath);
-      for (const crop of crops) {
-        lines.push(`crop ${join(outputFolder, crop.file)}`);
-      }
-      const raw = await page.evaluate(readPage, {
-        maxBlocks: MAX_TEXT_BLOCKS,
-        maxTargets: MAX_TARGETS,
-        snippetLength: TEXT_SNIPPET_LENGTH,
-        maxCharacters: MAX_MEASURED_CHARACTERS,
-      });
-      await readRenderedFamilies(page, raw.blocks);
-      await context.close();
-      const summary = summarizeViewport({
-        ...raw,
-        name: viewport.name,
-        width: viewport.width,
-        height: viewport.height,
+      const light = await measureViewport(
+        page,
+        viewport,
+        viewport.name,
         notes,
-      });
-      for (const [selector, text] of summary.texts) {
+        outputFolder,
+        lines,
+      );
+      let selectors = [];
+      let lightProbe = null;
+      if (dark) {
+        // The colors to compare: those of the text blocks and targets this light render found.
+        selectors = [
+          ...light.raw.blocks.map((block) => block.selector),
+          ...light.raw.targets.map((target) => target.selector),
+        ];
+        lightProbe = await page.evaluate(readColorProbe, selectors);
+      }
+      await context.close();
+      for (const [selector, text] of light.texts) {
         texts[selector] = text;
       }
-      viewports.push({
-        ...summary.viewport,
-        screenshot: screenshotName,
-        crops,
-      });
+      viewports.push(light.entry);
+      if (dark) {
+        const found = await measureDarkMode(
+          browser,
+          viewport,
+          pageUrl,
+          outputFolder,
+          lines,
+          selectors,
+          lightProbe,
+        );
+        darkResults.push(found.result);
+        if (found.finalUrl !== pageUrl) {
+          finalUrls.add(found.finalUrl);
+        }
+        if (found.measured !== null) {
+          for (const [selector, text] of found.measured.texts) {
+            texts[selector] = text;
+          }
+          viewports.push({ ...found.measured.entry, color_scheme: "dark" });
+        }
+      }
     }
   } finally {
     await browser.close();
@@ -1876,14 +2371,27 @@ export async function measurePage(
     version: FACTS_VERSION,
     source: pageArgument,
     color_scheme: COLOR_SCHEME,
-    notes: [VIOLATIONS_NOTE],
   };
+  let darkNotes = [];
+  if (dark) {
+    const summary = summarizeDarkMode(darkResults);
+    facts.dark_mode = summary.darkMode;
+    darkNotes = summary.notes;
+    for (const entry of viewports) {
+      const note = summary.viewportNotes.get(entry.name);
+      if (note !== undefined) {
+        entry.notes.push(note);
+      }
+    }
+  }
+  facts.notes = [VIOLATIONS_NOTE];
   if (finalUrls.size > 0) {
     facts.final_url = [...finalUrls].join(" ");
     facts.notes.push(
       `the browser ended on ${facts.final_url}, not on ${pageUrl}; the facts describe the page it ended on`,
     );
   }
+  facts.notes.push(...darkNotes);
   facts.texts = texts;
   facts.viewports = viewports;
   const factsPath = join(outputFolder, "facts.json");
@@ -1894,11 +2402,11 @@ export async function measurePage(
 
 /**
  * Reads the arguments after the script path into the page, the output folder (undefined when
- * --out is not given), and the viewports to render, in order. It returns null for a wrong command
+ * --out is not given), the viewports to render, in order, and whether --dark was given. It returns null for a wrong command
  * line: no page, an unknown flag, a flag given twice, a value missing, or a bad --width list.
  *
  * @param {string[]} commandArguments
- * @returns {{ pageArgument: string, folderArgument: string | undefined, viewportList: { name: string, width: number, height: number }[] } | null}
+ * @returns {{ pageArgument: string, folderArgument: string | undefined, viewportList: { name: string, width: number, height: number }[], dark: boolean } | null}
  */
 export function readCommandLine(commandArguments) {
   let parsed;
@@ -1915,6 +2423,7 @@ export function readCommandLine(commandArguments) {
         phone: { type: "boolean" },
         tablet: { type: "boolean" },
         widescreen: { type: "boolean" },
+        dark: { type: "boolean" },
       },
       allowPositionals: true,
       strict: true,
@@ -1958,7 +2467,12 @@ export function readCommandLine(commandArguments) {
       viewportList = [...viewportList, ...widthList];
     }
   }
-  return { pageArgument, folderArgument, viewportList };
+  return {
+    pageArgument,
+    folderArgument,
+    viewportList,
+    dark: values.dark === true,
+  };
 }
 
 /**
@@ -1974,7 +2488,7 @@ export async function runMeasure(commandArguments, workingDirectory) {
   if (commandLine === null) {
     return { exitCode: EXIT_USAGE, lines: [USAGE] };
   }
-  const { pageArgument, folderArgument, viewportList } = commandLine;
+  const { pageArgument, folderArgument, viewportList, dark } = commandLine;
   const folderGiven = folderArgument !== undefined;
   try {
     // Check the page before making the output folder, so a wrong path leaves nothing behind.
@@ -1991,6 +2505,7 @@ export async function runMeasure(commandArguments, workingDirectory) {
       outputFolder,
       workingDirectory,
       viewportList,
+      dark,
     );
     return { exitCode: 0, lines };
   } catch (error) {

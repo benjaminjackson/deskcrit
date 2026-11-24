@@ -1,0 +1,38 @@
+<!doctype html>
+<!--
+  A page with a dark mode that only a button turns on, for measure.mjs --dark (PRD FR-85,
+  crit-9w5.4). It has no prefers-color-scheme rule. evals/measure/browser-check.mjs measures it
+  with --dark and checks that facts.json has a desktop-dark entry with color_scheme dark and
+  dark_mode.found_by toggle, with a control named "Dark mode"; dark-toggle.facts.json is its
+  committed output from a --dark run.
+  Known values: light is #111111 text on #ffffff; the button adds the class dark to html, which
+  makes it #eeeeee text on #121212.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Dark by toggle</title>
+  <style>
+    @font-face {
+      font-family: "Inter";
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url("../../packs/_renderer/fonts/inter-latin-400-normal.woff2") format("woff2");
+    }
+    body { margin: 0; background: #ffffff; color: #111111; font-family: "Inter", sans-serif; }
+    html.dark body { background: #121212; color: #eeeeee; }
+    main { padding: 40px; }
+    h1 { margin: 0 0 24px; font-size: 32px; line-height: 40px; font-weight: 400; }
+    p { margin: 0 0 24px; font-size: 16px; line-height: 24px; max-width: 40ch; }
+    button { font: inherit; font-size: 16px; padding: 8px 16px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 id="title">Dark on request</h1>
+    <p id="body">This page turns dark only when a person presses the button below it.</p>
+    <button id="theme" type="button" onclick="document.documentElement.classList.toggle('dark')">Dark mode</button>
+  </main>
+</body>
+</html>

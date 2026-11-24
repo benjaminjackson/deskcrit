@@ -21,8 +21,29 @@
       "type": "string"
     },
     "color_scheme": {
-      "description": "The color scheme the page was rendered in. The script always asks for light, so a page with a dark mode is measured in its light mode.",
+      "description": "The color scheme of the entries that do not name one. These entries are always light, so a page with a dark mode is measured in its light mode; with --dark, its dark mode gets entries of its own, each with color_scheme dark.",
       "const": "light"
+    },
+    "dark_mode": {
+      "description": "Optional, written only with --dark (FR-85): how the script found the page's dark mode. system_setting: the computed colors change when the system asks for dark. toggle: a visible control named dark, light, theme, or appearance made the page background darker; control names it. none: neither, so no -dark entry is written and a note says why. Added 2026-11-24 (crit-9w5.4); a file without it was written without --dark.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["found_by"],
+      "properties": {
+        "found_by": {
+          "enum": ["system_setting", "toggle", "none"]
+        },
+        "control": {
+          "description": "Only for a toggle: the control the script clicked, by its name and a CSS selector that finds it.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "selector"],
+          "properties": {
+            "name": { "type": "string" },
+            "selector": { "type": "string" }
+          }
+        }
+      }
     },
     "notes": {
       "description": "What applies to the whole file, such as a redirect. Empty when nothing does.",
@@ -43,7 +64,7 @@
       }
     },
     "viewports": {
-      "description": "One entry per viewport the page was rendered in: by default desktop (1280 x 800 px), phone (390 x 844 px), tablet (768 x 1024 px), and widescreen (1920 x 1080 px), in that order. The flags --desktop, --phone, --tablet, and --widescreen pick some of these, in the same order, and --width adds one entry per width after them, in the order given, named w<N> and 800 px tall. Desktop is first only in the default order, so a reader finds a viewport by its name and never by its position.",
+      "description": "One entry per viewport the page was rendered in: by default desktop (1280 x 800 px), phone (390 x 844 px), tablet (768 x 1024 px), and widescreen (1920 x 1080 px), in that order. The flags --desktop, --phone, --tablet, and --widescreen pick some of these, in the same order, and --width adds one entry per width after them, in the order given, named w<N> and 800 px tall. With --dark, each viewport that has a dark mode gets a second entry named <name>-dark right after it. Desktop is first only in the default order, so a reader finds a viewport by its name and never by its position.",
       "type": "array",
       "minItems": 1,
       "items": {
@@ -91,11 +112,24 @@
       ],
       "properties": {
         "name": {
-          "description": "The viewport's name, which also names its screenshot and crops; w<N> for a width given with --width.",
+          "description": "The viewport's name, which also names its screenshot and crops; w<N> for a width given with --width. A name that ends in -dark is the dark entry of the viewport before it (--dark, FR-85).",
           "anyOf": [
             { "enum": ["desktop", "phone", "tablet", "widescreen"] },
-            { "type": "string", "pattern": "^w[1-9][0-9]{2,3}$" }
+            { "type": "string", "pattern": "^w[1-9][0-9]{2,3}$" },
+            {
+              "enum": [
+                "desktop-dark",
+                "phone-dark",
+                "tablet-dark",
+                "widescreen-dark"
+              ]
+            },
+            { "type": "string", "pattern": "^w[1-9][0-9]{2,3}-dark$" }
           ]
+        },
+        "color_scheme": {
+          "description": "Optional, written only on a dark entry (--dark, FR-85): dark. An entry without it is in the top-level color_scheme. Added 2026-11-24 (crit-9w5.4).",
+          "enum": ["light", "dark"]
         },
         "width": {
           "description": "The viewport width in CSS pixels.",

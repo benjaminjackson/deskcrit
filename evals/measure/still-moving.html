@@ -1,0 +1,33 @@
+<!doctype html>
+<!--
+  A page with no dark mode that still changes between any two loads, for measure.mjs --dark (PRD
+  FR-85, crit-9w5.4). A clock changes its text every 100 ms, and a link named "Theme" leads to
+  another page. evals/measure/browser-check.mjs measures it with --dark and checks that
+  dark_mode.found_by is none: the moving clock is not a dark mode, and the script never follows a
+  link, so the "Theme" link is never clicked. A click on it would load still-moving.html?followed,
+  and measure.mjs writes a note when a click changes the address, so the check also finds no such note.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Still moving</title>
+  <style>
+    body { margin: 0; background: #ffffff; color: #111111; font-family: sans-serif; }
+    main { padding: 40px; }
+    p { font-size: 16px; line-height: 24px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p id="clock">0</p>
+    <p><a id="theme-link" href="still-moving.html?followed">Theme</a></p>
+  </main>
+  <script>
+    let ticks = 0;
+    setInterval(() => {
+      ticks += 1;
+      document.getElementById("clock").textContent = String(ticks);
+    }, 100);
+  </script>
+</body>
+</html>
