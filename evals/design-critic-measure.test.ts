@@ -15,11 +15,13 @@ import {
   findMainStyle,
   findViolations,
   formatFactsJson,
+  guardDarkMode,
   isLargeText,
   isThemeControlName,
   measureContrast,
   measureLines,
   nameDrawnFont,
+  nameFromAriaSnapshot,
   parseCssColor,
   planScreenCrops,
   readCommandLine,
@@ -445,6 +447,44 @@ describe("dark mode", () => {
         { "img 0 currentSrc": "a-dark.png" },
       ),
     ).toBe(true);
+  });
+
+  it("reads a control's accessible name from its ARIA snapshot", () => {
+    expect(nameFromAriaSnapshot('- button "Dark mode"')).toBe("Dark mode");
+    expect(nameFromAriaSnapshot('- switch "Night \\"dark\\" theme"')).toBe(
+      'Night "dark" theme',
+    );
+    expect(
+      nameFromAriaSnapshot(
+        '- checkbox "Use dark appearance"\n- text: Use dark appearance',
+      ),
+    ).toBe("Use dark appearance");
+    expect(nameFromAriaSnapshot("- text: Light")).toBe("Light");
+    expect(nameFromAriaSnapshot("")).toBeNull();
+  });
+
+  it("turns a failed dark-mode check into no dark mode with the reason", async () => {
+    const failed = await guardDarkMode("desktop", async () => {
+      throw new Error("locator.click: Timeout 2000ms exceeded.\nCall log:");
+    });
+    expect(failed).toEqual({
+      result: {
+        name: "desktop",
+        foundBy: "none",
+        reason:
+          "the dark-mode check failed: locator.click: Timeout 2000ms exceeded.",
+      },
+      measured: null,
+      finalUrl: null,
+      failed: true,
+    });
+    const found = await guardDarkMode("phone", async () => ({
+      result: { name: "phone", foundBy: "system_setting" },
+      measured: null,
+      finalUrl: "file:///page.html",
+    }));
+    expect(found.failed).toBe(false);
+    expect(found.result.foundBy).toBe("system_setting");
   });
 
   it("names a dark entry <name>-dark", () => {

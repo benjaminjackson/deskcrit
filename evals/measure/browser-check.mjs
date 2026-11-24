@@ -9,7 +9,9 @@
 // With --dark (FR-85, crit-9w5.4) it checks dark-media.html (dark through the system setting),
 // dark-toggle.html (dark through a "Dark mode" button), known-values.html (no dark mode, so no
 // -dark.png and a note), and still-moving.html (a ticking clock and a "Theme" link: no dark mode,
-// and the link is not followed); the first two are compared with their committed .facts.json.
+// and the link is not followed), and dark-covered.html (a covered "Dark mode" button whose click
+// times out: still exit 0, found_by none, and a note that the check failed); dark-media and
+// dark-toggle are compared with their committed .facts.json.
 // It also serves pages from a local HTTP server to check that a 404 is refused with one line, that
 // a redirect is recorded, and that a page that does not open gives one line. Then it compares the
 // parts of each facts.json that do not depend on the machine with the committed
@@ -425,6 +427,18 @@ check(
   stillMoving.facts.final_url === undefined &&
     !stillMoving.factsText.includes("followed"),
   "still-moving --dark: the Theme link was followed",
+);
+
+const darkCovered = await measureCommittedPage(
+  "evals/measure/dark-covered.html",
+  ["--dark"],
+);
+checkDarkRun("dark-covered --dark", darkCovered, "none");
+check(
+  darkCovered.facts.notes.some((note) =>
+    note.includes("the dark-mode check failed"),
+  ),
+  `dark-covered --dark: no note says the dark-mode check failed: ${JSON.stringify(darkCovered.facts.notes)}`,
 );
 
 // HTTP: a 404, a redirect, and a page that does not open.

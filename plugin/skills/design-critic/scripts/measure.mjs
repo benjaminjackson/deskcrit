@@ -36,7 +36,7 @@
 // On codes 2, 3, and 4 it prints exactly one line. On code 4 the line names the install commands.
 
 import { existsSync, mkdirSync, mkdtempSync, realpathSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -1937,6 +1937,58 @@ export function summarizeDarkMode(results) {
 }
 
 /**
+ * Reads a control's accessible name, as the browser computes it, from Playwright's ARIA snapshot of
+ * the element: the quoted name on the first line with a role, such as `- checkbox "Dark mode"`, or
+ * the text of a `- text:` line for a label that names a control elsewhere. It returns null when the
+ * snapshot holds neither.
+ *
+ * @param {string} snapshot
+ * @returns {string | null}
+ */
+export function nameFromAriaSnapshot(snapshot) {
+  for (const line of snapshot.split("\n")) {
+    // The name is written as a JSON-style quoted string after the role: `- role "name" [state]`.
+    const named = /^\s*- [\w-]+ ("(?:[^"\\]|\\.)*")/.exec(line);
+    if (named !== null) {
+      return JSON.parse(named[1]);
+    }
+  }
+  for (const line of snapshot.split("\n")) {
+    const text = /^\s*- text: (.+)$/.exec(line);
+    if (text !== null) {
+      return text[1].trim();
+    }
+  }
+  return null;
+}
+
+/**
+ * Runs one viewport's dark-mode check and turns any error in it, such as a click that times out or
+ * a page load that fails, into a result with no dark mode and a note with the reason, so a failed
+ * dark-mode check never stops a run whose light entries measured fine. The result has `failed`
+ * true, so the caller can remove the files a half-finished dark entry wrote.
+ *
+ * @param {string} viewportName
+ * @param {() => Promise<{ result: { name: string, foundBy: string, control?: { name: string, selector: string }, reason?: string }, measured: object | null, finalUrl: string }>} attempt
+ */
+export async function guardDarkMode(viewportName, attempt) {
+  try {
+    return { ...(await attempt()), failed: false };
+  } catch (error) {
+    return {
+      result: {
+        name: viewportName,
+        foundBy: "none",
+        reason: `the dark-mode check failed: ${firstLineOf(error)}`,
+      },
+      measured: null,
+      finalUrl: null,
+      failed: true,
+    };
+  }
+}
+
+/**
  * Runs inside the page. Reads the computed text and background color of html, body, and each
  * selector given, and the image each img element chose, into one flat object. A selector whose
  * element is missing gives null.
@@ -2077,7 +2129,19 @@ async function findThemeControls(page) {
       if (!described.clickable || controls.has(described.selector)) {
         continue;
       }
-      controls.set(described.selector, { ...described, locator: item });
+      // The accessible name as the browser computes it, which counts aria-labelledby and <label>;
+      // the text the page script read is kept only when the snapshot holds no name.
+      let accessibleName = null;
+      try {
+        accessibleName = nameFromAriaSnapshot(await item.ariaSnapshot());
+      } catch {
+        // No snapshot; keep the text the page script read.
+      }
+      controls.set(described.selector, {
+        ...described,
+        name: accessibleName ?? described.name,
+        locator: item,
+      });
     }
   }
   const sorted = [...controls.values()];
@@ -2343,17 +2407,26 @@ export async function measurePage(
       }
       viewports.push(light.entry);
       if (dark) {
-        const found = await measureDarkMode(
-          browser,
-          viewport,
-          pageUrl,
-          outputFolder,
-          lines,
-          selectors,
-          lightProbe,
+        const linesBefore = lines.length;
+        const found = await guardDarkMode(viewport.name, () =>
+          measureDarkMode(
+            browser,
+            viewport,
+            pageUrl,
+            outputFolder,
+            lines,
+            selectors,
+            lightProbe,
+          ),
         );
+        if (found.failed) {
+          // Remove the screenshot and crops a half-finished dark entry wrote, and their lines.
+          for (const line of lines.splice(linesBefore)) {
+            await rm(line.slice(line.indexOf(" ") + 1), { force: true });
+          }
+        }
         darkResults.push(found.result);
-        if (found.finalUrl !== pageUrl) {
+        if (found.finalUrl !== null && found.finalUrl !== pageUrl) {
           finalUrls.add(found.finalUrl);
         }
         if (found.measured !== null) {
