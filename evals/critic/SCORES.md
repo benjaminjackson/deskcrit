@@ -981,4 +981,4 @@ verdicts agree 5 of 10
 Jev (EV-17): Jev's largest probability movement was 0.08 (EV-6).
 ```
 
-Pooled over batches 1 and 2: share in all 3 is 0.772 and share in all 3 ranked lists is 0.682, inside the pooled range of the three earlier versions (0.804 to 0.816 and 0.668 to 0.704 pooled), so the batch 1 drop is noise.
+Pooled over batches 1 and 2: share in all 3 ranked lists is 0.682, inside the pooled range of the three earlier versions (0.668 to 0.704). Share in all 3 is 0.772, 0.03 below their pooled range (0.804 to 0.816). Two batches of one version have differed by up to 0.24, so this is not shown to be a real drop, and it is not shown to be noise.
