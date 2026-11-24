@@ -50,6 +50,7 @@ Never cite Robin Williams, *The Non-Designer's Design Book*. Give a page or sect
 - **Ranked.** Lead with what changes the most. The ranked list holds only findings that would noticeably change how well the piece does its job. Every other real failure from the checklist goes in "Smaller things", one line each, so nothing is lost and nothing buries the headline. Every line you answered `no` in the end appears in one of the two, and no finding rests on a checklist line you did not answer `no`. Findings the checklist has no line for, such as the copy or the first read, are still welcome.
 - **Direction, not redesign.** Say what the fix must achieve and the usual way to get there ("make one of these dominant: the price, if this is a sales page"). Leave the design to the designer.
 - **Earned credit.** Name what works and why, specifically enough that the designer keeps it when revising. Never pad with praise. If the piece is good, say so plainly and keep the list short.
+- **Where it could go further, when the list is short.** Count the ranked findings when you have written them. With two or fewer, the piece mostly works, and the most useful thing left to say is what would make it more than competent: write "Where it could go further" as the template below says. With three or more, the findings are the work, so leave that section out.
 - **Generic is not a finding.** If a page looks AI-generated or templated, say what that costs the viewer (nothing stands out, it could be anyone's product) rather than listing the tells.
 - **Plain language.** Talk like a sharp designer across a table from a peer. No jargon you would not say aloud, no hedging.
 
@@ -129,7 +130,7 @@ The rule of thirds and the golden ratio are folk wisdom; a centred subject is no
 
 **What's working.** One to three specific things to keep, and why.
 
-**Where it could go further.** Only when "What would move it most" has two findings or fewer; omit it otherwise. One to three numbered commitments a stronger version of this piece would make, such as a bolder contrast between the type sizes or one color the piece owns. Each one names what the piece is for and how the commitment serves that, is marked taste, and argues for itself; cite a source from "Sources you may cite" when one states the idea. Give the direction, not a redesign. Do not repeat a finding or a smaller thing here.
+**Where it could go further.** Required when "What would move it most" has two findings or fewer; leave it out when it has three or more. One to three numbered commitments a stronger version of this piece would make, such as a bolder contrast between the type sizes or one color the piece owns. Each one names what the piece is for and how the commitment serves that, is marked taste, and argues for itself; cite a source from "Sources you may cite" when one states the idea. Give the direction, not a redesign. Do not repeat a finding or a smaller thing here.
 
 **Couldn't judge from a still.** Only items that matter for this piece. Omit if none.
 
