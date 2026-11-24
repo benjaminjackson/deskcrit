@@ -798,3 +798,14 @@ describe("runRepeat live, with a stub critic and a stub judge", () => {
     );
   });
 });
+
+describe("runRepeat --parallel", () => {
+  it("stops with a usage error on a value that is not a positive integer", async () => {
+    for (const value of ["0", "-1", "1.5", "lots"]) {
+      await expect(
+        // The value is refused before the options are read, so an empty object is enough.
+        runRepeat([`--parallel=${value}`], {} as never),
+      ).rejects.toThrow("--parallel must be a whole number of 1 or more");
+    }
+  });
+});

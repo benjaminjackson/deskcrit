@@ -12,9 +12,11 @@ import {
   buildPairRequest,
   COMPARE_FOCUS,
   type CompareOptions,
+  DEFAULT_PARALLEL,
   formatSummaryLine,
   JEV_FIGURES_LINE,
   parseChoice,
+  parseParallel,
   runCompare,
   runPooled,
   toPreference,
@@ -243,5 +245,31 @@ describe("runCompare", () => {
     for (const pair of PAIRS) {
       expect(output.errorText).toContain(pair.pair_id);
     }
+  });
+});
+
+describe("parseParallel", () => {
+  it("gives 40 when --parallel is absent", () => {
+    expect(DEFAULT_PARALLEL).toBe(40);
+    expect(parseParallel(undefined)).toBe(40);
+  });
+
+  it("accepts a whole number of 1 or more", () => {
+    expect(parseParallel("1")).toBe(1);
+    expect(parseParallel("64")).toBe(64);
+  });
+
+  it("rejects zero, a negative number, a fraction, and a word", () => {
+    for (const text of ["0", "-3", "2.5", "many", "", "4x"]) {
+      expect(() => parseParallel(text)).toThrow("--parallel must be");
+    }
+  });
+});
+
+describe("runCompare --parallel", () => {
+  it("stops with a usage error on a value that is not a positive integer", async () => {
+    await expect(
+      runCompare(["--parallel", "0"], {} as CompareOptions),
+    ).rejects.toThrow("--parallel must be a whole number of 1 or more");
   });
 });
