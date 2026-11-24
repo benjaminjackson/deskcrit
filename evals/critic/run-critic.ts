@@ -7,12 +7,13 @@
 // It asks a model, so `npm run ci` never runs it (CS-21); a person starts run mode by hand.
 //
 // Usage:
-//   node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--runs-dir DIR] [--note TEXT] [--facts FILE] IMAGE...
-//   node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] [--facts FILE] IMAGE...
+//   node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--runs-dir DIR] [--note TEXT] [--facts FILE] [--jev-evidence FILE] IMAGE...
+//   node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] [--facts FILE] [--jev-evidence FILE] IMAGE...
 //   node evals/critic/run-critic.ts --help
 // Each image on the command line is a separate one-image request. A request may carry a measured
 // facts file (FR-79): its SHA-256 joins the request key and its prompt line joins the prompt hash,
-// so a run with facts never shares a saved run with one without.
+// so a run with facts never shares a saved run with one without. A Jev evidence file (FR-78), from
+// the skill's scripts/jev-evidence.mjs, joins the key and the prompt hash in the same way.
 //
 // Exit codes: 0 when every request has its crits, 1 when replay finds an image with no saved crit,
 // and 2 when the runner could not run.
@@ -120,17 +121,38 @@ export const FACTS_PROMPT_LINE =
 /** The name the facts file gets in the work folder: neutral, so it never names a fixture. */
 export const WORK_FACTS_FILE_NAME = "facts.json";
 
+/**
+ * The line that SKILL.md step 2 says to add when scripts/jev-evidence.mjs printed a path (FR-78).
+ * It is not in CRITIC_PROMPT_TEMPLATE, so a run without Jev evidence keeps the prompt, and the
+ * prompt hash, it had before Jev evidence existed.
+ */
+export const JEV_EVIDENCE_PROMPT_LINE =
+  "Jev evidence file: <absolute path the script printed>";
+
+/** The name the Jev evidence file gets in the work folder: neutral, so it never names a fixture. */
+export const WORK_JEV_EVIDENCE_FILE_NAME = "jev-evidence.txt";
+
 /** The Image(s) line of the template, which the facts line follows. */
 const IMAGES_PROMPT_LINE = "Image(s): <absolute paths>";
 
-/** Returns the prompt template of a request: with the facts line after the Image(s) line when it has facts. */
-export function promptTemplate(withFacts: boolean): string {
-  if (!withFacts) {
+/**
+ * Returns the prompt template of a request: the facts line after the Image(s) line when it has
+ * facts, and the Jev evidence line after those when it has Jev evidence.
+ */
+export function promptTemplate(withFacts: boolean, withJev = false): string {
+  let addedLines = "";
+  if (withFacts) {
+    addedLines += `\n${FACTS_PROMPT_LINE}`;
+  }
+  if (withJev) {
+    addedLines += `\n${JEV_EVIDENCE_PROMPT_LINE}`;
+  }
+  if (addedLines === "") {
     return CRITIC_PROMPT_TEMPLATE;
   }
   return CRITIC_PROMPT_TEMPLATE.replace(
     IMAGES_PROMPT_LINE,
-    `${IMAGES_PROMPT_LINE}\n${FACTS_PROMPT_LINE}`,
+    `${IMAGES_PROMPT_LINE}${addedLines}`,
   );
 }
 
@@ -157,6 +179,8 @@ export type CritRequest = {
   readonly note?: string;
   readonly focus?: string;
   readonly factsPath?: string;
+  /** The file scripts/jev-evidence.mjs wrote: the criteria Jev fired on (FR-78). */
+  readonly jevEvidencePath?: string;
 };
 
 /** One saved run: its number, the crit text, its metadata, and both file paths. */
@@ -223,13 +247,20 @@ export function buildPrompt(
   note: string | undefined,
   focus: string | undefined,
   factsPath?: string,
+  jevEvidencePath?: string,
 ): string {
-  let prompt = promptTemplate(factsPath !== undefined).replaceAll(
-    "<skill folder>",
-    skillDirectory,
-  );
+  let prompt = promptTemplate(
+    factsPath !== undefined,
+    jevEvidencePath !== undefined,
+  ).replaceAll("<skill folder>", skillDirectory);
   if (factsPath !== undefined) {
     prompt = prompt.replace("<absolute path of facts.json>", factsPath);
+  }
+  if (jevEvidencePath !== undefined) {
+    prompt = prompt.replace(
+      "<absolute path the script printed>",
+      jevEvidencePath,
+    );
   }
   prompt = prompt.replace("<absolute paths>", imagePaths.join(", "));
   prompt = prompt.replace(
@@ -249,9 +280,12 @@ export function buildPrompt(
  * Returns what a new run would be made with. A run with a facts file has the template with the
  * facts line, so its prompt hash differs; a run without one keeps the hash of the saved runs.
  */
-export function currentRunIdentity(withFacts = false): RunIdentity {
+export function currentRunIdentity(
+  withFacts = false,
+  withJev = false,
+): RunIdentity {
   return {
-    prompt_sha256: sha256(promptTemplate(withFacts)),
+    prompt_sha256: sha256(promptTemplate(withFacts, withJev)),
     model_requested: CRITIC_MODEL,
     isolation_flag: CRITIC_ISOLATION_FLAG,
     permission_mode: CRITIC_PERMISSION_MODE,
@@ -444,6 +478,7 @@ export function requestKey(
   note: string | undefined,
   focus: string | undefined,
   factsSha256?: string,
+  jevEvidenceSha256?: string,
 ): string {
   const onlyImage = imageSha256s[0];
   if (
@@ -451,7 +486,8 @@ export function requestKey(
     onlyImage !== undefined &&
     note === undefined &&
     focus === undefined &&
-    factsSha256 === undefined
+    factsSha256 === undefined &&
+    jevEvidenceSha256 === undefined
   ) {
     return onlyImage;
   }
@@ -462,6 +498,9 @@ export function requestKey(
   };
   if (factsSha256 !== undefined) {
     fields.facts = factsSha256;
+  }
+  if (jevEvidenceSha256 !== undefined) {
+    fields.jev = jevEvidenceSha256;
   }
   return sha256(JSON.stringify(fields));
 }
@@ -475,7 +514,17 @@ export function requestKeyOf(request: CritRequest): string {
     request.factsPath === undefined
       ? undefined
       : sha256(readFileSync(request.factsPath));
-  return requestKey(imageSha256s, request.note, request.focus, factsSha256);
+  const jevEvidenceSha256 =
+    request.jevEvidencePath === undefined
+      ? undefined
+      : sha256(readFileSync(request.jevEvidencePath));
+  return requestKey(
+    imageSha256s,
+    request.note,
+    request.focus,
+    factsSha256,
+    jevEvidenceSha256,
+  );
 }
 
 /** Returns the run numbers found in a request folder, from both .md and .json file names. */
@@ -648,6 +697,12 @@ async function runCriticOnce(
       workFactsPath = join(workDirectory, WORK_FACTS_FILE_NAME);
       copyFileSync(request.factsPath, workFactsPath);
     }
+    // The Jev evidence file also goes in the work folder under a neutral name.
+    let workJevEvidencePath: string | undefined;
+    if (request.jevEvidencePath !== undefined) {
+      workJevEvidencePath = join(workDirectory, WORK_JEV_EVIDENCE_FILE_NAME);
+      copyFileSync(request.jevEvidencePath, workJevEvidencePath);
+    }
     const environment = process.env;
     const versionRun = await options.runClaude(
       ["--version"],
@@ -665,6 +720,7 @@ async function runCriticOnce(
       request.note,
       request.focus,
       workFactsPath,
+      workJevEvidencePath,
     );
     const startedAt = new Date();
     const run = await options.runClaude(
@@ -704,7 +760,10 @@ export async function ensureCrits(
     sha256(readFileSync(imagePath)),
   );
   const key = requestKeyOf(request);
-  const identity = currentRunIdentity(request.factsPath !== undefined);
+  const identity = currentRunIdentity(
+    request.factsPath !== undefined,
+    request.jevEvidencePath !== undefined,
+  );
   const requestDirectory = join(options.runsDirectory, commit, key);
   const currentRuns = () =>
     readSavedCrits(options.runsDirectory, commit, key, identity);
@@ -725,6 +784,14 @@ export async function ensureCrits(
               facts: {
                 sha256: sha256(readFileSync(request.factsPath)),
                 path: portablePath(request.factsPath, 1),
+              },
+            }),
+        ...(request.jevEvidencePath === undefined
+          ? {}
+          : {
+              jev_evidence: {
+                sha256: sha256(readFileSync(request.jevEvidencePath)),
+                path: portablePath(request.jevEvidencePath, 1),
               },
             }),
       },
@@ -781,8 +848,8 @@ export function runClaudeProcess(
 const HELP_TEXT = `Run the design critic headless, save each crit, or replay saved crits.
 
 Usage:
-  node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--runs-dir DIR] [--note TEXT] [--facts FILE] IMAGE...
-  node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] [--facts FILE] IMAGE...
+  node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--runs-dir DIR] [--note TEXT] [--facts FILE] [--jev-evidence FILE] IMAGE...
+  node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] [--facts FILE] [--jev-evidence FILE] IMAGE...
   node evals/critic/run-critic.ts --help
 
 Modes:
@@ -798,6 +865,9 @@ Flags:
   --facts FILE        a measured facts file (facts.json from the skill's scripts/measure.mjs) for
                       the one image named. The critic gets a copy named facts.json. replay needs
                       the facts file the run used.
+  --jev-evidence FILE a Jev evidence file (from the skill's scripts/jev-evidence.mjs) for the one
+                      image named. The critic gets a copy named jev-evidence.txt. replay needs the
+                      evidence file the run used.
   --runs-dir DIR      The folder that holds the saved runs (default evals/critic/runs).
   --help, -h          Print this help.
 
@@ -854,6 +924,7 @@ export async function runCriticCommand(
       runs: { type: "string" },
       note: { type: "string" },
       facts: { type: "string" },
+      "jev-evidence": { type: "string" },
       "runs-dir": { type: "string" },
       help: { type: "boolean", short: "h", default: false },
     },
@@ -887,6 +958,17 @@ export async function runCriticCommand(
       throw new Error("--facts goes with exactly one image");
     }
   }
+  // A Jev evidence file also describes one image.
+  let jevEvidencePath: string | undefined;
+  if (parsed.values["jev-evidence"] !== undefined) {
+    jevEvidencePath = resolve(parsed.values["jev-evidence"]);
+    if (!existsSync(jevEvidencePath)) {
+      throw new Error(`Jev evidence file ${jevEvidencePath} does not exist`);
+    }
+    if (imagePaths.length !== 1) {
+      throw new Error("--jev-evidence goes with exactly one image");
+    }
+  }
   const skillDirectory = resolve(
     parsed.values.skill ?? options.defaultSkillDirectory,
   );
@@ -907,12 +989,16 @@ export async function runCriticCommand(
         imagePaths: [imagePath],
         note: parsed.values.note,
         factsPath,
+        jevEvidencePath,
       });
       const saved = readSavedCrits(
         runsDirectory,
         commit,
         key,
-        currentRunIdentity(factsPath !== undefined),
+        currentRunIdentity(
+          factsPath !== undefined,
+          jevEvidencePath !== undefined,
+        ),
       );
       if (saved.length === 0) {
         missingImages.push(imagePath);
@@ -941,7 +1027,12 @@ export async function runCriticCommand(
   const commit = skillCommit(skillDirectory);
   for (const imagePath of imagePaths) {
     const saved = await ensureCrits(
-      { imagePaths: [imagePath], note: parsed.values.note, factsPath },
+      {
+        imagePaths: [imagePath],
+        note: parsed.values.note,
+        factsPath,
+        jevEvidencePath,
+      },
       {
         runsDirectory,
         skillDirectory,
