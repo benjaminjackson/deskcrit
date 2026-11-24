@@ -1,0 +1,210 @@
+/*
+ * Template for "Image that does not blend into the page" (crit-7hw.2, FR-54, EV-23), copied
+ * from the landing-light base. A landing page for Tilewright, an invented app that prices
+ * tiling jobs, on a warm off-white page. The hero visual is a screenshot of the app drawn in
+ * HTML and CSS, with no border. With the defect on, the screenshot keeps the cool near-white
+ * it was captured on, which almost matches the page and shows a hard-edged box. With it off,
+ * its background is the page's own, the fix that the rule names, so only its content shows.
+ * Two weights (400 and 500).
+ */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url("../../_renderer/fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+:root {
+  --page: #f6f2e9;
+  --shot-captured: #fbfbfb;
+  --text-strong: #2a2420;
+  --text-body: #4b433d;
+  --text-quiet: #6a615a;
+  --rule: #e0d9cc;
+  --dot: #d3ccbf;
+  --accent: #8a4b2a;
+}
+
+body {
+  background: var(--page);
+  color: var(--text-body);
+}
+
+.site-header {
+  width: 1120px;
+  margin: 0 auto;
+  padding: 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.site-nav {
+  display: flex;
+  gap: 32px;
+  font-size: 15px;
+}
+
+.site-nav a {
+  color: var(--text-body);
+  text-decoration: none;
+}
+
+.site-nav a[aria-current="page"] {
+  color: var(--text-strong);
+  font-weight: 500;
+}
+
+main {
+  width: 1120px;
+  margin: 0 auto;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 500px 1fr;
+  gap: 72px;
+  align-items: center;
+  padding: 48px 0 56px;
+}
+
+h1 {
+  font-size: 44px;
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--text-strong);
+  margin-bottom: 20px;
+}
+
+.lead {
+  font-size: 18px;
+  line-height: 1.55;
+  margin-bottom: 32px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.button {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.button-primary {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.link {
+  font-size: 15px;
+  color: var(--text-strong);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* The screenshot of the app. Its background is the page's own on the clean side. */
+.shot {
+  background: var(--page);
+}
+
+.shot-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.shot-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--dot);
+}
+
+.shot-name {
+  margin-left: 12px;
+  font-size: 13px;
+  color: var(--text-quiet);
+}
+
+.shot-body {
+  padding: 20px;
+}
+
+.quote {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.quote th {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-quiet);
+  text-align: left;
+  padding: 8px 0;
+}
+
+.quote td {
+  padding: 9px 0;
+  border-top: 1px solid var(--rule);
+  color: var(--text-strong);
+}
+
+.quote th:nth-child(3),
+.quote td:nth-child(3) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.quote tfoot td {
+  font-weight: 500;
+}
+
+.shot-status {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-quiet);
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--rule);
+}
+
+.feature h2 {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text-strong);
+  margin-bottom: 8px;
+}
+
+.feature p {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+/* The defect: the screenshot keeps the near-white it was captured on. */
+[data-defect="on"] .shot {
+  background: var(--shot-captured);
+}
