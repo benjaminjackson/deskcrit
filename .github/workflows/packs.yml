@@ -1,30 +1,21 @@
-# The pack checks (crit-q25.4, PRD FR-53, FR-54, EV-3, EV-4).
+# The pack checks (crit-q25.4, crit-mk9.3, PRD FR-54, EV-3).
 #
-# The validate job runs on every pull request and every push to main. It needs no secret and
-# makes no call to TypeSafe (CS-21). It runs `crit packs validate` on each folder under packs/
-# that holds a pack.yaml, with the built bundle, and then the offline FR-54 fixture-rules check
-# in evals/packs-fixture-rules.test.ts. It installs only the root package: never
-# packs/package.json or Playwright, because CI never renders a fixture (FR-54, NFR-3, OQ-17).
-#
-# The packs-test job runs only when a person starts this workflow by hand. It runs
-# `crit packs test`, which asks Jev, on each pack and keeps the output as a run artifact for a
-# person to look at. It is not the record of a pack's score: that is the answers the agreement
-# harness saves in evals/agreement/runs/ (FR-53). Its output never decides a criterion
-# (EV-4 rule 5) and never justifies changing a fixture (FR-54 rule 1).
+# The fixture-rules job runs on every pull request and every push to main. It needs no secret.
+# It runs the offline FR-54 fixture-rules check in evals/packs-fixture-rules.test.ts. It installs
+# only the root package: never packs/package.json or Playwright, because CI never renders a
+# fixture (FR-54, NFR-3, OQ-17).
 name: Packs
 
 on:
   pull_request:
   push:
     branches: [main]
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  validate:
-    if: github.event_name != 'workflow_dispatch'
+  fixture-rules:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,74 +24,5 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run build
-      - name: Validate every pack
-        run: |
-          pack_files=$(find packs -mindepth 2 -maxdepth 2 -name pack.yaml | LC_ALL=C sort)
-          if [ -z "$pack_files" ]; then
-            echo "No pack.yaml found under packs/. The path or the search is wrong."
-            exit 1
-          fi
-          failed=0
-          for pack_file in $pack_files; do
-            pack_directory=$(dirname "$pack_file")
-            echo "::group::crit packs validate $pack_directory"
-            if ! node dist/crit.js packs validate "$pack_directory"; then
-              failed=1
-            fi
-            echo "::endgroup::"
-          done
-          exit $failed
       - name: Check the fixture rules
         run: npx vitest run evals/packs-fixture-rules.test.ts
-
-  packs-test:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      # The one step that asks Jev. It is only for looking (FR-53). Its output never decides a
-      # criterion (EV-4 rule 5) and never justifies changing a fixture (FR-54 rule 1).
-      # It runs in evals/agreement so that crit reads the model pin in its .crit.yaml.
-      - name: Run crit packs test on every pack
-        working-directory: evals/agreement
-        env:
-          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
-        run: |
-          set -o pipefail
-          # crit writes no key and no raw SDK error to stderr (NFR-14, CS-19), so stderr goes into the artifact too.
-          if [ -z "$TYPESAFE_API_KEY" ]; then
-            echo "The TYPESAFE_API_KEY secret is not set, so crit packs test cannot run."
-            exit 2
-          fi
-          pack_files=$(find ../../packs -mindepth 2 -maxdepth 2 -name pack.yaml | LC_ALL=C sort)
-          if [ -z "$pack_files" ]; then
-            echo "No pack.yaml found under packs/. The path or the search is wrong."
-            exit 1
-          fi
-          mkdir -p "$RUNNER_TEMP/packs-test"
-          highest_exit_code=0
-          for pack_file in $pack_files; do
-            pack_directory=$(dirname "$pack_file")
-            pack_name=$(basename "$pack_directory")
-            echo "::group::crit packs test $pack_name"
-            exit_code=0
-            node ../../dist/crit.js packs test "$pack_directory" 2>&1 | tee "$RUNNER_TEMP/packs-test/$pack_name.txt" || exit_code=$?
-            echo "::endgroup::"
-            if [ "$exit_code" -gt "$highest_exit_code" ]; then
-              highest_exit_code=$exit_code
-            fi
-          done
-          exit $highest_exit_code
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: packs-test-output
-          path: ${{ runner.temp }}/packs-test/
-          if-no-files-found: ignore

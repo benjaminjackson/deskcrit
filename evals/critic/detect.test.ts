@@ -36,7 +36,6 @@ import {
   selectCriteria,
   selectPairs,
 } from "./detect.ts";
-import type { JevFinding } from "./jev-replay.ts";
 import { ensureJudgeAnswer } from "./judge.ts";
 import {
   type ClaudeRunner,
@@ -1026,105 +1025,6 @@ describe("runDetect --facts", () => {
     ).rejects.toThrow(
       /no facts file for packs\/tiny\/fixtures\/alpha\.positive\.png/,
     );
-  });
-});
-
-describe("runDetect --jev", () => {
-  it("gives the critic an evidence file only on images where Jev fired, apart from the runs without, and lists the fired rows", async () => {
-    const repository = buildTinyRepository();
-    const runsDirectory = newFolder();
-    const critPrompts: string[] = [];
-    const evidenceTexts: string[] = [];
-    const stub: ClaudeRunner = async (args, _environment, cwd) => {
-      if (args[0] === "--version") {
-        return { stdout: "2.0.0 (Claude Code)", stderr: "", exitCode: 0 };
-      }
-      if (args.includes("--json-schema")) {
-        return {
-          stdout: judgeStdout(answerSaying("present")),
-          stderr: "",
-          exitCode: 0,
-        };
-      }
-      const files = readdirSync(cwd).sort();
-      if (files.includes("jev-evidence.txt")) {
-        evidenceTexts.push(readFileSync(join(cwd, "jev-evidence.txt"), "utf8"));
-      }
-      critPrompts.push(`${args.at(-1) ?? ""}\nfiles: ${files.join(",")}`);
-      return {
-        stdout: criticStdout(`Crit ${critPrompts.length}.`),
-        stderr: "",
-        exitCode: 0,
-      };
-    };
-    // Jev fired on alpha.positive only; on alpha.negative it stayed quiet.
-    const finding = (
-      criterion: string,
-      title: string,
-      verdict: "fail" | "pass",
-    ): JevFinding => ({
-      criterion,
-      title,
-      verdict,
-      distribution: { true: verdict === "fail" ? 0.9 : 0.1 },
-      confidence: null,
-    });
-    const options = {
-      repositoryDirectory: repository,
-      runsDirectory,
-      skillDirectory: SKILL_DIRECTORY,
-      runClaude: stub,
-      readJevFindings: async () =>
-        new Map([
-          [
-            "packs/tiny/fixtures/alpha.positive.png",
-            [
-              finding("tiny/alpha", "Alpha defect", "fail"),
-              finding("tiny/beta", "Beta defect", "pass"),
-            ],
-          ],
-          [
-            "packs/tiny/fixtures/alpha.negative.png",
-            [finding("tiny/alpha", "Alpha defect", "pass")],
-          ],
-        ]),
-    } as const;
-    const without = await runDetect(
-      ["--skill-commit", COMMIT, "--live-only"],
-      options,
-    );
-    expect(without.exitCode).toBe(0);
-    expect(critPrompts).toHaveLength(4);
-    expect(critPrompts.join("\n")).not.toContain("Jev evidence file");
-
-    const withJev = await runDetect(
-      ["--skill-commit", COMMIT, "--jev"],
-      options,
-    );
-    expect(withJev.errorText).toBe("");
-    expect(withJev.exitCode).toBe(0);
-    // One new run: the image Jev fired on. The other three keep their runs without Jev.
-    expect(critPrompts).toHaveLength(5);
-    expect(critPrompts[4]).toMatch(
-      /\nJev evidence file: .*\/jev-evidence\.txt\n/,
-    );
-    expect(critPrompts[4]).toContain("files: image-1.png,jev-evidence.txt");
-    expect(evidenceTexts).toEqual([
-      "Jev evidence: high-confidence present; you set the location, severity, and rank.\n- Alpha defect (Jev's probability 0.90)\n",
-    ]);
-    expect(withJev.text).toContain("with Jev evidence on 1 of 4 images");
-    expect(withJev.text).toMatch(
-      /^tiny +alpha +shows-defect +fail +present +present$/m,
-    );
-    expect(withJev.text).not.toMatch(/^tiny +beta +\S+ +(fail|warn)/m);
-
-    const replayed = await runDetect(
-      ["--replay", "--skill-commit", COMMIT, "--jev", "--beside", COMMIT],
-      { ...options, runClaude: throwingRunner },
-    );
-    expect(replayed.errorText).toBe("");
-    expect(replayed.exitCode).toBe(0);
-    expect(replayed.text).toContain("01234567+jev raised");
   });
 });
 

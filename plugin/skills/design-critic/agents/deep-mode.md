@@ -18,7 +18,7 @@ These are the steps for the main thread, in place of step 2 of `SKILL.md`, when 
    When the report is done, end with the full report as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the full report.
    ```
 
-   When you have a measured facts file, add the line `Measured facts file: <absolute path of facts.json>` right after the `Image` line, as in step 2 of `SKILL.md`. The deep mode does not use the Jev evidence file.
+   When you have a measured facts file, add the line `Measured facts file: <absolute path of facts.json>` right after the `Image` line, as in step 2 of `SKILL.md`.
 
 3. Save each section critic's final message, exactly as it wrote it, with the Write tool as `section-<section>.md` in the folder from step 1.
 4. Spawn the director: one Agent tool call with `subagent_type: "general-purpose"` and `model: "opus"`, with this prompt and the placeholders filled. List the eight report paths in the order of step 2, separated by `, `. Add the facts line after the `Image` line when you have a facts file, as in step 2.

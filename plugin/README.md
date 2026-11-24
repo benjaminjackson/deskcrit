@@ -1,8 +1,8 @@
 # deskcrit plugin for Claude Code
 
-This plugin gives Claude Code two skills. The `crit-loop` skill tells a coding agent how to check its UI work with `crit`: take a screenshot, run `crit report`, fix the top findings, take a new screenshot, run `crit compare` and `crit gate`, and stop when the gate passes or two rounds in a row improve nothing. The plugin only runs the CLI. `crit` decides every verdict and threshold. The rules are in [docs/PRD.md](../docs/PRD.md).
+This plugin gives Claude Code two skills. The `crit-loop` skill tells a coding agent how to check its UI work: capture the page, run the design-critic skill, fix the top findings from its work order, capture again, have a fresh critic recheck each finding, and stop when no ranked finding is left or two rounds in a row close nothing. The rules are in [docs/PRD.md](../docs/PRD.md).
 
-The `design-critic` skill critiques a still image of a design the way a senior design director would. It starts a Claude agent that walks a checklist of guidelines. It does not run `crit` and needs no TypeSafe key.
+The `design-critic` skill critiques a still image of a design the way a senior design director would. It starts a Claude agent that walks a checklist of guidelines. It needs no API key.
 
 To look at a large image closely, the critic runs `scripts/crop.mjs`, which cuts a PNG into full-resolution crops about one screen tall, or crops one box, into a new temporary folder. The script uses only Node's own modules (it reads the PNG with `node:zlib`), so the installed plugin needs no install step and no image library. For a file other than a PNG of 8 or 16 bits per sample, an interlaced PNG, or a broken file, it prints one line that says why, and the critic looks at the whole image.
 
@@ -10,50 +10,19 @@ When the page's code or URL is available, the critic can run `scripts/measure.mj
 
 The script needs the `playwright` package and its Chromium, and it never installs them. An installed plugin has no `node_modules` of its own, so the script finds Playwright only in the project it runs from: it looks for `playwright` from the `package.json` in the working directory. In a deskcrit checkout it also finds the copy in `packs/`. A project with no `package.json` has no place to find it, and a project that has only `@playwright/test` does not count, because the script loads the `playwright` package itself. In either case, run `npm install playwright` and `npx playwright install chromium` in the project. Without Playwright, the script prints one line that says this and exits with code 3, and the critic works from the image alone.
 
-`crit` does not take screenshots. The agent takes them with its own browser tool or with Playwright.
-
 ## Install
 
 1. Install Node.js 22 or later.
-2. Make the `crit` command available. The repository `benjaminjackson/deskcrit` is private for now, so the clone below and `/plugin marketplace add` in step 5 need read access to it and git credentials for GitHub. Until the `deskcrit` package is published to npm, build it from a clone of this repository:
-
-   ```sh
-   git clone https://github.com/benjaminjackson/deskcrit.git
-   cd deskcrit
-   npm ci
-   npm run build
-   npm link
-   ```
-
-   When the package is published, `npx deskcrit` runs the command with no install step.
-3. Check that the command runs. In the clone, this checks a bundled pack, needs no key, and prints `pack basics is valid`:
-
-   ```sh
-   crit packs validate packs/basics
-   ```
-
-4. Set your TypeSafe key in your shell, for example in your shell profile:
-
-   ```sh
-   export TYPESAFE_API_KEY=...
-   ```
-
-   `crit` reads the key only from the `TYPESAFE_API_KEY` environment variable. Do not put it in a file in your project. No file in this plugin holds a key.
-5. In Claude Code, add the marketplace:
+2. In Claude Code, add the marketplace. The repository `benjaminjackson/deskcrit` is private for now, so this needs read access to it and git credentials for GitHub:
 
    ```
    /plugin marketplace add benjaminjackson/deskcrit
    ```
 
-6. Install the plugin:
+3. Install the plugin:
 
    ```
    /plugin install deskcrit@deskcrit
    ```
 
-7. Run `/plugin` and check that the `crit-loop` and `design-critic` skills are listed.
-8. In the root of your project, set `screenshot` in `.crit.yaml` to the path where the agent keeps its latest screenshot:
-
-   ```yaml
-   screenshot: screenshots/latest.png
-   ```
+4. Run `/plugin` and check that the `crit-loop` and `design-critic` skills are listed.

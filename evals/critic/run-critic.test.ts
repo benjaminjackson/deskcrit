@@ -2,7 +2,7 @@
 // place of the `claude` child process, as the compare agreement script's test does, so no model
 // is asked (CS-21, CS-22). Each test works in its own temporary folder.
 
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -27,9 +27,7 @@ import {
   currentRunIdentity,
   ensureCrits,
   FACTS_PROMPT_LINE,
-  JEV_EVIDENCE_PROMPT_LINE,
   parseClaudeResult,
-  promptTemplate,
   readSavedCrits,
   requestKey,
   skillCommit,
@@ -632,9 +630,7 @@ describe("the command line", () => {
     });
     expect(help).toContain("run ");
     expect(help).toContain("replay ");
-    expect(help).toContain(
-      "[--note TEXT] [--facts FILE] [--jev-evidence FILE] IMAGE",
-    );
+    expect(help).toContain("[--note TEXT] [--facts FILE] IMAGE");
   });
 
   it("keeps the prompt template equal to the prompt block in step 2 of the skill's SKILL.md", () => {
@@ -791,179 +787,6 @@ describe("the committed runs", () => {
       expect(checked).toBeGreaterThan(0);
     });
   }
-});
-
-describe("a Jev evidence file (FR-78)", () => {
-  const evidenceScript = join(
-    REPOSITORY_ROOT,
-    "plugin",
-    "skills",
-    "design-critic",
-    "scripts",
-    "jev-evidence.mjs",
-  );
-  // A recorded `crit report --json`: two criteria fired (fail and warn), and three stayed quiet
-  // (uncertain and pass twice).
-  const recordedReport = join(
-    REPOSITORY_ROOT,
-    "evals",
-    "golden",
-    "cases",
-    "report-json",
-    "expected.stdout",
-  );
-  const firedTitles = [
-    "Body text is too faint to read",
-    "Chart labels are faint",
-  ];
-  const quietTitles = [
-    "Several elements compete to be seen first",
-    "Lines of body text are too long or too short",
-    "The heading is not larger than the body text",
-  ];
-
-  /** Runs the evidence script with only the given environment and returns what it printed. */
-  function runEvidenceScript(
-    args: string[],
-    environment: NodeJS.ProcessEnv,
-    workingDirectory: string,
-  ) {
-    return spawnSync(process.execPath, [evidenceScript, ...args], {
-      cwd: workingDirectory,
-      env: environment,
-      encoding: "utf8",
-    });
-  }
-
-  it("gives the critic the fired criteria of a recorded report and no quiet criterion", async () => {
-    const { root, imagePath, runsDirectory } = setUp();
-    const evidencePath = join(root, "evidence.txt");
-    const script = runEvidenceScript(
-      ["--report", recordedReport, "--out", evidencePath],
-      { PATH: process.env.PATH },
-      root,
-    );
-    expect(script.status).toBe(0);
-    expect(script.stdout).toBe(`${evidencePath}\n`);
-    expect(readFileSync(evidencePath, "utf8")).toBe(
-      "Jev evidence: high-confidence present; you set the location, severity, and rank.\n" +
-        "- Body text is too faint to read (Jev's probability 0.93)\n" +
-        "- Chart labels are faint (Jev's probability 0.96)\n",
-    );
-
-    let copiedEvidence = "";
-    const stub = recordingStub();
-    const runner: ClaudeRunner = async (args, environment, cwd) => {
-      if (args[0] !== "--version") {
-        copiedEvidence = readFileSync(join(cwd, "jev-evidence.txt"), "utf8");
-      }
-      return stub.runner(args, environment, cwd);
-    };
-    const saved = await ensureCrits(
-      { imagePaths: [imagePath], jevEvidencePath: evidencePath },
-      options(runsDirectory, runner),
-    );
-    const [critCall] = stub.critCalls();
-    const prompt = critCall?.args.at(-1) ?? "";
-    expect(prompt).toContain(
-      `${join(critCall?.cwd ?? "", "image-1.png")}\nJev evidence file: ${join(critCall?.cwd ?? "", "jev-evidence.txt")}\n`,
-    );
-    // Everything the critic gets: the prompt and the file it names.
-    const criticInput = `${prompt}\n${copiedEvidence}`;
-    for (const title of firedTitles) {
-      expect(criticInput).toContain(title);
-    }
-    for (const title of quietTitles) {
-      expect(criticInput).not.toContain(title);
-    }
-    expect(criticInput).not.toContain("golden/");
-
-    // The run has its own key and prompt hash, so it never shares a saved file with a run without Jev.
-    const metadata = saved[0]?.metadata ?? {};
-    expect(metadata.prompt_sha256).toBe(
-      currentRunIdentity(false, true).prompt_sha256,
-    );
-    expect(metadata.prompt_sha256).not.toBe(currentRunIdentity().prompt_sha256);
-    const request = metadata.request as {
-      images: { sha256: string }[];
-      jev_evidence: { sha256: string };
-    };
-    const imageSha256 = request.images[0]?.sha256 ?? "";
-    expect(saved[0]?.critPath).toContain(
-      join(
-        runsDirectory,
-        COMMIT,
-        requestKey(
-          [imageSha256],
-          undefined,
-          undefined,
-          undefined,
-          request.jev_evidence.sha256,
-        ),
-      ),
-    );
-    const withoutJev = await ensureCrits(
-      { imagePaths: [imagePath] },
-      options(runsDirectory, stub.runner),
-    );
-    expect(stub.critCalls()).toHaveLength(2);
-    expect(withoutJev[0]?.critPath).toContain(
-      join(runsDirectory, COMMIT, imageSha256),
-    );
-  });
-
-  it("prints nothing without the key, so the prompt stays byte-equal to the prompt without Jev", () => {
-    const { root, imagePath } = setUp();
-    // A crit on PATH that would print the recorded report, so only the missing key stops the script.
-    const binDirectory = join(root, "bin");
-    mkdirSync(binDirectory);
-    const fakeCrit = join(binDirectory, "crit");
-    writeFileSync(fakeCrit, `#!/bin/sh\ncat '${recordedReport}'\n`, {
-      mode: 0o755,
-    });
-    const path = `${binDirectory}:${process.env.PATH}`;
-    const withoutKey = runEvidenceScript([imagePath], { PATH: path }, root);
-    expect(withoutKey.status).toBe(0);
-    expect(withoutKey.stdout).toBe("");
-
-    // With the variable set, the same crit gives evidence; the test key is not a real key.
-    const withKey = runEvidenceScript(
-      [imagePath, "--out", join(root, "evidence.txt")],
-      { PATH: path, TYPESAFE_API_KEY: "not-a-real-key" },
-      root,
-    );
-    expect(withKey.status).toBe(0);
-    expect(withKey.stdout.trim()).toBe(join(root, "evidence.txt"));
-
-    // No evidence: the template and its hash are the ones from before Jev evidence existed.
-    expect(promptTemplate(false, false)).toBe(CRITIC_PROMPT_TEMPLATE);
-    expect(currentRunIdentity().prompt_sha256).toBe(
-      currentRunIdentity(false, false).prompt_sha256,
-    );
-  });
-
-  it("prints nothing when crit does not run, even with the key set", () => {
-    const { root, imagePath } = setUp();
-    const emptyBin = join(root, "empty-bin");
-    mkdirSync(emptyBin);
-    // PATH holds node's folder only, so neither crit nor npx is found.
-    const nodeFolder = join(process.execPath, "..");
-    const result = runEvidenceScript(
-      [imagePath],
-      { PATH: `${emptyBin}:${nodeFolder}`, TYPESAFE_API_KEY: "not-a-real-key" },
-      root,
-    );
-    expect(result.status).toBe(0);
-    expect(result.stdout).toBe("");
-  });
-
-  it("keeps the Jev evidence line equal to the line step 2 of the skill's SKILL.md says to add", () => {
-    const skillText = readFileSync(
-      join(REPOSITORY_ROOT, "plugin", "skills", "design-critic", "SKILL.md"),
-      "utf8",
-    );
-    expect(skillText).toContain(`   ${JEV_EVIDENCE_PROMPT_LINE}\n`);
-  });
 });
 
 describe("run --parallel", () => {

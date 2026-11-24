@@ -1,4 +1,4 @@
-// The no-key check of the EV-9 label file. It runs in npm run ci and asks TypeSafe nothing (CS-21).
+// The no-key check of the EV-9 label file. It runs in npm run ci and asks no model (CS-21).
 // It checks that every image the label file names exists, has an entry in its folder's
 // ATTRIBUTION.md, and is 2 MB or less (FR-54); that every target names a criterion its pack has;
 // that each targeted criterion's defect declaration in packs/_compare-pairs/ is the pack's own,

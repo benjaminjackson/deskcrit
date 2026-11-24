@@ -1,5 +1,7 @@
 # deskcrit: creative brief
 
+> Status, 2026-11-24: Jev and the `crit` command were removed (crit-mk9.3, `docs/PRD.md` section 1), and the design-critic plugin is the product. This brief is now a historical record of the first pitch.
+>
 > Status, 2026-10-23: this brief is the pitch as first written. `docs/PRD.md` is the specification and wins where the two differ. The PRD defers or changes six things this brief describes until after the spike or a second pack publisher: the pack marketplace with a cache and `crit packs add` (PRD FR-11, FR-53), tiling tall pages into crops (FR-8), criterion weights (FR-30), order-swapped pairwise compare (FR-36), inline packs in `.crit.yaml` (FR-52), and the separate `deskcrit-packs` repository, which the PRD folds into `packs/` in this repository (FR-53).
 
 ## One line

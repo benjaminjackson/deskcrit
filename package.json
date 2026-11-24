@@ -1,39 +1,16 @@
 {
   "name": "deskcrit",
   "version": "0.0.0",
-  "description": "A command-line design critic that asks TypeSafe's Jev model typed questions about a picture of a design.",
+  "description": "Development tooling for the deskcrit Claude Code plugin: the design-critic skill, its guideline packs, and their evaluations.",
   "license": "MIT",
   "type": "module",
-  "bin": {
-    "deskcrit": "dist/crit.js",
-    "crit": "dist/crit.js"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
-  "types": "dist/types/index.d.ts",
-  "files": [
-    "dist"
-  ],
   "engines": {
     "node": ">=22.0.0"
   },
   "scripts": {
-    "build": "node scripts/build.mjs",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p evals/agreement && tsc --noEmit -p evals/wobble && tsc --noEmit -p evals/adversarial && tsc --noEmit -p evals/packs-test && tsc --noEmit -p evals/critic",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p evals/agreement && tsc --noEmit -p evals/adversarial && tsc --noEmit -p evals/critic",
     "lint": "biome check --error-on-warnings",
-    "pretest": "npm run build",
     "test": "vitest run",
-    "test:live": "npm run test:live:packs; packs_code=$?; node evals/agreement/run-agreement.ts --live; agreement_code=$?; node evals/agreement/run-compare.ts --live; compare_code=$?; worst=$packs_code; if [ $agreement_code -gt $worst ]; then worst=$agreement_code; fi; if [ $compare_code -gt $worst ]; then worst=$compare_code; fi; exit $worst",
-    "test:live:packs": "node evals/packs-test/run-live.ts",
-    "eval:agreement": "node evals/agreement/run-agreement.ts",
-    "eval:compare": "node evals/agreement/run-compare.ts",
-    "test:live:compare": "node evals/agreement/run-compare.ts --live",
-    "eval:wobble": "node evals/wobble/run-wobble.ts",
-    "eval:adversarial": "node evals/adversarial/run-adversarial.ts",
     "eval:critic": "node evals/critic/run-critic.ts",
     "eval:critic:praise-text": "node evals/critic/praise-text.ts --replay",
     "eval:critic:compare": "node evals/critic/compare.ts --replay",
@@ -41,23 +18,19 @@
     "eval:critic:detect:refute": "node evals/critic/detect.ts --replay --refute --skill-commit 3a8d079b393465ca12ca83931416acd49717d971 --refuter-commit 0bad6cc60138f58ea84a2e2fd373375bbce1d3a3",
     "eval:critic:detect:deep": "node evals/critic/detect.ts --replay --deep --skill-commit b8ce97507396df2d86bdc20edc3a5fad21873ccc --beside 3a8d079b393465ca12ca83931416acd49717d971",
     "eval:critic:repeat": "node evals/critic/repeat.ts --replay",
-    "eval:critic:overlap": "node evals/critic/overlap.ts --replay",
-    "smoke": "node scripts/smoke.mjs",
-    "ci": "npm run lint && npm run typecheck && npm test && npm run build && npm run smoke",
-    "prepack": "npm run build",
+    "ci": "npm run lint && npm run typecheck && npm test",
     "eval:critic:thresholds": "node evals/critic/thresholds.ts --replay"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.2",
     "@types/node": "22.20.5",
     "ajv": "8.20.0",
-    "esbuild": "0.28.2",
     "typescript": "7.0.2",
     "vitest": "5.0.5",
     "yaml": "2.9.1"
   },
   "dependencies": {
-    "@typesafe-ai/sdk": "0.7.0",
     "sharp": "0.35.5"
-  }
+  },
+  "private": true
 }

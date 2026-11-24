@@ -142,7 +142,7 @@ export function deepRequestKey(
   return sha256(JSON.stringify({ mode: DEEP_MODE, key: singleKey }));
 }
 
-/** Throws unless a request is one the deep mode takes: one image, no focus, no Jev evidence. */
+/** Throws unless a request is one the deep mode takes: one image and no focus. */
 function checkDeepRequest(request: CritRequest): void {
   if (request.imagePaths.length !== 1) {
     throw new Error(
@@ -151,9 +151,6 @@ function checkDeepRequest(request: CritRequest): void {
   }
   if (request.focus !== undefined) {
     throw new Error("the deep mode takes no focus");
-  }
-  if (request.jevEvidencePath !== undefined) {
-    throw new Error("the deep mode does not use a Jev evidence file");
   }
 }
 

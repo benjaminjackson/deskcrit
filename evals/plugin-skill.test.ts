@@ -1,23 +1,20 @@
 // The durable check that the crit-loop plugin skill names real commands, real files, and real JSON
-// fields (FR-60, FR-69, FR-78, FR-82, crit-bts.1, crit-9td.1). It reads
+// fields (FR-69, FR-82, crit-bts.1, crit-9td.1). It reads
 // plugin/skills/crit-loop/SKILL.md and checks three things.
 //
-// First, every code span or fenced line that starts with "crit " or "node " is a command line that
-// its program accepts. Each line runs as a child process (CS-21), with each image name and each
+// First, every code span or fenced line that starts with "node " is a command line that its
+// program accepts. Each line runs as a child process (CS-21), with each image name and each
 // <placeholder> swapped for a path that does not exist, only PATH in the environment, and a new
-// empty working directory with no .crit.yaml. A "crit" line runs the built bundle, dist/crit.js,
-// and must stop on the missing image (exit 2, "cannot read image"). A "node" line runs the
-// design-critic script it names and must stop on the missing input that MISSING_INPUT_RESULTS
-// gives for that script. A line with an unknown flag or a wrong number of arguments stops on a
-// usage error instead. No line reaches TypeSafe or opens a browser.
+// empty working directory. A "node" line runs the design-critic script it names and must stop on
+// the missing input that MISSING_INPUT_RESULTS gives for that script. A line with an unknown flag
+// or a wrong number of arguments stops on a usage error instead. No line opens a browser.
 //
 // Second, every path under <design-critic folder> that the skill names exists.
 //
 // Third, every code span that looks like a JSON field or a dotted path (such as `rank` or
-// `closed_when.method`) is a field of one of the output schemas in schemas/: the report, compare,
-// and gate documents of crit, the work order (FR-80), and the measured facts file (FR-79). The test
-// reads the schema files as JSON and imports nothing from src/, so it still holds if crit is
-// rewritten in another language (AC-6).
+// `closed_when.method`) is a field of one of the schemas in schemas/: the work order (FR-80) or the
+// measured facts file (FR-79). The test reads the schema files as JSON and imports nothing from
+// src/ (AC-6).
 
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -25,7 +22,6 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
-import { runCritBundle } from "./support/run-crit-bundle.js";
 
 /** The repository root, one folder above evals/. */
 const REPOSITORY_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -48,18 +44,10 @@ const SKILL_TEXT = readFileSync(
 );
 
 /** The names of the output schemas, which are also the ids that their $ref values use. */
-type SchemaFileName =
-  | "report.schema.json"
-  | "compare.schema.json"
-  | "gate.schema.json"
-  | "work-order.schema.json"
-  | "facts.schema.json";
+type SchemaFileName = "work-order.schema.json" | "facts.schema.json";
 
 /** The schema file names, in the order the field check tries them. */
 const SCHEMA_FILE_NAMES: readonly SchemaFileName[] = [
-  "report.schema.json",
-  "compare.schema.json",
-  "gate.schema.json",
   "work-order.schema.json",
   "facts.schema.json",
 ];
@@ -78,9 +66,6 @@ function readSchema(fileName: SchemaFileName): SchemaNode {
 
 /** The schemas by file name, so a $ref such as "report.schema.json#/..." can be followed. */
 const SCHEMAS: Record<SchemaFileName, SchemaNode> = {
-  "report.schema.json": readSchema("report.schema.json"),
-  "compare.schema.json": readSchema("compare.schema.json"),
-  "gate.schema.json": readSchema("gate.schema.json"),
   "work-order.schema.json": readSchema("work-order.schema.json"),
   "facts.schema.json": readSchema("facts.schema.json"),
 };
@@ -242,7 +227,7 @@ function pathStartsAt(path: readonly string[], placed: PlacedNode): boolean {
 
 /**
  * Returns true when the dotted path is a field at any depth of any of the schemas. So `rank`
- * matches the rank of each work-order finding, and `gate.passed` matches the gate object. It walks
+ * matches the rank of each work-order finding, and `closed_when.method` matches a nested field. It walks
  * every object reachable from each schema root, and remembers the nodes it has seen so that a $ref
  * that points back up cannot loop.
  */
@@ -280,45 +265,29 @@ function findUnknownFields(text: string): string[] {
   return unknown;
 }
 
-/** A new empty working directory, so crit finds no .crit.yaml (FR-51). */
+/** A new empty working directory, so a script finds no file of the project. */
 const WORKING_DIRECTORY = mkdtempSync(join(tmpdir(), "crit-plugin-skill-"));
 
 /** A folder that never exists, so each input path under it cannot be read. */
 const MISSING_FOLDER = join(WORKING_DIRECTORY, "does-not-exist");
 
-/** Only PATH, so no TYPESAFE_API_KEY reaches crit or a script (CS-21). */
+/** Only PATH, so no key reaches a script (CS-21). */
 const ENVIRONMENT = { PATH: process.env.PATH ?? "" };
 
 afterAll(() => {
   rmSync(WORKING_DIRECTORY, { recursive: true, force: true });
 });
 
-/** Runs one crit command line with its image names swapped for paths under MISSING_FOLDER. */
-async function runCritWithMissingImages(commandLine: string) {
-  const words = commandLine.split(" ").slice(1);
-  const critArguments: string[] = [];
-  for (const word of words) {
-    if (word.endsWith(".png")) {
-      critArguments.push(join(MISSING_FOLDER, word));
-    } else {
-      critArguments.push(word);
-    }
-  }
-  return runCritBundle(critArguments, ENVIRONMENT, WORKING_DIRECTORY);
-}
-
 /** What a design-critic script gives when its input is missing: exit code and a piece of output. */
 type MissingInputResult = { exitCode: number; output: string };
 
 /**
  * The missing-input result of each script the skill may run. measure.mjs checks the page before it
- * looks for Playwright, so no browser opens. jev-recheck.mjs checks the key first, and the test
- * passes none, so it exits 0 and asks nothing. A script the skill names that is not in this table
+ * looks for Playwright, so no browser opens. A script the skill names that is not in this table
  * fails the test, so a new script gets a row here.
  */
 const MISSING_INPUT_RESULTS: Record<string, MissingInputResult> = {
   "measure.mjs": { exitCode: 3, output: "does not exist" },
-  "jev-recheck.mjs": { exitCode: 0, output: "TYPESAFE_API_KEY is not set" },
 };
 
 /**
@@ -339,7 +308,7 @@ function runNodeWithMissingInputs(commandLine: string): {
         word.replace(DESIGN_CRITIC_PLACEHOLDER, DESIGN_CRITIC_FOLDER),
       );
     } else if (word.startsWith("<") || word.endsWith(".png")) {
-      // A placeholder becomes a safe file name, so "<evidence file>" becomes "evidence-file".
+      // A placeholder becomes a safe file name, so "<round folder>" becomes "round-folder".
       const fileName = word.replace(/[<>]/g, "").replace(/\s+/g, "-");
       nodeArguments.push(join(MISSING_FOLDER, fileName));
     } else {
@@ -360,26 +329,15 @@ function runNodeWithMissingInputs(commandLine: string): {
 }
 
 describe("the crit-loop skill commands", () => {
-  const critLines = listCommandLines(SKILL_TEXT, "crit");
   const nodeLines = listCommandLines(SKILL_TEXT, "node");
 
-  it("names the measure and Jev recheck scripts", () => {
+  it("names the measure script", () => {
     // The script is the second word, such as <design-critic folder>/scripts/measure.mjs.
     const scriptNames = nodeLines.map(
       (commandLine) => splitWords(commandLine)[1]?.split("/").pop() ?? "",
     );
     expect(scriptNames).toContain("measure.mjs");
-    expect(scriptNames).toContain("jev-recheck.mjs");
   });
-
-  for (const commandLine of critLines) {
-    it(`passes the command-line check: ${commandLine}`, async () => {
-      const run = await runCritWithMissingImages(commandLine);
-      expect(run.exitCode).toBe(2);
-      expect(run.stderr).toContain("cannot read image");
-      expect(run.stderr).not.toContain("usage:");
-    });
-  }
 
   for (const commandLine of nodeLines) {
     it(`passes the command-line check: ${commandLine}`, () => {
@@ -397,24 +355,8 @@ describe("the crit-loop skill commands", () => {
 
   // Lines that are wrong on purpose. Each gives the usage error and not the missing-input error,
   // which shows that the checks above can fail.
-  const wrongCritLines = [
-    "crit report after.png --jsn",
-    "crit compar after.png --json",
-    "crit gate after.png --json --save-answers saved.json",
-    "crit compare after.png --json",
-  ];
-  for (const wrongLine of wrongCritLines) {
-    it(`fails the command-line check: ${wrongLine}`, async () => {
-      const run = await runCritWithMissingImages(wrongLine);
-      expect(run.exitCode).toBe(2);
-      expect(run.stderr).toContain("usage:");
-      expect(run.stderr).not.toContain("cannot read image");
-    });
-  }
   const wrongNodeLines = [
     "node <design-critic folder>/scripts/measure.mjs <page> --outt <round folder>",
-    "node <design-critic folder>/scripts/jev-recheck.mjs <evidence file>",
-    "node <design-critic folder>/scripts/jev-recheck.mjs <evidence file> after.png --after <x>",
   ];
   for (const wrongLine of wrongNodeLines) {
     it(`fails the command-line check: ${wrongLine}`, () => {

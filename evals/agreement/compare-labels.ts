@@ -1,6 +1,6 @@
 // The label file for EV-9: evals/compare-pairs/labels.json. Agents write the pair list with every
-// preference null, and only Benjamin Jackson fills in the preferences (EV-5, AC-5). The compare
-// agreement script and every agent only read the preferences. This module holds the one function
+// preference null, and only Benjamin Jackson fills in the preferences (EV-5, AC-5). The critic
+// compare evaluation and every agent only read the preferences. This module holds the one function
 // that checks the file (CS-7). It reads no file: the caller reads the text and passes it here.
 
 import { isAbsolute } from "node:path";

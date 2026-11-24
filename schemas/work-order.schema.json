@@ -1,16 +1,9 @@
 {
   "title": "deskcrit work order",
-  "description": "The work-order.json file that the design-critic skill writes beside the prose crit (docs/PRD.md FR-80): one entry per finding, for the coding agent that fixes the page. The work-order agent (plugin/skills/design-critic/agents/work-order.md) writes it from the finished crit, the image, the measured facts file of FR-79 when there is one, and the Jev evidence file of FR-78 when there is one. Written for JSON Schema draft 2020-12; the $schema keyword is left out by project rule, so a validator must be set to draft 2020-12. Every object rejects unknown fields, because the schema and the skill ship together. Pixel boxes are [x, y, width, height] in whole pixels of the image the critic saw. A box comes from the measured facts file or from a crop; when neither gives one, the box is null and box_source is none, never a guess. plugin/skills/design-critic/scripts/work-order.mjs checks what this schema cannot: that the ranked entries match the crit's ranked list one to one, and that each box is the box of the selector or crop it names.",
+  "description": "The work-order.json file that the design-critic skill writes beside the prose crit (docs/PRD.md FR-80): one entry per finding, for the coding agent that fixes the page. The work-order agent (plugin/skills/design-critic/agents/work-order.md) writes it from the finished crit, the image, and the measured facts file of FR-79 when there is one. Written for JSON Schema draft 2020-12; the $schema keyword is left out by project rule, so a validator must be set to draft 2020-12. Every object rejects unknown fields, because the schema and the skill ship together. Pixel boxes are [x, y, width, height] in whole pixels of the image the critic saw. A box comes from the measured facts file or from a crop; when neither gives one, the box is null and box_source is none, never a guess. plugin/skills/design-critic/scripts/work-order.mjs checks what this schema cannot: that the ranked entries match the crit's ranked list one to one, and that each box is the box of the selector or crop it names.",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "version",
-    "image",
-    "crit_file",
-    "facts_file",
-    "jev_evidence_file",
-    "findings"
-  ],
+  "required": ["version", "image", "crit_file", "facts_file", "findings"],
   "properties": {
     "version": {
       "description": "The version of this format. A change that a reader of version 1 cannot read raises it.",
@@ -47,7 +40,7 @@
       "type": ["string", "null"]
     },
     "jev_evidence_file": {
-      "description": "The path of the Jev evidence file (FR-78) the critic was given, or null when it had none.",
+      "description": "Removed with Jev on 2026-11-24 (crit-mk9.3). The skill no longer writes it. It stays defined, and optional, only so the work order committed in evals/critic/work-order/bad-page/ before the removal still validates. It held the path of the Jev evidence file the critic was given, or null.",
       "type": ["string", "null"]
     },
     "findings": {
@@ -289,7 +282,7 @@
       }
     },
     "jev": {
-      "description": "Present only when the finding matches a criterion in the Jev evidence file (FR-78). Absent when Jev did not fire on it or there was no evidence file; an absent field is not evidence of anything.",
+      "description": "Removed with Jev on 2026-11-24 (crit-mk9.3). The skill no longer writes it. It stays defined only so the work order committed in evals/critic/work-order/bad-page/ before the removal still validates. It was present when the finding matched a criterion in the Jev evidence file.",
       "type": "object",
       "additionalProperties": false,
       "required": ["title", "probability"],

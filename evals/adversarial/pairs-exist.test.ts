@@ -1,4 +1,4 @@
-// The no-key check of the EV-7 pair file. It runs in npm run ci and asks TypeSafe nothing (CS-21).
+// The no-key check of the EV-7 pair file. It runs in npm run ci and asks no model (CS-21).
 // It checks that every image the pair file names exists, has an entry in its folder's
 // ATTRIBUTION.md, and is 2 MB or less (FR-54), and that every pack and criterion it names exists.
 

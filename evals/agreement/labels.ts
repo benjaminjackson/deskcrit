@@ -1,6 +1,6 @@
 // The human label file for EV-5: evals/agreement/labels/<pack>.csv, written only by Benjamin
-// Jackson. The harness and every agent only read it. This module holds the one function that
-// checks it (CS-7). It reads no file: run-agreement.ts reads the text and passes it here.
+// Jackson. The critic detection evaluation and every agent only read it. This module holds the one
+// function that checks it (CS-7). It reads no file: the caller reads the text and passes it here.
 
 /** A human label's answer: the defect is present, absent, or the labeller cannot tell (EV-5). */
 export type DefectPresent = "yes" | "no" | "cannot tell";
