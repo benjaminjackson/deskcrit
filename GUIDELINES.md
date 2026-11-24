@@ -1442,7 +1442,7 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 
 ---
 
-## Template tells: stock moves of AI-made interfaces (draft)
+## Template tells: stock moves of AI-made interfaces
 
 Draft (PRD FR-86). This section is not a pack. The critic sees it through the "Template tells" section of `plugin/skills/design-critic/checklist.yaml` (crit-7hw.3), and the rest of FR-86 waits for Benjamin Jackson to ratify it. Its source is Damir Sokolovsky's unslop, a list of signs that an interface came from an AI template, each with its fix. Benjamin Jackson accepted unslop as a source for this section only on 2026-11-24 ("I accept unslop"). Each entry quotes its sign word for word on its Source line, from the commit named there, so the rule is stated in the source (FR-45).
 
