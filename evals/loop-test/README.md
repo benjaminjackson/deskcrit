@@ -42,10 +42,10 @@ Benjamin Jackson runs the test and writes the verdict. An agent never writes the
    git -C ~/scratch/crit-loop-test tag start
    ```
 
-4. Take the before screenshot from the repository root:
+4. Take the before screenshot. The command uses the full path of the script, so it works from any folder:
 
    ```sh
-   node evals/loop-test/screenshot.mjs ~/scratch/crit-loop-test/index.html ~/scratch/before.png
+   node ~/github/crit/evals/loop-test/screenshot.mjs ~/scratch/crit-loop-test/index.html ~/scratch/before.png
    ```
 
 5. Install the plugin as `plugin/README.md` says. Before the repository is pushed, you can load the plugin from the local folder instead of the marketplace: start Claude Code in step 6 with `claude --plugin-dir /Users/ben/github/crit/plugin`. Write down the commit SHA of the plugin folder you loaded. `RESULT.md` asks for it.
@@ -60,7 +60,7 @@ Benjamin Jackson runs the test and writes the verdict. An agent never writes the
 9. Take the after screenshot the same way as the before screenshot:
 
     ```sh
-    node evals/loop-test/screenshot.mjs ~/scratch/crit-loop-test/index.html ~/scratch/after.png
+    node ~/github/crit/evals/loop-test/screenshot.mjs ~/scratch/crit-loop-test/index.html ~/scratch/after.png
     ```
 
 ## Judge the result
