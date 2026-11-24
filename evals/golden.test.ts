@@ -81,9 +81,10 @@ function sortedKeysOf(value: object): string[] {
   return keys;
 }
 
-// Each case runs the bundle twice as a child process. Under load, such as several test runs at once,
-// that takes longer than the Vitest default of 5 seconds, so the case gets more time. Nothing it checks changes.
-const CRIT_TWICE_TIMEOUT_MS = 30_000;
+// Each case runs the bundle twice as a child process. With a load average of 7 to 13 from other agents
+// it passed 30 s (crit-cgd), so the case gets 120 s. Nothing it checks changes.
+// Review trigger: change it with TEST_TIMEOUT_MS in vitest.config.ts.
+const CRIT_TWICE_TIMEOUT_MS = 120_000;
 
 describe("EV-1: golden outputs of crit report", () => {
   it("has golden cases to run", () => {
