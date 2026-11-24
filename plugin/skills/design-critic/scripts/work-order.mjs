@@ -198,12 +198,17 @@ export function checkWorkOrder(
     problems.push("findings is not a list");
   }
   const image = workOrder?.image ?? {};
-  if (imageSize === undefined) {
-    problems.push(`cannot read the image ${image.path} as a PNG`);
-  } else if (image.width !== imageSize[0] || image.height !== imageSize[1]) {
-    problems.push(
-      `image is ${imageSize[0]} x ${imageSize[1]} px, but the work order says ${image.width} x ${image.height}`,
-    );
+  const hasImages = Array.isArray(workOrder?.images);
+  // With images, checkViewports checks every image, the first one included, so a wrong size of
+  // image gives one problem line, not two.
+  if (!hasImages) {
+    if (imageSize === undefined) {
+      problems.push(`cannot read the image ${image.path} as a PNG`);
+    } else if (image.width !== imageSize[0] || image.height !== imageSize[1]) {
+      problems.push(
+        `image is ${imageSize[0]} x ${imageSize[1]} px, but the work order says ${image.width} x ${image.height}`,
+      );
+    }
   }
   const seenIds = new Set();
   for (const finding of findings) {
@@ -236,9 +241,16 @@ export function checkWorkOrder(
       `the crit ranks ${critCount} findings, but the work order ranks ${rankedCount}`,
     );
   }
-  if (Array.isArray(workOrder?.images)) {
+  if (hasImages) {
     problems.push(...checkViewports(workOrder, findings, facts, readFile));
     return problems;
+  }
+  for (const finding of findings) {
+    if (finding.location?.viewports !== undefined) {
+      problems.push(
+        `finding ${finding.id}: has location.viewports, but the work order has no images`,
+      );
+    }
   }
   if (imageSize !== undefined) {
     const imageBox = { width: imageSize[0], height: imageSize[1] };
@@ -252,7 +264,8 @@ export function checkWorkOrder(
 /**
  * Checks a work order that has an `images` list, the screenshots of one page at several viewports
  * that the critic judged in one crit (FR-85, crit-9w5.6), and returns the problems. Each image must
- * be the size it says and a viewport of the facts file; each finding names the viewports it applies
+ * be the size it says, the images must be the facts file viewports in the same order, each named
+ * once, and a facts file must exist; each finding names the viewports it applies
  * to, its `location.viewport` is one of them, and its box lies inside that viewport's image.
  */
 function checkViewports(workOrder, findings, facts, readFile) {
@@ -281,14 +294,27 @@ function checkViewports(workOrder, findings, facts, readFile) {
     } else {
       sizes.set(entry.viewport, { width: size[0], height: size[1] });
     }
-    if (
-      facts !== undefined &&
-      !facts.viewports?.some((candidate) => candidate.name === entry.viewport)
-    ) {
-      problems.push(`the facts file has no viewport ${entry.viewport}`);
+  }
+  const imageNames = images.map((entry) => entry.viewport);
+  const names = new Set(imageNames);
+  for (const name of names) {
+    const count = imageNames.filter((candidate) => candidate === name).length;
+    if (count > 1) {
+      problems.push(`viewport ${name} is in images twice`);
     }
   }
-  const names = new Set(images.map((entry) => entry.viewport));
+  if (facts === undefined) {
+    problems.push("images needs a facts file, but facts_file is null");
+  } else {
+    // The images must be the facts file viewports, in the same order, because the critic got the
+    // screenshots in that order.
+    const factsNames = (facts.viewports ?? []).map((viewport) => viewport.name);
+    if (!sameList(imageNames, factsNames)) {
+      problems.push(
+        `the viewports of images are ${imageNames.join(", ")}, but the facts file has ${factsNames.join(", ")}`,
+      );
+    }
+  }
   for (const finding of findings) {
     const label = `finding ${finding.id}`;
     const location = finding.location ?? {};

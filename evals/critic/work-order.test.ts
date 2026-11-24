@@ -298,6 +298,65 @@ describe("a work order for one page at several viewports (crit-9w5.6)", () => {
     );
   });
 
+  it("refuses images whose viewports are not the facts file viewports in order", () => {
+    const copy = severalViewports("phone");
+    (copy.images as unknown[]).reverse();
+    expect(problemsOf(copy).join("\n")).toContain(
+      "the viewports of images are phone, desktop, but the facts file has desktop, phone",
+    );
+  });
+
+  it("refuses a viewport named twice in images", () => {
+    const copy = severalViewports("phone");
+    (copy.images as Record<string, unknown>[])[1] = {
+      viewport: "desktop",
+      path: "desktop.png",
+      width: 1280,
+      height: 800,
+    };
+    expect(problemsOf(copy).join("\n")).toContain(
+      "viewport desktop is in images twice",
+    );
+  });
+
+  it("gives one problem line for one wrong image size", () => {
+    const copy = severalViewports("phone");
+    const wrongSize = { path: "desktop.png", width: 1000, height: 800 };
+    copy.image = wrongSize;
+    (copy.images as Record<string, unknown>[])[0] = {
+      viewport: "desktop",
+      ...wrongSize,
+    };
+    const sizeLines = problemsOf(copy).filter((line) =>
+      line.includes("1280 x 800 px"),
+    );
+    expect(sizeLines).toHaveLength(1);
+  });
+
+  it("refuses images when the work order has no facts file", () => {
+    const copy = severalViewports("phone");
+    copy.facts_file = null;
+    const problems = checkWorkOrder(
+      copy,
+      critText,
+      [1280, 800],
+      undefined,
+      readFile,
+    );
+    expect(problems.join("\n")).toContain(
+      "images needs a facts file, but facts_file is null",
+    );
+  });
+
+  it("refuses location.viewports when the work order has no images", () => {
+    const copy = structuredClone(readJson(workOrderPath));
+    const location = findingsOf(copy)[0]?.location as Record<string, unknown>;
+    location.viewports = ["desktop"];
+    expect(problemsOf(copy).join("\n")).toContain(
+      "has location.viewports, but the work order has no images",
+    );
+  });
+
   it("is valid against the schema with the new fields", () => {
     const validate = compileValidator();
     const copy = severalViewports("phone");
