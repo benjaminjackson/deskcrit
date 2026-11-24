@@ -27,7 +27,7 @@ It also writes `work-order.json`, which a coding agent can act on: one entry per
 ## Requirements
 
 - [Claude Code](https://claude.com/claude-code).
-- Node.js 22 or later. The skill scripts use only Node's own modules, so the plugin needs no install step of its own.
+- Node.js 22 or later.
 - Optional: the `playwright` package and its Chromium in the project you work in. With them, the critic measures the page (font sizes, line lengths, contrast, target sizes) in place of estimating from pixels. Install them with `npm install playwright` and `npx playwright install chromium`.
 
 If Playwright is missing, the skills show you the install commands and ask before they install anything. If you say no, the critic works from the image alone and says so in its answer. Its contrast and size findings are then estimates, not measurements.
