@@ -37,6 +37,6 @@ for (const setName of setNames) {
     await page.screenshot({ path: screenPath });
     screenPaths.push(screenPath);
   }
-  console.log(`wrote ${setName}: $`);
+  console.log(`wrote ${setName}: ${screenPaths.length} screens`);
 }
 await browser.close();

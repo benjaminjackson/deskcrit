@@ -2,8 +2,10 @@
 // set mode of the design-critic skill: the critic gets the numbered contact sheet of the set and then
 // each screen at full size, and judges the screens as a set. Only the set crit is scored; no crit per
 // image is run here. The set critic ends with one line, `Breaks: none`, `Breaks: tile 3`, or
-// `Breaks: tile 2, tile 5`. That line is parsed, with no judge call, for the right tile and for a
-// false break on a clean set. One judge call per set that has a break asks whether the crit
+// `Breaks: tile 2, tile 5`. That line is parsed, with no judge call, for the right tile, the extra
+// tiles, and a false break on a clean set. The right tile counts only when the line names exactly the
+// planted tile and no other tile (crit-j8y.8). The extra tiles are the tiles named beyond the planted
+// one, and on a clean set every named tile. One judge call per set that has a break asks whether the crit
 // describes that kind of break (found, not found, or no break claimed).
 //
 // The sheet is made at run time by the skill's own scripts/contact-sheet.mjs into a temporary folder,
@@ -339,6 +341,7 @@ type SetRow = {
   readonly claimed: string;
   readonly excluded: boolean;
   readonly rightTile: boolean | undefined;
+  readonly extraTiles: readonly number[] | undefined;
   readonly verdict: BreakVerdict | undefined;
   readonly falseBreak: boolean | undefined;
 };
@@ -355,6 +358,17 @@ function describeClaim(line: BreaksLine): string {
     return `malformed: ${line.line}`;
   }
   return "no Breaks line";
+}
+
+/** Formats the extra tiles for the table: "-" when not scored, "none" when empty. */
+function describeExtraTiles(tiles: readonly number[] | undefined): string {
+  if (tiles === undefined) {
+    return "-";
+  }
+  if (tiles.length === 0) {
+    return "none";
+  }
+  return tiles.map((tile) => `tile ${tile}`).join(", ");
 }
 
 /** Returns "yes", "no", or "-" for a table cell. */
@@ -525,6 +539,7 @@ export async function runSets(
         claimed: "missing",
         excluded: true,
         rightTile: undefined,
+        extraTiles: undefined,
         verdict: undefined,
         falseBreak: undefined,
       };
@@ -538,12 +553,26 @@ export async function runSets(
         claimed,
         excluded: true,
         rightTile: undefined,
+        extraTiles: undefined,
         verdict: undefined,
         falseBreak: undefined,
       };
     }
     const tiles = line.state === "tiles" ? line.tiles : [];
     const isBreakSet = answer.tile !== null;
+    // A tile is the planted one when tiles.json maps it to the break screen's PNG.
+    const plantedPng = isBreakSet
+      ? (answer.break_screen as string).replace(".html", ".png")
+      : undefined;
+    const namedTiles = [...new Set(tiles)];
+    const plantedNamed = namedTiles.filter(
+      (tile) =>
+        (sheets[index] as BuiltSheet).screenOfTile.get(tile) === plantedPng,
+    );
+    const extraTiles = namedTiles.filter(
+      (tile) =>
+        (sheets[index] as BuiltSheet).screenOfTile.get(tile) !== plantedPng,
+    );
     return {
       set: answer.set,
       kind: answer.kind,
@@ -551,12 +580,9 @@ export async function runSets(
       claimed,
       excluded: false,
       rightTile: isBreakSet
-        ? tiles.some(
-            (tile) =>
-              (sheets[index] as BuiltSheet).screenOfTile.get(tile) ===
-              (answer.break_screen as string).replace(".html", ".png"),
-          )
+        ? plantedNamed.length === 1 && extraTiles.length === 0
         : undefined,
+      extraTiles,
       verdict: verdicts[index],
       falseBreak: isBreakSet ? undefined : tiles.length > 0,
     };
@@ -575,6 +601,7 @@ export async function runSets(
       "answer",
       "critic said",
       "right tile",
+      "extra tiles",
       "break found",
       "false break",
     ],
@@ -584,6 +611,7 @@ export async function runSets(
       row.tile === null ? "none" : `tile ${row.tile}`,
       row.claimed,
       yesNo(row.rightTile),
+      describeExtraTiles(row.extraTiles),
       row.verdict ?? "-",
       yesNo(row.falseBreak),
     ]),
@@ -597,7 +625,7 @@ export async function runSets(
       (row) =>
         row.verdict === undefined ? undefined : row.verdict === "found",
     )}`,
-    `right tile named: ${ratio(rows, (row) => row.rightTile)}`,
+    `right tile named, and no other: ${ratio(rows, (row) => row.rightTile)}`,
     `false break on a clean set: ${ratio(rows, (row) => row.falseBreak)}`,
   ];
   if (leftOut.length > 0) {

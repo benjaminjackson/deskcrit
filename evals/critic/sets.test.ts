@@ -270,7 +270,7 @@ describe("runSets", () => {
     );
     expect(live.exitCode).toBe(0);
     expect(live.text).toContain("break found (judge): 1 of 1");
-    expect(live.text).toContain("right tile named: 1 of 1");
+    expect(live.text).toContain("right tile named, and no other: 1 of 1");
     expect(live.text).toContain("false break on a clean set: 1 of 1");
     // Two set crits and one judge call (the clean set gets none).
     expect(calls()).toBe(3);
@@ -309,7 +309,7 @@ describe("runSets", () => {
     expect(output.exitCode).toBe(0);
     expect(output.text).toContain("malformed: Breaks: tile two");
     expect(output.text).toContain("no Breaks line");
-    expect(output.text).toContain("right tile named: 0 of 0");
+    expect(output.text).toContain("right tile named, and no other: 0 of 0");
     expect(output.text).toContain(
       "left out of the counts, no readable Breaks line: set-01, set-02",
     );
@@ -352,5 +352,46 @@ describe("runSets", () => {
     );
     expect(output.text).toContain("false break on a clean set: 0 of 1");
     expect(output.text).toContain("break found (judge): 0 of 1");
+  });
+
+  it("counts the right tile only when the Breaks line names the planted tile and no other, and lists the extra tiles", async () => {
+    const made = await makeSets();
+    const { runner } = stubRunner(
+      {
+        "set-01": "Breaks: tile 2, tile 3",
+        "set-02": "Breaks: tile 1, tile 3",
+      },
+      "found",
+    );
+    const output = await runSets(
+      ["--skill-commit", COMMIT],
+      options(made, runner),
+    );
+    expect(output.exitCode).toBe(0);
+    expect(output.text).toContain("extra tiles");
+    expect(output.text).toContain("right tile named, and no other: 0 of 1");
+    expect(output.text).toContain("false break on a clean set: 1 of 1");
+    const rowOf = (set: string) =>
+      output.text.split("\n").find((line) => line.startsWith(set)) ?? "";
+    // set-01: tile 2 is planted, tile 3 is extra. set-02 is clean, so every named tile is extra.
+    expect(rowOf("set-01")).toMatch(/tile 2, tile 3\s+no\s+tile 3\s/);
+    expect(rowOf("set-02")).toMatch(/tile 1, tile 3\s+-\s+tile 1, tile 3\s/);
+  });
+
+  it("shows no extra tiles when the Breaks line names only the planted tile", async () => {
+    const made = await makeSets();
+    const { runner } = stubRunner(
+      { "set-01": "Breaks: tile 2", "set-02": "Breaks: none" },
+      "found",
+    );
+    const output = await runSets(
+      ["--skill-commit", COMMIT],
+      options(made, runner),
+    );
+    const rowOf = (set: string) =>
+      output.text.split("\n").find((line) => line.startsWith(set)) ?? "";
+    expect(rowOf("set-01")).toMatch(/tile 2\s+yes\s+none\s/);
+    expect(rowOf("set-02")).toMatch(/none\s+-\s+none\s/);
+    expect(output.text).toContain("right tile named, and no other: 1 of 1");
   });
 });
