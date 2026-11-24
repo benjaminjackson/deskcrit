@@ -1,8 +1,9 @@
+import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { runCompare } from "../plugin/skills/design-critic/scripts/compare-facts.mjs";
 
 // Checks the script that compares measured facts files across the pages of a set (PRD FR-84).
@@ -79,6 +80,27 @@ function compare(factsList: object[], extraArguments: string[] = []) {
 
 const base = { edge: 40, width: 600, bodySize: 16, bodyColor: "#222222" };
 
+/** Runs the script as a child process on the facts files, and returns its exit code and the lines it wrote to stderr. */
+function compareInChild(factsList: object[], extraArguments: string[]) {
+  const folder = mkdtempSync(join(tmpdir(), "compare-facts-"));
+  const files = factsList.map((facts, index) => {
+    const file = join(folder, `page-${index + 1}.facts.json`);
+    writeFileSync(file, JSON.stringify(facts));
+    return file;
+  });
+  const script = join(
+    repositoryRoot,
+    "plugin/skills/design-critic/scripts/compare-facts.mjs",
+  );
+  const result = spawnSync(
+    process.execPath,
+    [script, ...files, "--out", join(folder, "diff.json"), ...extraArguments],
+    { encoding: "utf8" },
+  );
+  const errorLines = result.stderr.split("\n").filter((line) => line !== "");
+  return { code: result.status, errorLines };
+}
+
 describe("compare-facts.mjs", () => {
   it("writes no difference for pages that share every value", () => {
     const { code, output } = compare([
@@ -153,10 +175,6 @@ describe("compare-facts.mjs", () => {
   });
 
   describe("viewport names (FR-85)", () => {
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
     for (const name of ["tablet", "w768"]) {
       it(`compares the ${name} viewport when every file holds it`, () => {
         const { code, output } = compare(
@@ -182,17 +200,14 @@ describe("compare-facts.mjs", () => {
         [makeFacts({ ...base, name: "tablet" }), makeFacts(base)],
       ];
       for (const factsList of cases) {
-        const errorSpy = vi
-          .spyOn(console, "error")
-          .mockImplementation(() => {});
-        const { code } = compare(factsList, ["--viewport", "tablet"]);
+        const { code, errorLines } = compareInChild(factsList, [
+          "--viewport",
+          "tablet",
+        ]);
         expect(code).toBe(2);
-        expect(errorSpy).toHaveBeenCalledTimes(1);
-        const message = String(errorSpy.mock.calls[0]?.[0]);
-        expect(message.startsWith("usage:")).toBe(true);
-        expect(message).toContain("no viewport tablet in");
-        expect(message).not.toContain("\n");
-        errorSpy.mockRestore();
+        expect(errorLines).toHaveLength(1);
+        expect(errorLines[0]?.startsWith("usage:")).toBe(true);
+        expect(errorLines[0]).toContain("no viewport tablet in");
       }
     });
 
@@ -216,19 +231,13 @@ describe("compare-facts.mjs", () => {
 
     it("refuses a viewport name that is not allowed with the plain usage line", () => {
       for (const name of ["wide", "w0768", "desktop-dark"]) {
-        const errorSpy = vi
-          .spyOn(console, "error")
-          .mockImplementation(() => {});
-        const { code } = compare(
+        const { code, errorLines } = compareInChild(
           [makeFacts({ ...base, name }), makeFacts({ ...base, name })],
           ["--viewport", name],
         );
         expect(code).toBe(2);
-        expect(errorSpy).toHaveBeenCalledTimes(1);
-        expect(errorSpy.mock.calls[0]?.[0]).toMatch(
-          /^usage: .*\[--viewport [^\]]*\]$/,
-        );
-        errorSpy.mockRestore();
+        expect(errorLines).toHaveLength(1);
+        expect(errorLines[0]).toMatch(/^usage: .*\[--viewport [^\]]*\]$/);
       }
     });
 
