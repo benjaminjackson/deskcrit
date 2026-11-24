@@ -26,6 +26,13 @@ Benjamin Jackson runs the test and writes the verdict. An agent never writes the
    cp -R evals/loop-test/bad-page/. ~/scratch/crit-loop-test/
    ```
 
+   Then install Playwright in the scratch folder, at the version `packs/` pins. The skill's `measure.mjs` loads Playwright from the project in the working folder, or from `packs/` beside the script. An installed plugin has no `packs/` beside it, so without this step the run measures nothing and critiques screenshots only. Step 1 already installed the browser. Ignore the new `node_modules/` folder in git, so it does not show in the diff:
+
+   ```sh
+   npm --prefix ~/scratch/crit-loop-test install --no-save playwright@1.63.0
+   printf 'node_modules/\n' > ~/scratch/crit-loop-test/.gitignore
+   ```
+
 3. Make the scratch folder a git repository and commit the starting page, so the agent's edits show as a diff:
 
    ```sh
