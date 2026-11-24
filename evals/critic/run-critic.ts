@@ -640,7 +640,7 @@ function isFileExistsError(error: unknown): boolean {
  * number in the folder. The "wx" flag makes a write fail when the file exists, so a saved file is
  * never written again; on that failure it tries the next number.
  */
-function writeRun(
+export function writeRun(
   requestDirectory: string,
   crit: string,
   metadata: Record<string, unknown>,

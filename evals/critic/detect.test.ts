@@ -863,6 +863,63 @@ describe("runDetect live, with a stub critic and a stub judge", () => {
   });
 });
 
+describe("runDetect --deep", () => {
+  it("makes each crit with eight section critics and a director, apart from the single runs, and replays them", async () => {
+    const repository = buildTinyRepository();
+    const runsDirectory = newFolder();
+    const prompts: string[] = [];
+    const stub: ClaudeRunner = async (args) => {
+      if (args[0] === "--version") {
+        return { stdout: "2.0.0 (Claude Code)", stderr: "", exitCode: 0 };
+      }
+      if (args.includes("--json-schema")) {
+        return {
+          stdout: judgeStdout(answerSaying("present")),
+          stderr: "",
+          exitCode: 0,
+        };
+      }
+      prompts.push(args.at(-1) ?? "");
+      return {
+        stdout: criticStdout(`Crit ${prompts.length}.`),
+        stderr: "",
+        exitCode: 0,
+      };
+    };
+    const options = {
+      repositoryDirectory: repository,
+      runsDirectory,
+      skillDirectory: SKILL_DIRECTORY,
+      runClaude: stub,
+    };
+    const single = await runDetect(["--skill-commit", COMMIT], options);
+    expect(single.exitCode).toBe(0);
+    expect(prompts).toHaveLength(6);
+    const deep = await runDetect(
+      ["--skill-commit", COMMIT, "--deep", "--beside", COMMIT],
+      options,
+    );
+    expect(deep.exitCode).toBe(0);
+    // 6 images, each with 8 section critics and 1 director.
+    const deepPrompts = prompts.slice(6);
+    expect(deepPrompts).toHaveLength(54);
+    expect(
+      deepPrompts.filter((prompt) => prompt.includes("agents/director.md")),
+    ).toHaveLength(6);
+    expect(deep.text).toContain(", deep mode,");
+    expect(deep.text).toContain(`${COMMIT.slice(0, 8)}+deep raised`);
+    const replayed = await runDetect(
+      ["--replay", "--skill-commit", COMMIT, "--deep", "--beside", COMMIT],
+      options,
+    );
+    expect(replayed.exitCode).toBe(0);
+    expect(replayed.text).toBe(deep.text);
+    await expect(
+      runDetect(["--skill-commit", COMMIT, "--deep", "--refute"], options),
+    ).rejects.toThrow(/--deep does not go with/);
+  });
+});
+
 describe("runDetect --facts", () => {
   it("runs the live criteria with their facts files apart from the runs without, and prints both side by side", async () => {
     const repository = buildTinyRepository();
