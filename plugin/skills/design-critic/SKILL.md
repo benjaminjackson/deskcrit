@@ -31,6 +31,14 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
    Measured facts file: <absolute path of facts.json>
    ```
 
+   When there is one image, first run `node <skill folder>/scripts/jev-evidence.mjs <absolute image path>` with Bash, from the user's working folder. It asks Jev only when `crit` runs and `TYPESAFE_API_KEY` is set, and it prints nothing otherwise. When it prints a path, add this line right after the `Image(s)` line, and after the facts line when there is one, with that path filled:
+
+   ```
+   Jev evidence file: <absolute path the script printed>
+   ```
+
+   When it prints nothing, add nothing: the prompt stays as above. Never read, print, or pass on the key, and do not tell the critic which criteria Jev did not fire on.
+
 3. Give the critique to the user as the agent wrote it. Do not soften or trim it. Add your own comment only if the user asked for it.
 
 ## What is in the folder
@@ -38,6 +46,7 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
 - `agents/critic.md`: the critic's instructions, how it looks, what makes a good finding, and the output format.
 - `references/checklist.md`: yes-or-no questions in sections, whole page first and detail last, where yes means fine; each kind of defect has one question, and each question points to the full entries it stands for.
 - `references/<domain>.md`: full entries for basics, layout, typography, color, art direction, ux, accessibility, and dataviz. Each gives the rule, what to look for, the source, caveats about the source, and the approved fix.
+- `scripts/jev-evidence.mjs`: runs `crit report --json` when it can and writes the criteria Jev fired on to the evidence file.
 - `scripts/build.rb`: makes `references/` from this repository's `GUIDELINES.md` and `packs/`.
 
 ## Update the references

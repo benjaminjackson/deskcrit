@@ -10,25 +10,10 @@
 // --replay is the only mode. It runs the built crit bundle with --answers and no key, and reads
 // saved judge answers; it asks no model and sends no request to TypeSafe.
 
-import {
-  mkdirSync,
-  mkdtempSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  symlinkSync,
-  writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
-import { join, relative, resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { parseDocument } from "yaml";
-import { runHarness } from "../agreement/run-agreement.ts";
 import { readFixtureOutcome, type Verdict } from "../agreement/score.ts";
-import { RESPELLING } from "../agreement/spelling.ts";
-import { readPinnedModel } from "../support/pinned-model-and-schema.ts";
-import { runCritBundle } from "../support/run-crit-bundle.ts";
 import {
   buildDetectionQuestion,
   type DefectMention,
@@ -39,6 +24,7 @@ import {
   type SelectedCriterion,
   selectCriteria,
 } from "./detect.ts";
+import { readJevFindingsByReplay } from "./jev-replay.ts";
 import {
   JUDGE_MODEL,
   judgeAnswerPath,
@@ -288,129 +274,19 @@ function selectOverlapImages(repositoryDirectory: string): {
   return { images, skipped };
 }
 
-/**
- * Reads Jev's verdicts on these images through the agreement harness in replay mode, so the
- * harness's own rules apply: answers to an old question are dropped, renamed criterion ids are
- * mapped, and every report is checked against the report schema (EV-4 rule 5, R-4). Each pack is
- * copied to a temporary folder with every file linked except pack.yaml, whose fixture lists are cut
- * to the selected images, so the harness replays only those images. The question hash leaves the
- * fixture lists out, so the cut does not change which saved answers count. A wrapper around the
- * bundle runner reads each report's verdicts, keyed by the image path that crit was given.
- */
+/** Reads Jev's verdicts on these images from the saved answers, through readJevFindingsByReplay. */
 export async function readJevVerdictsByReplay(
   repositoryDirectory: string,
   images: readonly OverlapImage[],
 ): Promise<JevVerdicts> {
-  const harnessDirectory = join(repositoryDirectory, "evals", "agreement");
-  const temporaryDirectory = mkdtempSync(join(tmpdir(), "crit-overlap-"));
-  try {
-    const packsDirectory = join(temporaryDirectory, "packs");
-    const emptyLabelsDirectory = join(temporaryDirectory, "labels");
-    mkdirSync(emptyLabelsDirectory, { recursive: true });
-    const packNames = [...new Set(images.map((image) => image.criterion.pack))];
-    const packArguments: string[] = [];
-    for (const packName of packNames) {
-      const packImages = images.filter(
-        (image) => image.criterion.pack === packName,
-      );
-      const copyDirectory = join(packsDirectory, packName);
-      writeCutPack(
-        join(repositoryDirectory, "packs", packName),
-        copyDirectory,
-        packImages,
-      );
-      packArguments.push("--pack", copyDirectory);
+  const replayed = await readJevFindingsByReplay(repositoryDirectory, images);
+  const verdictByKey = new Map<string, Verdict>();
+  for (const [displayPath, findings] of replayed.findingsByImage) {
+    for (const finding of findings) {
+      verdictByKey.set(`${displayPath}|${finding.criterion}`, finding.verdict);
     }
-    const verdictByKey = new Map<string, Verdict>();
-    await runHarness(packArguments, {
-      harnessDirectory,
-      runsDirectory: join(harnessDirectory, "runs"),
-      labelsDirectory: emptyLabelsDirectory,
-      respelling: RESPELLING,
-      runCrit: async (critArguments, environment, workingDirectory) => {
-        const run = await runCritBundle(
-          critArguments,
-          environment,
-          workingDirectory,
-        );
-        if (run.exitCode !== 0 && run.exitCode !== 1) {
-          // The harness stops on this run and names the fixture.
-          return run;
-        }
-        // critArguments is ["report", <image path>, ...].
-        const imagePath = critArguments[1] ?? "";
-        const displayPath = `packs/${relative(packsDirectory, imagePath)}`;
-        // A cast, not a check: the harness checks every report against the report schema.
-        const report = JSON.parse(run.stdout) as {
-          findings: { criterion: string; verdict: Verdict }[];
-        };
-        for (const finding of report.findings) {
-          // A later report of the same image overrides an earlier one, as in the harness.
-          verdictByKey.set(
-            `${displayPath}|${finding.criterion}`,
-            finding.verdict,
-          );
-        }
-        return run;
-      },
-    });
-    return { model: readPinnedModel(harnessDirectory), verdictByKey };
-  } finally {
-    rmSync(temporaryDirectory, { recursive: true, force: true });
   }
-}
-
-/**
- * Writes a copy of one pack: a link to every entry of the pack folder but pack.yaml, and a
- * pack.yaml whose criteria list only the selected fixtures, by the polarity of their file names.
- */
-function writeCutPack(
-  packDirectory: string,
-  copyDirectory: string,
-  packImages: readonly OverlapImage[],
-): void {
-  mkdirSync(copyDirectory, { recursive: true });
-  for (const entry of readdirSync(packDirectory)) {
-    if (entry === "pack.yaml") {
-      continue;
-    }
-    symlinkSync(join(packDirectory, entry), join(copyDirectory, entry));
-  }
-  const packYamlPath = join(packDirectory, "pack.yaml");
-  const document = parseDocument(readFileSync(packYamlPath, "utf8"));
-  const criteria = document.toJS()?.criteria;
-  if (!Array.isArray(criteria)) {
-    throw new Error(`${packYamlPath}: the pack has no criteria list`);
-  }
-  // From the last criterion to the first, so deleting one does not move the index of the next.
-  for (let index = criteria.length - 1; index >= 0; index -= 1) {
-    const criterion: { id?: unknown } = criteria[index];
-    const positive: string[] = [];
-    const negative: string[] = [];
-    for (const image of packImages) {
-      const fixture = image.scoredImage.image;
-      if (
-        image.criterion.id !== criterion.id ||
-        fixture.labelPath === undefined
-      ) {
-        continue;
-      }
-      if (fixture.polarity === "positive") {
-        positive.push(fixture.labelPath);
-      } else {
-        negative.push(fixture.labelPath);
-      }
-    }
-    if (positive.length === 0 && negative.length === 0) {
-      // A skipped criterion: drop it, so the harness does not replay its images.
-      document.deleteIn(["criteria", index]);
-      continue;
-    }
-    // setIn replaces one value in the YAML document and keeps every other field as it was.
-    document.setIn(["criteria", index, "fixtures", "positive"], positive);
-    document.setIn(["criteria", index, "fixtures", "negative"], negative);
-  }
-  writeFileSync(join(copyDirectory, "pack.yaml"), document.toString());
+  return { model: replayed.model, verdictByKey };
 }
 
 /** Parses the command line, joins Jev's verdicts with the critic's answers, and returns the report (EV-20). */
