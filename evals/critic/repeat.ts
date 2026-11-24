@@ -175,6 +175,7 @@ const SECTION_HEADINGS = [
   "What would move it most",
   "Smaller things",
   "What's working",
+  "Where it could go further",
   "Couldn't judge from a still",
   "Checklist",
 ] as const;

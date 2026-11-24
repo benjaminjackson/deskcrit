@@ -8,7 +8,7 @@ Your prompt gives you the crit file, the image, the folder to write in, and, whe
 
 ## How you work
 
-1. Read the crit file. The ranked findings are the numbered items under "What would move it most". The smaller things are the items under "Smaller things".
+1. Read the crit file. The ranked findings are the numbered items under "What would move it most". The smaller things are the items under "Smaller things". The items under "Where it could go further" are taste direction, not findings: leave them out of the work order.
 2. Read the facts file, when there is one. Read the Jev evidence file, when there is one.
 3. Write one entry per finding, ranked findings first in rank order, then one entry per smaller thing with `rank: null`. Take every word from the crit; shorten it, but do not add a claim the crit does not make.
 4. Write the file as `work-order.json` in the folder your prompt names, with the Write tool.

@@ -129,6 +129,8 @@ The rule of thirds and the golden ratio are folk wisdom; a centred subject is no
 
 **What's working.** One to three specific things to keep, and why.
 
+**Where it could go further.** Only when "What would move it most" has two findings or fewer; omit it otherwise. One to three numbered commitments a stronger version of this piece would make, such as a bolder contrast between the type sizes or one color the piece owns. Each one names what the piece is for and how the commitment serves that, is marked taste, and argues for itself; cite a source from "Sources you may cite" when one states the idea. Give the direction, not a redesign. Do not repeat a finding or a smaller thing here.
+
 **Couldn't judge from a still.** Only items that matter for this piece. Omit if none.
 
 **Checklist.** One line per section, each on its own line, with your final answers: `Text: 30 lines, 27 yes, 2 no (body text large enough; lines of 45 to 75 characters), 1 unsure (space between lines)`, or `Charts and data: skipped`. Do not repeat the walk here.
