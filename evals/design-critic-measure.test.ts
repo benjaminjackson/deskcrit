@@ -9,6 +9,7 @@ import {
   compositeColor,
   contrastRatio,
   darkViewportName,
+  dropMovingColors,
   EXIT_CANNOT_MEASURE,
   EXIT_TOOL_MISSING,
   EXIT_USAGE,
@@ -485,6 +486,27 @@ describe("dark mode", () => {
     }));
     expect(found.failed).toBe(false);
     expect(found.result.foundBy).toBe("system_setting");
+  });
+
+  it("drops the colors that changed between two light reads", () => {
+    const first = {
+      "body background-color": "rgb(255, 255, 255)",
+      "button background-color": "rgb(0, 85, 204)",
+      "#gone color": null,
+    };
+    const second = {
+      "body background-color": "rgb(255, 255, 255)",
+      "button background-color": "rgb(40, 120, 240)",
+      "#gone color": null,
+    };
+    expect(dropMovingColors(first, second)).toEqual({
+      "body background-color": "rgb(255, 255, 255)",
+      "#gone color": null,
+    });
+    // The moving button alone no longer reads as a dark mode.
+    const dark = { ...first, "button background-color": "rgb(51, 136, 255)" };
+    expect(colorsDiffer(dropMovingColors(first, second), dark)).toBe(false);
+    expect(colorsDiffer(first, dark)).toBe(true);
   });
 
   it("names a dark entry <name>-dark", () => {

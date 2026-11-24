@@ -99,6 +99,9 @@ const THEME_CONTROL_ROLES = [
   "radio",
 ];
 
+/** How long to wait between the two reads of the light colors; a color that changes in this time is animated, not themed. */
+const LIGHT_REREAD_DELAY_MS = 500;
+
 /** How long to wait, after a click on a theme control or a dark load, for the network and for transitions. */
 const THEME_SETTLE_TIMEOUT_MS = 2_000;
 
@@ -1857,6 +1860,25 @@ export function colorsDiffer(lightProbe, darkProbe) {
 }
 
 /**
+ * Returns the first color probe without the keys whose value changed by the second read, a short
+ * moment later. Such a color moves on its own (an animation, a carousel, a timer), so a difference
+ * from the dark load would say nothing about dark mode, and it is left out of the comparison.
+ *
+ * @param {Record<string, string | null>} firstRead
+ * @param {Record<string, string | null>} secondRead
+ * @returns {Record<string, string | null>}
+ */
+export function dropMovingColors(firstRead, secondRead) {
+  const stable = {};
+  for (const [key, value] of Object.entries(firstRead)) {
+    if (secondRead[key] === value) {
+      stable[key] = value;
+    }
+  }
+  return stable;
+}
+
+/**
  * Returns the name of a viewport's dark entry, which also names its screenshot and crops.
  *
  * @param {string} name
@@ -2177,7 +2199,8 @@ async function clickThemeControl(page, control, selectors, lightLuminance) {
 /**
  * Looks for a dark mode in one viewport and, when it finds one, measures it as that viewport's
  * dark entry. First it loads the page with the system set to dark and compares its colors with the
- * light load's; when they differ, it measures that load. Otherwise it opens a fresh light page,
+ * light load's; when a color that does not move on its own differs and the page background is
+ * darker, it measures that load. Otherwise it opens a fresh light page,
  * clicks the first theme control, and, when that opened a menu, a newly shown control named dark.
  * A click counts only when the page background is then darker than the light render's.
  *
@@ -2191,12 +2214,17 @@ async function measureDarkMode(
   lines,
   selectors,
   lightProbe,
+  stableLightProbe,
 ) {
   const entryName = darkViewportName(viewport.name);
   const systemDark = await openPage(browser, viewport, pageUrl, "dark");
   await waitForThemeToSettle(systemDark.page);
   const darkProbe = await systemDark.page.evaluate(readColorProbe, selectors);
-  if (colorsDiffer(lightProbe, darkProbe)) {
+  const lightLuminance = pageBackgroundLuminance(lightProbe);
+  if (
+    colorsDiffer(stableLightProbe, darkProbe) &&
+    pageBackgroundLuminance(darkProbe) < lightLuminance
+  ) {
     const measured = await measureViewport(
       systemDark.page,
       viewport,
@@ -2214,7 +2242,6 @@ async function measureDarkMode(
   }
   await systemDark.context.close();
 
-  const lightLuminance = pageBackgroundLuminance(lightProbe);
   const toggled = await openPage(browser, viewport, pageUrl);
   const noDark = (reason) => ({
     result: { name: viewport.name, foundBy: "none", reason },
@@ -2225,7 +2252,7 @@ async function measureDarkMode(
     const controls = await findThemeControls(toggled.page);
     if (controls.length === 0) {
       return noDark(
-        "the colors do not change when the system asks for dark, and no control named dark, light, theme, or appearance is visible",
+        "the page does not turn darker when the system asks for dark, and no control named dark, light, theme, or appearance is visible",
       );
     }
     const first = controls[0];
@@ -2262,7 +2289,7 @@ async function measureDarkMode(
     }
     if (click.outcome === "same") {
       return noDark(
-        `the colors do not change when the system asks for dark, and clicking the control "${clicked.name}" did not make the page background darker`,
+        `the page does not turn darker when the system asks for dark, and clicking the control "${clicked.name}" did not make the page background darker`,
       );
     }
     const measured = await measureViewport(
@@ -2393,6 +2420,7 @@ export async function measurePage(
       );
       let selectors = [];
       let lightProbe = null;
+      let stableLightProbe = null;
       if (dark) {
         // The colors to compare: those of the text blocks and targets this light render found.
         selectors = [
@@ -2400,6 +2428,11 @@ export async function measurePage(
           ...light.raw.targets.map((target) => target.selector),
         ];
         lightProbe = await page.evaluate(readColorProbe, selectors);
+        await page.waitForTimeout(LIGHT_REREAD_DELAY_MS);
+        stableLightProbe = dropMovingColors(
+          lightProbe,
+          await page.evaluate(readColorProbe, selectors),
+        );
       }
       await context.close();
       for (const [selector, text] of light.texts) {
@@ -2417,6 +2450,7 @@ export async function measurePage(
             lines,
             selectors,
             lightProbe,
+            stableLightProbe,
           ),
         );
         if (found.failed) {
