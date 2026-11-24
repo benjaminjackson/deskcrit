@@ -19,8 +19,11 @@ import {
   nameDrawnFont,
   parseCssColor,
   planScreenCrops,
+  readCommandLine,
   resolveBackground,
   runMeasure,
+  VIEWPORTS,
+  widthViewports,
 } from "../plugin/skills/design-critic/scripts/measure.mjs";
 
 // The no-browser checks of the design critic's measure script (PRD FR-79). They run in
@@ -290,6 +293,34 @@ describe("facts.json", () => {
     }
   });
 
+  it("the schema accepts the default viewport names and w<N>, and rejects any other name", () => {
+    /** Returns whether the sample validates with its first viewport renamed. */
+    function validatesWithName(name: string): boolean {
+      // JSON.parse returns `any`, so the copy can be changed without a cast.
+      const copy = JSON.parse(
+        readFileSync(
+          join(repositoryRoot, "evals/measure/known-values.facts.json"),
+          "utf8",
+        ),
+      );
+      copy.viewports[0].name = name;
+      return validate(copy);
+    }
+    for (const name of [
+      "desktop",
+      "phone",
+      "tablet",
+      "widescreen",
+      "w768",
+      "w3840",
+    ]) {
+      expect(validatesWithName(name), name).toBe(true);
+    }
+    for (const name of ["mobile", "wide", "w", "w12a", "W768", "w0768"]) {
+      expect(validatesWithName(name), name).toBe(false);
+    }
+  });
+
   it("the schema rejects a file without its version or with an unknown field", () => {
     if (typeof sample !== "object" || sample === null) {
       throw new Error("the sample is not an object");
@@ -317,11 +348,129 @@ describe("facts.json", () => {
   });
 });
 
+describe("viewports", () => {
+  it("renders four default viewports, desktop first", () => {
+    expect(VIEWPORTS).toEqual([
+      { name: "desktop", width: 1280, height: 800 },
+      { name: "phone", width: 390, height: 844 },
+      { name: "tablet", width: 768, height: 1024 },
+      { name: "widescreen", width: 1920, height: 1080 },
+    ]);
+  });
+
+  it("makes one 800 px tall viewport per --width item, in the order given", () => {
+    expect(widthViewports("768,1024")).toEqual([
+      { name: "w768", width: 768, height: 800 },
+      { name: "w1024", width: 1024, height: 800 },
+    ]);
+    expect(widthViewports("200,3840")).toHaveLength(2);
+  });
+});
+
+describe("readCommandLine", () => {
+  /** Returns the names of the viewports a command line picks, or null when it is wrong. */
+  function pickedNames(flags: string[]): string[] | null {
+    const commandLine = readCommandLine(["page.html", ...flags]);
+    if (commandLine === null) {
+      return null;
+    }
+    const names = [];
+    for (const viewport of commandLine.viewportList) {
+      names.push(viewport.name);
+    }
+    return names;
+  }
+
+  it("picks all four named viewports when no viewport flag is given", () => {
+    expect(pickedNames([])).toEqual([
+      "desktop",
+      "phone",
+      "tablet",
+      "widescreen",
+    ]);
+    expect(pickedNames(["--out", "folder"])).toEqual([
+      "desktop",
+      "phone",
+      "tablet",
+      "widescreen",
+    ]);
+  });
+
+  it("picks only the flagged viewports, in the default order", () => {
+    expect(pickedNames(["--phone", "--widescreen"])).toEqual([
+      "phone",
+      "widescreen",
+    ]);
+    expect(pickedNames(["--tablet", "--out", "folder", "--desktop"])).toEqual([
+      "desktop",
+      "tablet",
+    ]);
+  });
+
+  it("puts the named viewports before the --width ones", () => {
+    expect(pickedNames(["--width", "1024,768", "--desktop"])).toEqual([
+      "desktop",
+      "w1024",
+      "w768",
+    ]);
+    expect(pickedNames(["--width", "768"])).toEqual(["w768"]);
+  });
+
+  it("refuses a value that looks like a flag, an unknown flag, and two pages", () => {
+    expect(readCommandLine(["page.html", "--out", "--phone"])).toBeNull();
+    expect(readCommandLine(["page.html", "--wide"])).toBeNull();
+    expect(readCommandLine(["page.html", "other.html"])).toBeNull();
+    expect(readCommandLine(["--phone"])).toBeNull();
+  });
+
+  it("keeps the page and the output folder", () => {
+    expect(
+      readCommandLine(["page.html", "--phone", "--out", "folder"]),
+    ).toMatchObject({
+      pageArgument: "page.html",
+      folderArgument: "folder",
+    });
+  });
+});
+
 describe("runMeasure", () => {
   it("prints the usage line and exits 2 for a wrong command line", async () => {
     const result = await runMeasure([], repositoryRoot);
     expect(result.exitCode).toBe(EXIT_USAGE);
     expect(result.lines).toHaveLength(1);
+  });
+
+  it.each(["0", "199", "3841", "12a", "768,768", "768,", "0768", ""])(
+    "prints the usage line and exits 2 for --width %j",
+    async (widths) => {
+      const result = await runMeasure(
+        ["evals/measure/known-values.html", "--width", widths],
+        repositoryRoot,
+      );
+      expect(result.exitCode).toBe(EXIT_USAGE);
+      expect(result.lines).toHaveLength(1);
+      expect(result.lines[0]).toMatch(/^usage: /);
+    },
+  );
+
+  it("prints the usage line and exits 2 for a flag given twice or without its value", async () => {
+    for (const commandArguments of [
+      ["evals/measure/known-values.html", "--phone", "--phone"],
+      [
+        "evals/measure/known-values.html",
+        "--widescreen",
+        "--tablet",
+        "--widescreen",
+      ],
+      ["evals/measure/known-values.html", "--wide"],
+      ["evals/measure/known-values.html", "--width", "768", "--width", "1024"],
+      ["evals/measure/known-values.html", "--out", "a", "--out", "b"],
+      ["evals/measure/known-values.html", "--width"],
+    ]) {
+      const result = await runMeasure(commandArguments, repositoryRoot);
+      expect(result.exitCode).toBe(EXIT_USAGE);
+      expect(result.lines).toHaveLength(1);
+    }
   });
 
   it("refuses a file that does not exist with one line and exit code 3", async () => {

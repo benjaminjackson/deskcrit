@@ -43,7 +43,7 @@
       }
     },
     "viewports": {
-      "description": "One entry per viewport the page was rendered in: desktop (1280 x 800 px) first, then phone (390 x 844 px).",
+      "description": "One entry per viewport the page was rendered in: by default desktop (1280 x 800 px), phone (390 x 844 px), tablet (768 x 1024 px), and widescreen (1920 x 1080 px), in that order. The flags --desktop, --phone, --tablet, and --widescreen pick some of these, in the same order, and --width adds one entry per width after them, in the order given, named w<N> and 800 px tall. Desktop is first only in the default order, so a reader finds a viewport by its name and never by its position.",
       "type": "array",
       "minItems": 1,
       "items": {
@@ -91,8 +91,11 @@
       ],
       "properties": {
         "name": {
-          "description": "The viewport's name, which also names its screenshot and crops.",
-          "enum": ["desktop", "phone"]
+          "description": "The viewport's name, which also names its screenshot and crops; w<N> for a width given with --width.",
+          "anyOf": [
+            { "enum": ["desktop", "phone", "tablet", "widescreen"] },
+            { "type": "string", "pattern": "^w[1-9][0-9]{2,3}$" }
+          ]
         },
         "width": {
           "description": "The viewport width in CSS pixels.",
