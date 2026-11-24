@@ -4,17 +4,17 @@ This file holds the scores of each version of the design-critic skill after the 
 
 ## Summary
 
-| Measure | Baseline `01218fd9` | Crop script `a80aa550` | Written walk `581fdaf0` | MECE checklist `8006d3a2` | Entries script `3a8d079b` | Go further `f724b27f` | Go further on every crit `fa042f2d` | No invented content `aefb4967` | Two-step go-further `3f0e7ca5` |
-|---|---|---|---|---|---|---|---|---|---|
-| Repeat run: ranked findings in all 3 runs | 0.710 | 0.740 | 0.824 | 0.719 | 0.858 | 0.737 | 0.720 | 0.732 | 0.854 (9 of 10 images) |
-| Repeat run: ranked findings in all 3 ranked lists | 0.619 | 0.581 | 0.752 | 0.546 | 0.784 | 0.636 | 0.568 | 0.587 | 0.742 (9 of 10 images) |
-| Repeat run: verdicts agree | 8 of 10 | 7 of 10 | 6 of 10 | 7 of 10 | 6 of 10 | 7 of 10 | 5 of 10 | 4 of 10 | 6 of 9 |
-| Detection, live: raised on positive | 34 of 37 | 37 of 37 | 33 of 37 | 35 of 37 | 34 of 37 | 34 of 37 | 33 of 37 | 32 of 37 | not scored |
-| Detection, live: quiet on negative | 37 of 37 | 35 of 37 | 35 of 37 | 36 of 37 | 37 of 37 | 37 of 37 | 37 of 37 | 36 of 37 | not scored |
-| Detection, removed: raised on positive | 34 of 40 | 34 of 40 | 35 of 40 | 35 of 40 | 36 of 40 | not scored | not scored | not scored | not scored |
-| Detection, removed: quiet on negative | 39 of 40 | 39 of 40 | 40 of 40 | 37 of 40 | 39 of 40 | not scored | not scored | not scored | not scored |
-| Compare: agrees with the preference | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | not scored | not scored | not scored |
-| Praise text: pass, fail, inconclusive | 11, 2, 1 | 12, 1, 1 | 12, 2, 0 | 14, 0, 0 | 13, 1, 0 | 12, 1, 1 | 11, 2, 1 | 10, 3, 1 | not scored |
+| Measure | Baseline `01218fd9` | Crop script `a80aa550` | Written walk `581fdaf0` | MECE checklist `8006d3a2` | Entries script `3a8d079b` | Go further `f724b27f` | Go further on every crit `fa042f2d` | No invented content `aefb4967` | Two-step go-further `3f0e7ca5` | Template tells `bb87b6f0` |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Repeat run: ranked findings in all 3 runs | 0.710 | 0.740 | 0.824 | 0.719 | 0.858 | 0.737 | 0.720 | 0.732 | 0.854 (9 of 10 images) | 0.779 |
+| Repeat run: ranked findings in all 3 ranked lists | 0.619 | 0.581 | 0.752 | 0.546 | 0.784 | 0.636 | 0.568 | 0.587 | 0.742 (9 of 10 images) | 0.638 |
+| Repeat run: verdicts agree | 8 of 10 | 7 of 10 | 6 of 10 | 7 of 10 | 6 of 10 | 7 of 10 | 5 of 10 | 4 of 10 | 6 of 9 | 6 of 10 |
+| Detection, live: raised on positive | 34 of 37 | 37 of 37 | 33 of 37 | 35 of 37 | 34 of 37 | 34 of 37 | 33 of 37 | 32 of 37 | not scored | 35 of 37 |
+| Detection, live: quiet on negative | 37 of 37 | 35 of 37 | 35 of 37 | 36 of 37 | 37 of 37 | 37 of 37 | 37 of 37 | 36 of 37 | not scored | 37 of 37 |
+| Detection, removed: raised on positive | 34 of 40 | 34 of 40 | 35 of 40 | 35 of 40 | 36 of 40 | not scored | not scored | not scored | not scored | 35 of 40 |
+| Detection, removed: quiet on negative | 39 of 40 | 39 of 40 | 40 of 40 | 37 of 40 | 39 of 40 | not scored | not scored | not scored | not scored | 39 of 40 |
+| Compare: agrees with the preference | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | not scored | not scored | not scored | not scored |
+| Praise text: pass, fail, inconclusive | 11, 2, 1 | 12, 1, 1 | 12, 2, 0 | 14, 0, 0 | 13, 1, 0 | 12, 1, 1 | 11, 2, 1 | 10, 3, 1 | not scored | not scored |
 
 ## Repeat-run noise floor
 
@@ -1224,4 +1224,121 @@ mean share in all 3 ranked lists: 0.742 (9 of 10 images)
 verdicts agree 6 of 9
 1 of 10 images left out of the means: a crit has no ranked list or could not be read
 Jev (EV-17): Jev's largest probability movement was 0.08 (EV-6).
+```
+
+## Template tells, skill commit `bb87b6f0f1a3e8ce58cbcd2fd42236ce5dcbc18c`
+
+The change: the critic is told about the template tells of GUIDELINES.md (crit-7hw.3, FR-86). Scored on 2026-11-24 with critic and judge model `claude-opus-5-5`: the tells evaluation (EV-23, in `evals/critic/RESULTS.md`), detection on the live and removed criteria, and repeat run batch 1. Compare and praise text were not run.
+
+### Repeat run (EV-17), batch 1
+
+`node evals/critic/repeat.ts --replay --skill-commit bb87b6f0f1a3e8ce58cbcd2fd42236ce5dcbc18c`
+
+```
+image                                                            findings(A/B/C)  in-all-3  in-all-3-ranked  verdicts-agree
+packs/accessibility/fixtures/chart-without-text.positive.png     2/3/3            0.625     0.375            yes
+packs/art-direction/fixtures/mixed-level-of-detail.negative.png  2/1/1            0.000     0.000            no
+packs/basics/fixtures/all-caps-long-text.positive.png            2/2/2            1.000     1.000            yes
+packs/basics/fixtures/centered-or-right-paragraphs.negative.png  2/2/2            1.000     1.000            yes
+packs/color/fixtures/accent-overused.positive.png                4/4/3            0.636     0.545            no
+packs/dataviz/fixtures/bar-axis-not-at-zero.negative.png         4/4/4            1.000     1.000            no
+packs/dataviz/fixtures/bare-kpi-number.positive.png              4/2/3            0.889     0.667            yes
+packs/layout/fixtures/everything-centered.negative.png           3/3/2            0.875     0.750            yes
+packs/typography/fixtures/heading-indistinct.positive.png        3/3/3            0.889     0.667            yes
+packs/ux/fixtures/actions-look-like-plain-text.negative.png      3/2/3            0.875     0.375            no
+mean share in all 3: 0.779 (10 of 10 images)
+mean share in all 3 ranked lists: 0.638 (10 of 10 images)
+verdicts agree 6 of 10
+Jev (EV-17): Jev's largest probability movement was 0.08 (EV-6).
+```
+
+### Detection (EV-14)
+
+`node evals/critic/detect.ts --replay --skill-commit bb87b6f0f1a3e8ce58cbcd2fd42236ce5dcbc18c`
+
+```
+skill commit bb87b6f0f1a3e8ce58cbcd2fd42236ce5dcbc18c, judge model claude-opus-5-5, pairs per criterion 1
+group                      pack           criterion                          raised-on-positive  quiet-on-negative  left-out
+live                       accessibility  chart-without-text                 1.00 (1/1)          1.00 (1/1)         0
+live                       accessibility  error-without-text                 1.00 (1/1)          1.00 (1/1)         0
+live                       accessibility  field-label-placeholder-only       1.00 (1/1)          1.00 (1/1)         0
+live                       accessibility  meaning-by-color-only              1.00 (1/1)          1.00 (1/1)         0
+live                       accessibility  running-text-italic-or-underlined  0.00 (0/1)          1.00 (1/1)         0
+live                       art-direction  mixed-level-of-detail              1.00 (1/1)          1.00 (1/1)         0
+live                       art-direction  mixed-rendering-styles             1.00 (1/1)          1.00 (1/1)         0
+live                       basics         all-caps-long-text                 1.00 (1/1)          1.00 (1/1)         0
+live                       basics         centered-or-right-paragraphs       1.00 (1/1)          1.00 (1/1)         0
+live                       basics         competing-primary-buttons          1.00 (1/1)          1.00 (1/1)         0
+live                       basics         decorative-face-for-paragraphs     1.00 (1/1)          1.00 (1/1)         0
+live                       basics         text-reads-faint                   1.00 (1/1)          1.00 (1/1)         0
+live                       color          accent-overused                    1.00 (1/1)          1.00 (1/1)         0
+live                       color          competing-saturated-hues           1.00 (1/1)          1.00 (1/1)         0
+live                       color          same-role-different-colors         1.00 (1/1)          1.00 (1/1)         0
+live                       color          saturated-large-areas              1.00 (1/1)          1.00 (1/1)         0
+live                       color          text-over-busy-image               1.00 (1/1)          1.00 (1/1)         0
+live                       color          vibrating-color-pair               1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        bar-axis-not-at-zero               1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        bare-kpi-number                    1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        chartjunk-decoration               1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        color-without-meaning              1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        heavy-gridlines-and-frames         1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        pie-too-many-slices                1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        rainbow-for-ordered-values         1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        three-d-chart                      1.00 (1/1)          1.00 (1/1)         0
+live                       layout         everything-centered                1.00 (1/1)          1.00 (1/1)         0
+live                       layout         heavy-rules-and-boxes              1.00 (1/1)          1.00 (1/1)         0
+live                       layout         no-dominant-element                1.00 (1/1)          1.00 (1/1)         0
+live                       layout         uniform-scale                      0.00 (0/1)          1.00 (1/1)         0
+live                       typography     heading-indistinct                 1.00 (1/1)          1.00 (1/1)         0
+live                       typography     heading-lines-collide              1.00 (1/1)          1.00 (1/1)         0
+live                       typography     headings-differ-only-in-size       1.00 (1/1)          1.00 (1/1)         0
+live                       ux             actions-look-like-plain-text       1.00 (1/1)          1.00 (1/1)         0
+live                       ux             duplicate-adjacent-actions         1.00 (1/1)          1.00 (1/1)         0
+live                       ux             no-current-location-shown          1.00 (1/1)          1.00 (1/1)         0
+live                       ux             required-fields-unmarked           1.00 (1/1)          1.00 (1/1)         0
+removed                    basics         body-text-too-small                1.00 (1/1)          1.00 (1/1)         0
+removed                    basics         captions-labels-too-small          1.00 (1/1)          1.00 (1/1)         0
+removed                    basics         content-touches-page-edge          1.00 (1/1)          1.00 (1/1)         0
+removed                    basics         wall-of-text                       1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         crowded-unrelated-elements         1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         figure-merges-with-ground          1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         groups-not-separated               1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         inconsistent-repeated-styles       1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         label-far-from-field               1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         lopsided-balance                   1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         near-miss-alignment                1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         off-grid-block                     1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         picture-off-text-lines             1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         uneven-gutters                     1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         white-space-scattered              1.00 (1/1)          0.00 (0/1)         0
+removed                    typography     baselines-misaligned               1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     body-leading-too-loose             1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     body-leading-too-tight             1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     display-caps-tight                 1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     display-kerning-gap                0.00 (0/1)          1.00 (1/1)         0
+removed                    typography     display-ligature-missing           0.00 (0/1)          1.00 (1/1)         0
+removed                    typography     display-quote-not-hung             1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     display-straight-quotes            1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     display-type-loose                 1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     faux-italic-display                0.00 (0/1)          1.00 (1/1)         0
+removed                    typography     first-paragraph-indented           1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     heading-at-column-foot             0.00 (0/1)          1.00 (1/1)         0
+removed                    typography     heading-floats                     1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     heading-lines-loose                1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     justified-word-gaps                1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     list-wrap-under-bullet             1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     measure-too-long                   1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     near-identical-sizes               1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     paragraph-indent-and-space         1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     paragraph-runt                     1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     rag-staircase                      0.00 (0/1)          1.00 (1/1)         0
+removed                    typography     rivers-of-white                    1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     stacked-emphasis                   1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     thin-small-text                    1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     too-many-typefaces                 1.00 (1/1)          1.00 (1/1)         0
+live total                                                                   0.95 (35/37)        1.00 (37/37)       0
+removed total (jev-quiet)                                                    0.87 (27/31)        0.97 (30/31)       0
+removed total (no-source)                                                    0.89 (8/9)          1.00 (9/9)         0
+removed total                                                                0.88 (35/40)        0.97 (39/40)       0
+Jev (EV-14): in the replay of npm run eval:agreement on 2026-11-23, 29 of the 32 live criteria with a label file agreed with Benjamin Jackson's labels at 0.8 or above, and 182 of 210 positive fixtures fired; Jev failed on the criteria removed under R-4.
 ```

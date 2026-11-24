@@ -6,7 +6,13 @@
 // and imports nothing from src/.
 
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import {
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -76,5 +82,51 @@ it("the committed design-critic references equal a fresh build", () => {
     }
   } finally {
     rmSync(buildFolder, { recursive: true, force: true });
+  }
+});
+
+/** A two-section catalog in the GUIDELINES.md format, each section with one entry that cites unslop. */
+const UNSLOP_CATALOG = `## Layout, spacing, grids
+
+### Layout entry citing unslop
+- **Rule:** A rule.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0.
+
+## Template tells: stock moves of AI-made interfaces (draft)
+
+### Tells entry citing unslop
+- **Rule:** A rule.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0.
+`;
+
+/**
+ * Ruby code that loads build.rb without building (its build runs only as the main script),
+ * parses the catalog file named by its first argument, and prints each entry's off-list flag as JSON.
+ */
+const OFF_LIST_PROBE = `
+require "json"
+load ARGV.fetch(0)
+flags = parse_guidelines(ARGV.fetch(1)).values.flatten.to_h { [_1.title, _1.off_list?] }
+print JSON.generate(flags)
+`;
+
+// PRD FR-86: unslop is an accepted source for the Template tells section only.
+it("build.rb flags an unslop citation as off the list outside Template tells only", () => {
+  requireRuby3();
+  const catalogFolder = mkdtempSync(join(tmpdir(), "design-critic-unslop-"));
+  try {
+    const catalogPath = join(catalogFolder, "GUIDELINES.md");
+    writeFileSync(catalogPath, UNSLOP_CATALOG);
+    const output = execFileSync(
+      "ruby",
+      ["-e", OFF_LIST_PROBE, BUILD_SCRIPT, catalogPath],
+      { encoding: "utf8" },
+    );
+    expect(JSON.parse(output)).toEqual({
+      "Layout entry citing unslop": true,
+      "Tells entry citing unslop": false,
+    });
+  } finally {
+    rmSync(catalogFolder, { recursive: true, force: true });
   }
 });
