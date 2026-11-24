@@ -94,7 +94,7 @@ const SETS = {
     ],
     screens: [
       {
-        sub: "Three departures this week from Harbor Pier",
+        sub: "Today's departures from Harbor Pier",
         blocks: [
           ["stats", [["Trips this week", "12", "+3 from last week"], ["Boats free today", "4", "of 9"], ["Crew on shift", "7", "2 on call"]]],
           ["heading", "Departures"],
@@ -156,7 +156,7 @@ const SETS = {
         blocks: [
           ["stats", [["Outstanding", "$18,240", "6 invoices"], ["Overdue", "$3,150", "2 invoices"], ["Paid this month", "$9,870", "+12%"]]],
           ["heading", "Recent invoices"],
-          ["table", ["Invoice", "Client", "Status", "Amount"], [["INV-0412", "Alder Joinery", "Paid", "$1,200"], ["INV-0413", "North Fork Café", "Sent", "$640"], ["INV-0414", "Bellamy & Co", "Overdue", "$2,100"], ["INV-0415", "Studio Orme", "Draft", "$980"]]],
+          ["table", ["Invoice", "Client", "Status", "Amount"], [["INV-0413", "North Fork Café", "Sent", "$640"], ["INV-0414", "Bellamy & Co", "Overdue", "$2,100"], ["INV-0415", "Studio Orme", "Draft", "$980"], ["INV-0416", "Tarn Outfitters", "Sent", "$1,450"]]],
         ],
       },
       {
