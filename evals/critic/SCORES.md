@@ -4,17 +4,17 @@ This file holds the scores of each version of the design-critic skill after the 
 
 ## Summary
 
-| Measure | Baseline `01218fd9` | Crop script `a80aa550` | Written walk `581fdaf0` | MECE checklist `8006d3a2` | Entries script `3a8d079b` | Go further `f724b27f` | Go further on every crit `fa042f2d` | No invented content `aefb4967` |
-|---|---|---|---|---|---|---|---|---|
-| Repeat run: ranked findings in all 3 runs | 0.710 | 0.740 | 0.824 | 0.719 | 0.858 | 0.737 | 0.720 | 0.732 |
-| Repeat run: ranked findings in all 3 ranked lists | 0.619 | 0.581 | 0.752 | 0.546 | 0.784 | 0.636 | 0.568 | 0.587 |
-| Repeat run: verdicts agree | 8 of 10 | 7 of 10 | 6 of 10 | 7 of 10 | 6 of 10 | 7 of 10 | 5 of 10 | 4 of 10 |
-| Detection, live: raised on positive | 34 of 37 | 37 of 37 | 33 of 37 | 35 of 37 | 34 of 37 | 34 of 37 | 33 of 37 | 32 of 37 |
-| Detection, live: quiet on negative | 37 of 37 | 35 of 37 | 35 of 37 | 36 of 37 | 37 of 37 | 37 of 37 | 37 of 37 | 36 of 37 |
-| Detection, removed: raised on positive | 34 of 40 | 34 of 40 | 35 of 40 | 35 of 40 | 36 of 40 | not scored | not scored | not scored |
-| Detection, removed: quiet on negative | 39 of 40 | 39 of 40 | 40 of 40 | 37 of 40 | 39 of 40 | not scored | not scored | not scored |
-| Compare: agrees with the preference | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | not scored | not scored |
-| Praise text: pass, fail, inconclusive | 11, 2, 1 | 12, 1, 1 | 12, 2, 0 | 14, 0, 0 | 13, 1, 0 | 12, 1, 1 | 11, 2, 1 | 10, 3, 1 |
+| Measure | Baseline `01218fd9` | Crop script `a80aa550` | Written walk `581fdaf0` | MECE checklist `8006d3a2` | Entries script `3a8d079b` | Go further `f724b27f` | Go further on every crit `fa042f2d` | No invented content `aefb4967` | Two-step go-further `3f0e7ca5` |
+|---|---|---|---|---|---|---|---|---|---|
+| Repeat run: ranked findings in all 3 runs | 0.710 | 0.740 | 0.824 | 0.719 | 0.858 | 0.737 | 0.720 | 0.732 | 0.854 (9 of 10 images) |
+| Repeat run: ranked findings in all 3 ranked lists | 0.619 | 0.581 | 0.752 | 0.546 | 0.784 | 0.636 | 0.568 | 0.587 | 0.742 (9 of 10 images) |
+| Repeat run: verdicts agree | 8 of 10 | 7 of 10 | 6 of 10 | 7 of 10 | 6 of 10 | 7 of 10 | 5 of 10 | 4 of 10 | 6 of 9 |
+| Detection, live: raised on positive | 34 of 37 | 37 of 37 | 33 of 37 | 35 of 37 | 34 of 37 | 34 of 37 | 33 of 37 | 32 of 37 | not scored |
+| Detection, live: quiet on negative | 37 of 37 | 35 of 37 | 35 of 37 | 36 of 37 | 37 of 37 | 37 of 37 | 37 of 37 | 36 of 37 | not scored |
+| Detection, removed: raised on positive | 34 of 40 | 34 of 40 | 35 of 40 | 35 of 40 | 36 of 40 | not scored | not scored | not scored | not scored |
+| Detection, removed: quiet on negative | 39 of 40 | 39 of 40 | 40 of 40 | 37 of 40 | 39 of 40 | not scored | not scored | not scored | not scored |
+| Compare: agrees with the preference | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | not scored | not scored | not scored |
+| Praise text: pass, fail, inconclusive | 11, 2, 1 | 12, 1, 1 | 12, 2, 0 | 14, 0, 0 | 13, 1, 0 | 12, 1, 1 | 11, 2, 1 | 10, 3, 1 | not scored |
 
 ## Repeat-run noise floor
 
@@ -1185,4 +1185,43 @@ no-dominant-element-condemn           condemn  no        absent      absent     
 uniform-scale-praise                  praise   no        present     present        pass
 uniform-scale-condemn                 condemn  no        absent      absent         pass
 passed 10, failed 3, inconclusive 1 of 14
+```
+
+## Two-step go-further, skill commit `3f0e7ca52e3a7ca632ac306f0f8e14bf55c15b3c`
+
+The change: `agents/critic.md` holds no rule of "Where it could go further", so the critic writes its crit as at `e9d03b22` plus the no-invented-content rule and US spelling (crit-0a0.14, OQ-28). A second agent, `agents/go-further.md`, reads the image and the finished crit and writes only the section, and `SKILL.md` joins it after "What's working". Benjamin Jackson asked for a lean evaluation: repeat run batch 1, the three images that slipped in detection at `aefb4967`, and the section for the side-by-side. The repeat run reads only the critic's crit, so the second step does not run in it.
+
+Repeat run, against the entries-script critic `3a8d079b` (batch 1: 0.858, 0.784, 6 of 10; batch 2: 0.774, 0.623, 8 of 10): every batch-1 figure is inside the range of the two base batches, so batch 2 was not run. One crit of `mixed-level-of-detail.negative.png` (run C) writes a sentence in place of the ranked list ("None of the findings would noticeably change how well the pa…"), so that image is left out of the means; the verdict agreement is over 9 images.
+
+Detection, the three images that slipped at `aefb4967`, one run each, read by eye and not by the judge:
+
+- `layout/everything-centered.positive.png`: raised. Finding 3 says every block is centered on one axis, including the paragraph.
+- `typography/headings-differ-only-in-size.positive.png`: raised. Finding 2 says the headings differ from the body only in size.
+- `color/text-over-busy-image.negative.png`: not quiet, the same as at `aefb4967`. Finding 2 says the leaf pattern competes with the headline and calls it a borderline contrast defect.
+
+Side-by-side (EV-19): the second step ran on the 10 saved crits of `e9d03b22` in `evals/critic/side-by-side/runs/`, the critic before the section. Those crits come from that critic, which is not the same as the new `agents/critic.md` (it lacks the no-invented-content rule and US spelling). The pages set them against `39e113d3`, the always-on version Benjamin Jackson picked, with `side-by-side.ts prepare --candidate-go-further 3f0e7ca52e3a7ca632ac306f0f8e14bf55c15b3c`. The picks are not made yet.
+
+Invented content: all 10 sections, read by eye. Each name, figure, and quote that a section uses is on the page (checked against the crit, the other crits of the same page, OCR of the page, and two crops). Where an idea needs content that the page does not have, the section leaves it to the maker. All 10 sections use "Builds on finding", none writes "Nothing beyond the findings.", and each has 2 or 3 items.
+
+### Repeat run (EV-17), batch 1
+
+`node evals/critic/repeat.ts --replay --skill-commit 3f0e7ca52e3a7ca632ac306f0f8e14bf55c15b3c`
+
+```
+image                                                            findings(A/B/C)  in-all-3                                                                                                        in-all-3-ranked                                                                                                 verdicts-agree
+packs/accessibility/fixtures/chart-without-text.positive.png     2/3/3            0.750                                                                                                           0.750                                                                                                           yes
+packs/art-direction/fixtures/mixed-level-of-detail.negative.png  2/1/?            unreadable (run C: text before the first item: "None of the findings would noticeably change how well the pa")  unreadable (run C: text before the first item: "None of the findings would noticeably change how well the pa")  -
+packs/basics/fixtures/all-caps-long-text.positive.png            2/2/3            0.857                                                                                                           0.857                                                                                                           yes
+packs/basics/fixtures/centered-or-right-paragraphs.negative.png  2/3/3            0.750                                                                                                           0.750                                                                                                           yes
+packs/color/fixtures/accent-overused.positive.png                4/3/4            0.909                                                                                                           0.545                                                                                                           no
+packs/dataviz/fixtures/bar-axis-not-at-zero.negative.png         4/4/4            1.000                                                                                                           1.000                                                                                                           no
+packs/dataviz/fixtures/bare-kpi-number.positive.png              3/2/2            1.000                                                                                                           0.857                                                                                                           yes
+packs/layout/fixtures/everything-centered.negative.png           3/3/2            0.750                                                                                                           0.750                                                                                                           no
+packs/typography/fixtures/heading-indistinct.positive.png        4/4/4            0.667                                                                                                           0.500                                                                                                           yes
+packs/ux/fixtures/actions-look-like-plain-text.negative.png      3/3/3            1.000                                                                                                           0.667                                                                                                           yes
+mean share in all 3: 0.854 (9 of 10 images)
+mean share in all 3 ranked lists: 0.742 (9 of 10 images)
+verdicts agree 6 of 9
+1 of 10 images left out of the means: a crit has no ranked list or could not be read
+Jev (EV-17): Jev's largest probability movement was 0.08 (EV-6).
 ```

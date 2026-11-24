@@ -15,6 +15,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { currentDeepRunIdentity, deepRequestKey } from "./deep-run.ts";
+import { goFurtherKey } from "./go-further.ts";
 import { currentRunIdentity } from "./run-critic.ts";
 import {
   checkKeyFile,
@@ -165,6 +166,89 @@ describe("prepare", () => {
       const critA = text.split("## Crit A")[1]?.split("## Crit B")[0] ?? "";
       expect(critA).toContain(page.a === "base" ? "Single crit" : "Deep crit");
     }
+  });
+
+  it("with --candidate-go-further reads the candidate's crits with the section joined in", () => {
+    const setup = setUp(2);
+    writeBothSides(setup.runsDirectory, setup.imageBytes);
+    const goFurtherCommit = "3333333ccccccccccccccccccccccccccccccccc";
+    const goFurtherDirectory = join(setup.root, "go-further");
+    mkdirSync(join(goFurtherDirectory, goFurtherCommit), { recursive: true });
+    setup.imageBytes.forEach((bytes, index) => {
+      const key = goFurtherKey({
+        critCommit: CANDIDATE_COMMIT,
+        critKey: sha256(bytes),
+        critRun: 1,
+        crit: `Candidate crit of ${bytes}.`,
+        imagePath: join(setup.imageFolder, `page-${index + 1}.png`),
+      });
+      writeFileSync(
+        join(goFurtherDirectory, goFurtherCommit, `${key}.md`),
+        `Joined crit of ${bytes}, from ${goFurtherCommit}.`,
+      );
+      writeFileSync(
+        join(goFurtherDirectory, goFurtherCommit, `${key}.json`),
+        JSON.stringify({ section: "**Where it could go further.** x" }),
+      );
+    });
+    const output = runSideBySideCommand(
+      [
+        "prepare",
+        "--base",
+        BASE_COMMIT,
+        "--candidate",
+        CANDIDATE_COMMIT,
+        "--candidate-go-further",
+        goFurtherCommit,
+        "--go-further-dir",
+        goFurtherDirectory,
+        setup.imageFolder,
+      ],
+      {
+        runsDirectory: setup.runsDirectory,
+        outDirectory: setup.outDirectory,
+        randomSeed: () => FIXED_SEED,
+      },
+    );
+    expect(output.errorText).toBe("");
+    expect(output.exitCode).toBe(0);
+    const key = readKey(setup.outDirectory);
+    expect(key.candidate).toBe(
+      `${CANDIDATE_COMMIT} with go-further ${goFurtherCommit}`,
+    );
+    for (const page of key.pages) {
+      const text = readFileSync(
+        join(setup.outDirectory, "pages", `page-${page.page}.md`),
+        "utf8",
+      );
+      expect(text).toContain("Joined crit of");
+      expect(text).not.toContain("Candidate crit of");
+      expect(text).not.toContain(goFurtherCommit.slice(0, 7));
+    }
+    // A page with no joined crit counts as missing on the candidate side.
+    const missingOutput = runSideBySideCommand(
+      [
+        "prepare",
+        "--base",
+        BASE_COMMIT,
+        "--candidate",
+        CANDIDATE_COMMIT,
+        "--candidate-go-further",
+        "4444444ddddddddddddddddddddddddddddddddd",
+        "--go-further-dir",
+        goFurtherDirectory,
+        "--out",
+        join(setup.root, "out-2"),
+        setup.imageFolder,
+      ],
+      {
+        runsDirectory: setup.runsDirectory,
+        outDirectory: setup.outDirectory,
+        randomSeed: () => FIXED_SEED,
+      },
+    );
+    expect(missingOutput.exitCode).toBe(1);
+    expect(missingOutput.errorText).toContain("no crit from candidate");
   });
 
   it("writes pages and picks.txt that name neither commit, and a key.json that names both", () => {
