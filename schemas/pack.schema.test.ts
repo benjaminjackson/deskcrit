@@ -164,3 +164,25 @@ describe("pack.schema.json", () => {
     },
   );
 });
+
+describe("the first-party packs", () => {
+  // crit packs validate used to check every real pack against the schema. It was removed with
+  // Jev (crit-mk9.3), and the critic evaluations still read each pack.yaml, so this keeps that check.
+  const packsDirectory = join(schemasDirectory, "..", "packs");
+  const packNames = readdirSync(packsDirectory, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith("_"))
+    .map((entry) => entry.name)
+    .sort();
+
+  it("finds the packs", () => {
+    expect(packNames.length).toBeGreaterThan(0);
+  });
+
+  it.each(packNames)("%s/pack.yaml matches the pack schema", (packName) => {
+    const validate = createAjv().compile(schema as object);
+    const pack = readExamplePack(join(packsDirectory, packName, "pack.yaml"));
+    const valid = validate(pack);
+    expect(validate.errors ?? []).toEqual([]);
+    expect(valid).toBe(true);
+  });
+});
