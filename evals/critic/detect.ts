@@ -50,6 +50,13 @@ import {
   readJudgeAnswer,
 } from "./judge.ts";
 import {
+  type CritToRefute,
+  ensureRefutation,
+  readSavedRefutation,
+  refutationKey,
+  type SavedRefutation,
+} from "./refute.ts";
+import {
   type ClaudeRunner,
   type CritRequest,
   currentRunIdentity,
@@ -1006,6 +1013,7 @@ const HELP_TEXT = `Detection evaluation (EV-14) on the live and the removed crit
 Usage:
   node evals/critic/detect.ts [--replay] [--pairs-per-criterion N] [--skill DIR] [--skill-commit SHA]
                               [--facts] [--jev] [--live-only] [--beside SHA]...
+                              [--refute [--refuter-commit SHA]]
   node evals/critic/detect.ts --help
 
 For each criterion it takes the first N fixture pairs (a pair is one variant with a positive and a
@@ -1031,6 +1039,12 @@ Flags:
   --beside SHA               Replay the runs without facts of this skill commit on the same
                              images and print them in a side-by-side table after the main table.
                              May be given more than once. Starts no child process for them.
+  --refute                   Also run the refuter (FR-81, agents/refuter.md) on the run-1 crit of
+                             each image, judge each crit it changed, and print the table on the
+                             crits after the refuter, the ranked findings it dropped, and each
+                             image whose judge answer changed. Not with --facts or --jev.
+  --refuter-commit SHA       With --refute, use the refutations of this commit instead of the
+                             skill folder's commit.
   --help, -h                 Print this help.
 
 The judge reads one crit, the criterion title, and its rule, never the image name or polarity,
@@ -1132,6 +1146,8 @@ async function scoreDetection(
       jev: { type: "boolean", default: false },
       "live-only": { type: "boolean", default: false },
       beside: { type: "string", multiple: true },
+      refute: { type: "boolean", default: false },
+      "refuter-commit": { type: "string" },
       help: { type: "boolean", short: "h", default: false },
     },
     strict: true,
@@ -1152,6 +1168,13 @@ async function scoreDetection(
   const withFacts = parsed.values.facts === true;
   const withJev = parsed.values.jev === true;
   const besideCommits = parsed.values.beside ?? [];
+  const withRefuter = parsed.values.refute === true;
+  if (withRefuter && (withFacts || withJev)) {
+    throw new Error("--refute does not go with --facts or --jev");
+  }
+  if (!withRefuter && parsed.values["refuter-commit"] !== undefined) {
+    throw new Error("--refuter-commit needs --refute");
+  }
   const selection = selectCriteria(
     options.repositoryDirectory,
     pairsPerCriterion,
@@ -1376,6 +1399,26 @@ async function scoreDetection(
 
   // complete covers this run only; a beside commit with a missing item adds to missing below.
   const complete = missing.length === 0;
+  let refuterText = "";
+  if (withRefuter) {
+    // ?? gives the right side only when --refuter-commit is not given.
+    const refuterCommit =
+      parsed.values["refuter-commit"] ?? skillCommit(skillDirectory, replay);
+    const refuted = await scoreWithRefuter({
+      selected,
+      questionItems,
+      answers,
+      imagesToCrit,
+      keyByImagePath,
+      critCommit: commit,
+      refuterCommit,
+      replay,
+      options,
+      skillDirectory,
+    });
+    missing.push(...refuted.missing);
+    refuterText = refuted.text;
+  }
   let factsText = "";
   if (withFacts) {
     factsText = ", with measured facts (live criteria only)";
@@ -1436,7 +1479,7 @@ async function scoreDetection(
     );
     jevText = `\nimages where Jev fired on the image's own criterion: the judge answer without and with Jev evidence at this commit\n${jevRows}\n`;
   }
-  const text = `${header}\n${noteText}${table}\n${besideText}${jevText}${JEV_FIGURES_LINE}\n`;
+  const text = `${header}\n${noteText}${table}\n${besideText}${jevText}${refuterText}${JEV_FIGURES_LINE}\n`;
   if (missing.length > 0) {
     const errorLines = [...missing];
     if (replay) {
@@ -1451,6 +1494,258 @@ async function scoreDetection(
     };
   }
   return { text, errorText: "", exitCode: 0 };
+}
+
+/** What scoreWithRefuter needs from the main run. */
+type RefuterScoringInput = {
+  readonly selected: readonly SelectedCriterion[];
+  readonly questionItems: readonly {
+    criterionIndex: number;
+    scoredImage: ScoredImage;
+    question: JudgeQuestion | undefined;
+  }[];
+  readonly answers: readonly (DetectionAnswer | undefined)[];
+  readonly imagesToCrit: readonly FixtureImage[];
+  readonly keyByImagePath: ReadonlyMap<string, string>;
+  readonly critCommit: string;
+  readonly refuterCommit: string;
+  readonly replay: boolean;
+  readonly options: DetectOptions;
+  readonly skillDirectory: string;
+};
+
+/**
+ * Runs or replays the refuter (FR-81) on the saved run-1 crit of each image, judges each crit the
+ * refuter changed, and returns the text that --refute adds: the detection table on the crits after
+ * the refuter, the ranked findings it dropped on images that show and do not show the defect, and
+ * one row per image whose judge answer changed. A crit the refuter left unchanged keeps the judge
+ * answer of the crit without it, so only a dropped finding can change a row. Judge answers on the
+ * changed crits are saved under the refuter commit.
+ */
+async function scoreWithRefuter(
+  input: RefuterScoringInput,
+): Promise<{ text: string; missing: string[] }> {
+  const options = input.options;
+  const missing: string[] = [];
+  const refutationByImagePath = new Map<string, SavedRefutation>();
+  const toRefute: CritToRefute[] = [];
+  for (const image of input.imagesToCrit) {
+    const key = input.keyByImagePath.get(image.absolutePath) ?? "";
+    const saved = readSavedCrits(
+      options.runsDirectory,
+      input.critCommit,
+      key,
+      currentRunIdentity(),
+    )[0];
+    if (saved === undefined) {
+      // The main run already names the missing crit.
+      continue;
+    }
+    toRefute.push({
+      critCommit: input.critCommit,
+      critKey: key,
+      critRun: saved.runNumber,
+      crit: saved.crit,
+      imagePath: image.absolutePath,
+    });
+  }
+  const refuterOptions = {
+    runsDirectory: options.runsDirectory,
+    skillDirectory: input.skillDirectory,
+    refuterCommit: input.refuterCommit,
+    runClaude: options.runClaude,
+  };
+  if (input.replay) {
+    for (const item of toRefute) {
+      const refutation = readSavedRefutation(
+        options.runsDirectory,
+        input.refuterCommit,
+        refutationKey(item),
+      );
+      if (refutation === undefined) {
+        missing.push(
+          `missing refutation: crit ${item.critKey} at skill commit ${item.critCommit}, refuter commit ${input.refuterCommit}`,
+        );
+        continue;
+      }
+      refutationByImagePath.set(item.imagePath, refutation);
+    }
+  } else {
+    options.reportProgress?.(
+      `refuter: ${toRefute.length} crits to check at refuter commit ${input.refuterCommit}, at most ${MAX_PARALLEL_CALLS} at once`,
+    );
+    // Each failure is named and the rest go on, so one bad answer does not stop the whole run.
+    const results = await runPooled(
+      toRefute,
+      MAX_PARALLEL_CALLS,
+      async (item) => {
+        try {
+          return await ensureRefutation(item, refuterOptions);
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          missing.push(`refuter failed on crit ${item.critKey}: ${message}`);
+          return undefined;
+        }
+      },
+    );
+    results.forEach((refutation, index) => {
+      const item = toRefute[index];
+      if (refutation !== undefined && item !== undefined) {
+        refutationByImagePath.set(item.imagePath, refutation);
+      }
+    });
+  }
+
+  // One judge question per scored image whose crit the refuter changed.
+  const refutedQuestions: (JudgeQuestion | undefined)[] = [];
+  for (const item of input.questionItems) {
+    const refutation = refutationByImagePath.get(
+      item.scoredImage.image.absolutePath,
+    );
+    const criterion = input.selected[item.criterionIndex]?.criterion;
+    if (
+      refutation === undefined ||
+      refutation.droppedCount === 0 ||
+      criterion === undefined
+    ) {
+      refutedQuestions.push(undefined);
+      continue;
+    }
+    refutedQuestions.push(
+      buildDetectionQuestion(
+        criterion.title,
+        judgeRule(criterion.question),
+        refutation.key,
+        {
+          runNumber: 1,
+          critPath: "",
+          metadataPath: "",
+          crit: refutation.refutedCrit,
+          metadata: {},
+        },
+      ),
+    );
+  }
+  const judgeOptions = {
+    runsDirectory: options.runsDirectory,
+    skillCommit: input.refuterCommit,
+    runClaude: options.runClaude,
+  };
+  const refutedAnswers: (DetectionAnswer | undefined)[] = [];
+  if (input.replay) {
+    for (const question of refutedQuestions) {
+      refutedAnswers.push(
+        question === undefined
+          ? undefined
+          : readJudgeAnswer(
+              question,
+              parseDetectionAnswer,
+              options.runsDirectory,
+              input.refuterCommit,
+            ),
+      );
+    }
+  } else {
+    const judged = await runPooled(
+      refutedQuestions,
+      MAX_PARALLEL_CALLS,
+      async (question) =>
+        question === undefined
+          ? undefined
+          : ensureJudgeAnswer(question, parseDetectionAnswer, judgeOptions),
+    );
+    refutedAnswers.push(...judged);
+  }
+
+  // Counts after the refuter, the dropped findings by image truth, and the rows that changed.
+  const countsByCriterion: (DetectionCounts | undefined)[] = input.selected.map(
+    (entry) => ({
+      ...emptyCounts(),
+      leftOut: entry.leftOutCount,
+    }),
+  );
+  const dropped = {
+    "shows-defect": { dropped: 0, ranked: 0, images: 0 },
+    "no-defect": { dropped: 0, ranked: 0, images: 0 },
+  };
+  const changedRows: string[][] = [];
+  input.questionItems.forEach((item, index) => {
+    const image = item.scoredImage.image;
+    const criterion = input.selected[item.criterionIndex]?.criterion;
+    const refutation = refutationByImagePath.get(image.absolutePath);
+    const before = input.answers[index];
+    let after: DetectionAnswer | undefined;
+    if (refutation !== undefined && refutation.droppedCount === 0) {
+      after = before;
+    } else {
+      after = refutedAnswers[index];
+    }
+    if (refutation !== undefined) {
+      const tally = dropped[item.scoredImage.truth];
+      tally.dropped += refutation.droppedCount;
+      tally.ranked += refutation.rankedCount;
+      tally.images += 1;
+    }
+    if (after === undefined || refutation === undefined) {
+      if (refutation !== undefined && criterion !== undefined) {
+        const question = refutedQuestions[index];
+        const answerPath =
+          question === undefined
+            ? ""
+            : `: ${portablePath(judgeAnswerPath(options.runsDirectory, input.refuterCommit, judgeKey(question)), 3)}`;
+        missing.push(
+          `missing judge answer after the refuter: ${criterion.pack}/${criterion.id}, ${image.displayPath}${answerPath}`,
+        );
+      }
+      countsByCriterion[item.criterionIndex] = undefined;
+      return;
+    }
+    const counts = countsByCriterion[item.criterionIndex];
+    if (counts !== undefined) {
+      addJudgedImage(counts, item.scoredImage.truth, after);
+    }
+    if (
+      before !== undefined &&
+      before.says_defect !== after.says_defect &&
+      criterion !== undefined
+    ) {
+      changedRows.push([
+        criterion.group,
+        criterion.pack,
+        criterion.id,
+        item.scoredImage.truth,
+        `${refutation.droppedCount}/${refutation.rankedCount}`,
+        before.says_defect,
+        after.says_defect,
+      ]);
+    }
+  });
+  const complete = missing.length === 0;
+  const table = formatTable(
+    TABLE_HEADERS,
+    buildRows(input.selected, countsByCriterion, complete),
+  );
+  const shows = dropped["shows-defect"];
+  const quiet = dropped["no-defect"];
+  const droppedText = `ranked findings the refuter dropped: ${shows.dropped} of ${shows.ranked} on ${shows.images} images that show the defect, ${quiet.dropped} of ${quiet.ranked} on ${quiet.images} images that do not`;
+  const changedText =
+    changedRows.length === 0
+      ? "no judge answer changed"
+      : formatTable(
+          [
+            "group",
+            "pack",
+            "criterion",
+            "image",
+            "dropped",
+            "without-refuter",
+            "with-refuter",
+          ],
+          changedRows,
+        );
+  const text = `\nwith the refuter (FR-81) at refuter commit ${input.refuterCommit}, on the run-1 crits of skill commit ${input.critCommit}\n${table}\n${droppedText}\nimages whose judge answer changed with the refuter\n${changedText}\n`;
+  return { text, missing };
 }
 
 /**
