@@ -16,6 +16,7 @@ import type { ClaudeRunner } from "../critic/run-critic.ts";
 import {
   buildJudgeQuestion,
   dropLoopFiles,
+  IMAGE_PLACEHOLDER,
   JUDGE_QUESTION_NAME,
   type LoopRunner,
   loopArguments,
@@ -81,7 +82,36 @@ function stubLoop(calls: string[][], loopFolderInPage = false): LoopRunner {
       type: "assistant",
       text: `Captured into ${loopFolder}/round-2/desktop.png`,
     });
-    return { stdout: `${line}\n`, stderr: "", exitCode: 0, timedOut: false };
+    const imageLine = JSON.stringify({
+      type: "user",
+      message: {
+        content: [
+          {
+            type: "tool_result",
+            content: [
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: "image/png",
+                  data: "iVBORw0KGgoAAAA",
+                },
+              },
+            ],
+          },
+        ],
+      },
+      tool_use_result: {
+        type: "image",
+        file: { base64: "iVBORw0KGgoAAAA", type: "image/png" },
+      },
+    });
+    return {
+      stdout: `${line}\n${imageLine}\n`,
+      stderr: "",
+      exitCode: 0,
+      timedOut: false,
+    };
   };
 }
 
@@ -238,6 +268,16 @@ describe("run, score, and replay with stubs", () => {
     expect(readFileSync(join(savedDirectory, "page.diff"), "utf8")).toContain(
       "+h1 { font-size: 48px; }",
     );
+    // The transcript keeps the image blocks, but not their data.
+    const transcript = readFileSync(
+      join(savedDirectory, "transcript.jsonl"),
+      "utf8",
+    );
+    expect(transcript).not.toContain("iVBORw0KGgo");
+    expect(transcript).toContain(
+      `"media_type":"image/png","data":"${IMAGE_PLACEHOLDER}"`,
+    );
+    expect(transcript).toContain(`"base64":"${IMAGE_PLACEHOLDER}"`);
     // The transcript holds no temp folder path of this machine.
     expect(
       readFileSync(join(savedDirectory, "transcript.jsonl"), "utf8"),

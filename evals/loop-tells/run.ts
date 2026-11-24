@@ -412,7 +412,9 @@ export async function runOnce(
       } catch {
         parsed = line;
       }
-      transcriptLines.push(JSON.stringify(redactPaths(parsed)));
+      transcriptLines.push(
+        JSON.stringify(redactPaths(removeImageData(parsed))),
+      );
     }
     writeFileSync(
       join(partialDirectory, "transcript.jsonl"),
@@ -462,6 +464,40 @@ export function dropLoopFiles(diff: string): string {
     kept.push(section);
   }
   return kept.join("");
+}
+
+/** The text that stands in for the data of an image in a saved transcript. */
+export const IMAGE_PLACEHOLDER = "[image removed]";
+
+/**
+ * Returns a copy of a transcript value with the data of every base64 image replaced by a short
+ * placeholder. Screenshots the loop reads make up most of a transcript's size, and the scoring step
+ * never reads them, so a saved run keeps only the placeholder. Every other field stays as it was.
+ */
+export function removeImageData(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(removeImageData);
+  }
+  if (!isRecord(value)) {
+    return value;
+  }
+  const copy: Record<string, unknown> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    copy[key] = removeImageData(entry);
+  }
+  // An image block of the API: {type: "image", source: {type: "base64", data: "..."}}.
+  if (
+    copy.type === "base64" &&
+    typeof copy.data === "string" &&
+    copy.data !== IMAGE_PLACEHOLDER
+  ) {
+    copy.data = IMAGE_PLACEHOLDER;
+  }
+  // A Read tool result of an image file: {type: "image", file: {base64: "..."}}.
+  if (typeof copy.base64 === "string") {
+    copy.base64 = IMAGE_PLACEHOLDER;
+  }
+  return copy;
 }
 
 /** One saved run as the scoring step reads it. */
