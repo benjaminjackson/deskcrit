@@ -19,6 +19,7 @@ import {
   nameDrawnFont,
   parseCssColor,
   planScreenCrops,
+  readCommandLine,
   resolveBackground,
   runMeasure,
   VIEWPORTS,
@@ -325,7 +326,7 @@ describe("viewports", () => {
       { name: "desktop", width: 1280, height: 800 },
       { name: "phone", width: 390, height: 844 },
       { name: "tablet", width: 768, height: 1024 },
-      { name: "wide", width: 1920, height: 1080 },
+      { name: "widescreen", width: 1920, height: 1080 },
     ]);
   });
 
@@ -335,6 +336,65 @@ describe("viewports", () => {
       { name: "w1024", width: 1024, height: 800 },
     ]);
     expect(widthViewports("200,3840")).toHaveLength(2);
+  });
+});
+
+describe("readCommandLine", () => {
+  /** Returns the names of the viewports a command line picks, or null when it is wrong. */
+  function pickedNames(flags: string[]): string[] | null {
+    const commandLine = readCommandLine(["page.html", ...flags]);
+    if (commandLine === null) {
+      return null;
+    }
+    const names = [];
+    for (const viewport of commandLine.viewportList) {
+      names.push(viewport.name);
+    }
+    return names;
+  }
+
+  it("picks all four named viewports when no viewport flag is given", () => {
+    expect(pickedNames([])).toEqual([
+      "desktop",
+      "phone",
+      "tablet",
+      "widescreen",
+    ]);
+    expect(pickedNames(["--out", "folder"])).toEqual([
+      "desktop",
+      "phone",
+      "tablet",
+      "widescreen",
+    ]);
+  });
+
+  it("picks only the flagged viewports, in the default order", () => {
+    expect(pickedNames(["--phone", "--widescreen"])).toEqual([
+      "phone",
+      "widescreen",
+    ]);
+    expect(pickedNames(["--tablet", "--out", "folder", "--desktop"])).toEqual([
+      "desktop",
+      "tablet",
+    ]);
+  });
+
+  it("puts the named viewports before the --width ones", () => {
+    expect(pickedNames(["--width", "1024,768", "--desktop"])).toEqual([
+      "desktop",
+      "w1024",
+      "w768",
+    ]);
+    expect(pickedNames(["--width", "768"])).toEqual(["w768"]);
+  });
+
+  it("keeps the page and the output folder", () => {
+    expect(
+      readCommandLine(["page.html", "--phone", "--out", "folder"]),
+    ).toMatchObject({
+      pageArgument: "page.html",
+      folderArgument: "folder",
+    });
   });
 });
 
@@ -360,6 +420,14 @@ describe("runMeasure", () => {
 
   it("prints the usage line and exits 2 for a flag given twice or without its value", async () => {
     for (const commandArguments of [
+      ["evals/measure/known-values.html", "--phone", "--phone"],
+      [
+        "evals/measure/known-values.html",
+        "--widescreen",
+        "--tablet",
+        "--widescreen",
+      ],
+      ["evals/measure/known-values.html", "--wide"],
       ["evals/measure/known-values.html", "--width", "768", "--width", "1024"],
       ["evals/measure/known-values.html", "--out", "a", "--out", "b"],
       ["evals/measure/known-values.html", "--width"],

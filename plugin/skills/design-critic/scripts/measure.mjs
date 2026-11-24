@@ -4,15 +4,18 @@
 // act on (a CSS selector and a pixel box), where from an image alone it judges by eye (PRD FR-79).
 //
 // Usage:
-//   node measure.mjs PAGE [--out FOLDER] [--width N[,N...]]
+//   node measure.mjs PAGE [--out FOLDER] [--desktop] [--phone] [--tablet] [--widescreen] [--width N[,N...]]
 //
 // PAGE is a local HTML file or an http(s) URL. It writes, into FOLDER or a new folder in the system
 // temp folder: desktop.png (1280 px wide), phone.png (390 px wide), tablet.png (768 px wide), and
-// wide.png (1920 px wide), all full-page screenshots at device scale factor 1; one-screen crops of
-// each through crop.mjs, named desktop-01.png and so on; and facts.json, which
-// schemas/facts.schema.json describes. It prints one line per file. With --width, it renders one
-// viewport per width in the order given instead, each 800 px tall and named w<N>, so --width 768
-// writes w768.png. Each N is a whole number from 200 to 3840.
+// widescreen.png (1920 px wide), all full-page screenshots at device scale factor 1; one-screen
+// crops of each through crop.mjs, named desktop-01.png and so on; and facts.json, which
+// schemas/facts.schema.json describes. It prints one line per file. The flags --desktop, --phone,
+// --tablet, and --widescreen each pick that one viewport, and --width adds one viewport per width,
+// each 800 px tall and named w<N>, so --width 768 writes w768.png. Each N is a whole number from
+// 200 to 3840. With any of these flags it renders only the viewports they pick: the named ones
+// first, in the order desktop, phone, tablet, widescreen, then the w<N> ones in the order given.
+// With none of them it renders all four named viewports.
 //
 // It uses Playwright, which it never installs. It looks for `playwright` first in the project of
 // the working directory, then in packs/ of the deskcrit checkout that holds this script. It opens
@@ -48,7 +51,7 @@ export const VIEWPORTS = [
   { name: "desktop", width: 1280, height: 800 },
   { name: "phone", width: 390, height: 844 },
   { name: "tablet", width: 768, height: 1024 },
-  { name: "wide", width: 1920, height: 1080 },
+  { name: "widescreen", width: 1920, height: 1080 },
 ];
 
 /** The narrowest and widest width that --width accepts, in CSS pixels. */
@@ -84,7 +87,7 @@ export const EXIT_CANNOT_MEASURE = 3;
 export const EXIT_TOOL_MISSING = 4;
 
 const USAGE =
-  "usage: node measure.mjs PAGE [--out FOLDER] [--width N[,N...]]   (PAGE is an HTML file or an http(s) URL; each N a whole number from 200 to 3840)";
+  "usage: node measure.mjs PAGE [--out FOLDER] [--desktop] [--phone] [--tablet] [--widescreen] [--width N[,N...]]   (PAGE is an HTML file or an http(s) URL; each flag at most once; each N a whole number from 200 to 3840)";
 
 // The version is the one that packs/package.json pins. Keep the two the same.
 const PLAYWRIGHT_MISSING =
@@ -1791,7 +1794,7 @@ export function widthViewports(text) {
  * @param {string} pageArgument
  * @param {string} outputFolder
  * @param {string} workingDirectory
- * @param {{ name: string, width: number, height: number }[]} viewportList the viewports to render, in order; VIEWPORTS when left out
+ * @param {{ name: string, width: number, height: number }[]} viewportList the viewports to render, in order: any of VIEWPORTS, any from widthViewports, or both; VIEWPORTS when left out
  */
 export async function measurePage(
   pageArgument,
@@ -1887,6 +1890,68 @@ export async function measurePage(
 }
 
 /**
+ * Reads the arguments after the script path into the page, the output folder (undefined when
+ * --out is not given), and the viewports to render, in order. It returns null for a wrong command
+ * line: no page, an unknown flag, a flag given twice, a value missing, or a bad --width list.
+ *
+ * @param {string[]} commandArguments
+ * @returns {{ pageArgument: string, folderArgument: string | undefined, viewportList: { name: string, width: number, height: number }[] } | null}
+ */
+export function readCommandLine(commandArguments) {
+  const [pageArgument, ...flagArguments] = commandArguments;
+  if (pageArgument === undefined) {
+    return null;
+  }
+  // Flags may come in any order, each at most once. A viewport flag such as --phone takes no
+  // value; --out and --width each take the argument after them.
+  const pickedNames = new Set();
+  let folderArgument;
+  let widthArgument;
+  let index = 0;
+  while (index < flagArguments.length) {
+    const flag = flagArguments[index];
+    const namedViewport = VIEWPORTS.find(
+      (viewport) => `--${viewport.name}` === flag,
+    );
+    if (namedViewport !== undefined) {
+      if (pickedNames.has(namedViewport.name)) {
+        return null;
+      }
+      pickedNames.add(namedViewport.name);
+      index += 1;
+      continue;
+    }
+    const value = flagArguments[index + 1];
+    if (value === undefined) {
+      return null;
+    }
+    if (flag === "--out" && folderArgument === undefined) {
+      folderArgument = value;
+    } else if (flag === "--width" && widthArgument === undefined) {
+      widthArgument = value;
+    } else {
+      return null;
+    }
+    index += 2;
+  }
+  let viewportList = VIEWPORTS;
+  if (pickedNames.size > 0 || widthArgument !== undefined) {
+    // The named viewports keep the order of VIEWPORTS, whatever order their flags came in.
+    viewportList = VIEWPORTS.filter((viewport) =>
+      pickedNames.has(viewport.name),
+    );
+    if (widthArgument !== undefined) {
+      const widthList = widthViewports(widthArgument);
+      if (widthList === null) {
+        return null;
+      }
+      viewportList = [...viewportList, ...widthList];
+    }
+  }
+  return { pageArgument, folderArgument, viewportList };
+}
+
+/**
  * Runs the command and returns the lines to print and the exit code. A refusal or any other error
  * becomes one "cannot measure:" line and exit code 3, or exit code 4 when Playwright or Chromium is missing. It writes nothing to the terminal itself.
  *
@@ -1895,34 +1960,11 @@ export async function measurePage(
  * @returns {Promise<{ exitCode: number, lines: string[] }>}
  */
 export async function runMeasure(commandArguments, workingDirectory) {
-  const [pageArgument, ...flagArguments] = commandArguments;
-  if (pageArgument === undefined) {
+  const commandLine = readCommandLine(commandArguments);
+  if (commandLine === null) {
     return { exitCode: EXIT_USAGE, lines: [USAGE] };
   }
-  // Each flag takes one value and may come at most once, in either order.
-  let folderArgument;
-  let widthArgument;
-  for (let index = 0; index < flagArguments.length; index += 2) {
-    const flag = flagArguments[index];
-    const value = flagArguments[index + 1];
-    if (value === undefined) {
-      return { exitCode: EXIT_USAGE, lines: [USAGE] };
-    }
-    if (flag === "--out" && folderArgument === undefined) {
-      folderArgument = value;
-    } else if (flag === "--width" && widthArgument === undefined) {
-      widthArgument = value;
-    } else {
-      return { exitCode: EXIT_USAGE, lines: [USAGE] };
-    }
-  }
-  let viewportList = VIEWPORTS;
-  if (widthArgument !== undefined) {
-    viewportList = widthViewports(widthArgument);
-    if (viewportList === null) {
-      return { exitCode: EXIT_USAGE, lines: [USAGE] };
-    }
-  }
+  const { pageArgument, folderArgument, viewportList } = commandLine;
   const folderGiven = folderArgument !== undefined;
   try {
     // Check the page before making the output folder, so a wrong path leaves nothing behind.
