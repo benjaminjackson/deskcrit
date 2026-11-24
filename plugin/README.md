@@ -26,3 +26,7 @@ The script needs the `playwright` package and its Chromium, and it never install
    ```
 
 4. Run `/plugin` and check that the `crit-loop` and `design-critic` skills are listed.
+
+## Credits
+
+The Template tells section of the guideline catalog adapts [unslop](https://github.com/heydamir/unslop) by Damir Sokolovsky (@heydamir), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), skills/unslop/references/signs.md and one line of skills/unslop/SKILL.md at commit 620163e. Changes: each sign is rewritten as a rule and a yes-or-no question, fixes are reworded, two pairs of duplicate signs are merged, emoji are written as words in square brackets, the Copy, Motion, Spacing, and Right to left groups are left out, and some single signs of the Landing pages, Visuals, and Template look groups are left out.
