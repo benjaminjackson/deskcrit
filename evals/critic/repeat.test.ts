@@ -16,6 +16,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { parseChoice } from "./compare.ts";
 import { ensureJudgeAnswer } from "./judge.ts";
 import {
   buildRepeatQuestion,
@@ -281,6 +282,50 @@ describe("extraction", () => {
         smallerThings: ["- Small."],
       },
     });
+  });
+
+  it("leaves the Where it could go further section out of the ranked and smaller lists", () => {
+    // critic.md puts the section after "What's working"; here it also follows "Smaller things"
+    // directly, the worst case, where an unknown heading would end in an error. Its items are
+    // numbered like ranked findings, so a reader that did not know the heading would count them.
+    const crit = [
+      "**First read.** The eye lands on the heading.",
+      "",
+      "**Verdict.** It mostly works.",
+      "",
+      "**What would move it most**",
+      "",
+      "1. One.",
+      "",
+      "**Smaller things.**",
+      "- Small.",
+      "",
+      "**Where it could go further.**",
+      "1. Commit to one size contrast. Taste.",
+      "2. Own one color. Taste.",
+      "",
+      "**What's working.**",
+      "- The grid.",
+      "",
+      "**Couldn't judge from a still.**",
+      "- Hover.",
+      "",
+      "**Checklist.**",
+      "Text: 30 lines, 30 yes",
+      "",
+      "Better: version 2",
+    ].join("\n");
+    expect(rankedFindings(crit)).toEqual(["1. One."]);
+    expect(smallerThings(crit)).toEqual(["- Small."]);
+    expect(readCrit(crit)).toEqual({
+      type: "read",
+      sections: {
+        verdict: "It mostly works.",
+        rankedFindings: ["1. One."],
+        smallerThings: ["- Small."],
+      },
+    });
+    expect(parseChoice(crit)).toBe("version 2");
   });
 
   it("reads the real saved crits", () => {
