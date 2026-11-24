@@ -652,3 +652,27 @@ false break on a clean set: 3 of 3
 The critic found all 7 planted breaks. It also named extra tiles on 5 of the 7 broken sets and reported breaks on all 3 clean sets. The extra breaks that were checked by hand are real flaws of the generated screens, not invented ones: in set-09 the "Messages" screen is a new-patient form and the "Patients" screen repeats the appointments table of "Today", and in set-08 the title "Rate quotes" differs from its nav item "Rates". So `answers.json` called sets clean that were not, and the "false break" and extra-tile counts of this run do not measure the critic. Also, "right tile named" counted a Breaks line that named the planted tile among others.
 
 Decision (Benjamin Jackson, 2026-11-23): "Repair, then rerun". Version 2 of the sets removes every unplanned difference, keeps the planted breaks and `answers.json`, and is frozen after its first run (crit-j8y.8).
+
+## Run 2 (sets version 2)
+
+One run per set at skill commit `73574a3c`, on version 2 of the sets (crit-j8y.8), after a realism pass by a fresh agent that saw no crit or score. `node evals/critic/sets.ts` printed:
+
+```
+set     kind                        answer  critic said  right tile  extra tiles  break found  false break
+set-01  component style             tile 4  tile 4       yes         none         found        -
+set-02  content edge or column      tile 3  tile 3       yes         none         found        -
+set-03  type scale                  tile 5  tile 5       yes         none         found        -
+set-04  palette                     tile 2  tile 2       yes         none         found        -
+set-05  illustration or icon style  tile 3  tile 3       yes         none         found        -
+set-06  navigation place            tile 4  tile 4       yes         none         found        -
+set-07  navigation name             tile 3  tile 3       yes         none         found        -
+set-08  clean                       none    none         -           none         -            no
+set-09  clean                       none    none         -           none         -            no
+set-10  clean                       none    none         -           none         -            no
+
+break found (judge): 7 of 7
+right tile named, and no other: 7 of 7
+false break on a clean set: 0 of 3
+```
+
+The set critic found every planted break, named only the planted tile on all 7 broken sets, and reported no break on the 3 clean sets. One run per set, on generated screens, so this shows the mode works and is not yet a rate; EV-21 has no pass bar yet.
