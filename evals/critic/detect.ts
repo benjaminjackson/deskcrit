@@ -161,6 +161,8 @@ export type DetectOptions = {
   readonly runClaude: ClaudeRunner;
   /** Receives the live plan before the live run starts. main passes a stderr writer; tests may omit it. */
   readonly reportProgress?: (line: string) => void;
+  /** Where --refute saves and reads refutations (FR-81). main passes evals/critic/refutations/. */
+  readonly refutationsDirectory?: string;
   /**
    * Returns Jev's findings on each image, keyed by display path, for --jev. main passes the replay
    * of the saved answers; tests pass a stub.
@@ -1520,7 +1522,9 @@ type RefuterScoringInput = {
  * the refuter, the ranked findings it dropped on images that show and do not show the defect, and
  * one row per image whose judge answer changed. A crit the refuter left unchanged keeps the judge
  * answer of the crit without it, so only a dropped finding can change a row. Judge answers on the
- * changed crits are saved under the refuter commit.
+ * changed crits are saved with the crits' own judge answers, under the crit commit: their key
+ * holds the changed crit text and the refutation key, so they never share a file with an answer on
+ * the crit without the refuter.
  */
 async function scoreWithRefuter(
   input: RefuterScoringInput,
@@ -1549,8 +1553,12 @@ async function scoreWithRefuter(
       imagePath: image.absolutePath,
     });
   }
+  const refutationsDirectory = options.refutationsDirectory;
+  if (refutationsDirectory === undefined) {
+    throw new Error("--refute needs a folder for refutations");
+  }
   const refuterOptions = {
-    runsDirectory: options.runsDirectory,
+    refutationsDirectory,
     skillDirectory: input.skillDirectory,
     refuterCommit: input.refuterCommit,
     runClaude: options.runClaude,
@@ -1558,7 +1566,7 @@ async function scoreWithRefuter(
   if (input.replay) {
     for (const item of toRefute) {
       const refutation = readSavedRefutation(
-        options.runsDirectory,
+        refutationsDirectory,
         input.refuterCommit,
         refutationKey(item),
       );
@@ -1629,7 +1637,7 @@ async function scoreWithRefuter(
   }
   const judgeOptions = {
     runsDirectory: options.runsDirectory,
-    skillCommit: input.refuterCommit,
+    skillCommit: input.critCommit,
     runClaude: options.runClaude,
   };
   const refutedAnswers: (DetectionAnswer | undefined)[] = [];
@@ -1642,7 +1650,7 @@ async function scoreWithRefuter(
               question,
               parseDetectionAnswer,
               options.runsDirectory,
-              input.refuterCommit,
+              input.critCommit,
             ),
       );
     }
@@ -1693,7 +1701,7 @@ async function scoreWithRefuter(
         const answerPath =
           question === undefined
             ? ""
-            : `: ${portablePath(judgeAnswerPath(options.runsDirectory, input.refuterCommit, judgeKey(question)), 3)}`;
+            : `: ${portablePath(judgeAnswerPath(options.runsDirectory, input.critCommit, judgeKey(question)), 3)}`;
         missing.push(
           `missing judge answer after the refuter: ${criterion.pack}/${criterion.id}, ${image.displayPath}${answerPath}`,
         );
@@ -1846,6 +1854,7 @@ export async function main(): Promise<void> {
     const output = await runDetect(process.argv.slice(2), {
       repositoryDirectory: REPOSITORY_DIRECTORY,
       runsDirectory: join(import.meta.dirname, "runs"),
+      refutationsDirectory: join(import.meta.dirname, "refutations"),
       skillDirectory: join(
         REPOSITORY_DIRECTORY,
         "plugin",

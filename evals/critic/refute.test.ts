@@ -9,7 +9,7 @@ import {
   parseVerdicts,
 } from "../../plugin/skills/design-critic/scripts/refute.mjs";
 import { parseChoice } from "./compare.ts";
-import { buildDetectionQuestion } from "./detect.ts";
+import { buildDetectionQuestion, runDetect } from "./detect.ts";
 import {
   ensureRefutation,
   readSavedRefutation,
@@ -211,7 +211,7 @@ describe("the refuter runner, with a stub child process", () => {
   };
 
   it("saves the refutation once, and a second call starts no child", async () => {
-    const runsDirectory = newFolder();
+    const refutationsFolder = newFolder();
     const calls: (readonly string[])[] = [];
     const runner: ClaudeRunner = async (args) => {
       calls.push(args);
@@ -225,7 +225,7 @@ describe("the refuter runner, with a stub child process", () => {
       };
     };
     const options = {
-      runsDirectory,
+      refutationsDirectory: refutationsFolder,
       skillDirectory: SKILL_DIRECTORY,
       refuterCommit: "r".repeat(40),
       runClaude: runner,
@@ -243,13 +243,17 @@ describe("the refuter runner, with a stub child process", () => {
     expect(calls).toHaveLength(2);
     expect(second).toEqual(first);
     expect(
-      readSavedRefutation(runsDirectory, "r".repeat(40), refutationKey(input)),
+      readSavedRefutation(
+        refutationsFolder,
+        "r".repeat(40),
+        refutationKey(input),
+      ),
     ).toEqual(first);
     expect(rankedFindings(first.refutedCrit)).toHaveLength(2);
   });
 
   it("saves nothing when the message is not a verdict for each finding", async () => {
-    const runsDirectory = newFolder();
+    const refutationsFolder = newFolder();
     const runner: ClaudeRunner = async (args) => {
       if (args[0] === "--version") {
         return { stdout: "2.0.0", stderr: "", exitCode: 0 };
@@ -262,14 +266,47 @@ describe("the refuter runner, with a stub child process", () => {
     };
     await expect(
       ensureRefutation(input, {
-        runsDirectory,
+        refutationsDirectory: refutationsFolder,
         skillDirectory: SKILL_DIRECTORY,
         refuterCommit: "r".repeat(40),
         runClaude: runner,
       }),
     ).rejects.toThrow("finding 2 has no verdict");
-    expect(existsSync(join(runsDirectory, "r".repeat(40), "refute"))).toBe(
-      false,
+    expect(existsSync(join(refutationsFolder, "r".repeat(40)))).toBe(false);
+  });
+});
+
+describe("the refuter run in RESULTS.md", () => {
+  it("replays from the saved crits, refutations, and judge answers to the same output, with no model call", async () => {
+    const results = readFileSync(
+      join(import.meta.dirname, "RESULTS.md"),
+      "utf8",
     );
+    const section = results.slice(results.indexOf("# Refuter (EV-14, FR-81)"));
+    // The output is the first fenced block of the section.
+    const recorded = section.split("```\n")[1] ?? "";
+    const throwingRunner: ClaudeRunner = async () => {
+      throw new Error("a replay must not start a child process");
+    };
+    const output = await runDetect(
+      [
+        "--replay",
+        "--refute",
+        "--skill-commit",
+        "3a8d079b393465ca12ca83931416acd49717d971",
+        "--refuter-commit",
+        "0bad6cc60138f58ea84a2e2fd373375bbce1d3a3",
+      ],
+      {
+        repositoryDirectory: join(import.meta.dirname, "..", ".."),
+        runsDirectory: join(import.meta.dirname, "runs"),
+        refutationsDirectory: join(import.meta.dirname, "refutations"),
+        skillDirectory: SKILL_DIRECTORY,
+        runClaude: throwingRunner,
+      },
+    );
+    expect(output.errorText).toBe("");
+    expect(output.exitCode).toBe(0);
+    expect(output.text).toBe(recorded);
   });
 });

@@ -5,7 +5,7 @@
 // work folder, so it never sees a fixture name. Its final message is the verdict JSON; the skill's
 // scripts/refute.mjs checks it and applies it to the crit.
 //
-// Each refutation is saved once as runs/<refuter-commit>/refute/<key>.md (the crit after the
+// Each refutation is saved once as refutations/<refuter-commit>/<key>.md (the crit after the
 // refuter) and <key>.json (the verdicts, the agent's message, and the metadata), with the "wx"
 // flag, so a saved file is never written again. The key is the SHA-256 of the crit's commit,
 // request key, run number, and text, the facts file's SHA-256, the prompt template, and the model.
@@ -83,7 +83,7 @@ export type SavedRefutation = {
 
 /** Where refutations live, which refuter commit they belong to, and how to start `claude`. */
 export type RefuterOptions = {
-  readonly runsDirectory: string;
+  readonly refutationsDirectory: string;
   readonly skillDirectory: string;
   readonly refuterCommit: string;
   readonly runClaude: ClaudeRunner;
@@ -127,9 +127,15 @@ export function refutationKey(input: CritToRefute): string {
   );
 }
 
-/** Returns the folder that holds the refutations of one refuter commit. */
-function refutationDirectory(runsDirectory: string, commit: string): string {
-  return join(runsDirectory, commit, "refute");
+/**
+ * Returns the folder that holds the refutations of one refuter commit. It is outside runs/, because
+ * every folder in runs/ is a skill commit with saved crits.
+ */
+function refutationDirectory(
+  refutationsDirectory: string,
+  commit: string,
+): string {
+  return join(refutationsDirectory, commit);
 }
 
 /** Counts the findings a list of verdicts drops. */
@@ -142,11 +148,11 @@ function countDropped(verdicts: readonly RefuterVerdict[]): number {
  * cannot start a model call.
  */
 export function readSavedRefutation(
-  runsDirectory: string,
+  refutationsDirectory: string,
   refuterCommit: string,
   key: string,
 ): SavedRefutation | undefined {
-  const directory = refutationDirectory(runsDirectory, refuterCommit);
+  const directory = refutationDirectory(refutationsDirectory, refuterCommit);
   const metadataPath = join(directory, `${key}.json`);
   const critPath = join(directory, `${key}.md`);
   if (!existsSync(metadataPath) || !existsSync(critPath)) {
@@ -186,7 +192,7 @@ export async function ensureRefutation(
 ): Promise<SavedRefutation> {
   const key = refutationKey(input);
   const saved = readSavedRefutation(
-    options.runsDirectory,
+    options.refutationsDirectory,
     options.refuterCommit,
     key,
   );
@@ -203,7 +209,7 @@ export async function ensureRefutation(
   }
   const refutedCrit = applyVerdicts(input.crit, verdicts);
   const directory = refutationDirectory(
-    options.runsDirectory,
+    options.refutationsDirectory,
     options.refuterCommit,
   );
   mkdirSync(directory, { recursive: true });
@@ -239,7 +245,7 @@ export async function ensureRefutation(
     }
   }
   const savedNow = readSavedRefutation(
-    options.runsDirectory,
+    options.refutationsDirectory,
     options.refuterCommit,
     key,
   );
