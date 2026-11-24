@@ -7,7 +7,7 @@
 // It asks a model, so `npm run ci` never runs it (CS-21); a person starts run mode by hand.
 //
 // Usage:
-//   node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--runs-dir DIR] [--note TEXT] [--facts FILE] [--jev-evidence FILE] IMAGE...
+//   node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--parallel N] [--runs-dir DIR] [--note TEXT] [--facts FILE] [--jev-evidence FILE] IMAGE...
 //   node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] [--facts FILE] [--jev-evidence FILE] IMAGE...
 //   node evals/critic/run-critic.ts --help
 // Each image on the command line is a separate one-image request. A request may carry a measured
@@ -848,7 +848,7 @@ export function runClaudeProcess(
 const HELP_TEXT = `Run the design critic headless, save each crit, or replay saved crits.
 
 Usage:
-  node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--runs-dir DIR] [--note TEXT] [--facts FILE] [--jev-evidence FILE] IMAGE...
+  node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--parallel N] [--runs-dir DIR] [--note TEXT] [--facts FILE] [--jev-evidence FILE] IMAGE...
   node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] [--facts FILE] [--jev-evidence FILE] IMAGE...
   node evals/critic/run-critic.ts --help
 
@@ -861,6 +861,7 @@ Flags:
   --skill DIR         The skill folder (default plugin/skills/design-critic).
   --skill-commit SHA  replay only: read the runs of this commit instead of the skill's commit.
   --runs N            run only: how many saved crits each image must have.
+  --parallel N        run only: how many images run at once (default 40).
   --note TEXT         what you know about the piece. replay needs the note the run used.
   --facts FILE        a measured facts file (facts.json from the skill's scripts/measure.mjs) for
                       the one image named. The critic gets a copy named facts.json. replay needs
@@ -911,6 +912,66 @@ function checkSkillDirectory(skillDirectory: string): void {
   }
 }
 
+/** How many critic runs or judge calls run at once when --parallel is not given. */
+export const DEFAULT_PARALLEL = 40;
+
+/**
+ * Reads the value of --parallel: a whole number of 1 or more, or the default when the flag is
+ * absent. Anything else stops the script with a usage error, because a zero or a word would
+ * start no work or hang the pool.
+ */
+export function parseParallel(text: string | undefined): number {
+  if (text === undefined) {
+    return DEFAULT_PARALLEL;
+  }
+  if (!/^[1-9]\d*$/.test(text)) {
+    throw new Error(
+      `--parallel must be a whole number of 1 or more, not "${text}"`,
+    );
+  }
+  return Number(text);
+}
+
+/**
+ * Runs `work` on every item with at most `limit` running at once, and keeps the results in item
+ * order. After the first failure no worker takes a new item; the runs already started finish, so
+ * what they save stays saved. Then it throws one error that names every failure.
+ */
+export async function runPooled<Item, Result>(
+  items: readonly Item[],
+  limit: number,
+  work: (item: Item) => Promise<Result>,
+): Promise<Result[]> {
+  const results: Result[] = new Array(items.length);
+  const failures: string[] = [];
+  let nextIndex = 0;
+  // Each worker takes the next index until none is left or a run has failed. JavaScript runs one
+  // callback at a time, so two workers never take the same index.
+  const worker = async (): Promise<void> => {
+    while (nextIndex < items.length && failures.length === 0) {
+      const index = nextIndex;
+      nextIndex += 1;
+      try {
+        results[index] = await work(items[index] as Item);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        failures.push(message);
+      }
+    }
+  };
+  const workers: Promise<void>[] = [];
+  for (let count = 0; count < Math.min(limit, items.length); count += 1) {
+    workers.push(worker());
+  }
+  await Promise.all(workers);
+  if (failures.length > 0) {
+    throw new Error(
+      `${failures.length} ${failures.length === 1 ? "run" : "runs"} failed:\n${failures.join("\n")}`,
+    );
+  }
+  return results;
+}
+
 /** Parses the command line, runs the mode, and returns the text to print and the exit code. */
 export async function runCriticCommand(
   argv: readonly string[],
@@ -922,6 +983,7 @@ export async function runCriticCommand(
       skill: { type: "string" },
       "skill-commit": { type: "string" },
       runs: { type: "string" },
+      parallel: { type: "string" },
       note: { type: "string" },
       facts: { type: "string" },
       "jev-evidence": { type: "string" },
@@ -1019,14 +1081,17 @@ export async function runCriticCommand(
     return { text: `${lines.join("\n")}\n`, exitCode: 0 };
   }
 
+  // Check the flag before the skill folder, so a bad value is named first.
+  const parallel = parseParallel(parsed.values.parallel);
   checkSkillDirectory(skillDirectory);
   const runs = Number(parsed.values.runs ?? "1");
   if (!Number.isInteger(runs) || runs < 1) {
     throw new Error(`--runs must be a whole number of 1 or more`);
   }
   const commit = skillCommit(skillDirectory);
-  for (const imagePath of imagePaths) {
-    const saved = await ensureCrits(
+  // Start up to `parallel` images at once, so one slow image does not hold up the rest.
+  const savedPerImage = await runPooled(imagePaths, parallel, (imagePath) =>
+    ensureCrits(
       {
         imagePaths: [imagePath],
         note: parsed.values.note,
@@ -1040,12 +1105,15 @@ export async function runCriticCommand(
         runClaude: options.runClaude,
       },
       runs,
-    );
-    for (const crit of saved) {
+    ),
+  );
+  // Print in the order the images were given, whatever order they finished in.
+  imagePaths.forEach((imagePath, index) => {
+    for (const crit of savedPerImage[index] ?? []) {
       lines.push(`${imagePath}: ${crit.critPath}`);
       lines.push(...describeDenials(crit));
     }
-  }
+  });
   return { text: `${lines.join("\n")}\n`, exitCode: 0 };
 }
 
