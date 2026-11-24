@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 // Ajv ships one class per JSON Schema draft; Ajv2020 checks draft 2020-12.
 import { Ajv2020, type ErrorObject } from "ajv/dist/2020.js";
@@ -171,6 +171,10 @@ describe("the first-party packs", () => {
   const packsDirectory = join(schemasDirectory, "..", "packs");
   const packNames = readdirSync(packsDirectory, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && !entry.name.startsWith("_"))
+    // Only folders that hold a pack.yaml are packs; packs/node_modules holds the renderer's packages.
+    .filter((entry) =>
+      existsSync(join(packsDirectory, entry.name, "pack.yaml")),
+    )
     .map((entry) => entry.name)
     .sort();
 
