@@ -293,6 +293,34 @@ describe("facts.json", () => {
     }
   });
 
+  it("the schema accepts the default viewport names and w<N>, and rejects any other name", () => {
+    /** Returns whether the sample validates with its first viewport renamed. */
+    function validatesWithName(name: string): boolean {
+      // JSON.parse returns `any`, so the copy can be changed without a cast.
+      const copy = JSON.parse(
+        readFileSync(
+          join(repositoryRoot, "evals/measure/known-values.facts.json"),
+          "utf8",
+        ),
+      );
+      copy.viewports[0].name = name;
+      return validate(copy);
+    }
+    for (const name of [
+      "desktop",
+      "phone",
+      "tablet",
+      "widescreen",
+      "w768",
+      "w3840",
+    ]) {
+      expect(validatesWithName(name), name).toBe(true);
+    }
+    for (const name of ["mobile", "wide", "w", "w12a", "W768", "w0768"]) {
+      expect(validatesWithName(name), name).toBe(false);
+    }
+  });
+
   it("the schema rejects a file without its version or with an unknown field", () => {
     if (typeof sample !== "object" || sample === null) {
       throw new Error("the sample is not an object");

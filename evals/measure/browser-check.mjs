@@ -4,6 +4,8 @@
 //   cases with no contrast number, a hidden block left out, a 120 x 40 px button, light mode, and
 //   the desktop violations list: exactly #gray, #long, #pair-a, and #pair-b, with the exempt cases out.
 //   hard-cases.html: the cases from the review of crit-0a0.1, listed at the top of that page.
+// It measures known-values.html with --width 768,1024 and checks that it writes w768.png and
+// w1024.png and a facts.json with only those two viewports, which validates against the schema.
 // It also serves pages from a local HTTP server to check that a 404 is refused with one line, that
 // a redirect is recorded, and that a page that does not open gives one line. Then it compares the
 // parts of each facts.json that do not depend on the machine with the committed
@@ -15,11 +17,13 @@
 // An agent never runs --update to make the check pass.
 
 import { spawn } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+// Ajv comes from the repository's own node_modules, which `npm ci` at the root installs.
+import { Ajv2020 } from "ajv/dist/2020.js";
 
 const repositoryRoot = fileURLToPath(new URL("../..", import.meta.url));
 const measureScript = "plugin/skills/design-critic/scripts/measure.mjs";
@@ -33,16 +37,16 @@ function check(condition, message) {
 }
 
 /**
- * Runs measure.mjs on a page into a new temp folder, and resolves with its exit code, its output
- * lines, and the folder. It runs the child without blocking, so the HTTP server in this process
- * can answer the child's browser.
+ * Runs measure.mjs on a page into a new temp folder, with any extra flags, and resolves with its
+ * exit code, its output lines, and the folder. It runs the child without blocking, so the HTTP
+ * server in this process can answer the child's browser.
  */
-function runMeasureScript(page) {
+function runMeasureScript(page, extraFlags = []) {
   const outputFolder = mkdtempSync(join(tmpdir(), "measure-browser-check-"));
   return new Promise((resolveRun) => {
     const child = spawn(
       process.execPath,
-      [measureScript, page, "--out", outputFolder],
+      [measureScript, page, "--out", outputFolder, ...extraFlags],
       { cwd: repositoryRoot },
     );
     let output = "";
@@ -314,6 +318,42 @@ check(
   "a left edge with fewer than 2 blocks is listed",
 );
 compareWithSample("evals/measure/hard-cases.html", hard);
+
+// --width: one viewport per width, named w<N>, and a facts.json that the schema accepts.
+const widthRun = await runMeasureScript("evals/measure/known-values.html", [
+  "--width",
+  "768,1024",
+]);
+if (widthRun.exitCode === 0) {
+  for (const fileName of ["w768.png", "w1024.png"]) {
+    check(
+      existsSync(join(widthRun.outputFolder, fileName)),
+      `--width 768,1024 did not write ${fileName}`,
+    );
+  }
+  const widthFacts = JSON.parse(
+    readFileSync(join(widthRun.outputFolder, "facts.json"), "utf8"),
+  );
+  const widthNames = widthFacts.viewports.map((viewport) => viewport.name);
+  check(
+    JSON.stringify(widthNames) === JSON.stringify(["w768", "w1024"]),
+    `--width 768,1024 gave viewports ${JSON.stringify(widthNames)}, expected ["w768","w1024"]`,
+  );
+  const validateFacts = new Ajv2020({ allErrors: true }).compile(
+    JSON.parse(
+      readFileSync(join(repositoryRoot, "schemas/facts.schema.json"), "utf8"),
+    ),
+  );
+  check(
+    validateFacts(widthFacts),
+    `the --width 768,1024 facts.json does not validate: ${JSON.stringify(validateFacts.errors)}`,
+  );
+} else {
+  check(
+    false,
+    `--width 768,1024 gave exit ${widthRun.exitCode}: ${widthRun.lines.join(" | ")}`,
+  );
+}
 
 // HTTP: a 404, a redirect, and a page that does not open.
 const server = createServer((request, response) => {
