@@ -4,17 +4,17 @@ This file holds the scores of each version of the design-critic skill after the 
 
 ## Summary
 
-| Measure | Baseline `01218fd9` | Crop script `a80aa550` | Written walk `581fdaf0` | MECE checklist `8006d3a2` | Entries script `3a8d079b` | Go further `f724b27f` | Go further on every crit `fa042f2d` |
-|---|---|---|---|---|---|---|---|
-| Repeat run: ranked findings in all 3 runs | 0.710 | 0.740 | 0.824 | 0.719 | 0.858 | 0.737 | 0.720 |
-| Repeat run: ranked findings in all 3 ranked lists | 0.619 | 0.581 | 0.752 | 0.546 | 0.784 | 0.636 | 0.568 |
-| Repeat run: verdicts agree | 8 of 10 | 7 of 10 | 6 of 10 | 7 of 10 | 6 of 10 | 7 of 10 | 5 of 10 |
-| Detection, live: raised on positive | 34 of 37 | 37 of 37 | 33 of 37 | 35 of 37 | 34 of 37 | 34 of 37 | 33 of 37 |
-| Detection, live: quiet on negative | 37 of 37 | 35 of 37 | 35 of 37 | 36 of 37 | 37 of 37 | 37 of 37 | 37 of 37 |
-| Detection, removed: raised on positive | 34 of 40 | 34 of 40 | 35 of 40 | 35 of 40 | 36 of 40 | not scored | not scored |
-| Detection, removed: quiet on negative | 39 of 40 | 39 of 40 | 40 of 40 | 37 of 40 | 39 of 40 | not scored | not scored |
-| Compare: agrees with the preference | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | not scored |
-| Praise text: pass, fail, inconclusive | 11, 2, 1 | 12, 1, 1 | 12, 2, 0 | 14, 0, 0 | 13, 1, 0 | 12, 1, 1 | 11, 2, 1 |
+| Measure | Baseline `01218fd9` | Crop script `a80aa550` | Written walk `581fdaf0` | MECE checklist `8006d3a2` | Entries script `3a8d079b` | Go further `f724b27f` | Go further on every crit `fa042f2d` | No invented content `aefb4967` |
+|---|---|---|---|---|---|---|---|---|
+| Repeat run: ranked findings in all 3 runs | 0.710 | 0.740 | 0.824 | 0.719 | 0.858 | 0.737 | 0.720 | 0.732 |
+| Repeat run: ranked findings in all 3 ranked lists | 0.619 | 0.581 | 0.752 | 0.546 | 0.784 | 0.636 | 0.568 | 0.587 |
+| Repeat run: verdicts agree | 8 of 10 | 7 of 10 | 6 of 10 | 7 of 10 | 6 of 10 | 7 of 10 | 5 of 10 | 4 of 10 |
+| Detection, live: raised on positive | 34 of 37 | 37 of 37 | 33 of 37 | 35 of 37 | 34 of 37 | 34 of 37 | 33 of 37 | 32 of 37 |
+| Detection, live: quiet on negative | 37 of 37 | 35 of 37 | 35 of 37 | 36 of 37 | 37 of 37 | 37 of 37 | 37 of 37 | 36 of 37 |
+| Detection, removed: raised on positive | 34 of 40 | 34 of 40 | 35 of 40 | 35 of 40 | 36 of 40 | not scored | not scored | not scored |
+| Detection, removed: quiet on negative | 39 of 40 | 39 of 40 | 40 of 40 | 37 of 40 | 39 of 40 | not scored | not scored | not scored |
+| Compare: agrees with the preference | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 | not scored | not scored |
+| Praise text: pass, fail, inconclusive | 11, 2, 1 | 12, 1, 1 | 12, 2, 0 | 14, 0, 0 | 13, 1, 0 | 12, 1, 1 | 11, 2, 1 | 10, 3, 1 |
 
 ## Repeat-run noise floor
 
@@ -1081,4 +1081,108 @@ no-dominant-element-condemn           condemn  no        absent      absent     
 uniform-scale-praise                  praise   no        present     absent         fail
 uniform-scale-condemn                 condemn  no        absent      absent         pass
 passed 11, failed 2, inconclusive 1 of 14
+```
+
+## No invented content, skill commit `aefb496702d0679a1cfef094ee41d13bc1be98fe`
+
+The change: `agents/critic.md` says that a copy fix is an editorial edit of the words already on the piece, and that the crit never invents content anywhere, including "Where it could go further": no facts, figures, names, comparisons, quotes, sample data, or claims that the piece does not make. When a fix needs a fact that only the maker has, the crit names the kind of fact and leaves it to the maker (crit-0a0.13). The critic now writes US spelling, and the prompt itself no longer uses British spelling (crit-kh8). This commit also holds the change of crit-0a0.5 (go-further on every crit). Scored on 2026-11-24 with critic and judge model `claude-opus-5-5`, repeat-run batch 1 only, and detection on the live criteria only (`--live-only`). The compare evaluation was not run for this version. No command was refused. Runs went up to 40 at once; that changes the speed, not the runs.
+
+Of the 108 saved crits of this commit, all 108 hold "Where it could go further", 99 contain "Builds on finding", and none contains "Nothing beyond the findings." 2 of 108 crits hold a British spelling ("centred" in a quote of the praise sentence on the image, and "recognised"); at `fa042f2d` 100 of 108 did, and at `3a8d079b` 218 of 255. A script compared each number in the go-further sections with the text of the fixture's template: 6 of 108 sections hold a number that the template text does not hold as digits, against 27 of 108 at `fa042f2d`. By eye, all 6 numbers are on the page in another form (for example "forty minutes" as 40, or a share of the empty layout), and 4 more go-further sections checked by eye hold no invented content, so 0 of the 10 checked crits invent content. At `fa042f2d` the same check finds invented figures and copy, such as "twelve minutes by boat, forty around the bay by road" and "12,400 of 15,000".
+
+The detection and praise-text differences from `fa042f2d` are within noise (one or two images). The two new praise-text failures, `headings-differ-only-in-size-praise` and `everything-centered-praise`, are the two criteria whose positive image the critic also missed in detection, and one run per image cannot tell a miss from sway.
+
+### Repeat run (EV-17), batch 1
+
+`node evals/critic/repeat.ts --replay --skill-commit aefb496702d0679a1cfef094ee41d13bc1be98fe`
+
+```
+image                                                            findings(A/B/C)  in-all-3  in-all-3-ranked  verdicts-agree
+packs/accessibility/fixtures/chart-without-text.positive.png     3/2/3            1.000     0.750            yes
+packs/art-direction/fixtures/mixed-level-of-detail.negative.png  2/1/2            0.200     0.000            no
+packs/basics/fixtures/all-caps-long-text.positive.png            2/2/2            1.000     1.000            yes
+packs/basics/fixtures/centered-or-right-paragraphs.negative.png  3/2/2            0.429     0.429            no
+packs/color/fixtures/accent-overused.positive.png                3/3/3            1.000     1.000            no
+packs/dataviz/fixtures/bar-axis-not-at-zero.negative.png         4/3/3            0.900     0.900            no
+packs/dataviz/fixtures/bare-kpi-number.positive.png              2/2/2            0.667     0.500            yes
+packs/layout/fixtures/everything-centered.negative.png           3/3/2            1.000     0.750            no
+packs/typography/fixtures/heading-indistinct.positive.png        4/3/4            0.727     0.545            yes
+packs/ux/fixtures/actions-look-like-plain-text.negative.png      1/1/3            0.400     0.000            no
+mean share in all 3: 0.732 (10 of 10 images)
+mean share in all 3 ranked lists: 0.587 (10 of 10 images)
+verdicts agree 4 of 10
+Jev (EV-17): Jev's largest probability movement was 0.08 (EV-6).
+```
+
+### Detection (EV-14), live criteria
+
+`node evals/critic/detect.ts --replay --live-only --skill-commit aefb496702d0679a1cfef094ee41d13bc1be98fe`
+
+```
+skill commit aefb496702d0679a1cfef094ee41d13bc1be98fe, live criteria only, judge model claude-opus-5-5, pairs per criterion 1
+group                      pack           criterion                          raised-on-positive  quiet-on-negative  left-out
+live                       accessibility  chart-without-text                 1.00 (1/1)          1.00 (1/1)         0
+live                       accessibility  error-without-text                 1.00 (1/1)          1.00 (1/1)         0
+live                       accessibility  field-label-placeholder-only       1.00 (1/1)          1.00 (1/1)         0
+live                       accessibility  meaning-by-color-only              1.00 (1/1)          1.00 (1/1)         0
+live                       accessibility  running-text-italic-or-underlined  0.00 (0/1)          1.00 (1/1)         0
+live                       art-direction  mixed-level-of-detail              1.00 (1/1)          1.00 (1/1)         0
+live                       art-direction  mixed-rendering-styles             1.00 (1/1)          1.00 (1/1)         0
+live                       basics         all-caps-long-text                 1.00 (1/1)          1.00 (1/1)         0
+live                       basics         centered-or-right-paragraphs       1.00 (1/1)          1.00 (1/1)         0
+live                       basics         competing-primary-buttons          1.00 (1/1)          1.00 (1/1)         0
+live                       basics         decorative-face-for-paragraphs     1.00 (1/1)          1.00 (1/1)         0
+live                       basics         text-reads-faint                   1.00 (1/1)          1.00 (1/1)         0
+live                       color          accent-overused                    1.00 (1/1)          1.00 (1/1)         0
+live                       color          competing-saturated-hues           1.00 (1/1)          1.00 (1/1)         0
+live                       color          same-role-different-colors         1.00 (1/1)          1.00 (1/1)         0
+live                       color          saturated-large-areas              0.00 (0/1)          1.00 (1/1)         0
+live                       color          text-over-busy-image               1.00 (1/1)          0.00 (0/1)         0
+live                       color          vibrating-color-pair               1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        bar-axis-not-at-zero               1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        bare-kpi-number                    1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        chartjunk-decoration               1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        color-without-meaning              1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        heavy-gridlines-and-frames         1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        pie-too-many-slices                1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        rainbow-for-ordered-values         1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        three-d-chart                      1.00 (1/1)          1.00 (1/1)         0
+live                       layout         everything-centered                0.00 (0/1)          1.00 (1/1)         0
+live                       layout         heavy-rules-and-boxes              1.00 (1/1)          1.00 (1/1)         0
+live                       layout         no-dominant-element                0.00 (0/1)          1.00 (1/1)         0
+live                       layout         uniform-scale                      1.00 (1/1)          1.00 (1/1)         0
+live                       typography     heading-indistinct                 1.00 (1/1)          1.00 (1/1)         0
+live                       typography     heading-lines-collide              1.00 (1/1)          1.00 (1/1)         0
+live                       typography     headings-differ-only-in-size       0.00 (0/1)          1.00 (1/1)         0
+live                       ux             actions-look-like-plain-text       1.00 (1/1)          1.00 (1/1)         0
+live                       ux             duplicate-adjacent-actions         1.00 (1/1)          1.00 (1/1)         0
+live                       ux             no-current-location-shown          1.00 (1/1)          1.00 (1/1)         0
+live                       ux             required-fields-unmarked           1.00 (1/1)          1.00 (1/1)         0
+live total                                                                   0.86 (32/37)        0.97 (36/37)       0
+removed total (jev-quiet)                                                    - (0/0)             - (0/0)            0
+removed total (no-source)                                                    - (0/0)             - (0/0)            0
+removed total                                                                - (0/0)             - (0/0)            0
+Jev (EV-14): in the replay of npm run eval:agreement on 2026-11-23, 29 of the 32 live criteria with a label file agreed with Benjamin Jackson's labels at 0.8 or above, and 182 of 210 positive fixtures fired; Jev failed on the criteria removed under R-4.
+```
+
+### Praise text (EV-16)
+
+`node evals/critic/praise-text.ts --replay --skill-commit aefb496702d0679a1cfef094ee41d13bc1be98fe`
+
+```
+pair                                  kind     evidence  text-image  twin           result
+heading-indistinct-praise             praise   no        present     present        pass
+heading-indistinct-condemn            condemn  no        absent      absent         pass
+heading-lines-collide-praise          praise   no        present     present        pass
+heading-lines-collide-condemn         condemn  no        absent      not_mentioned  inconclusive
+headings-differ-only-in-size-praise   praise   no        present     absent         fail
+headings-differ-only-in-size-condemn  condemn  no        absent      absent         pass
+everything-centered-praise            praise   no        present     absent         fail
+everything-centered-condemn           condemn  no        absent      absent         pass
+heavy-rules-and-boxes-praise          praise   no        present     present        pass
+heavy-rules-and-boxes-condemn         condemn  no        absent      absent         pass
+no-dominant-element-praise            praise   no        present     absent         fail
+no-dominant-element-condemn           condemn  no        absent      absent         pass
+uniform-scale-praise                  praise   no        present     present        pass
+uniform-scale-condemn                 condemn  no        absent      absent         pass
+passed 10, failed 3, inconclusive 1 of 14
 ```

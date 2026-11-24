@@ -59,6 +59,7 @@ Read the image size from the facts file viewport whose `screenshot` is the image
   - `selector` is null unless the facts file gives it. `viewport` is null when there is no facts file.
 - **current**: the value now. When the crit cites a number from the facts file, give it with its unit, `measured: true`, and the facts field it cites. Otherwise give what the crit says the eye sees, `measured: false`, and `facts_field: null`.
 - **target**: the value or state that closes the finding, from the crit or the source it cites.
+- **target** and **fix_direction** for copy: an editorial edit of the words already on the piece (cut, reorder, restore a missing verb or unit, make a line clear). Never put invented content in them: no facts, figures, names, comparisons, quotes, sample data, or claims that the piece does not make, even when the crit gives one as an example. When the fix needs a fact that only the maker has, name the kind of fact that is missing and say that the maker must supply it.
 - **source**: the source as the crit cites it, or null when it cites none.
 - **closed_when**: `measure` when a value in a new facts file can show the finding is closed, with the selector, viewport, field, and target in the check. Otherwise `look`, with what a fresh critic must see in the new image.
 
