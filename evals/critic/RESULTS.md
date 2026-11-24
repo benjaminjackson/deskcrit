@@ -408,3 +408,181 @@ Jev (EV-14): in the replay of npm run eval:agreement on 2026-11-23, 29 of the 32
 ```
 
 Reading: the refuter kept all 407 ranked findings, so every row is the same with and without it. Without it, the critic raised a defect on 1 of the 77 negative images (`removed/layout/figure-merges-with-ground`), so this sample could show a gain of 1 image at most. On that image the critic's three ranked findings are about a picture that does not match its headline, a bright right half, and an outline button; the refuter found each one in the image and kept it. Nothing was lost on positives. Decision: drop, because the check raised no fewer defects on negative images (FR-81).
+
+# Deep mode (EV-14, OQ-28)
+
+- Date: 2026-11-24
+- Skill commit: `b8ce97507396df2d86bdc20edc3a5fad21873ccc` (crit-0a0.7). The deep mode (`agents/deep-mode.md`) ran one section critic per checklist section (`agents/section-critic.md`, eight in all) and then the director (`agents/director.md`), each a separate `claude -p` child on `claude-opus-5-5` with the critic's isolation and allowed commands, through `evals/critic/deep-run.ts`. No facts file and no Jev evidence.
+- Beside: the single critic at `3a8d079b393465ca12ca83931416acd49717d971`, the newest skill commit with saved crits of both the live and the removed criteria. Between the two commits, `agents/critic.md` gained only the parts for a `violations` list and a Jev evidence file, which these runs do not have.
+- Sample: the variant-1 pair of each of the 37 live and 40 removed criteria, 154 images, run 1. Runs: 154 deep crits, which is 1,232 section critic runs and 154 director runs, each judged once with the unchanged detection judge. No run was refused and no run failed. 839 Bash calls were denied, nearly all a `cd <skill folder>; cat ...` read of the instructions; each agent then read the files with Read. 1 of the 154 crits writes its tally heading as `**Checklist**` with no period. The deep runs cost 235.55 USD in all as `claude -p` reports it, about 1.53 USD per crit.
+- Command: `npm run eval:critic:detect:deep` (`node evals/critic/detect.ts --replay --deep --skill-commit b8ce97507396df2d86bdc20edc3a5fad21873ccc --beside 3a8d079b393465ca12ca83931416acd49717d971`)
+
+```
+skill commit b8ce97507396df2d86bdc20edc3a5fad21873ccc, deep mode, judge model claude-opus-5-5, pairs per criterion 1
+group                      pack           criterion                          raised-on-positive  quiet-on-negative  left-out
+live                       accessibility  chart-without-text                 1.00 (1/1)          1.00 (1/1)         0
+live                       accessibility  error-without-text                 1.00 (1/1)          1.00 (1/1)         0
+live                       accessibility  field-label-placeholder-only       1.00 (1/1)          1.00 (1/1)         0
+live                       accessibility  meaning-by-color-only              1.00 (1/1)          1.00 (1/1)         0
+live                       accessibility  running-text-italic-or-underlined  0.00 (0/1)          1.00 (1/1)         0
+live                       art-direction  mixed-level-of-detail              1.00 (1/1)          1.00 (1/1)         0
+live                       art-direction  mixed-rendering-styles             1.00 (1/1)          1.00 (1/1)         0
+live                       basics         all-caps-long-text                 1.00 (1/1)          1.00 (1/1)         0
+live                       basics         centered-or-right-paragraphs       1.00 (1/1)          1.00 (1/1)         0
+live                       basics         competing-primary-buttons          1.00 (1/1)          1.00 (1/1)         0
+live                       basics         decorative-face-for-paragraphs     1.00 (1/1)          1.00 (1/1)         0
+live                       basics         text-reads-faint                   1.00 (1/1)          1.00 (1/1)         0
+live                       color          accent-overused                    1.00 (1/1)          1.00 (1/1)         0
+live                       color          competing-saturated-hues           1.00 (1/1)          1.00 (1/1)         0
+live                       color          same-role-different-colors         1.00 (1/1)          1.00 (1/1)         0
+live                       color          saturated-large-areas              1.00 (1/1)          1.00 (1/1)         0
+live                       color          text-over-busy-image               1.00 (1/1)          0.00 (0/1)         0
+live                       color          vibrating-color-pair               1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        bar-axis-not-at-zero               1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        bare-kpi-number                    1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        chartjunk-decoration               1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        color-without-meaning              1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        heavy-gridlines-and-frames         1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        pie-too-many-slices                1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        rainbow-for-ordered-values         1.00 (1/1)          1.00 (1/1)         0
+live                       dataviz        three-d-chart                      1.00 (1/1)          1.00 (1/1)         0
+live                       layout         everything-centered                1.00 (1/1)          1.00 (1/1)         0
+live                       layout         heavy-rules-and-boxes              1.00 (1/1)          1.00 (1/1)         0
+live                       layout         no-dominant-element                1.00 (1/1)          1.00 (1/1)         0
+live                       layout         uniform-scale                      1.00 (1/1)          1.00 (1/1)         0
+live                       typography     heading-indistinct                 1.00 (1/1)          1.00 (1/1)         0
+live                       typography     heading-lines-collide              1.00 (1/1)          1.00 (1/1)         0
+live                       typography     headings-differ-only-in-size       1.00 (1/1)          1.00 (1/1)         0
+live                       ux             actions-look-like-plain-text       1.00 (1/1)          1.00 (1/1)         0
+live                       ux             duplicate-adjacent-actions         1.00 (1/1)          1.00 (1/1)         0
+live                       ux             no-current-location-shown          1.00 (1/1)          1.00 (1/1)         0
+live                       ux             required-fields-unmarked           1.00 (1/1)          1.00 (1/1)         0
+removed                    basics         body-text-too-small                1.00 (1/1)          1.00 (1/1)         0
+removed                    basics         captions-labels-too-small          1.00 (1/1)          1.00 (1/1)         0
+removed                    basics         content-touches-page-edge          1.00 (1/1)          1.00 (1/1)         0
+removed                    basics         wall-of-text                       1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         crowded-unrelated-elements         1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         figure-merges-with-ground          1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         groups-not-separated               1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         inconsistent-repeated-styles       1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         label-far-from-field               1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         lopsided-balance                   1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         near-miss-alignment                1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         off-grid-block                     1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         picture-off-text-lines             1.00 (1/1)          0.00 (0/1)         0
+removed                    layout         uneven-gutters                     1.00 (1/1)          1.00 (1/1)         0
+removed                    layout         white-space-scattered              0.00 (0/1)          1.00 (1/1)         0
+removed                    typography     baselines-misaligned               1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     body-leading-too-loose             1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     body-leading-too-tight             1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     display-caps-tight                 1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     display-kerning-gap                0.00 (0/1)          1.00 (1/1)         0
+removed                    typography     display-ligature-missing           0.00 (0/1)          1.00 (1/1)         0
+removed                    typography     display-quote-not-hung             1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     display-straight-quotes            1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     display-type-loose                 1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     faux-italic-display                0.00 (0/1)          1.00 (1/1)         0
+removed                    typography     first-paragraph-indented           1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     heading-at-column-foot             1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     heading-floats                     1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     heading-lines-loose                1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     justified-word-gaps                1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     list-wrap-under-bullet             1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     measure-too-long                   1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     near-identical-sizes               1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     paragraph-indent-and-space         1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     paragraph-runt                     1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     rag-staircase                      0.00 (0/1)          1.00 (1/1)         0
+removed                    typography     rivers-of-white                    1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     stacked-emphasis                   1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     thin-small-text                    1.00 (1/1)          1.00 (1/1)         0
+removed                    typography     too-many-typefaces                 1.00 (1/1)          1.00 (1/1)         0
+live total                                                                   0.97 (36/37)        0.97 (36/37)       0
+removed total (jev-quiet)                                                    0.84 (26/31)        0.97 (30/31)       0
+removed total (no-source)                                                    1.00 (9/9)          1.00 (9/9)         0
+removed total                                                                0.88 (35/40)        0.97 (39/40)       0
+
+side by side, raised on positive and quiet on negative (n/d); a column without +facts had no facts file
+pack           criterion                          3a8d079b raised  3a8d079b quiet  b8ce9750+deep raised  b8ce9750+deep quiet
+accessibility  chart-without-text                 1/1              1/1             1/1                   1/1
+accessibility  error-without-text                 1/1              1/1             1/1                   1/1
+accessibility  field-label-placeholder-only       1/1              1/1             1/1                   1/1
+accessibility  meaning-by-color-only              1/1              1/1             1/1                   1/1
+accessibility  running-text-italic-or-underlined  0/1              1/1             0/1                   1/1
+art-direction  mixed-level-of-detail              1/1              1/1             1/1                   1/1
+art-direction  mixed-rendering-styles             1/1              1/1             1/1                   1/1
+basics         all-caps-long-text                 1/1              1/1             1/1                   1/1
+basics         centered-or-right-paragraphs       1/1              1/1             1/1                   1/1
+basics         competing-primary-buttons          1/1              1/1             1/1                   1/1
+basics         decorative-face-for-paragraphs     1/1              1/1             1/1                   1/1
+basics         text-reads-faint                   1/1              1/1             1/1                   1/1
+color          accent-overused                    1/1              1/1             1/1                   1/1
+color          competing-saturated-hues           1/1              1/1             1/1                   1/1
+color          same-role-different-colors         1/1              1/1             1/1                   1/1
+color          saturated-large-areas              0/1              1/1             1/1                   1/1
+color          text-over-busy-image               1/1              1/1             1/1                   0/1
+color          vibrating-color-pair               1/1              1/1             1/1                   1/1
+dataviz        bar-axis-not-at-zero               1/1              1/1             1/1                   1/1
+dataviz        bare-kpi-number                    1/1              1/1             1/1                   1/1
+dataviz        chartjunk-decoration               1/1              1/1             1/1                   1/1
+dataviz        color-without-meaning              1/1              1/1             1/1                   1/1
+dataviz        heavy-gridlines-and-frames         1/1              1/1             1/1                   1/1
+dataviz        pie-too-many-slices                1/1              1/1             1/1                   1/1
+dataviz        rainbow-for-ordered-values         1/1              1/1             1/1                   1/1
+dataviz        three-d-chart                      1/1              1/1             1/1                   1/1
+layout         everything-centered                1/1              1/1             1/1                   1/1
+layout         heavy-rules-and-boxes              1/1              1/1             1/1                   1/1
+layout         no-dominant-element                0/1              1/1             1/1                   1/1
+layout         uniform-scale                      1/1              1/1             1/1                   1/1
+typography     heading-indistinct                 1/1              1/1             1/1                   1/1
+typography     heading-lines-collide              1/1              1/1             1/1                   1/1
+typography     headings-differ-only-in-size       1/1              1/1             1/1                   1/1
+ux             actions-look-like-plain-text       1/1              1/1             1/1                   1/1
+ux             duplicate-adjacent-actions         1/1              1/1             1/1                   1/1
+ux             no-current-location-shown          1/1              1/1             1/1                   1/1
+ux             required-fields-unmarked           1/1              1/1             1/1                   1/1
+basics         body-text-too-small                1/1              1/1             1/1                   1/1
+basics         captions-labels-too-small          1/1              1/1             1/1                   1/1
+basics         content-touches-page-edge          1/1              1/1             1/1                   1/1
+basics         wall-of-text                       1/1              1/1             1/1                   1/1
+layout         crowded-unrelated-elements         1/1              1/1             1/1                   1/1
+layout         figure-merges-with-ground          1/1              0/1             1/1                   1/1
+layout         groups-not-separated               1/1              1/1             1/1                   1/1
+layout         inconsistent-repeated-styles       1/1              1/1             1/1                   1/1
+layout         label-far-from-field               1/1              1/1             1/1                   1/1
+layout         lopsided-balance                   1/1              1/1             1/1                   1/1
+layout         near-miss-alignment                1/1              1/1             1/1                   1/1
+layout         off-grid-block                     1/1              1/1             1/1                   1/1
+layout         picture-off-text-lines             1/1              1/1             1/1                   0/1
+layout         uneven-gutters                     1/1              1/1             1/1                   1/1
+layout         white-space-scattered              1/1              1/1             0/1                   1/1
+typography     baselines-misaligned               1/1              1/1             1/1                   1/1
+typography     body-leading-too-loose             1/1              1/1             1/1                   1/1
+typography     body-leading-too-tight             1/1              1/1             1/1                   1/1
+typography     display-caps-tight                 1/1              1/1             1/1                   1/1
+typography     display-kerning-gap                0/1              1/1             0/1                   1/1
+typography     display-ligature-missing           0/1              1/1             0/1                   1/1
+typography     display-quote-not-hung             1/1              1/1             1/1                   1/1
+typography     display-straight-quotes            1/1              1/1             1/1                   1/1
+typography     display-type-loose                 1/1              1/1             1/1                   1/1
+typography     faux-italic-display                0/1              1/1             0/1                   1/1
+typography     first-paragraph-indented           1/1              1/1             1/1                   1/1
+typography     heading-at-column-foot             1/1              1/1             1/1                   1/1
+typography     heading-floats                     1/1              1/1             1/1                   1/1
+typography     heading-lines-loose                1/1              1/1             1/1                   1/1
+typography     justified-word-gaps                1/1              1/1             1/1                   1/1
+typography     list-wrap-under-bullet             1/1              1/1             1/1                   1/1
+typography     measure-too-long                   1/1              1/1             1/1                   1/1
+typography     near-identical-sizes               1/1              1/1             1/1                   1/1
+typography     paragraph-indent-and-space         1/1              1/1             1/1                   1/1
+typography     paragraph-runt                     1/1              1/1             1/1                   1/1
+typography     rag-staircase                      0/1              1/1             0/1                   1/1
+typography     rivers-of-white                    1/1              1/1             1/1                   1/1
+typography     stacked-emphasis                   1/1              1/1             1/1                   1/1
+typography     thin-small-text                    1/1              1/1             1/1                   1/1
+typography     too-many-typefaces                 1/1              1/1             1/1                   1/1
+total                                             70/77            76/77           71/77                 75/77
+Jev (EV-14): in the replay of npm run eval:agreement on 2026-11-23, 29 of the 32 live criteria with a label file agreed with Benjamin Jackson's labels at 0.8 or above, and 182 of 210 positive fixtures fired; Jev failed on the criteria removed under R-4.
+```
+
+Reading, against noise of 2 or 3 images between two full runs of one critic: deep mode raised 71 of 77 positives and left 75 of 77 negatives quiet; the single critic raised 70 of 77 and left 76 of 77 quiet. Six rows differ, three each way, so this sample shows no difference in detection. Deep mode raised the two live misses of the single critic (`color/saturated-large-areas`, `layout/no-dominant-element`), and newly raised two defects on negative images (`color/text-over-busy-image`, `layout/picture-off-text-lines`). EV-19, the blind side-by-side, has not run.

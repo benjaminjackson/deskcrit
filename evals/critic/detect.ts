@@ -21,6 +21,10 @@
 // evals/agreement/runs/ replayed with no key (EV-4 rule 5), written by the skill's own
 // scripts/jev-evidence.mjs. An image Jev fired on nothing for gets no file, so its prompt and its
 // saved crit are the ones without Jev; an image with a file has its own request key and prompt hash.
+//
+// With --deep the crit of each image comes from the skill's deep mode (agents/deep-mode.md, run by
+// deep-run.ts): one section critic per checklist section and a director. Deep runs have their own
+// request keys and prompt hash, so they never share a saved crit or a judge answer with single runs.
 
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -40,6 +44,12 @@ import { parse as parseYaml } from "yaml";
 import { type FixtureLabel, readLabels } from "../agreement/labels.ts";
 import { formatTable } from "../support/format-table.ts";
 import { DEFAULT_PARALLEL, parseParallel, runPooled } from "./compare.ts";
+import {
+  CallLimiter,
+  currentDeepRunIdentity,
+  deepRequestKeyOf,
+  ensureDeepCrits,
+} from "./deep-run.ts";
 import { type JevFinding, readJevFindingsByReplay } from "./jev-replay.ts";
 import {
   ensureJudgeAnswer,
@@ -75,7 +85,14 @@ import {
 const REPOSITORY_DIRECTORY = resolve(import.meta.dirname, "..", "..");
 const EXIT_CODE_COULD_NOT_RUN = 2;
 
-/** How many critic runs or judge calls run at once in live mode. */
+/**
+ * How many images the deep mode works on at once, given the --parallel number of child processes.
+ * Each image has eight section critics, and the CallLimiter keeps the child processes at the
+ * --parallel number, so twice as many images as fit keeps every place busy while a director runs.
+ */
+function deepImagesAtOnce(parallel: number): number {
+  return Math.ceil(parallel / 4);
+}
 
 /** The judge question name, saved with each answer. */
 const JUDGE_QUESTION_NAME = "detection";
@@ -1015,7 +1032,7 @@ Usage:
   node evals/critic/detect.ts [--replay] [--pairs-per-criterion N] [--skill DIR] [--skill-commit SHA]
                               [--parallel N]
                               [--facts] [--jev] [--live-only] [--beside SHA]...
-                              [--refute [--refuter-commit SHA]]
+                              [--refute [--refuter-commit SHA]] [--deep]
   node evals/critic/detect.ts --help
 
 For each criterion it takes the first N fixture pairs (a pair is one variant with a positive and a
@@ -1048,6 +1065,10 @@ Flags:
                              image whose judge answer changed. Not with --facts or --jev.
   --refuter-commit SHA       With --refute, use the refutations of this commit instead of the
                              skill folder's commit.
+  --deep                     Make each crit with the deep mode (agents/deep-mode.md): one section
+                             critic per checklist section and a director, at most
+                             the --parallel number of child processes at once. These runs never share a
+                             saved crit with single-critic runs. Not with --jev or --refute.
   --help, -h                 Print this help.
 
 The judge reads one crit, the criterion title, and its rule, never the image name or polarity,
@@ -1152,6 +1173,7 @@ async function scoreDetection(
       beside: { type: "string", multiple: true },
       refute: { type: "boolean", default: false },
       "refuter-commit": { type: "string" },
+      deep: { type: "boolean", default: false },
       help: { type: "boolean", short: "h", default: false },
     },
     strict: true,
@@ -1179,6 +1201,10 @@ async function scoreDetection(
   }
   if (!withRefuter && parsed.values["refuter-commit"] !== undefined) {
     throw new Error("--refuter-commit needs --refute");
+  }
+  const withDeep = parsed.values.deep === true;
+  if (withDeep && (withJev || withRefuter)) {
+    throw new Error("--deep does not go with --jev or --refute");
   }
   const selection = selectCriteria(
     options.repositoryDirectory,
@@ -1220,7 +1246,17 @@ async function scoreDetection(
     );
   // A run with an evidence file has its own prompt hash; one without keeps the hash it had.
   const identityFor = (image: FixtureImage): RunIdentity =>
-    currentRunIdentity(withFacts, evidenceByImagePath.has(image.absolutePath));
+    withDeep
+      ? currentDeepRunIdentity(withFacts)
+      : currentRunIdentity(
+          withFacts,
+          evidenceByImagePath.has(image.absolutePath),
+        );
+  // A deep run has its own key, so it never shares a folder or a judge answer with a single run.
+  const keyFor = (image: FixtureImage): string =>
+    withDeep
+      ? deepRequestKeyOf(requestFor(image))
+      : requestKeyOf(requestFor(image));
 
   // Every image to crit, once each, in selection order.
   const imagesToCrit: FixtureImage[] = [];
@@ -1232,7 +1268,7 @@ async function scoreDetection(
       }
       keyByImagePath.set(
         scoredImage.image.absolutePath,
-        requestKeyOf(requestFor(scoredImage.image)),
+        keyFor(scoredImage.image),
       );
       imagesToCrit.push(scoredImage.image);
     }
@@ -1293,9 +1329,19 @@ async function scoreDetection(
       skillCommit: commit,
       runClaude: options.runClaude,
     };
-    await runPooled(imagesToCrit, parallel, (image) =>
-      ensureCrits(requestFor(image), criticOptions),
-    );
+    if (withDeep) {
+      const deepOptions = {
+        ...criticOptions,
+        limiter: new CallLimiter(parallel),
+      };
+      await runPooled(imagesToCrit, deepImagesAtOnce(parallel), (image) =>
+        ensureDeepCrits(requestFor(image), deepOptions),
+      );
+    } else {
+      await runPooled(imagesToCrit, parallel, (image) =>
+        ensureCrits(requestFor(image), criticOptions),
+      );
+    }
   }
 
   // One judge question per scored image, in selection order; undefined where the crit is missing.
@@ -1427,6 +1473,9 @@ async function scoreDetection(
   } else if (liveOnly) {
     factsText = ", live criteria only";
   }
+  if (withDeep) {
+    factsText += ", deep mode";
+  }
   if (withJev) {
     factsText += `, with Jev evidence on ${evidenceByImagePath.size} of ${imagesToCrit.length} images`;
   }
@@ -1457,7 +1506,7 @@ async function scoreDetection(
       });
     }
     columns.push({
-      label: `${commit.slice(0, 8)}${withFacts ? "+facts" : ""}${withJev ? "+jev" : ""}`,
+      label: `${commit.slice(0, 8)}${withFacts ? "+facts" : ""}${withJev ? "+jev" : ""}${withDeep ? "+deep" : ""}`,
       counts: countsByCriterion,
     });
     besideText = `\nside by side, raised on positive and quiet on negative (n/d); a column without +facts had no facts file\n${buildBesideTable(selected, columns)}\n`;

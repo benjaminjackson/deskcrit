@@ -174,11 +174,24 @@ checklist = [<<~MD]
   Each line is a question. Yes means the design is fine there; no means a defect. Each kind of defect has exactly one question, so file a defect under one line only. Sections run from the whole piece to the detail. When a question in "Charts and data" or "Interface" names a defect, file it there and not under a general question; text inside a chart or a control is still asked under "Text". Skip a section that does not apply (no chart, no controls). Each line names the reference files and entry titles it stands for. To open the entries of a line, run `node scripts/entries.mjs "<title>" "<title>"` with the script's full path in the skill folder and each title as the line quotes it; it prints each entry in full, with the Rule, Look for, How bad it gets, Fix, and Caveat. One call can open the entries of several lines. For one entry, the Read tool on the file the line names works too: find the `###` heading with the entry's title. Open the entries when the answer is no or unsure. A line that names no entry is a defect the catalog does not cover: judge it as taste or common sense, and say so.
 MD
 
-CHECKLIST.fetch("sections").each do |section|
-  checklist << "\n## #{section.fetch("title")}\n\n#{section.fetch("scope")}\n\n"
-  checklist << section.fetch("questions").map { checklist_line(_1, sections) }.join("\n") << "\n"
+# One section of the checklist, with its heading, scope line, and questions.
+def section_text(section, sections)
+  "\n## #{section.fetch("title")}\n\n#{section.fetch("scope")}\n\n" +
+    section.fetch("questions").map { checklist_line(_1, sections) }.join("\n") + "\n"
 end
+
+CHECKLIST.fetch("sections").each { checklist << section_text(_1, sections) }
 File.write(File.join(REFERENCES, "checklist.md"), checklist.join)
+
+# One file per section for the section critics of the deep mode (agents/section-critic.md): the
+# same opening paragraph as checklist.md, then that one section, word for word.
+CHECKLIST.fetch("sections").each do |section|
+  opening = checklist.first.sub(
+    "# Checklist\n",
+    "# Checklist: #{section.fetch("title")}\n\nThis is the \"#{section.fetch("title")}\" section of `references/checklist.md`, for one section critic of the deep mode.\n"
+  )
+  File.write(File.join(REFERENCES, "checklist-#{section.fetch("id")}.md"), opening + section_text(section, sections))
+end
 
 titles = sections.values.flatten.map(&:title)
 missing = EXCLUDED.keys - titles
