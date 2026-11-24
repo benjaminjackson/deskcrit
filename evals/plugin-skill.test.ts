@@ -117,7 +117,10 @@ function listCommandLines(text: string, programName: string): string[] {
  */
 function splitWords(commandLine: string): string[] {
   // Each match is a run of placeholders and plain characters with no space outside the brackets.
-  return commandLine.match(/(?:<[^>]+>|[^\s<])+/g) ?? [];
+  const words = commandLine.match(/(?:<[^>]+>|[^\s<])+/g) ?? [];
+  // A word in double quotes, such as "<title>", loses its quotes, as it does in a shell, so a
+  // quoted placeholder is swapped like any other placeholder.
+  return words.map((word) => word.replace(/^"(.*)"$/, "$1"));
 }
 
 /**
