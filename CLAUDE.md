@@ -8,7 +8,7 @@
 - `GUIDELINES.md` is the catalog of guidelines that the seven first-party packs encode. Each entry has a rule, a source, and a note on how it becomes a question.
 - `docs/CONSTITUTION.md` is the coding standards. Read it before you write or review code, and cite its rules by ID (CS-n).
 - `docs/PRD.md` is the behavioral specification with stable IDs. It is the source of truth for what to build. If `BRIEF.md` and `docs/PRD.md` disagree, `docs/PRD.md` wins and the disagreement is a defect to report.
-- `README.md` is a short summary. Do not treat it as a specification.
+- `README.md` is the user-facing guide: what the plugin does, a sample crit, requirements, install steps, how to start each skill, and the commands to develop. Do not treat it as a specification.
 
 Current state: Benjamin Jackson ruled on 2026-11-24 to remove Jev ("Ok! Let's remove Jev. Ruled!"), and crit-mk9.3 removed TypeSafe's Jev model and the `crit` command. The Jev design ended at git tag `jev-spike-final`, and `docs/PRD.md` section 1 records the removal. Under PRD section 7.12 the judge is a subagent critic (FR-77), and the work is milestone M-6.
 
@@ -34,7 +34,7 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-1 holds the comp
 - `plugin/skills/design-critic/` is the second plugin skill, a design critic that a Claude agent runs. `SKILL.md` tells the main thread how to start one critic agent on an image. `agents/critic.md` is what that agent is told. `checklist.yaml` is the hand-written source of the checklist: sections divided by what the viewer is trying to do, and under each section yes-or-no questions, each naming the `GUIDELINES.md` entries it stands for or marked as a gap the catalog does not cover. It also lists the entries the critic never sees, with the reason. `references/` holds `checklist.md` and one file of full guideline entries per pack. `scripts/build.rb` makes `references/` from `checklist.yaml`, `GUIDELINES.md`, and `packs/*/pack.yaml`, stops when an entry is under no question or under two, and needs Ruby 3.0 or later. `scripts/crop.mjs` cuts a PNG into full-resolution crops about one screen tall, or crops one box with `--box`, into a new folder in the system temp folder, for step 1 of `agents/critic.md`, with Node's own modules only, so the installed plugin needs no install step; `evals/design-critic-crop.test.ts` checks it. `scripts/entries.mjs` prints the entries of `references/*.md` whose `###` titles it is given, so one call opens every entry that a checklist line names, for step 5 of `agents/critic.md`. It exits 2 with a `not found:` line for each title it cannot find, uses Node's own modules only, and `evals/design-critic-entries.test.ts` checks it. Never edit `references/` by hand; run `ruby plugin/skills/design-critic/scripts/build.rb` from the repository root. `agents/refuter.md` is what the second agent of FR-81 would be told; `SKILL.md` does not run it, because EV-14 showed no gain (crit-0a0.3, `evals/critic/RESULTS.md`), and only `evals/critic/refute.ts` runs it. It says to check each ranked finding against the image, and the facts file when there is one, and drop a finding the image shows is false. `scripts/refute.mjs` writes the ranked findings it reads (`findings`) and applies its JSON verdicts to the crit (`apply`): it removes each dropped finding, numbers the rest again from 1, and names the dropped findings in one line at the end, before a last `Better:` line. It uses Node's own modules only, and `evals/critic/refute.test.ts` checks that the crit after it still reads with `rankedFindings`, the detection judge prompt, and `parseChoice`.
 - `plugin/skills/design-critic/agents/deep-mode.md` is the deep mode that crit-0a0.7 built and dropped, because EV-14 showed no gain over the single critic (`evals/critic/RESULTS.md`); `SKILL.md` does not offer it, and only `evals/critic/deep-run.ts` runs it. In it, the main thread starts one section critic per checklist section (`agents/section-critic.md`), each with only `references/checklist-<section>.md`, and then a director (`agents/director.md`) who reads the image and the eight reports, merges, removes duplicates, ranks, and writes the crit in the format of `agents/critic.md` (OQ-28). `scripts/build.rb` writes the eight `references/checklist-<section>.md` files, one section of `references/checklist.md` each.
 - `plugin/skills/design-critic/scripts/contact-sheet.mjs` lays up to 12 PNG screens out as one numbered PNG contact sheet (`node contact-sheet.mjs SCREEN.png... --out FOLDER [--columns N]`, FR-83 draft): 2 columns of 640 px wide tiles with the tile number in a band above each tile, drawn from a built-in pixel font. It writes `sheet.png` and `tiles.json`, which maps each tile number to the absolute path of its screen and the screen's box on the sheet, and exits 2 with one line on a wrong command line, more than 12 screens, or a file that is not a PNG. It uses Node's own modules only and reads PNGs with `crop.mjs`; `evals/design-critic-contact-sheet.test.ts` checks it (crit-j8y.3).
-- `plugin/skills/design-critic/scripts/compare-facts.mjs` compares the facts files of the pages of one set (`node compare-facts.mjs FACTS.json FACTS.json... --out FILE [--viewport desktop|phone]`, FR-84) and writes the differences across pages as measured numbers: the main content left edge, the width of the text block with the most text, and each type size or text color that some pages use and others do not, each with page number (tile number), selector, and box. A value every page shares is not listed. It exits 2 with one usage line on bad input and uses Node's own modules only. `schemas/facts-diff.schema.json` is the JSON Schema (draft 2020-12) of its output, and `evals/design-critic-compare-facts.test.ts` checks both with small hand-written facts files and no browser. `SKILL.md` contact-sheet mode runs it when the pages and their facts files exist and passes the output to the set critic and the picker as the `Measured differences file:` line (crit-j8y.6).
+- `plugin/skills/design-critic/scripts/compare-facts.mjs` compares the facts files of the pages of one set (`node compare-facts.mjs FACTS.json FACTS.json... --out FILE [--viewport desktop|phone|tablet|widescreen|wN]`, FR-84) and writes the differences across pages as measured numbers: the main content left edge, the width of the text block with the most text, and each type size or text color that some pages use and others do not, each with page number (tile number), selector, and box. A value every page shares is not listed. It compares any light viewport that every input file holds (desktop, phone, tablet, widescreen, or w<N>, FR-85), refuses a name missing from any file with one usage line that names it, and defaults to desktop (crit-9w5.5). It exits 2 with one usage line on bad input and uses Node's own modules only. `schemas/facts-diff.schema.json` is the JSON Schema (draft 2020-12) of its output, and `evals/design-critic-compare-facts.test.ts` checks both with small hand-written facts files and no browser. `SKILL.md` contact-sheet mode runs it when the pages and their facts files exist and passes the output to the set critic and the picker as the `Measured differences file:` line (crit-j8y.6).
 - `plugin/skills/design-critic/agents/set-critic.md` and `agents/picker.md` are the two last agents of the contact-sheet mode of `SKILL.md` (FR-83 draft), which runs for two or more images after a normal crit of each image. `set-critic.md` is the consistency check: it reads the contact sheet and names each image that breaks a pattern the others keep, ending with a `Breaks:` line. `picker.md` is the best pick: it ranks the versions by how well each does the job and ends with a `Best:` line. The request picks which one runs (crit-j8y.4).
 - `plugin/skills/design-critic/scripts/measure.mjs` renders a local HTML file or a URL with Playwright in light mode at four viewports, desktop (1280 x 800 px) first, then phone (390 x 844 px), tablet (768 x 1024 px), and widescreen (1920 x 1080 px), and writes `desktop.png`, `phone.png`, `tablet.png`, `widescreen.png`, their one-screen crops, and `facts.json`, the measured facts file of FR-79. The flags `--desktop`, `--phone`, `--tablet`, and `--widescreen` each pick one of those viewports, and `--width N[,N...]` adds one 800 px tall viewport per width, named `w<N>`; with any of them it renders only what they pick, the named viewports first in that default order, then the `w<N>` ones in the order given. It exits 2 for a flag given twice or a width that is not a whole number from 200 to 3840. Each viewport also gets a `violations` list, checked in code: text contrast under 4.5:1 (3:1 for large text), targets under 24 px without WCAG 2.5.8 spacing, and paragraph lines over 75 characters, with the exemptions the DOM shows left out, and a top-level note names what it cannot see. Only with `--dark` (FR-85) it also looks for a dark mode in each viewport, first by comparing computed colors with the system set to dark (leaving out colors that change on their own between two light reads, and only when the page background gets darker), then by clicking at most two visible controls named dark, light, theme, or appearance (never a link, a submit button, or a control inside a form). A dark-mode check that fails, such as a click that times out, counts as no dark mode with a note, and the light entries stand. When it finds one it writes a `<name>-dark` entry right after the light one, with `<name>-dark.png` and its crops, and records how it found it in `dark_mode`; otherwise a note says the page has none. Without `--dark` its output is the same as before. It loads `playwright` from the working directory's project or from `packs/`, and never installs it. `schemas/facts.schema.json` is the JSON Schema (draft 2020-12) of `facts.json`, and is part of the slow layer.
 - `plugin/skills/design-critic/agents/work-order.md` tells the work-order agent how to turn a finished crit into `work-order.json`, the work order of FR-80, from the crit, the image, and the facts file when the critic had one. `SKILL.md` step 3 saves the crit as `crit.md` with the go-further section joined in, and step 5 starts that agent after the critic, so the critic and its final message stay as they are and every critic evaluation reads the same crit. `scripts/work-order.mjs` checks what the schema cannot: one entry per ranked finding of the crit, with the same rank, and each pixel box equal to the facts file box of its selector or to the region of its crop. It uses Node's own modules only. `schemas/work-order.schema.json` is the JSON Schema (draft 2020-12) of `work-order.json`, and is part of the slow layer. The schema keeps its old `jev` and `jev_evidence_file` fields only so that committed work order still validates. `evals/critic/work-order.test.ts` checks the work order that one live run wrote for `evals/loop-test/bad-page/`, committed with its inputs in `evals/critic/work-order/bad-page/`.
@@ -45,7 +45,7 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-1 holds the comp
 - `evals/design-critic-references.test.ts` runs `scripts/build.rb` into a temporary folder and checks that the committed `references/` holds the same files with the same text, so a hand edit or a missed build fails `npm run ci`.
 - `plugin/.claude-plugin/plugin.json` is the Claude Code plugin manifest. It names the plugin `deskcrit` and declares no component paths, so Claude Code finds `plugin/skills/` by default. It has no version, so the plugin version is the commit, and it holds no threshold (FR-69).
 - `.claude-plugin/marketplace.json` is the marketplace file at the repository root. It lists one plugin, `deskcrit`, with the source `./plugin`, so a person can run `/plugin marketplace add benjaminjackson/deskcrit`.
-- `plugin/README.md` holds the install steps for the plugin. The root `README.md` points to it.
+- `plugin/README.md` explains the skill scripts that need more than the root `README.md` says (crop, measure, and how measure finds Playwright). The install steps are in the root `README.md`, and `plugin/README.md` points to them.
 - `evals/plugin-manifest.test.ts` checks the two plugin JSON files with file reads only and imports nothing from `src/`: both parse, the marketplace entry names the plugin and its source folder holds `.claude-plugin/plugin.json`, each folder under `plugin/skills/` has a `SKILL.md` whose `name` is the folder name, and each component path the manifest declares exists.
 - `evals/wobble/slice.png` is a committed tall screenshot that `evals/design-critic-crop.test.ts` and `evals/critic/run-critic.test.ts` use; `ATTRIBUTION.md` records its source. `evals/packs-test/packs/all-agree/fixtures/red.png` is a tiny committed PNG that `evals/packs-fixture-rules.test.ts` copies; `evals/packs-test/ATTRIBUTION.md` records it. Both folders held Jev checks that were removed, and only these files are left.
 - `evals/packs-fixture-rules/broken-pack/` is a committed pack that breaks several fixture rules on purpose, so the test can check the whole list of problems. It is not a real pack.
@@ -131,64 +131,9 @@ This project follows Chad Fowler's regenerative software series, "The Phoenix Ar
 - Check every prose document you change with the slop judge before you commit. The command is `sloplint check --judge --markdown -o json --register "a coding agent building deskcrit" <file>`. The judge sends the file text to api.typesafe.ai. On 2026-10-23, Benjamin Jackson approved sending `BRIEF.md`, `docs/PRD.md`, this file, and pack READMEs to the judge, and on 2026-10-24 he added `GUIDELINES.md`, so these files need no further consent. Ask before you send any other file. Use the same reader string for every file.
 - The judge key is already configured on this machine. Do not look for it, do not print it, and do not read `.env`.
 - Keep this file true. When a rule here stops being true, delete it in the same pull request that makes it false. Do not add a rule that is not true today, because a wrong instruction steers a generator more confidently than a missing one [Fowler 26].
+- Keep `README.md` and `plugin/README.md` true, the same way `docs/PRD.md` stays true. A pull request that changes what a user installs, runs, or sees updates them in the same pull request: a skill name or what starts it, an install step, a requirement or its version, an output file or where it is saved, a script flag or exit code that the READMEs name, an npm script, or a top-level folder. Before you merge, check each command, path, and flag the READMEs name against the code. Reason: the README is the first and often the only document a user reads, and a step that no longer works sends a new user into a setup that fails with no hint why. Review trigger: user documentation moves to a separate site, or the READMEs stop naming commands and paths.
 - Do not keep a second hand-written copy of the specification. Documents other than `docs/PRD.md` point to it and do not restate it [Fowler 25].
 
 ## Open decisions
 
 Open questions are in `docs/PRD.md` section 15.
-
-
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:1105d646 -->
-## Beads Issue Tracker
-
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
-
-### Quick Reference
-
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work
-bd close <id>         # Complete work
-```
-
-### Rules
-
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
-- Run `bd prime` for detailed command reference and session close protocol
-- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
-
-**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/core-concepts/sync-concepts.md for details and anti-patterns.
-
-## Agent Context Profiles
-
-The managed Beads block is task-tracking guidance, not permission to override repository, user, or orchestrator instructions.
-
-- **Conservative (default)**: Use `bd` for task tracking. Do not run git commits, git pushes, or Dolt remote sync unless explicitly asked. At handoff, report changed files, validation, and suggested next commands.
-- **Minimal**: Keep tool instruction files as pointers to `bd prime`; use the same conservative git policy unless active instructions say otherwise.
-- **Team-maintainer**: Only when the repository explicitly opts in, agents may close beads, run quality gates, commit, and push as part of session close. A current "do not commit" or "do not push" instruction still wins.
-
-## Session Completion
-
-This protocol applies when ending a Beads implementation workflow. It is subordinate to explicit user, repository, and orchestrator instructions.
-
-1. **File issues for remaining work** - Create beads for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **Handle git/sync by active profile**:
-   ```bash
-   # Conservative/minimal/default: report status and proposed commands; wait for approval.
-   git status
-
-   # Team-maintainer opt-in only, unless current instructions forbid it:
-   git pull --rebase
-   git push
-   git status
-   ```
-5. **Hand off** - Summarize changes, validation, issue status, and any blocked sync/commit/push step
-
-**Critical rules:**
-- Explicit user or orchestrator instructions override this Beads block.
-- Do not commit or push without clear authority from the active profile or the current user request.
-- If a required sync or push is blocked, stop and report the exact command and error.
-<!-- END BEADS INTEGRATION -->

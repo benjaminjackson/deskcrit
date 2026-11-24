@@ -8,7 +8,14 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 export const EXIT_USAGE = 2;
 export const USAGE =
-  "usage: node compare-facts.mjs FACTS.json FACTS.json ... --out FILE [--viewport desktop|phone]";
+  "usage: node compare-facts.mjs FACTS.json FACTS.json ... --out FILE [--viewport desktop|phone|tablet|widescreen|wN]";
+
+/**
+ * The viewport names this script compares. It mirrors the light names that the `viewports[].name`
+ * rule of schemas/facts.schema.json allows (FR-85): the four default names and w<N> for a width
+ * given with --width. The `-dark` entries stay out of compare-facts.
+ */
+const VIEWPORT_NAME = /^(desktop|phone|tablet|widescreen|w[1-9][0-9]{2,3})$/;
 
 /** Two edges or widths within this many px are the same value, as in measure.mjs left_edges. */
 const SAME_WITHIN_PX = 1;
@@ -165,11 +172,7 @@ export function runCompare(argv) {
       files.push(argv[index]);
     }
   }
-  if (
-    files.length < 2 ||
-    !outFile ||
-    !["desktop", "phone"].includes(viewportName)
-  ) {
+  if (files.length < 2 || !outFile || !VIEWPORT_NAME.test(viewportName)) {
     console.error(USAGE);
     return EXIT_USAGE;
   }
@@ -186,7 +189,7 @@ export function runCompare(argv) {
       (candidate) => candidate.name === viewportName,
     );
     if (!viewport) {
-      console.error(USAGE);
+      console.error(`${USAGE} (no viewport ${viewportName} in ${file})`);
       return EXIT_USAGE;
     }
     pages.push({ file, viewport });
