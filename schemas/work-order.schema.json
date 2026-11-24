@@ -10,7 +10,7 @@
       "const": 1
     },
     "image": {
-      "description": "The image the critic saw. Every box is in its pixels.",
+      "description": "The image the critic saw. Every box is in its pixels. When images is present, this is its first entry, and each box is in the pixels of the image of its location.viewport.",
       "type": "object",
       "additionalProperties": false,
       "required": ["path", "width", "height"],
@@ -27,6 +27,36 @@
         "height": {
           "type": "integer",
           "minimum": 1
+        }
+      }
+    },
+    "images": {
+      "description": "Added 2026-11-24 (crit-9w5.6, FR-80, FR-85). Optional. Every image the critic saw when it judged one page at several viewports in one crit, in the order of the facts file viewports. The first entry equals image. A work order without it is for one image, as before.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["viewport", "path", "width", "height"],
+        "properties": {
+          "viewport": {
+            "description": "The name of the facts file viewport whose screenshot this image is, such as desktop or phone-dark.",
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "description": "The absolute path of the image, as the critic was given it.",
+            "type": "string",
+            "minLength": 1
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1
+          }
         }
       }
     },
@@ -151,8 +181,18 @@
           "minLength": 1
         },
         "viewport": {
-          "description": "The name of the facts file viewport whose screenshot is the image, such as desktop, or null when there is no facts file.",
+          "description": "The name of the facts file viewport whose screenshot holds the box, the selector, and the crop, such as desktop, or null when there is no facts file. When viewports is present, it is one of viewports.",
           "type": ["string", "null"]
+        },
+        "viewports": {
+          "description": "Added 2026-11-24 (crit-9w5.6). Optional; present when the work order has images. The viewports the finding applies to, as the crit's Viewports line names them, each one the viewport of an entry of images.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "selector": {
           "description": "The CSS selector of the element, copied from the facts file, or null when the facts file has no element for the finding.",

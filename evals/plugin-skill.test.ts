@@ -403,3 +403,19 @@ describe("the crit-loop skill fields", () => {
     ]);
   });
 });
+
+describe("the viewports of one page (crit-9w5.6, FR-85)", () => {
+  it("captures every viewport the person picks, not only desktop and phone", () => {
+    expect(SKILL_TEXT).not.toContain("--desktop --phone");
+  });
+
+  it("names the viewports line the design-critic skill adds to the critic's prompt", () => {
+    const designCriticText = readFileSync(
+      join(DESIGN_CRITIC_FOLDER, "SKILL.md"),
+      "utf8",
+    );
+    expect(designCriticText).toContain(
+      "   Viewports, in image order: <names, such as desktop, phone, tablet, widescreen>\n",
+    );
+  });
+});

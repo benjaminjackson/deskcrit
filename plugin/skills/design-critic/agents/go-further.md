@@ -8,7 +8,7 @@ Every path in this file is relative to the skill folder that your prompt names.
 
 ## How you work
 
-1. Read the image whole, and look closely at anything you build an idea on. If the image is taller than one screen, you may run `node scripts/crop.mjs <in.png>`, with `scripts/crop.mjs` given as its full path in the skill folder, and Read the crops it prints, as `agents/critic.md` step 1 says. Run it as its own Bash call, with no `;`, `&&`, pipe, redirect, or `$(...)`.
+1. Read the image whole. When your prompt names several images, they are one page at several viewports, not versions: read each one, and build on the page as a whole. Look closely at anything you build an idea on. If the image is taller than one screen, you may run `node scripts/crop.mjs <in.png>`, with `scripts/crop.mjs` given as its full path in the skill folder, and Read the crops it prints, as `agents/critic.md` step 1 says. Run it as its own Bash call, with no `;`, `&&`, pipe, redirect, or `$(...)`.
 2. Read the crit file. Note what it says the piece is for, every item under "What would move it most" with its number, and every item under "Smaller things".
 3. Write the section by the rules below.
 

@@ -5,11 +5,11 @@ description: Critiques still images of a design (a screenshot, mockup, poster, s
 
 # Design critic
 
-This skill runs a critic agent on one image. The agent walks a checklist of guidelines, goes deep on anything that fails with the guideline's sources and approved fixes, then writes a ranked crit.
+This skill runs a critic agent on one image, or on the screenshots of one page at several viewports. The agent walks a checklist of guidelines, goes deep on anything that fails with the guideline's sources and approved fixes, then writes a ranked crit.
 
 ## Pick the mode
 
-Count the images first. The count picks the mode, and nothing else does.
+Count the images first. The count picks the mode, and nothing else does. The screenshots that one `facts.json` lists, one per viewport, count as one image: they are one page, so they get one normal crit and never start contact-sheet mode.
 
 - **One image: a normal crit.** Follow "Run it". The person gets one crit and one work order.
 - **Two or more images: contact-sheet mode, always.** Follow "Contact-sheet mode". Each image gets its own normal crit and work order, and then one last agent reads all the images on one contact sheet. That last agent does one of two jobs, and the request picks which:
@@ -38,12 +38,20 @@ Count the images first. The count picks the mode, and nothing else does.
    When the critique is done, end with the full critique as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the full critique.
    ```
 
-   If the person gives a page or a URL and you run `scripts/measure.mjs` on it to get a facts file, pass `--desktop --phone`, so the file holds the two viewports the critic reads today (crit-9w5.6 decides when it gets more). Add `--dark` only when the person asks about dark mode, the theme, or both modes. With `--dark`, the script writes a `<name>-dark` entry and `<name>-dark.png` for each viewport only when the page has a dark mode, and `dark_mode.found_by` in `facts.json` says how it found it, or `none`. When `facts.json` has a `-dark` entry, critique `<name>-dark.png` as its own image, in its own run of these steps, with the same `Measured facts file:` line. If it exits with code 4, Playwright or its Chromium is missing: show the person the install commands from its `cannot measure:` line, ask whether to install them, and never install without their yes. On no, critique the image alone and say so.
+   If the person gives a page or a URL, run `scripts/measure.mjs` on it to get a facts file. Pass no viewport flag, so it renders its four default viewports, or the flags that pick the viewports the person asked for (`--desktop`, `--phone`, `--tablet`, `--widescreen`, `--width N`). Add `--dark` only when the person asks about dark mode, the theme, or both modes. With `--dark`, the script writes a `<name>-dark` entry and `<name>-dark.png` for each viewport only when the page has a dark mode, and `dark_mode.found_by` in `facts.json` says how it found it, or `none`. If it exits with code 4, Playwright or its Chromium is missing: show the person the install commands from its `cannot measure:` line, ask whether to install them, and never install without their yes. On no, critique the image alone and say so.
+
+   With a facts file, the critic gets every screenshot it lists in one crit. Put the absolute path of each viewport's `screenshot` on the `Image(s)` line, in the order of the facts file viewports, so each `<name>-dark.png` comes right after its light twin.
 
    When you have a measured facts file for the page in the image (`facts.json` from `scripts/measure.mjs`), add this line right after the `Image(s)` line, with the path filled:
 
    ```
    Measured facts file: <absolute path of facts.json>
+   ```
+
+   When the `Image(s)` line names two or more viewports, add this line right after the `Measured facts file:` line, with the viewport names in the same order as the images:
+
+   ```
+   Viewports, in image order: <names, such as desktop, phone, tablet, widescreen>
    ```
 
 3. Add the section "Where it could go further" with a second agent, which reads the image and the finished crit and writes only that section. Pick the work folder: the folder that holds `facts.json` when there is one, else the image's folder. Save the critique there as `crit.md`, exactly as the agent wrote it, with the Write tool. Then spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`, with this prompt and the placeholders filled:
@@ -53,7 +61,7 @@ Count the images first. The count picks the mode, and nothing else does.
 
    Read <skill folder>/agents/go-further.md and follow it. The skill folder is <skill folder>; every path in go-further.md is relative to it.
 
-   Image: <absolute path of the image>
+   Image(s): <absolute paths, as in step 2>
    Crit file: <absolute path of crit.md>
 
    You write only the section. Do not edit, move, or create any file except crops in a temporary folder.
@@ -72,21 +80,21 @@ Count the images first. The count picks the mode, and nothing else does.
    Read <skill folder>/agents/work-order.md and follow it. The skill folder is <skill folder>; every path in work-order.md is relative to it.
 
    Crit file: <absolute path of crit.md>
-   Image: <absolute path of the image>
+   Image(s): <absolute paths, as in step 2>
    Measured facts file: <absolute path of facts.json>
    Write in: <absolute path of the work folder>
 
    When the work order is done, end with its absolute path as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with that path.
    ```
 
-   Tell the user the path of `work-order.json`. A work order is for one image, so in contact-sheet mode each image gets its own.
+   Tell the user the path of `work-order.json`. A work order is for one page, with all its viewports, so in contact-sheet mode each page gets its own.
 
 ## Contact-sheet mode
 
 Use this mode for two or more images, once you know the mode from "Pick the mode". The person gets one crit and one work order per image, and then one consistency check or one best pick.
 
-1. For each image, run "Run it" steps 1, 2, 3, and 5 with that one image, so each crit has its "Where it could go further" section and its work order: spawn all the critics in one message so they run at the same time, use the usual prompt, and when each crit is done, write its work order in its own work folder (the folder that holds that image's `facts.json`, else a new folder per image in the system temp folder, so no two work orders share a folder).
-2. At the same time, make the contact sheet. Run `node <skill folder>/scripts/contact-sheet.mjs <image paths in order> --out <new folder in the system temp folder>`. It writes `sheet.png` and `tiles.json` in that folder. Then spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`, with this prompt and the placeholders filled. `<agent file>` is `set-critic.md` for the consistency check and `picker.md` for the best pick.
+1. For each image, run "Run it" steps 1, 2, 3, and 5 with that one image (for a page with a facts file, all of its viewports), so each crit has its "Where it could go further" section and its work order: spawn all the critics in one message so they run at the same time, use the usual prompt, and when each crit is done, write its work order in its own work folder (the folder that holds that image's `facts.json`, else a new folder per image in the system temp folder, so no two work orders share a folder).
+2. At the same time, make the contact sheet. Run `node <skill folder>/scripts/contact-sheet.mjs <image paths in order> --out <new folder in the system temp folder>`, with one image per page: for a page with a facts file, its first screenshot, which is `desktop.png` unless the viewport flags left desktop out. Use the same images on the `Images, in tile order` line below. It writes `sheet.png` and `tiles.json` in that folder. Then spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`, with this prompt and the placeholders filled. `<agent file>` is `set-critic.md` for the consistency check and `picker.md` for the best pick.
 
    ```
    Time matters here: do not spend time that can be avoided, and the earlier a correct result is obtained, the better.
