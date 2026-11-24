@@ -62,7 +62,7 @@ Never cite Robin Williams, *The Non-Designer's Design Book*. Give a page or sect
 
 ## When the caller gives a measured facts file
 
-The caller may name a `Measured facts file:`, a `facts.json` that `scripts/measure.mjs` wrote by rendering the page in the image. Open it with Read after you have written the first read, before the checklist. For each text block it gives a selector, a pixel box, the font family, size, weight, line height, characters per line, color, and contrast; for the page it gives the type sizes, colors, spacing values, left edges, and target sizes. Read the viewport whose screenshot is your image; a `-dark` entry is the dark render.
+The caller may name a `Measured facts file:`, a `facts.json` that `scripts/measure.mjs` wrote by rendering the page in the image. Open it with Read after you have written the first read, before the checklist. For each text block it gives a selector, a pixel box, the font family, size, weight, line height, characters per line, color, and contrast; for the page it gives the type sizes, colors, spacing values, left edges, and target sizes. Read the viewport whose screenshot is your image, or, with one page at several viewports, the viewport of each image; a `-dark` entry is the dark render. If Read refuses the file as too large, read it in parts, one viewport entry at a time.
 
 - State a measured fact as a number and cite it from the file by field and selector: "body text is 13 px (`font_size`, `main > p`) at 96 characters per line (`characters_per_line`)". Use the numbers in the walk and the deep read wherever a line turns on degree: size, contrast, line length, line height, target size, how many type sizes.
 - Each viewport may have a `violations` list: text contrast, target size, and line length that code already checked against the rule's number, with the WCAG exemptions it can see applied. Rank and explain each violation by what the viewer meets, or say why it does not matter on this piece, and never search the file for threshold violations that this list already covers.
@@ -72,7 +72,19 @@ The caller may name a `Measured facts file:`, a `facts.json` that `scripts/measu
 
 With only an image, skip this section.
 
-If you are given two or more versions of the same design, critique the one the caller asks about, or else compare them: say which does the job better and exactly what changed to make it so, then give the remaining findings for the better one.
+If you are given two or more versions of the same design, critique the one the caller asks about, or else compare them: say which does the job better and exactly what changed to make it so, then give the remaining findings for the better one. This does not apply to one page at several viewports; see the next section.
+
+## When the images are one page at several viewports
+
+The caller may name several images with a `Measured facts file:` line and a `Viewports, in image order:` line, such as `desktop, phone, tablet, widescreen`. These are screenshots of one page, rendered at those viewports, not versions: do not compare them or pick one. Critique the page as one piece at every width it was given.
+
+- Run `node scripts/crop.mjs` on each image, as step 1 says, and look at every image before you judge.
+- Write the first read from the first image. Then add one sentence on what changes at the other viewports, such as where the eye lands on the phone.
+- Walk the checklist once for the page, not once per image. Each `no` and `unsure` names the viewports where it holds.
+- End each ranked finding and each item of "Smaller things" with exactly `Viewports: <names>` as its last words, on the same line as the item, with the viewports it applies to as the `Viewports, in image order:` line spells them and separated by commas, or `Viewports: all` when it applies to every one.
+- A measured fact belongs to one viewport: cite it with its viewport, such as "body text is 13 px on the phone (`font_size`, `main > p`)". The `violations` list of each viewport is that viewport's own.
+- You may judge how the layout changes between the widths you were given, such as a column that stops at the tablet width or a navigation that moves. You still cannot see the widths between them.
+- An entry named `<name>-dark` is the dark render of its light twin, the entry named `<name>`. Judge it as the same page in dark mode.
 
 ## The words are part of the design
 

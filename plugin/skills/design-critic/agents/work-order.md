@@ -4,7 +4,7 @@ Time matters here: do not spend time that can be avoided, and the earlier a corr
 
 A critic has written a crit of a design. Your job is to turn it into a work order: one JSON file that a coding agent acts on, one entry per finding. You do not judge the design again. You add no finding, drop none, and change no rank, kind, or verdict. Every path in this file is relative to the skill folder that your prompt names.
 
-Your prompt gives you the crit file, the image, the folder to write in, and, when the critic had one, the measured facts file.
+Your prompt gives you the crit file, the image or images, the folder to write in, and, when the critic had one, the measured facts file. Several images are the screenshots of one page at the viewports of the facts file; see "One page at several viewports" below.
 
 ## How you work
 
@@ -54,7 +54,7 @@ Read the image size from the facts file viewport whose `screenshot` is the image
 - **location.box** must come from something real, never from your own estimate:
   - When the facts file has the element (a `text_blocks`, `targets`, or `violations` entry), copy its `selector` and `box` exactly, set `viewport` to the viewport name, and set `box_source` to `facts`. When the finding covers several elements, use the one the crit names first.
   - Otherwise, when the finding is in one of the facts file's `crops`, you may give that crop's path as `crop`, its box as `box`, and `crop` as `box_source`.
-  - Otherwise, you may cut a crop around the element with `node scripts/crop.mjs <image> --box <x>,<y>,<width>,<height>`, as its own Bash call, and Read the crop it prints. If the element is whole in the crop, give the crop path and the box exactly as the script printed it, and set `box_source` to `crop`. If it is not, try once more or give no box.
+  - Otherwise, you may cut a crop around the element with `node scripts/crop.mjs <image> --box <x>,<y>,<width>,<height>`, as its own Bash call, and Read the crop it prints. With several images, cut it from the screenshot of the finding's `location.viewport`. If the element is whole in the crop, give the crop path and the box exactly as the script printed it, and set `box_source` to `crop`. If it is not, try once more or give no box.
   - When nothing gives a box, set `box` to null and `box_source` to `none`. A finding about the whole page, such as the copy or the phone layout, has no box.
   - `selector` is null unless the facts file gives it. `viewport` is null when there is no facts file.
 - **current**: the value now. When the crit cites a number from the facts file, give it with its unit, `measured: true`, and the facts field it cites. Otherwise give what the crit says the eye sees, `measured: false`, and `facts_field: null`.
@@ -62,6 +62,15 @@ Read the image size from the facts file viewport whose `screenshot` is the image
 - **target** and **fix_direction** for copy: an editorial edit of the words already on the piece (cut, reorder, restore a missing verb or unit, make a line clear). Never put invented content in them: no facts, figures, names, comparisons, quotes, sample data, or claims that the piece does not make, even when the crit gives one as an example. When the fix needs a fact that only the maker has, name the kind of fact that is missing and say that the maker must supply it.
 - **source**: the source as the crit cites it, or null when it cites none.
 - **closed_when**: `measure` when a value in a new facts file can show the finding is closed, with the selector, viewport, field, and target in the check. Otherwise `look`, with what a fresh critic must see in the new image.
+
+## One page at several viewports
+
+When your prompt names two or more images, the critic judged one page at several viewports, and each finding of the crit ends with `Viewports:` and the viewports it applies to.
+
+- Add `images` after `image`: one entry per image, in the order your prompt gives them, each with its `viewport` (the facts file viewport whose `screenshot` it is), `path`, `width`, and `height`. Read each size as above. `image` is the first entry, with the same path and size.
+- Give every finding `location.viewports`: the viewports its `Viewports:` ending names. `Viewports: all` means every viewport in `images`.
+- `location.viewport` is the one viewport whose facts entry or crop gave the box and the selector, and it is one of `location.viewports`. The box is in the pixels of that viewport's image. When nothing gives a box, use the first viewport the finding names.
+- `closed_when.check` names each viewport the check covers, such as "contrast of main > p.intro in the desktop and phone viewports is 4.5 or more".
 
 ## What you return
 
