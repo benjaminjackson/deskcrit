@@ -60,6 +60,7 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
 - `agents/deep-mode.md`, `agents/section-critic.md`, `agents/director.md`, and `references/checklist-<section>.md`: the deep mode, one critic per checklist section and a director who merges and ranks their reports.
 - `agents/work-order.md`: the instructions of the agent that turns the finished crit into `work-order.json`.
 - `scripts/work-order.mjs`: checks a work order against its crit, image, and facts file: one entry per ranked finding, and every pixel box taken from the facts file or a crop.
+- `scripts/contact-sheet.mjs`: lays several PNG screens out as one numbered contact sheet and writes `tiles.json`, which maps each tile number to its file.
 - `agents/recheck.md`: the recheck critic of the crit-loop skill, which checks a fix against the last work order.
 - `scripts/build.rb`: makes `references/` from this repository's `GUIDELINES.md` and `packs/`.
 
