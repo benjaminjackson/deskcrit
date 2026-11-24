@@ -175,7 +175,7 @@ describe("compare-facts.mjs", () => {
   });
 
   describe("viewport names (FR-85)", () => {
-    for (const name of ["tablet", "w768"]) {
+    for (const name of ["tablet", "w768", "desktop-dark", "w768-dark"]) {
       it(`compares the ${name} viewport when every file holds it`, () => {
         const { code, output } = compare(
           [
@@ -230,7 +230,7 @@ describe("compare-facts.mjs", () => {
     });
 
     it("refuses a viewport name that is not allowed with the plain usage line", () => {
-      for (const name of ["wide", "w0768", "desktop-dark"]) {
+      for (const name of ["wide", "w0768"]) {
         const { code, errorLines } = compareInChild(
           [makeFacts({ ...base, name }), makeFacts({ ...base, name })],
           ["--viewport", name],
@@ -257,10 +257,12 @@ describe("compare-facts.mjs", () => {
         "tablet",
         "widescreen",
         "w768",
+        "desktop-dark",
+        "w768-dark",
       ]) {
         expect(validate(output(viewport))).toBe(true);
       }
-      for (const viewport of ["wide", "w0768", "desktop-dark"]) {
+      for (const viewport of ["wide", "w0768"]) {
         expect(validate(output(viewport))).toBe(false);
       }
     });
