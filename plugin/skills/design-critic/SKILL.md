@@ -9,8 +9,6 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
 
 ## Run it
 
-The deep mode is off by default. Use it only when the caller asks for the deep mode and gives one image: then follow `agents/deep-mode.md` in place of step 2.
-
 1. Collect the inputs: the absolute path of each image, and whatever you know about the piece's purpose, audience, and medium. Do not ask the user for context they did not give; the critic states its own assumption.
 2. Spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`. Use this prompt, with the placeholders filled. `<skill folder>` is the base directory Claude Code gave when it loaded this skill.
 
