@@ -1446,9 +1446,9 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 
 Draft (PRD FR-86). This section is not a pack, and the critic does not see it yet: `plugin/skills/design-critic/checklist.yaml` lists every entry here under `excluded` until crit-7hw.3 adds a checklist section for it and Benjamin Jackson ratifies the rest of FR-86. Its source is Damir Sokolovsky's unslop, a list of signs that an interface came from an AI template, each with its fix. Benjamin Jackson accepted unslop as a source for this section only on 2026-11-24 ("I accept unslop"). Each entry quotes its sign word for word on its Source line, from the commit named there, so the rule is stated in the source (FR-45).
 
-The source is published under CC BY 4.0, which allows adaptation with credit and a note of the changes. Changes: each sign is rewritten as a rule and a yes-or-no question, the fixes are reworded, two pairs of duplicate signs are merged, an eyebrow entry combines two signs, and an emoji inside a quote is written as a word in square brackets. The Copy, Motion, Spacing, and Right to left groups are left out, and the last entry of this section lists each sign left out with the reason.
+The source is published under CC BY 4.0, which allows adaptation with credit and a note of the changes. Changes: each sign is rewritten as a rule and a yes-or-no question, the fixes are reworded, two pairs of duplicate signs are merged, the entry on uppercase labels names the eyebrow line above a hero headline as its example, some questions judge only what is on the page (NG-10), and an emoji inside a quote is written as a word in square brackets. The Copy, Motion, Spacing, and Right to left groups are left out, and the last entry of this section lists each sign left out with the reason.
 
-Each entry names a move that an AI template makes by default, such as a purple gradient or a small uppercase line above the headline, and that a viewer has seen on many other products. Some of these moves are right in other work, such as a kicker above a heading in a magazine article, and an entry's Note says where. Yes to a question means the defect is there.
+Each entry names a move that an AI template makes by default, such as a purple gradient or a small uppercase line above the headline, and that a viewer has seen on many other products. In this catalog's own view, and not unslop's, some of these moves are right in other work, such as a kicker above a heading in a magazine article, and an entry's Note says where. Yes to a question means the defect is there.
 
 ### Purple-to-blue or violet-to-pink gradients
 - **Rule:** Backgrounds, cards, buttons, and the active navigation item use one neutral surface, and an accent color appears only where it carries meaning. A purple-to-blue or violet-to-pink gradient on these surfaces is the stock look of an AI-made template.
@@ -1469,19 +1469,19 @@ Each entry names a move that an AI template makes by default, such as a purple g
 - **Judged by:** askable. Question: "Does a colored glow or a blurred colored halo surround a card, button, pill, icon, or emoji?"
 
 ### Color washes and blurred blobs behind content
-- **Rule:** The background behind the content and the hero is plain, or it shows one real product visual. Radial color washes, blurred color blobs, orbs, decorative grids, and glowing lines behind the content give the viewer nothing to use.
+- **Rule:** The background behind the content and the hero is plain, or it shows one real product visual, with no radial color washes, blurred color blobs, orbs, decorative grids, or glowing lines.
 - **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Surfaces and color": "Radial color washes or blurred blobs behind content → remove", and group "Landing pages and heroes": "Floating blobs, orbs, grids and glowing lines behind the hero → plain background or one real product visual". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: the two signs are merged; the entry judges only the shapes a still image shows, not whether they float.
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
 - **Judged by:** askable. Question: "Is there a radial color wash, a blurred color blob, an orb, a decorative grid, or a glowing line behind the content or the hero?"
 
 ### Neon or bright colored borders
-- **Rule:** Borders that separate surfaces are thin and quiet, such as a hairline at 6 to 10% opacity. A neon or bright colored border pulls the eye to the frame and away from the content.
+- **Rule:** Borders that separate surfaces are hairlines at 6 to 10% opacity, not neon or high-contrast colored lines.
 - **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Surfaces and color": "Neon or high contrast colored borders → hairline at 6 to 10% opacity". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
 - **Judged by:** askable. Question: "Does a card, panel, or input have a neon or bright colored border?"
 
 ### Many near-identical tints of one hue for text
-- **Rule:** Text uses three color roles from one neutral ramp. Many near-identical tints of one hue make the roles hard to tell apart.
+- **Rule:** Text uses three color roles from one neutral ramp, not many near-identical tints of one hue.
 - **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Surfaces and color": "Many near identical tints of the same hue for text, like five lavenders → three text roles from one neutral ramp". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question; the count of four in the question is this catalog's choice.
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
 - **Judged by:** askable as a visual judgment. Question: "Is the text on the screen set in four or more near-identical tints of one hue, such as several lavenders?"
@@ -1506,11 +1506,11 @@ Each entry names a move that an AI template makes by default, such as a purple g
 - **Judged by:** askable as a visual judgment. Question: "Is a heading set in an extra-bold or black weight?" The exact weight cannot be read from pixels, so the question asks only for the heaviest weights a viewer can see.
 
 ### Uppercase labels with wide tracking
-- **Rule:** Interface labels, such as section names and stat titles, are set in sentence case at normal or slightly open tracking.
-- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Uppercase labels with wide tracking, like `NAVIGATION` or `PAID THIS MONTH` → sentence case at normal or slightly open tracking". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Rule:** Interface labels and other short lines, such as section names, stat titles, and a line above a hero headline, are set in sentence case at normal or slightly open tracking.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Uppercase labels with wide tracking, like `NAVIGATION` or `PAID THIS MONTH` → sentence case at normal or slightly open tracking", and skills/unslop/SKILL.md at the same commit, line 120: "Sentence case everywhere. Labels like `NAVIGATION` or `PAID THIS MONTH` with wide tracking become `Navigation` and `Paid this month`." Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question; the eyebrow example is this catalog's own.
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
-- **Judged by:** askable. Question: "Are interface labels, such as section names or stat titles, set in uppercase with wide letterspacing?"
-- **Note:** The Typography entry "Letterspace capitals and small caps" asks that capitals be letterspaced when they are used. That entry judges how capitals are set, and this one judges whether a label is in capitals at all.
+- **Judged by:** askable. Question: "Is a label or other short line, such as a section name, a stat title, or a line above the hero headline, set in uppercase with wide letterspacing?" Example: a short line of small, uppercase, letterspaced text above a hero headline (an eyebrow). The fixing agent added one to the final page of the EV-10 loop run of 2026-11-24, and Benjamin Jackson called it "an AI design slop cliche."
+- **Note:** The Typography entry "Letterspace capitals and small caps" asks that capitals be letterspaced when they are used. That entry judges how capitals are set, and this one judges whether a label is in capitals at all. In this catalog's own view, not unslop's, a short kicker above a heading is a print convention in long-form editorial work, so the tell is the stock line above a landing-page hero.
 
 ### Too many type sizes and weights on one screen
 - **Rule:** One screen uses a few sizes from one scale and two weights, 400 and 500.
@@ -1520,17 +1520,17 @@ Each entry names a move that an AI template makes by default, such as a purple g
 - **Note:** The Typography entry "Sizes come from a scale" states a close rule from the reading list.
 
 ### Numbers in mixed formats
-- **Rule:** Numbers of one kind on one screen share one format, with the same decimals, separators, and padding, and use tabular figures.
-- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Numbers in mixed formats, like `$48,210` next to `$124,860.40`, or `07` → one format, tabular figures". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question about the format of the figures, not about what the numbers say (NG-10).
+- **Rule:** Numbers of one kind on one screen share one format, with the same decimals, separators, and padding.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Numbers in mixed formats, like `$48,210` next to `$124,860.40`, or `07` → one format, tabular figures". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question about the format of the figures, not about what the numbers say (NG-10). The call for tabular figures is left out, because telling tabular from proportional figures needs detail too fine to see (NG-10).
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
-- **Judged by:** askable. Question: "Do numbers of the same kind on one screen appear in different formats, such as an amount with cents next to an amount without, or a number padded with a leading zero?"
+- **Judged by:** askable. Question: "Do numbers of the same kind on one screen appear in mixed formats, such as an amount with cents next to an amount without, or one number padded with a leading zero next to others that are not?"
 - **Note:** The Typography entry "Figures in tables and text" states a close rule from the reading list.
 
 ### Negative letter spacing on small text
 - **Rule:** Small text has zero or slightly positive letterspacing.
 - **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Negative letter spacing on small text → zero or slightly positive". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
-- **Judged by:** askable as a visual judgment. Question: "Is small text, such as body text, captions, or labels, set so tight that its letters nearly touch?" The difference can be a fraction of a pixel, so it is easy to miss.
+- **Judged by:** askable. Question: "Is small text, such as body text, captions, or labels, set so tight that its letters nearly touch?"
 - **Note:** The Typography entry "Letterspacing (tracking) of text" states a close rule from the reading list.
 
 ### Italic used for emphasis in interface text
@@ -1562,13 +1562,13 @@ Each entry names a move that an AI template makes by default, such as a purple g
 - **Rule:** In a list or menu, every row's icon sits in a box of the same width, so the icons and the text after them line up in columns.
 - **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Icons": "Icons nudged off the column → same icon box width in every row". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
-- **Judged by:** askable as a visual judgment. Question: "In a list or menu, do the icons, or the text after them, fail to line up in one vertical column?" The offset can be a few pixels, so it is easy to miss.
+- **Judged by:** askable. Question: "In a list or menu, do the icons, or the text after them, visibly step out of one vertical column?"
 
-### Sparkle icon for AI features
-- **Rule:** A feature that uses AI gets a plain icon only where the icon explains something, and no sparkle as decoration.
-- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Icons": "A sparkle [sparkle emoji] for anything AI → remove or use a plain icon only where it explains something". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+### Sparkle icon as decoration
+- **Rule:** An icon appears only where it explains something, and a sparkle is not used as decoration.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Icons": "A sparkle [sparkle emoji] for anything AI → remove or use a plain icon only where it explains something". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: the question does not ask whether a feature uses AI, which an image cannot show (NG-10).
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
-- **Judged by:** askable. Question: "Is a sparkle icon or sparkle emoji used to mark a feature as AI?"
+- **Judged by:** askable. Question: "Is a sparkle icon or sparkle emoji used as decoration?"
 
 ### Glowing pills for counts and status
 - **Rule:** Counts, plan names, keyboard shortcuts, and status are quiet monospaced text or a keycap, not a glowing pill.
@@ -1586,7 +1586,7 @@ Each entry names a move that an AI template makes by default, such as a purple g
 - **Rule:** Corner radius follows the size of the element, and a nested element's radius is set from its container's radius. Search fields, buttons, and cards are not all drawn as full pills.
 - **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Components": "Every element a full pill, from search to buttons to cards → radius by size, nested radius math". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
-- **Judged by:** askable. Question: "Are the search field, the buttons, and the cards all drawn with fully rounded pill ends?"
+- **Judged by:** askable. Question: "Are most of the controls and containers on the screen, such as fields, buttons, and cards, drawn with fully rounded pill ends?"
 
 ### Rainbow, glowing, or pill-shaped chart bars
 - **Rule:** A chart shows one or two series on a muted grid, with monospaced labels and one highlight color.
@@ -1657,11 +1657,11 @@ Each entry names a move that an AI template makes by default, such as a purple g
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
 - **Judged by:** askable. Question: "Is the hero visual a glossy 3D blob, an orb, a liquid chrome shape, or a purple nebula?"
 
-### Stock robots and glowing brains for AI
-- **Rule:** A visual about AI shows what the AI produces.
-- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Visuals": "Stock robots, glowing brains, circuit lines or holograms for anything AI → remove, or show what the AI actually produces". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+### Stock robots, glowing brains, and holograms
+- **Rule:** The page shows no stock robots, glowing brains, circuit lines, or holograms.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Visuals": "Stock robots, glowing brains, circuit lines or holograms for anything AI → remove, or show what the AI actually produces". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: the question asks only what a visual shows, not what it stands for (NG-10).
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
-- **Judged by:** askable. Question: "Does the page show a stock robot, a glowing brain, circuit lines, or a hologram to stand for AI?"
+- **Judged by:** askable. Question: "Does a visual on the page show a stock robot, a glowing brain, circuit lines, or a hologram?"
 
 ### Image that does not blend into the page
 - **Rule:** An image has a background matched to the page and soft edges, so it does not sit on the page as a box with a seam.
@@ -1676,30 +1676,23 @@ Each entry names a move that an AI template makes by default, such as a purple g
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
 - **Judged by:** askable only on an image of the whole page. Question: "Does every section of the page have its own decorative visual?" One screen of a long page cannot show this.
 
-### Neutral dark template on a warm or bright product
-- **Rule:** The page's neutrals are tinted toward the product's world, and the accent comes from that world. A pure neutral dark gray page with white text, a stock neutral sans serif, and the brand color on one button is what a page falls back to when nobody chose.
-- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Template look": "Pure grey #161616 page, Inter, white text and the old brand color on one button, on a product whose world is warm or bright → a ramp tinted toward the world and an accent from it". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: Inter is widened to a stock neutral sans serif, because a still image does not show the font name for certain.
+### Neutral dark template look
+- **Rule:** A page is not only a near-black gray ground with white text in a stock neutral sans serif and the brand color on one button, with nothing else of its own.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Template look": "Pure grey #161616 page, Inter, white text and the old brand color on one button, on a product whose world is warm or bright → a ramp tinted toward the world and an accent from it". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: Inter is widened to a stock neutral sans serif, because a still image does not show the font name for certain. Whether the product's world is warm or bright needs to know the product, so the question judges only what is on the page (NG-10).
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
-- **Judged by:** askable. Question: "Is the page a pure neutral dark gray with white text in a stock neutral sans serif and the brand color on only one button, for a product whose world is warm or bright?" Whether the product's world is warm or bright comes from what the piece is for, which the critic reads first.
+- **Judged by:** askable. Question: "Is the page a near-black gray ground with white text in a stock neutral sans serif, the brand color on only one button, and no other color or element of its own?"
 
 ### Empty box or generic picture as the hero visual
 - **Rule:** The hero visual is a product preview or an image from the product's world.
-- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Template look": "A hero visual that is an empty box or a generic picture → a product preview in code or an image from the world". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Template look": "A hero visual that is an empty box or a generic picture → a product preview in code or an image from the world". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: the question asks only what the visual is, not whether it shows this product (NG-10).
 - **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
-- **Judged by:** askable. Question: "Is the hero visual an empty box, or a generic picture that shows nothing of this product?"
-
-### Eyebrow label above the hero headline
-- **Rule:** A hero headline does not sit under a short line of small, uppercase, letterspaced text (an eyebrow).
-- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Uppercase labels with wide tracking, like `NAVIGATION` or `PAID THIS MONTH` → sentence case at normal or slightly open tracking", and group "Landing pages and heroes": "A pill badge above the headline". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: this entry combines the two signs for a label above the headline that is uppercase, letterspaced text with no pill.
-- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
-- **Judged by:** askable. Question: "Does a short line of small, uppercase, letterspaced text sit directly above the hero headline?"
-- **Note:** The letterspacing of such a line can be correct, and the Typography entry "Letterspace capitals and small caps" passes it. A short kicker above a heading is also a print convention in long-form editorial work. This entry asks only about the stock line above a landing-page hero. Reason for the entry: in the EV-10 loop run of 2026-11-24 the fixing agent added one, and Benjamin Jackson called it "an AI design slop cliche."
+- **Judged by:** askable. Question: "Is the hero visual empty, a placeholder, or a stock picture?"
 
 ### Template tells left out
 These signs from Damir Sokolovsky's unslop, at the same commit, have no entry here:
 - Copy, all 7 signs (greeting headlines, exclamation marks, changes with no reference, wordy placeholders, hype words, trailing periods on labels and buttons, and fake-looking data): each judges what the text says, and this catalog does no content linting (PRD NG-5, NG-10).
 - Motion, all 6 signs: a still image cannot show motion. For the same reason, "Parallax and elements floating on scroll" in the Landing pages group and the shimmer part of "Gradient or shimmer on the headline" are left out.
-- Spacing, all 5 signs, because the Layout section covers each one from the reading list. Arbitrary values off the 4 px scale: an image does not show the CSS values, and "Repeated elements follow one program" and "Equal intervals between columns" judge the visible result. Rows in one list with different heights or gaps: "Repeated elements follow one program" and "Equal intervals between columns". Groups that sit closer to their neighbors than to their own items: "Space shows the groups" and "Boxes do not split or join groups". Uneven padding inside sibling cards: "Repeated elements follow one program". Big empty gaps above a section and cramped space below it: "White space is gathered, not scattered" and "Unrelated elements do not crowd each other".
+- Spacing, all 5 signs, because the Layout section covers each one from the reading list. Arbitrary values off the 4 px scale: an image does not show the CSS values, and "Repeated elements follow one program" and "Equal intervals between columns" judge the visible result. Rows in one list with different heights or gaps: "Repeated elements follow one program". Groups that sit closer to their neighbors than to their own items: "Space shows the groups" and "Boxes do not split or join groups". Uneven padding inside sibling cards: "Repeated elements follow one program". Big empty gaps above a section and cramped space below it: "White space is gathered, not scattered" and "Unrelated elements do not crowd each other".
 - Right to left, all 14 signs: this catalog has no right-to-left scope. Three of them can be seen in a still image and could be a later ticket: Arabic or Hebrew text aligned left, a layout that is not mirrored, and two digit systems mixed on one screen.
 - Landing pages: "A headline that could fit any product" judges what the headline says (NG-10). The sign about "Trusted by" lines, rows of avatar dots, and five stars with no source asks whether a claim is true, which an image cannot show (NG-10). "Gradient or shimmer on the headline" and "Floating blobs, orbs, grids and glowing lines behind the hero" are merged into "Gradient text in headings, numbers, or the logo" and "Color washes and blurred blobs behind content".
 - Visuals: "Text, fake buttons or a fake logo baked into an image" reads the content of the image, and NG-10 records that text baked into an image was cut in M-1.
