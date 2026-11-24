@@ -26,7 +26,7 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 
 ## Each round after that
 
-1. Fix from the top of the last work order. Wait until the work-order agent has finished and the work order exists, and fix from it, not from `crit.md`: the work order has the measured places and targets that the prose leaves out. Take the findings in `rank` order. Each has a `location` (with a `selector` and a `box` when one was measured), a `target`, and a `fix_direction`. Fix as many as you can do well in one pass, from the top; the findings with `rank` null come last.
+1. Fix from the top of the last work order. Wait until the work-order agent has finished and the work order exists, and fix from it, not from `crit.md`: the work order has the measured places and targets that the prose leaves out. Take the findings in `rank` order. Each has a `location` (with a `selector` and a `box` when one was measured), a `target`, and a `fix_direction`. Fix as many as you can do well in one pass, from the top; the findings with `rank` null come last. Never add content; the last section of this file says what you may change in the copy.
 2. Capture into `<loop folder>/round-<n>`, the same way as in round 1.
 3. When round 1 printed a Jev evidence file, run `node <design-critic folder>/scripts/jev-recheck.mjs <evidence file> after.png` with Bash, from the user's working folder, where `after.png` is this round's image. It asks Jev about the new image only when crit runs and `TYPESAFE_API_KEY` is set, and prints the path of the recheck file, or nothing. Never read, print, or pass on the key. Do not use the file to judge a finding yourself; it is for the recheck critic.
 4. Start a fresh recheck critic with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`. Use this prompt, with the placeholders filled, the facts line only when this round has a `facts.json`, and the Jev line only when step 3 printed a path:
@@ -64,10 +64,13 @@ When you stop, tell the person:
 - which of the two rules made you stop,
 - the last first read and verdict,
 - the findings still open or worse, with their places,
+- the findings you left open because they need content that only the owner has, and what kind of content each one needs,
 - the path of the loop folder.
 
 If a script or a critic cannot run, do not retry it in a loop. Tell the person what it printed, and stop.
 
 ## Fix the design, not the score
 
-Fix the design for the person who will use it. Do not hide or remove content to close a finding. Never use the preferences of crit compare or a pass of crit gate as evidence that a fix worked.
+Fix the design for the person who will use it. Do not hide or remove content to close a finding.
+
+Never add content. Add no new text, facts, names, numbers, sample data, images, testimonials, or sections. Change the copy only with the editorial edits that a finding calls for: cut, reorder, restore a missing verb or unit, or make a line clear. Do not rewrite the copy as a copywriter would. Fix layout, type, color, spacing, and hierarchy freely. When a finding needs content that only the owner has, leave it open and tell the person at the stop. Never use the preferences of crit compare or a pass of crit gate as evidence that a fix worked.
