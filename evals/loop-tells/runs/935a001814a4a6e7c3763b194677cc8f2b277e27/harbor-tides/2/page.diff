@@ -1,0 +1,240 @@
+diff --git a/index.html b/index.html
+index 1838f09..b2d97a9 100644
+--- a/index.html
++++ b/index.html
+@@ -24,9 +24,6 @@
+         <p>Tidewell posts the day's tides, lock gate times, and the depth at the visitor pontoon on one page that berth holders can check from the quay.</p>
+         <a class="button" href="#">Set up your harbor</a>
+       </div>
+-    </section>
+-
+-    <section class="lower">
+       <div class="today">
+         <h2>Today at Porthmellin</h2>
+         <table>
+@@ -41,7 +38,9 @@
+           </tbody>
+         </table>
+       </div>
+-      <div class="points">
++    </section>
++
++    <section class="points">
+         <div class="point">
+           <h3>Lock gate times</h3>
+           <p>Gate openings are worked out from each tide and posted before the first boat asks.</p>
+@@ -54,7 +53,6 @@
+           <h3>Notices</h3>
+           <p>Dredging, closed berths, and fuel dock hours go on the same page as the tides.</p>
+         </div>
+-      </div>
+     </section>
+   </main>
+ </body>
+diff --git a/styles.css b/styles.css
+index 62c4c1a..ceb1cf0 100644
+--- a/styles.css
++++ b/styles.css
+@@ -10,6 +10,13 @@
+   src: url("fonts/inter-latin-500-normal.woff2") format("woff2");
+ }
+ 
++/* Type scale: 30, 19, 15 and 13 px. Spacing and the page margin come from these variables. */
++:root {
++  --page-margin: 64px;
++  --column-gap: 48px;
++  --line: 24px;
++}
++
+ * {
+   box-sizing: border-box;
+ }
+@@ -18,7 +25,7 @@ body {
+   margin: 0;
+   font-family: "Inter", sans-serif;
+   font-size: 15px;
+-  line-height: 1.55;
++  line-height: var(--line);
+   color: #2b3236;
+   background: #ffffff;
+ }
+@@ -27,11 +34,21 @@ a {
+   color: inherit;
+ }
+ 
++/* Keep the content in one centered block, so wide screens get even margins instead of an empty band on the right. */
++.site-header,
++.hero,
++.points {
++  max-width: 1280px;
++  margin: 0 auto;
++}
++
+ .site-header {
+   display: flex;
++  flex-wrap: wrap;
+   justify-content: space-between;
+   align-items: center;
+-  padding: 22px 64px;
++  gap: 8px 24px;
++  padding: 22px var(--page-margin);
+ }
+ 
+ .logo {
+@@ -40,26 +57,42 @@ a {
+   text-decoration: none;
+ }
+ 
++.site-nav {
++  display: flex;
++  gap: 28px;
++}
++
+ .site-nav a {
+-  margin-left: 28px;
+   text-decoration: none;
+   color: #4d585e;
+ }
+ 
++/* The hero: the pitch on the left, today's tide table on the right. */
+ .hero {
+-  height: 430px;
+-  padding: 72px 64px 0;
++  display: grid;
++  grid-template-columns: repeat(3, 1fr);
++  column-gap: var(--column-gap);
++  row-gap: 48px;
++  align-items: start;
++  padding: 72px var(--page-margin) 96px;
+ }
+ 
+ .hero-text {
++  grid-column: 1 / 2;
+   max-width: 400px;
+ }
+ 
++.today {
++  grid-column: 2 / 4;
++}
++
+ h1 {
+   margin: 0 0 16px;
+   font-size: 30px;
+   font-weight: 500;
+   line-height: 1.25;
++  /* Balance the line lengths so the headline breaks after "harbor", not inside "can stand behind". */
++  text-wrap: balance;
+ }
+ 
+ .hero-text p {
+@@ -77,56 +110,84 @@ h1 {
+   font-weight: 500;
+ }
+ 
+-.lower {
+-  display: flex;
+-  gap: 48px;
+-  padding: 0 64px;
+-}
+-
+-.today {
+-  flex: 0 0 300px;
+-}
+-
+-h2 {
+-  margin: 0 0 6px;
+-  font-size: 13px;
++h2,
++.point h3 {
++  margin: 0 0 8px;
++  font-size: 19px;
+   font-weight: 500;
++  line-height: var(--line);
+ }
+ 
+ table {
+   width: 100%;
+   border-collapse: collapse;
+-  font-size: 12px;
+-  color: #4d585e;
++  font-variant-numeric: tabular-nums;
+ }
+ 
+ th,
+ td {
+-  padding: 2px 0;
++  padding: 10px 0;
+   text-align: left;
+   font-weight: 400;
++  border-bottom: 1px solid #dfe3e5;
+ }
+ 
+ th {
+-  color: #7a858b;
++  font-size: 13px;
++  color: #4d585e;
+ }
+ 
+-.points {
+-  display: flex;
+-  gap: 32px;
++/* Times and heights sit flush right so the digits line up down the column. */
++th:not(:first-child),
++td:not(:first-child) {
++  text-align: right;
+ }
+ 
+-.point h3 {
+-  margin: 0 0 4px;
+-  font-size: 15px;
+-  font-weight: 500;
++/* The three points share the hero's three-column grid and gap. */
++.points {
++  display: grid;
++  grid-template-columns: repeat(3, 1fr);
++  column-gap: var(--column-gap);
++  row-gap: 32px;
++  padding: 0 var(--page-margin) 72px;
+ }
+ 
+ .point p {
+   margin: 0;
+   color: #4d585e;
++  max-width: 34em;
++}
++
++/* Tablet and phone: one column, so each paragraph keeps a readable line length. */
++@media (max-width: 900px) {
++  :root {
++    --page-margin: 32px;
++  }
++
++  .hero,
++  .points {
++    grid-template-columns: 1fr;
++  }
++
++  /* One shared right edge for the stacked blocks. */
++  .hero-text,
++  .today,
++  .point p {
++    grid-column: auto;
++    max-width: 520px;
++  }
+ }
+ 
+-.point {
+-  flex: 1;
++@media (max-width: 480px) {
++  :root {
++    --page-margin: 20px;
++  }
++
++  .hero {
++    padding-top: 40px;
++  }
++
++  .site-nav {
++    gap: 20px;
++  }
+ }

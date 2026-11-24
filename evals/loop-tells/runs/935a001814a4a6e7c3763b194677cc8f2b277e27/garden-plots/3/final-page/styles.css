@@ -1,0 +1,286 @@
+@font-face {
+  font-family: "Inter";
+  font-weight: 400;
+  src: url("fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 500;
+  src: url("fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-weight: 400;
+  src: url("fonts/source-serif-4-latin-400-normal.woff2") format("woff2");
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Side padding that grows on wide screens, so the content stays about 1120px wide. */
+:root {
+  --page-gutter: max(64px, calc((100% - 1120px) / 2));
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #2f3a2c;
+  background: #fbfaf6;
+}
+
+a {
+  color: inherit;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px var(--page-gutter);
+  border-bottom: 1px solid #e6e3da;
+}
+
+.logo {
+  font-family: "Source Serif 4", serif;
+  font-size: 22px;
+  text-decoration: none;
+}
+
+.menu-toggle {
+  display: none;
+}
+
+.site-nav a {
+  margin-left: 28px;
+  text-decoration: none;
+  color: #55604f;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 48px;
+  padding: 56px var(--page-gutter) 48px;
+}
+
+.hero-text {
+  max-width: 520px;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-family: "Source Serif 4", serif;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.15;
+  /* Spread the words evenly over the lines, so lines break at phrase ends and none is left short. */
+  text-wrap: balance;
+}
+
+/* Each span is one phrase. inline-block keeps a phrase on one line,
+   so the headline only breaks between phrases. Turned off at phone width,
+   where a whole phrase may not fit. */
+h1 span {
+  display: inline-block;
+}
+
+.hero-text p {
+  margin: 0 0 24px;
+  color: #55604f;
+}
+
+.button {
+  display: inline-block;
+  padding: 11px 20px;
+  border-radius: 6px;
+  background: #3d6b35;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.hero-plan {
+  flex: 0 0 420px;
+  padding: 20px;
+  border: 1px solid #e6e3da;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.plan-title {
+  margin-bottom: 12px;
+  color: #55604f;
+}
+
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.plot {
+  height: 52px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* Taken plots have a pale fill and a mid-gray outline; open plots are solid green.
+   The outline keeps taken plots visible on the white card, and the fill keeps them from looking empty. */
+.plot.taken {
+  border: 1px solid #848e7c;
+  background: #e4e8df;
+  color: #55604f;
+}
+
+.plot.free {
+  background: #3d6b35;
+  color: #ffffff;
+}
+
+.plan-key {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #55604f;
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 6px 0 0;
+  border-radius: 2px;
+}
+
+.swatch.taken {
+  margin-left: 16px;
+  border: 1px solid #848e7c;
+  background: #e4e8df;
+}
+
+.swatch.free {
+  background: #3d6b35;
+}
+
+.features {
+  padding: 8px var(--page-gutter) 64px;
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-family: "Source Serif 4", serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: #2f3a2c;
+}
+
+.cards {
+  display: flex;
+  gap: 12px;
+}
+
+.card {
+  flex: 1;
+  padding: 14px 16px;
+  background: #f1efe8;
+}
+
+.card h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #2f3a2c;
+}
+
+.card p {
+  margin: 0;
+  color: #55604f;
+  /* Ask the browser to avoid a single word alone on the last line. */
+  text-wrap: pretty;
+}
+
+/* Below 900px the hero has no room for two columns: stack the text above the plot plan. */
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-plan {
+    flex: none;
+    max-width: 420px;
+  }
+
+  .cards {
+    flex-wrap: wrap;
+  }
+
+  .card {
+    flex: 1 1 calc(50% - 6px);
+  }
+}
+
+/* Phone width: smaller side padding, one column of cards, and the menu folded behind a button. */
+@media (max-width: 640px) {
+  :root {
+    --page-gutter: 20px;
+  }
+
+  .site-header {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  .menu-toggle {
+    display: block;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid #e6e3da;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #2f3a2c;
+    font: inherit;
+  }
+
+  .site-nav {
+    display: none;
+    flex-basis: 100%;
+    padding-top: 8px;
+  }
+
+  /* The script sets aria-expanded="true" on the button when the menu is open. */
+  .menu-toggle[aria-expanded="true"] + .site-nav {
+    display: block;
+  }
+
+  .site-nav a {
+    display: block;
+    margin-left: 0;
+    padding: 10px 0;
+  }
+
+  .hero {
+    padding-top: 32px;
+    padding-bottom: 40px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  h1 span {
+    display: inline;
+  }
+
+  .cards {
+    flex-direction: column;
+  }
+}

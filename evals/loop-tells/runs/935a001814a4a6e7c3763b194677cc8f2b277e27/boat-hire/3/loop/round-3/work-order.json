@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "image": { "path": "/tmp/crit-loop-boat/round-3/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/tmp/crit-loop-boat/round-3/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/tmp/crit-loop-boat/round-3/phone.png", "width": 390, "height": 1174 },
+    { "viewport": "tablet", "path": "/tmp/crit-loop-boat/round-3/tablet.png", "width": 768, "height": 1087 },
+    { "viewport": "widescreen", "path": "/tmp/crit-loop-boat/round-3/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/tmp/crit-loop-boat/round-3/crit.md",
+  "facts_file": "/tmp/crit-loop-boat/round-3/facts.json",
+  "findings": [
+    {
+      "id": "no-fee-claim-without-number",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The no-fee claim has no number behind it",
+      "location": {
+        "description": "the intro under the headline that says there is no fee on top of the hire",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "p.lead",
+        "box": [128, 241, 600, 90],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The visitor reads \"no fee on top of the hire\" but has no price to judge it against, so the page's main selling point stays unproven.",
+      "current": { "value": "the intro makes the no-fee claim with no price or other boatyard fact near it or near the form", "measured": false, "facts_field": null },
+      "target": "a fact that proves the claim sits near the intro or the form",
+      "fix_direction": "Show a fact that proves the claim near the intro or the form, such as a from-price per week for a boat at this base. Only the boatyard can supply that figure; the maker must supply it.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, a price or other boatyard fact that backs the no-fee claim is visible near the intro or the form." }
+    },
+    {
+      "id": "no-picture-of-the-holiday",
+      "rank": 2,
+      "kind": "taste",
+      "title": "A holiday page with no picture of the holiday",
+      "location": {
+        "description": "the hero, which is only headline and intro",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "People hire a narrowboat for the boat and the water, and the page shows neither, so it sells a form instead of a trip.",
+      "current": { "value": "the hero is only headline and intro, with no photo of a boat or a route", "measured": false, "facts_field": null },
+      "target": "a real photo of the boatyard's own boats or of a listed route in the hero",
+      "fix_direction": "Add a real photo of the boatyard's own boats or of a listed route, not a stock picture. The boatyard must supply it.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, the hero shows a real photo of a boat or a route." }
+    },
+    {
+      "id": "start-date-looks-like-free-text",
+      "rank": null,
+      "kind": "convention",
+      "title": "The start-date field has no date-picker cue",
+      "location": {
+        "description": "the Start date field in the Find a boat form",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "input",
+        "box": [835, 294, 294, 43],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The visitor cannot tell the field wants a picked date.",
+      "current": { "value": "a plain box that holds \"Sat 14 June\", with no calendar icon or other cue to pick a date", "measured": false, "facts_field": null },
+      "target": "the field shows a cue that a date is picked",
+      "fix_direction": "Use a date input or add a calendar icon to the field.",
+      "source": "Nielsen heuristic 5",
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, the start-date field shows a calendar icon or other date-picker cue." }
+    },
+    {
+      "id": "tablet-form-fields-too-wide",
+      "rank": null,
+      "kind": "taste",
+      "title": "On the tablet the form fields are very long for short values",
+      "location": {
+        "description": "the Nights field in the Find a boat form on the tablet",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "form.search > label:nth-of-type(3) > select",
+        "box": [87, 617, 594, 40],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A value like \"7 nights\" sits in a field 594 px wide.",
+      "current": { "value": "594 px", "measured": true, "facts_field": "targets" },
+      "target": "Nights and Berths side by side on one row, or a capped width for the form card",
+      "fix_direction": "Put Nights and Berths side by side on one row, or cap the width of the form card.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "the width of form.search > label:nth-of-type(3) > select in the tablet viewport is less than 594, or Nights and Berths share one row" }
+    }
+  ]
+}

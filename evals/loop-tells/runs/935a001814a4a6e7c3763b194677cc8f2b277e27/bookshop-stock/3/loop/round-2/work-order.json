@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-2/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-2/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-2/phone.png", "width": 390, "height": 1174 },
+    { "viewport": "tablet", "path": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-2/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-2/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-2/crit.md",
+  "facts_file": "<temp>/loop-tells-bookshop-stock-z03vTP/.crit-loop/round-2/facts.json",
+  "findings": [
+    {
+      "id": "no-comparison-no-second-ask",
+      "rank": 1,
+      "kind": "taste",
+      "title": "The page stops after three facts, with no comparison to the owner's current way of knowing their stock and no second trial ask",
+      "location": {
+        "description": "the whole page, after the three facts",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The owner reads three short facts and then meets empty space. Nothing shows how their Monday differs from what they do now, and there is no trial button where they finish reading.",
+      "current": { "value": "no comparison section and no second trial button after the three facts", "measured": false, "facts_field": null },
+      "target": "a short comparison with the owner's current way of knowing their stock, followed by a second \"Start a 30-day trial\" button",
+      "fix_direction": "Add a short comparison with the owner's current way of knowing their stock, then repeat \"Start a 30-day trial\" under it. The words and facts for the comparison (what owners use today and what it costs them) are missing and only the maker can supply them.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, a comparison with the owner's current way of knowing their stock appears after the three facts, and a second \"Start a 30-day trial\" button sits under it." }
+    },
+    {
+      "id": "no-order-quantity-column",
+      "rank": null,
+      "kind": "taste",
+      "title": "The table has no column for how many copies to order",
+      "location": {
+        "description": "the \"Reorder this week\" table, which has only Title, On shelf, and Sold this week",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "A reorder list shows what is low but not how many copies to order.",
+      "current": { "value": "3 columns: Title, On shelf, Sold this week", "measured": false, "facts_field": null },
+      "target": "a column for how many copies to order, if Shelfmark suggests a quantity",
+      "fix_direction": "If Shelfmark suggests a quantity, add a column for it. The figures are missing and the maker must supply them.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In all four viewports, the table has a column for how many copies to order, or the maker has said Shelfmark suggests no quantity." }
+    },
+    {
+      "id": "table-edge-off-grid",
+      "rank": null,
+      "kind": "convention",
+      "title": "The table's left edge lines up with none of the fact columns",
+      "location": {
+        "description": "the left edge of the table at x 737, shown by the Title header",
+        "viewport": "desktop",
+        "viewports": ["desktop"],
+        "selector": "thead > tr > th:nth-of-type(1)",
+        "box": [737, 187, 209, 40],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The table edge sits at x 737 while the fact columns start at x 64, 461, and 859, so the table looks placed by chance.",
+      "current": { "value": "table left edge at x 737; fact columns at x 64, 461, 859", "measured": true, "facts_field": "text_blocks" },
+      "target": "table left edge on the middle or the third fact column",
+      "fix_direction": "Align the table's left edge with the middle or the third fact column.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "In the desktop viewport, the box x of thead > tr > th:nth-of-type(1) equals the x of section.facts > p:nth-of-type(2) or section.facts > p:nth-of-type(3)" }
+    },
+    {
+      "id": "tablet-three-right-edges",
+      "rank": null,
+      "kind": "convention",
+      "title": "At tablet, the hero text, the facts, and the table end at three different right edges",
+      "location": {
+        "description": "the hero paragraph, which ends at 540 px wide, against the facts at 600 px and the table at 702 px",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "div.hero-text > p",
+        "box": [32, 270, 540, 50],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Three right edges make the column look ragged, and the second fact runs at 81 characters per line, which is too long to read well.",
+      "current": { "value": "81 characters per line in the second fact", "measured": true, "facts_field": "characters_per_line" },
+      "target": "one shared width for the hero text and the facts, or a table that shares their width; fact lines of 75 characters or fewer",
+      "fix_direction": "Give the facts and the hero text one shared width, or let the table share their width.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "In the tablet viewport, div.hero-text > p and section.facts > p:nth-of-type(2) have the same box width, the table shares that width, and characters_per_line of section.facts > p:nth-of-type(2) is 75 or less" }
+    },
+    {
+      "id": "phone-headers-wrap",
+      "rank": null,
+      "kind": "convention",
+      "title": "At phone, the table headers and \"Notes from the Ferry\" wrap to two lines",
+      "location": {
+        "description": "the \"On shelf\" header, which wraps to two lines at phone width",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "thead > tr > th:nth-of-type(2)",
+        "box": [176, 578, 77, 62],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The headers \"On / shelf\" and \"Sold this / week\" and the title \"Notes from the / Ferry\" break over two lines, which makes the rows uneven.",
+      "current": { "value": "2 lines in the On shelf and Sold this week headers, 2 lines in Notes from the Ferry", "measured": true, "facts_field": "lines" },
+      "target": "each header and each title on one line",
+      "fix_direction": "Shorten the headers to fit, or give the title column more room.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "In the phone viewport, lines is 1 for thead > tr > th:nth-of-type(2), thead > tr > th:nth-of-type(3), and tbody > tr:nth-of-type(4) > td:nth-of-type(1)" }
+    }
+  ]
+}

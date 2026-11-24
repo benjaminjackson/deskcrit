@@ -1,0 +1,45 @@
+**First read.** On the desktop the eye goes first to the large serif headline, then across to the two dark green squares (plots 3 and 8) in the plot map, then down to the green "Add your garden" button. It reads as a calm, modest admin tool for someone who runs a garden: warm off-white, garden green, nothing loud. On the phone the first thing you see is a collision. The nav links sit on top of the "Plotwise" wordmark, the plot map runs off the right edge, and the four feature cards turn into narrow strips with one word per line.
+
+**What it's for.** A landing page that gets people who run community gardens to add their garden to Plotwise. It does this by showing that Plotwise replaces the spreadsheet they use now for plots and the waiting list (as you told me).
+
+**Verdict.** On desktop and tablet the page does its job. The headline names the tool the viewer already uses and promises to replace it, and there is one clear button. The biggest problem is the phone layout. At 390 px the page is 497 px wide, the header falls apart, and the feature text can't be read. After that, the plot map shows plot occupancy, not the waiting list the headline sells.
+
+**What would move it most**
+
+1. **The phone layout breaks.** The page is 497 px wide at a 390 px viewport, so it scrolls sideways (facts file `page_width`, phone). The plot map card starts at x 294 and runs off the right edge, and its left edge touches the last letter of "spreadsheet" in the headline. In the header, the four nav links wrap into three lines on top of the wordmark. "For growers" splits over two lines, which gives a 168×42 link box that sits over the logo. "For gardens" and "Pricing" are only 19 px tall and touch their neighbors, below the 24 px minimum (`violations`, target-size, `nav.site-nav > a:nth-of-type(1)` and `(3)`; WCAG 2.5.8). The four feature cards stay side by side, so their text runs 3.9 to 6.4 characters per line (`characters_per_line`, `div.cards > div.card > p`). The titles break inside the phrase ("Waiting / list", "Work / days"), so the viewer sees a column of single words, not a sentence. A garden committee member who opens a shared link on their phone sees a broken page before they read the offer. This is a defect (WCAG 1.4.10 Reflow; Bringhurst on measure, 45 to 75 characters). Fix direction: at phone width, stack everything in one column. Put the plot map below the button, put the cards one under another, and collapse the nav into a menu or put it on its own row. Viewports: phone
+
+2. **The plot map shows the wrong idea, and it can be read two ways.** The headline promises to run the waiting list and to offer a free plot to the next person in line. The picture next to it shows twelve plots with two highlighted, and nothing about a waiting list, a person, or an offer. So the picture backs up only "keeps the plots", the least distinct part of the claim. Also, the free plots are the dark, filled squares. On a plot map, a filled square easily reads as a plot that is taken or planted. The viewer has to find the small legend under the map to learn that it means the opposite. The title "Elm Row Gardens, plots 1 to 12" names what the map is, not what it shows. This is taste, argued on its own terms (no approved source covers how picture and headline pair). Labeling the free plots on the map itself, not through a legend, follows Tufte. Fix direction: make the picture show the step only Plotwise does, a free plot going to the next person on the waiting list. At least label plots 3 and 8 as free on the map and let the title state what the viewer should see. Use only states and names the product really has. Viewports: all
+
+3. **The section heading, card titles, and card text are all the same.** "What Plotwise does", "Waiting list", and "Growers join the list online…" are all 15 px, weight 400, #55604f (`font_size`, `font_weight`, `color` for `h2`, `div.card > h3`, `div.card > p`, every viewport). Also, no space separates a card title from its text. So each card reads as one sentence: "Waiting list Growers join the list online and see where they stand." A viewer who skims the cards, which is what cards are for, cannot pick out the four features. The section heading looks like a caption that floated away. This is a defect (Müller-Brockmann and Lupton: each level must be distinct at a glance). Fix direction: separate the card titles from their text by weight or color, not by a new size (Refactoring UI: bolder, not bigger). Add a small gap below each title. Viewports: all
+
+**Smaller things.**
+- At widescreen the hero text stays 520 px wide on the left and the plot map sits against the right margin, with about 850 px of empty space between them. The cards stretch to 440 px wide with one line each, and the lower half of the screen is empty. Cap the content width so the hero reads as one unit. Viewports: widescreen
+- The plot map card's left edge (x 797 on desktop) lines up with none of the feature card columns below it (x 646, 937). Place it on the card grid. Viewports: desktop, widescreen
+- On the tablet the plot tiles shrink to 19 to 26 px wide, each a different width (`box`, `div.plot`). The card text runs 12 to 15 characters per line. Use two columns of cards and fixed tile widths. Viewports: tablet
+- A single short word ends a paragraph: "yes." alone in the "Plot offers" card and "March." alone in "Rent reminders". Viewports: desktop, tablet, widescreen
+- "Each grower gets one reminder before rent is due in March" and "who has a week to say yes" can be read as fixed limits of the product, or as one garden's settings. A garden with rent due in October may think Plotwise doesn't fit them. Make it clear whether these are examples or rules. Viewports: all
+- "What Plotwise does" could be the heading on any product's page. It names a category, not what the section holds. Viewports: all
+
+**What's working.**
+- The headline "Run the waiting list for your garden without the spreadsheet" sets the product against the tool the viewer already uses. That lets them judge the value on their own terms. Keep that comparison.
+- There is one primary button, and its label names a concrete first step ("Add your garden"), not "Get started".
+- The palette and type pairing (Source Serif 4 headline, Inter text, off-white and one garden green) fit a volunteer-run, outdoor audience. Every text color passes contrast at 5.33:1 or higher.
+
+**Where it could go further.**
+1. **Give the garden green one meaning.** On this page the green fills the "Add your garden" button and plots 3 and 8, and the legend labels it "Free." Commit to making green stand for one thing: an open place, either the free plot or the free spot for the visitor's own garden. Nothing else should be green. The visitor is a garden organizer, and a free plot is the moment they care about most. If the button and the free plot share one color that means "open," the page's one action points back to the product's one promise. Taste; Albers, *Interaction of Color*, shows that a color takes its meaning from how it is used around it, and this page is small enough to keep that use strict.
+2. **Show the four cards as one plot's year, not four equal tiles.** "Waiting list," "Plot offers," "Rent reminders," and "Work days" already run in the order a plot moves through: someone joins the list, gets the plot, pays rent, and turns up to work. Commit to that order as a sequence the eye follows, not a row of equal features. A spreadsheet holds these as separate tabs. Plotwise's case is that it holds them as one flow, and a sequence makes that case without new copy. Taste, argued on its own terms.
+3. **Builds on finding 2. Let Elm Row Gardens tie the page together.** The map already names one garden and two free plots. Once the map shows the offer, carry that same garden and those same plots into the cards, so every feature reads as something that happens to plot 3 or plot 8. The page needs no more than that one garden. The maker supplies the states and steps the product really has. One concrete case is easier to picture yourself in than four general claims, and that matters to an organizer who is judging whether Plotwise fits their own garden. Taste, argued on its own terms.
+
+**Couldn't judge from a still.**
+- Whether the phone nav has a menu toggle that failed to render. Check in a live browser at 390 px.
+
+**Checklist.**
+The whole piece: 8 lines, 7 yes, 1 no (image and headline make one idea)
+What matters first: 3 lines, 2 yes, 1 no (distinct levels below the first element)
+Arrangement and space: 13 lines, 8 yes, 5 no (one grid; space inside groups smaller than between; no overlap; margin from page edge; empty space gathered)
+Text: 30 lines, 26 yes, 4 no (line length; rag; widows; line breaks in headings)
+Color: 9 lines, 9 yes
+Pictures: 12 lines, 11 yes, 1 no (logo clear space)
+Charts and data: 16 lines, 14 yes, 2 no (direct labels; title states the finding)
+Interface: 33 lines, 29 yes, 3 no (target size; platform conventions; reflow), 1 unsure (focus indicator)
+Template tells: 10 lines, 10 yes

@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/critloop-plotwise/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/critloop-plotwise/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/critloop-plotwise/round-1/phone.png", "width": 497, "height": 1070 },
+    { "viewport": "tablet", "path": "<temp>/critloop-plotwise/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/critloop-plotwise/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/critloop-plotwise/round-1/crit.md",
+  "facts_file": "<temp>/critloop-plotwise/round-1/facts.json",
+  "findings": [
+    {
+      "id": "layout-breaks-on-narrow-screens",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The layout does not adapt to narrow screens",
+      "location": {
+        "description": "the navigation links beside the logo, the plot card beside the headline, and the four feature cards, on the phone and tablet",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "nav.site-nav",
+        "box": [153, 22, 173, 70],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "On the phone the page scrolls sideways, the navigation runs into the logo, the plot card covers the end of the headline and leaves the screen, and the feature text runs one word per line. On the tablet the cards and plot cells are cramped.",
+      "current": { "value": "page 497 px wide in a 390 px viewport; nav links 19 px tall; feature cards 4 to 6 characters per line on phone, 12 to 15 on tablet; plot cells 19 to 26 px wide on tablet", "measured": true, "facts_field": "page_width" },
+      "target": "no sideways scroll at 390 px; navigation links at least 24 px tall; plot card below the headline; feature cards 45 to 75 characters per line or stacked one or two per row; plot cells of equal width",
+      "fix_direction": "Stack the hero to one column (headline, text, button, then the plot card), collapse the navigation, and stack the feature cards one or two per row below the desktop width.",
+      "source": "WCAG 1.4.10 Reflow; WCAG 2.5.8; Bringhurst",
+      "closed_when": { "method": "measure", "check": "page_width equals the viewport width in the phone viewport; violations is empty in the phone viewport; characters_per_line of div.cards > div.card > p in the phone and tablet viewports is 30 or more; div.plan-grid > div.plot boxes in the tablet viewport are of equal width" }
+    },
+    {
+      "id": "text-levels-look-the-same",
+      "rank": 2,
+      "kind": "convention",
+      "title": "Below the headline, every level of text looks the same",
+      "location": {
+        "description": "the section heading \"What Plotwise does\" and the four card titles, set like the card descriptions",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [64, 461, 1152, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The card title runs into its sentence like one line with a missing period, the reader cannot scan the four features by name, and the section heading looks like a caption.",
+      "current": { "value": "15 px, weight 400, #55604f on h2, div.card > h3, and div.card > p", "measured": true, "facts_field": "font_size, font_weight, color" },
+      "target": "two to four text levels that differ at a glance, with the card titles and the section heading set apart from the descriptions",
+      "fix_direction": "Set the card titles heavier or in the darker #2f3a2c, and give the section heading a clear step up. No new sizes are needed.",
+      "source": "Muller-Brockmann; Lupton; Dair",
+      "closed_when": { "method": "measure", "check": "font_weight or color of div.card > h3 differs from div.card > p, and font_size or font_weight of h2 differs from div.card > h3, in all viewports" }
+    },
+    {
+      "id": "wide-hero-comes-apart",
+      "rank": 3,
+      "kind": "defect",
+      "title": "On a wide screen the hero comes apart",
+      "location": {
+        "description": "the headline column pinned left and the plot card pinned right at 1920 px",
+        "viewport": "widescreen",
+        "viewports": ["widescreen"],
+        "selector": "h1",
+        "box": [64, 135, 520, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The headline and the plot card read as two separate things with a wide empty band between them, and the feature cards stretch so their text sits on one line with empty space beside it.",
+      "current": { "value": "about 850 px of empty band between the h1 (x 64 to 584) and div.plan-title (x 1457); feature cards 440 px wide", "measured": true, "facts_field": "box" },
+      "target": "the hero halves stay together and the content keeps its desktop layout at 1920 px",
+      "fix_direction": "Cap the content width, or let the hero's two halves stay together.",
+      "source": "Arnheim (balance); Ruder (gathered space)",
+      "closed_when": { "method": "measure", "check": "the gap between the right edge of h1 and the left edge of div.plan-title in the widescreen viewport is about as small as in the desktop viewport (about 233 px)" }
+    },
+    {
+      "id": "plot-map-shows-less-than-copy-promises",
+      "rank": null,
+      "kind": "taste",
+      "title": "The plot map does not show the waiting list the copy promises",
+      "location": {
+        "description": "the plot card title and map",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.plan-title",
+        "box": [817, 181, 378, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The card shows which plots are free and which are taken, but not the free plot going to the next person on the list.",
+      "current": { "value": "card title \"Elm Row Gardens, plots 1 to 12\" names the garden and does not say what to notice", "measured": false, "facts_field": null },
+      "target": "the card shows the step the copy describes, a free plot going to whoever is next on the list",
+      "fix_direction": "Let the card show that step. The names and data it needs are only the maker's to supply.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "a fresh critic sees the plot card show a free plot offered to the next person on the list" }
+    },
+    {
+      "id": "rent-reminder-line-ambiguous",
+      "rank": null,
+      "kind": "convention",
+      "title": "The rent reminder line can be read two ways",
+      "location": {
+        "description": "the description of the Rent reminders card",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.cards > div.card:nth-of-type(3) > p",
+        "box": [662, 533, 247, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "\"Each grower gets one reminder before rent is due in March\" can mean rent is always due in March, or only in this example, and \"one reminder\" can read as a hard limit. A garden with another month may decide Plotwise does not fit.",
+      "current": { "value": "\"Each grower gets one reminder before rent is due in March.\"", "measured": false, "facts_field": null },
+      "target": "a line that says whether the month and the number of reminders can change",
+      "fix_direction": "If the month and the number of reminders can change, say so in the line. Only the maker knows whether they can.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "a fresh critic reads the Rent reminders line and sees it say the month and the number of reminders can change, or that they are fixed" }
+    },
+    {
+      "id": "taken-plots-low-contrast",
+      "rank": null,
+      "kind": "convention",
+      "title": "The taken swatch and taken plots almost disappear on the white card",
+      "location": {
+        "description": "the \"Taken\" swatch in the key and the taken plots",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.plan-key",
+        "box": [817, 339, 378, 20],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The key's second entry barely registers.",
+      "current": { "value": "#e4e8df on white, by eye well under 3:1 (not measured in the facts file)", "measured": false, "facts_field": null },
+      "target": "non-text contrast of at least 3:1 for the taken fill against the card",
+      "fix_direction": "Darken the taken fill or give it an outline.",
+      "source": "WCAG 1.4.11",
+      "closed_when": { "method": "look", "check": "a fresh critic sees the Taken swatch and the taken plots clearly set off from the white card in all viewports" }
+    },
+    {
+      "id": "lone-word-yes-on-last-line",
+      "rank": null,
+      "kind": "convention",
+      "title": "\"yes.\" sits alone on the last line of the Plot offers card",
+      "location": {
+        "description": "the description of the Plot offers card",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet"],
+        "selector": "div.cards > div.card:nth-of-type(2) > p",
+        "box": [371, 533, 247, 70],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The paragraph ends on one short word.",
+      "current": { "value": "last line is the single word \"yes.\"", "measured": false, "facts_field": null },
+      "target": "a last line that is not a single short word",
+      "fix_direction": "Adjust the width or the wording so the line does not end on a single short word.",
+      "source": "Bringhurst 2.4.2",
+      "closed_when": { "method": "look", "check": "a fresh critic sees the last line of the Plot offers description hold more than one word in the desktop and tablet viewports" }
+    },
+    {
+      "id": "page-ends-without-call-to-action",
+      "rank": null,
+      "kind": "taste",
+      "title": "The page ends after the feature row with no footer and no second button",
+      "location": {
+        "description": "the end of the page below the feature cards",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "A reader convinced by the features has to scroll back up to act.",
+      "current": { "value": "no footer and no second \"Add your garden\" button after the feature row", "measured": false, "facts_field": null },
+      "target": "a way to act at the end of the page",
+      "fix_direction": "Add a second \"Add your garden\" button and a footer after the feature row.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "a fresh critic sees an \"Add your garden\" button and a footer below the feature cards" }
+    }
+  ]
+}

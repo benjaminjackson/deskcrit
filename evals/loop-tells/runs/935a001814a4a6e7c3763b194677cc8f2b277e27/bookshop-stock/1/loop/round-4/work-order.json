@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "image": { "path": "/tmp/critloop-bookshop/round-4/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/tmp/critloop-bookshop/round-4/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/tmp/critloop-bookshop/round-4/phone.png", "width": 390, "height": 1136 },
+    { "viewport": "tablet", "path": "/tmp/critloop-bookshop/round-4/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "/tmp/critloop-bookshop/round-4/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/tmp/critloop-bookshop/round-4/crit.md",
+  "facts_file": "/tmp/critloop-bookshop/round-4/facts.json",
+  "findings": [
+    {
+      "id": "trial-terms-and-proof",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The page does not say what the 30-day trial costs or commits the owner to, and nothing backs up the promise",
+      "location": {
+        "description": "the area under the \"Start a 30-day trial\" button and the empty space below the feature lines",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "a.button.button-primary",
+        "box": [64, 374, 181, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The owner cannot tell whether the 30-day trial is a free month or a first paid month. The nav links \"Pricing\" and \"Shops using it\" go to nothing on this page, and the page ends before it makes its case.",
+      "current": { "value": "no trial terms, no comparison, no price, no named shop under the button or below the feature lines", "measured": false, "facts_field": null },
+      "target": "One line of trial terms directly under the button, and proof in the empty space below the feature lines: a comparison with how the owner now decides what to reorder, and the price or a real shop.",
+      "fix_direction": "Add one line of trial terms under the button. Use the empty space for a comparison with how the owner now decides what to reorder, and add the price or a real shop. The maker must supply every fact: whether the trial is free, whether a card is needed, what happens after day 30, the price, and which shops use it.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new image at the desktop, phone, tablet and widescreen viewports, a fresh critic sees a line of trial terms directly under the \"Start a 30-day trial\" button and proof content (comparison, price or a named shop) in the space below the feature lines." }
+    },
+    {
+      "id": "tablet-text-measure",
+      "rank": null,
+      "kind": "convention",
+      "title": "The second feature line on the tablet is 76 characters per line, one over the target",
+      "location": {
+        "description": "the second feature line, \"Orders from your distributor...\"",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "section.facts > p:nth-of-type(2)",
+        "box": [24, 847, 560, 50],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The line runs one character longer than the comfortable reading measure.",
+      "current": { "value": "76 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "75 characters per line or fewer",
+      "fix_direction": "Bring the width cap down a little more, from 560 px to about 550 px.",
+      "source": "Bringhurst 2.1.2",
+      "closed_when": { "method": "measure", "check": "characters_per_line of section.facts > p:nth-of-type(2) in the tablet viewport is 75 or fewer" }
+    },
+    {
+      "id": "phone-sold-column-padding",
+      "rank": null,
+      "kind": "defect",
+      "title": "On the phone the \"Sold this week\" column ends about 8 px from the right edge of the card",
+      "location": {
+        "description": "the \"Sold this week\" column of the table on the phone",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "thead > tr > th:nth-of-type(3)",
+        "box": [254, 607, 116, 40],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The last column sits tight against the right edge of the card and does not match the left edge.",
+      "current": { "value": "cell box [254, 607, 116, 40] runs past the card's inner edge at 366 px; about 8 px from the card edge", "measured": true, "facts_field": "text_blocks" },
+      "target": "About 12 px of right padding on the last cell, matching the left edge of the card",
+      "fix_direction": "Give the last cell about 12 px of right padding.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "the right edge of thead > tr > th:nth-of-type(3) text in the phone viewport is at or inside the card's inner edge at 366 px, and a fresh critic sees about 12 px of space between \"Sold this week\" and the card edge" }
+    },
+    {
+      "id": "table-no-order-quantity",
+      "rank": null,
+      "kind": "defect",
+      "title": "The reorder table has three columns and nothing says whether the product suggests an order quantity",
+      "location": {
+        "description": "the \"Reorder this week\" table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "thead > tr > th:nth-of-type(3)",
+        "box": [1056, 187, 159, 40],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The table lists stock and sales but not how many copies to order, so the owner cannot tell what to do with a row.",
+      "current": { "value": "3 columns: Title, On shelf, Sold this week", "measured": false, "facts_field": null },
+      "target": "The table matches what the product does about order quantity.",
+      "fix_direction": "The maker must say whether the product suggests how many copies to order. If it does, add that column. If it does not, leave the table as it is.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new image at the desktop, phone, tablet and widescreen viewports, the maker has answered the question: either the table has an order quantity column, or the maker has confirmed the product does not suggest one and the table is unchanged." }
+    }
+  ]
+}

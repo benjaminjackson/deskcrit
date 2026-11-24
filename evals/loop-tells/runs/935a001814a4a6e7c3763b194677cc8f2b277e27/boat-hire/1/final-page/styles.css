@@ -1,0 +1,241 @@
+@font-face {
+  font-family: "Inter";
+  font-weight: 400;
+  src: url("fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 500;
+  src: url("fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-weight: 400;
+  src: url("fonts/source-serif-4-latin-400-normal.woff2") format("woff2");
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  color: #26302f;
+  background: #f7f8f6;
+}
+
+a {
+  color: inherit;
+}
+
+/* Header, hero and routes share one centered column so the page does not
+   spread to the edges of wide screens. */
+.site-header,
+main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-left: 64px;
+  padding-right: 64px;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  padding-top: 22px;
+  padding-bottom: 22px;
+}
+
+.logo {
+  font-family: "Source Serif 4", serif;
+  font-size: 24px;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 28px;
+}
+
+.site-nav a {
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Two columns on wide screens: text and routes on the left, the search
+   card on the right. The hero section uses display: contents so its two
+   children take part in the main grid directly. */
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  column-gap: 64px;
+  align-items: start;
+  padding-top: 48px;
+  padding-bottom: 64px;
+}
+
+.hero {
+  display: contents;
+}
+
+.hero-text {
+  grid-column: 1;
+  grid-row: 1;
+  max-width: 600px;
+}
+
+.search {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.routes {
+  grid-column: 1;
+  grid-row: 2;
+  max-width: 600px;
+  margin-top: 40px;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-family: "Source Serif 4", serif;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #26302f;
+}
+
+.lead {
+  margin: 0 0 20px;
+  font-size: 20px;
+  line-height: 1.5;
+  color: #3e4948;
+}
+
+.hero-link {
+  font-weight: 500;
+  color: #2d5d5a;
+}
+
+.search {
+  padding: 22px;
+  border: 1px solid #dfe3e0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.search-title {
+  margin-bottom: 14px;
+  font-weight: 500;
+}
+
+.search label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #5c6665;
+}
+
+.search select,
+.search input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid #8a938f;
+  border-radius: 6px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 16px;
+  color: #26302f;
+}
+
+.search button {
+  width: 100%;
+  margin-top: 6px;
+  padding: 11px;
+  border: 0;
+  border-radius: 6px;
+  background: #2d5d5a;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 500;
+}
+
+h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.routes ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.routes li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  border-top: 1px solid #dfe3e0;
+  color: #5c6665;
+  font-variant-numeric: tabular-nums;
+}
+
+.route-name {
+  color: #26302f;
+}
+
+/* Below 900px there is not room for the card beside the text, so
+   everything stacks in one column: headline, lead, search card, routes. */
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: 32px;
+  }
+
+  .hero-text,
+  .search,
+  .routes {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  /* In one column, text, card and routes fill the full width so their
+     right edge lines up with the nav. */
+  .hero-text,
+  .search,
+  .routes {
+    max-width: none;
+  }
+
+  .search {
+    margin-top: 28px;
+  }
+}
+
+@media (max-width: 600px) {
+  .site-header,
+  main {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  .lead {
+    font-size: 18px;
+  }
+}

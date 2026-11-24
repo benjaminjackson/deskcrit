@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/loop-tells-garden-plots-G0W8m3/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/loop-tells-garden-plots-G0W8m3/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/loop-tells-garden-plots-G0W8m3/.crit-loop/round-1/phone.png", "width": 497, "height": 1070 },
+    { "viewport": "tablet", "path": "<temp>/loop-tells-garden-plots-G0W8m3/.crit-loop/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/loop-tells-garden-plots-G0W8m3/.crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/loop-tells-garden-plots-G0W8m3/.crit-loop/round-1/crit.md",
+  "facts_file": "<temp>/loop-tells-garden-plots-G0W8m3/.crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "phone-layout-breaks",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The phone layout breaks: sideways scroll, nav on the wordmark, feature text in one-word strips",
+      "location": {
+        "description": "the header nav on the phone, where it wraps over the Plotwise wordmark; the plot map and feature cards also overflow",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "nav.site-nav",
+        "box": [153, 22, 173, 70],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A garden committee member who opens a shared link on a phone sees a broken page before they read the offer.",
+      "current": { "value": "page 497 px wide at a 390 px viewport; feature text 3.9 to 6.4 characters per line; two nav links 19 px tall", "measured": true, "facts_field": "page_width" },
+      "target": "page no wider than the viewport; nav links at least 24 px tall; feature text 45 to 75 characters per line, or one column; no nav link over the wordmark",
+      "fix_direction": "At phone width, stack everything in one column. Put the plot map below the button, put the cards one under another, and collapse the nav into a menu or put it on its own row.",
+      "source": "WCAG 1.4.10 Reflow; WCAG 2.5.8; Bringhurst on measure",
+      "closed_when": { "method": "measure", "check": "page_width in the phone viewport is 390 or less, the target-size violations for nav.site-nav > a:nth-of-type(1) and (3) in the phone viewport are gone, and characters_per_line of div.cards > div.card > p in the phone viewport is 30 or more" }
+    },
+    {
+      "id": "plot-map-wrong-idea",
+      "rank": 2,
+      "kind": "taste",
+      "title": "The plot map does not show the waiting list the headline sells, and free plots read as taken",
+      "location": {
+        "description": "the plot map card next to the headline, with its title and legend",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.plan-title",
+        "box": [817, 181, 378, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The picture backs up only 'keeps the plots', not the waiting list or the offer to the next person. The filled dark squares are the free plots, which a viewer easily reads as taken until they find the small legend.",
+      "current": { "value": "twelve plots, two filled dark green (3 and 8) for free, a legend under the map, title 'Elm Row Gardens, plots 1 to 12'", "measured": false, "facts_field": null },
+      "target": "the picture shows a free plot going to the next person on the waiting list; plots 3 and 8 are labeled free on the map itself; the title says what the viewer should see",
+      "fix_direction": "Make the picture show the step only Plotwise does, a free plot going to the next person on the waiting list. At least label plots 3 and 8 as free on the map and let the title state what the viewer should see. Use only states and names the product really has; the maker must supply them.",
+      "source": "Tufte (direct labels)",
+      "closed_when": { "method": "look", "check": "a fresh critic sees in all viewports that the free plots are labeled on the map itself and that the picture shows more than plot occupancy, as the headline promises" }
+    },
+    {
+      "id": "same-level-text",
+      "rank": 3,
+      "kind": "defect",
+      "title": "The section heading, card titles, and card text are all one style, so cards read as one sentence",
+      "location": {
+        "description": "the 'What Plotwise does' heading and the titles and text of the four feature cards",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [64, 461, 1152, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A viewer who skims the cards cannot pick out the four features. Each card reads as one sentence, such as 'Waiting list Growers join the list online and see where they stand.' The section heading looks like a caption that floated away.",
+      "current": { "value": "15 px, weight 400, #55604f for h2, div.card > h3, and div.card > p, with no gap between title and text", "measured": true, "facts_field": "font_weight" },
+      "target": "card titles and the section heading differ from card text at a glance, by weight or color and not by size, with a small gap below each title",
+      "fix_direction": "Separate the card titles from their text by weight or color, not by a new size. Add a small gap below each title.",
+      "source": "Müller-Brockmann and Lupton (distinct levels); Refactoring UI (bolder, not bigger)",
+      "closed_when": { "method": "measure", "check": "font_weight or color of div.cards > div.card > h3 and h2 differs from div.card > p in the desktop, phone, tablet and widescreen viewports, and font_size stays the same" }
+    },
+    {
+      "id": "widescreen-empty-space",
+      "rank": null,
+      "kind": "defect",
+      "title": "At widescreen the hero text and plot map sit about 850 px apart and the lower half is empty",
+      "location": {
+        "description": "the hero text on the left and the plot map against the right margin, with the cards below",
+        "viewport": "widescreen",
+        "viewports": ["widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The hero does not read as one unit, and the cards stretch to 440 px wide with one line each.",
+      "current": { "value": "hero text 520 px wide on the left, plot map on the right margin, about 850 px of empty space between them", "measured": false, "facts_field": null },
+      "target": "content width capped so the hero reads as one unit",
+      "fix_direction": "Cap the content width so the hero reads as one unit.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "in the widescreen image the hero text and plot map sit together within a capped content width" }
+    },
+    {
+      "id": "plot-map-off-grid",
+      "rank": null,
+      "kind": "convention",
+      "title": "The plot map card's left edge lines up with none of the feature card columns",
+      "location": {
+        "description": "the plot map card, left edge at x 797 on desktop",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The hero and the cards below look like they sit on two different grids.",
+      "current": { "value": "plot map card left edge at x 797; feature card columns at x 646 and 937", "measured": false, "facts_field": null },
+      "target": "the plot map card's left edge shares an edge with a feature card column",
+      "fix_direction": "Place the plot map card on the card grid.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "in the desktop and widescreen images the plot map card's left edge lines up with a feature card column" }
+    },
+    {
+      "id": "tablet-tiles-and-cards",
+      "rank": null,
+      "kind": "defect",
+      "title": "On the tablet the plot tiles shrink to uneven 19 to 26 px widths and card text runs 12 to 15 characters per line",
+      "location": {
+        "description": "the plot tiles in the plot map and the four feature cards on the tablet",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "div.plan-grid > div.plot.taken:nth-of-type(1)",
+        "box": [520, 263, 19, 52],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The tiles look uneven and the card text breaks into short lines.",
+      "current": { "value": "tiles 19 to 26 px wide, each a different width; card text 12 to 15 characters per line", "measured": true, "facts_field": "box" },
+      "target": "tiles of one fixed width; card text longer than 12 to 15 characters per line, in two columns of cards",
+      "fix_direction": "Use two columns of cards and fixed tile widths.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "box widths of div.plan-grid > div.plot are equal in the tablet viewport and characters_per_line of div.cards > div.card > p in the tablet viewport is above 15" }
+    },
+    {
+      "id": "one-word-last-lines",
+      "rank": null,
+      "kind": "convention",
+      "title": "A single short word ends a paragraph in two cards",
+      "location": {
+        "description": "the 'yes.' alone on the last line of the Plot offers card and 'March.' alone in Rent reminders",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet", "widescreen"],
+        "selector": "div.cards > div.card:nth-of-type(2) > p",
+        "box": [371, 533, 247, 70],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A lone word on the last line looks like a break by accident.",
+      "current": { "value": "'yes.' and 'March.' each alone on a last line", "measured": false, "facts_field": null },
+      "target": "no card text ends with a single short word on its own line",
+      "fix_direction": "Rebalance the line breaks of the Plot offers and Rent reminders card text so the last line holds more than one word.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "in the desktop, tablet and widescreen images no card paragraph ends with one word alone on its last line" }
+    },
+    {
+      "id": "examples-or-rules",
+      "rank": null,
+      "kind": "taste",
+      "title": "Card copy can be read as fixed product limits or as one garden's settings",
+      "location": {
+        "description": "'Each grower gets one reminder before rent is due in March' and 'who has a week to say yes'",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.cards > div.card:nth-of-type(3) > p",
+        "box": [662, 533, 247, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A garden with rent due in October may think Plotwise does not fit them.",
+      "current": { "value": "'one reminder before rent is due in March' and 'a week to say yes' read as fixed rules", "measured": false, "facts_field": null },
+      "target": "it is clear whether these are examples or rules of the product",
+      "fix_direction": "Make it clear in the card copy whether these are examples or rules. The maker must say which they are.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "in all viewports a fresh critic can tell whether the March reminder and the week to say yes are examples or product rules" }
+    },
+    {
+      "id": "generic-section-heading",
+      "rank": null,
+      "kind": "taste",
+      "title": "'What Plotwise does' could head any product's page",
+      "location": {
+        "description": "the section heading above the four feature cards",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [64, 461, 1152, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The heading names a category, not what the section holds.",
+      "current": { "value": "'What Plotwise does'", "measured": false, "facts_field": null },
+      "target": "a heading that can only describe this section",
+      "fix_direction": "Reword the heading so it says what the four cards hold, using words already on the page.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "in all viewports the section heading names what the cards hold and could not head another product's page" }
+    }
+  ]
+}

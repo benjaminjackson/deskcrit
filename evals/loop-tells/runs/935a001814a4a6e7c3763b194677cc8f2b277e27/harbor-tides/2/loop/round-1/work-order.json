@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/crit-loop-tidewell/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/crit-loop-tidewell/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/crit-loop-tidewell/round-1/phone.png", "width": 676, "height": 873 },
+    { "viewport": "tablet", "path": "<temp>/crit-loop-tidewell/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/crit-loop-tidewell/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/crit-loop-tidewell/round-1/crit.md",
+  "facts_file": "<temp>/crit-loop-tidewell/round-1/facts.json",
+  "findings": [
+    {
+      "id": "layout-does-not-reflow",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The phone layout does not reflow, and the tablet layout crushes its columns",
+      "location": {
+        "description": "the three point columns in the lower row",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "div.points > div.point:nth-of-type(1) > p",
+        "box": [412, 594, 65, 279],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A harbor master who opens the link on a phone meets a page that scrolls sideways, with text strips one word wide, from a product whose promise is a page people check on their phones.",
+      "current": { "value": "page 676 px wide in a 390 px viewport; 6 characters per line on phone, 6.6 to 7.3 on tablet", "measured": true, "facts_field": "page_width" },
+      "target": "no sideways scroll; paragraphs at a normal measure (45 to 75 characters per line)",
+      "fix_direction": "Below the desktop width, stack the table and the three points into one column at full width, so each paragraph runs at a normal measure.",
+      "source": "WCAG 1.4.10 Reflow; Bringhurst on measure: 45 to 75 characters",
+      "closed_when": { "method": "measure", "check": "page_width in the phone viewport is 390 or less, and characters_per_line of div.points > div.point > p in the phone and tablet viewports is 45 or more" }
+    },
+    {
+      "id": "hero-does-not-show-product",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The hero does not show the product, and the proof is the smallest thing on the page",
+      "location": {
+        "description": "the empty right of the hero and the tide table under it",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet", "widescreen"],
+        "selector": "tbody > tr:nth-of-type(1) > td:nth-of-type(1)",
+        "box": [64, 552, 140, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A harbor master is told what the page does but never sees it, and the empty right side reads as something missing.",
+      "current": { "value": "12 px table text; 13 px table heading; right two thirds of the hero blank", "measured": true, "facts_field": "font_size" },
+      "target": "the page berth holders see is the hero visual, at a readable size, showing tides, lock gate times and pontoon depth together",
+      "fix_direction": "Make the page that berth holders see the hero visual, at a size you can read: the tides, the lock gate times and the pontoon depth together. If an image was meant to fill that space and did not load, check it in a live browser.",
+      "source": "Arnheim on balance",
+      "closed_when": { "method": "look", "check": "In the desktop, tablet and widescreen images, a fresh critic sees the berth holder's page as the hero visual, readable, with no large empty area beside the headline." }
+    },
+    {
+      "id": "type-scale-five-sizes",
+      "rank": 3,
+      "kind": "convention",
+      "title": "The type scale has five sizes, and the hierarchy of the lower row runs backward",
+      "location": {
+        "description": "the headings of the lower row",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.points > div.point:nth-of-type(1) > h3",
+        "box": [412, 503, 247, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Each point reads as one gray block, and the tide table, the most important block, has the weakest heading.",
+      "current": { "value": "sizes 30, 19, 15, 13 and 12 px; h3 at 15 px weight 500, same size as body", "measured": true, "facts_field": "type_sizes" },
+      "target": "three or four sizes; the headings of the lower row share one level that clearly differs from the body text",
+      "fix_direction": "Keep three or four sizes. Fold 13 and 12 into one size, and give the headings of the lower row one shared level that clearly differs from the body text.",
+      "source": "Bringhurst, \"Don't compose without a scale\"; Müller-Brockmann on distinct levels",
+      "closed_when": { "method": "measure", "check": "type_sizes has 4 entries or fewer in all viewports, and font_size of div.points > div.point > h3 and of h2 is the same and larger than the body text in the desktop viewport" }
+    },
+    {
+      "id": "copy-gives-no-reason-to-trust",
+      "rank": 4,
+      "kind": "defect",
+      "title": "The copy asks for trust but never gives the harbor master a reason to give it",
+      "location": {
+        "description": "the headline and the copy around the table and button; a finding about the whole page",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "A harbor master, who answers for the numbers, cannot tell where the tide data comes from, who works out the gate times, whether the table is a live harbor or a sample, or what setup costs in time.",
+      "current": { "value": "no source for the tide data or gate times; table not labeled as example; no setup cost next to the button", "measured": false, "facts_field": null },
+      "target": "the page names the source of the tide data and who works out the gate times, labels the table as an example, and says what setup takes next to the button",
+      "fix_direction": "Say the source of the tide data and who works out the gate times; the maker must supply both facts. Label the table as an example of a Tidewell page. Say what setup takes, next to the button; the maker must supply that fact.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new images, a fresh critic sees the data source, who works out the gate times, an example label on the table, and the setup effort next to the button." }
+    },
+    {
+      "id": "table-header-contrast",
+      "rank": null,
+      "kind": "defect",
+      "title": "The table headers are too faint",
+      "location": {
+        "description": "the table headers Tide, Time, Height",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "thead > tr > th:nth-of-type(1)",
+        "box": [64, 530, 140, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The column labels are hard to read for readers with low vision.",
+      "current": { "value": "3.78:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1, the gray of the body text",
+      "fix_direction": "Darken the table headers to the gray of the body text.",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "contrast of thead > tr > th in the desktop, phone, tablet and widescreen viewports is 4.5 or more" }
+    },
+    {
+      "id": "table-figures-alignment",
+      "rank": null,
+      "kind": "convention",
+      "title": "Table times and heights are left-aligned in proportional figures",
+      "location": {
+        "description": "the time and height columns of the table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "tbody > tr:nth-of-type(2) > td:nth-of-type(2)",
+        "box": [204, 575, 76, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Numbers of different widths do not line up in columns, so they are harder to compare down the rows.",
+      "current": { "value": "left-aligned, proportional figures", "measured": false, "facts_field": null },
+      "target": "tabular figures, numbers flush right",
+      "fix_direction": "Use tabular figures and set the numbers flush right.",
+      "source": "Bringhurst 4.4.3",
+      "closed_when": { "method": "look", "check": "In the new images, a fresh critic sees the times and heights in the table set in tabular figures and flush right." }
+    },
+    {
+      "id": "lower-row-one-grid",
+      "rank": null,
+      "kind": "convention",
+      "title": "The lower row does not keep to one grid",
+      "location": {
+        "description": "the four columns of the lower row",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The table column and the point columns have different widths and gaps, so the row looks arranged by accident.",
+      "current": { "value": "table column 300 px with a 48 px gap; point columns 247 px (460 px on widescreen) with 32 px gaps", "measured": true, "facts_field": "left_edges" },
+      "target": "all four columns on one set of columns and one gap",
+      "fix_direction": "Put all four columns on one set of columns and one gap.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new images, a fresh critic sees the table and the three points on one set of columns with one gap." }
+    },
+    {
+      "id": "lower-row-baselines",
+      "rank": null,
+      "kind": "convention",
+      "title": "Headings and table rows do not share a line interval across the lower row",
+      "location": {
+        "description": "the 13 px h2 beside the 15 px h3s and the table rows beside the paragraphs",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [64, 503, 300, 20],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Baselines across the columns miss by about 2 px, and the table rows drift away from the paragraph lines.",
+      "current": { "value": "table rows 22.5 px against paragraph lines 23.3 px; baselines of h2 and h3s miss by about 2 px", "measured": true, "facts_field": "line_height" },
+      "target": "one line interval across the row",
+      "fix_direction": "Use one line interval across the row.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the new desktop, tablet and widescreen images, a fresh critic sees the baselines of the headings and the table rows line up with the paragraph lines beside them." }
+    },
+    {
+      "id": "phone-nav-wraps",
+      "rank": null,
+      "kind": "convention",
+      "title": "On the phone the nav wraps into a 2x2 block beside the logo",
+      "location": {
+        "description": "the site navigation beside the logo",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "nav.site-nav",
+        "box": [140, 22, 186, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The nav looks like a block that broke, not a planned menu.",
+      "current": { "value": "2 lines", "measured": true, "facts_field": "lines" },
+      "target": "a menu or a single row that fits",
+      "fix_direction": "Use a menu or a single row that fits.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "lines of nav.site-nav in the phone viewport is 1, or the nav is a menu" }
+    }
+  ]
+}

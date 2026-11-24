@@ -1,0 +1,193 @@
+@font-face {
+  font-family: "Inter";
+  font-weight: 400;
+  src: url("fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 500;
+  src: url("fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+/* Type scale: 30, 19, 15 and 13 px. Spacing and the page margin come from these variables. */
+:root {
+  --page-margin: 64px;
+  --column-gap: 48px;
+  --line: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  line-height: var(--line);
+  color: #2b3236;
+  background: #ffffff;
+}
+
+a {
+  color: inherit;
+}
+
+/* Keep the content in one centered block, so wide screens get even margins instead of an empty band on the right. */
+.site-header,
+.hero,
+.points {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 24px;
+  padding: 22px var(--page-margin);
+}
+
+.logo {
+  font-size: 19px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  gap: 28px;
+}
+
+.site-nav a {
+  text-decoration: none;
+  color: #4d585e;
+}
+
+/* The hero: the pitch on the left, today's tide table on the right. */
+.hero {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--column-gap);
+  row-gap: 48px;
+  align-items: start;
+  padding: 72px var(--page-margin) 96px;
+}
+
+.hero-text {
+  grid-column: 1 / 2;
+  max-width: 400px;
+}
+
+.today {
+  grid-column: 2 / 4;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.25;
+  /* Balance the line lengths so the headline breaks after "harbor", not inside "can stand behind". */
+  text-wrap: balance;
+}
+
+.hero-text p {
+  margin: 0 0 24px;
+  color: #4d585e;
+}
+
+.button {
+  display: inline-block;
+  padding: 11px 20px;
+  border-radius: 6px;
+  background: #1f5f7a;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+h2,
+.point h3 {
+  margin: 0 0 8px;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: var(--line);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+th,
+td {
+  padding: 10px 0;
+  text-align: left;
+  font-weight: 400;
+  border-bottom: 1px solid #dfe3e5;
+}
+
+th {
+  font-size: 13px;
+  color: #4d585e;
+}
+
+/* Times and heights sit flush right so the digits line up down the column. */
+th:not(:first-child),
+td:not(:first-child) {
+  text-align: right;
+}
+
+/* The three points share the hero's three-column grid and gap. */
+.points {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--column-gap);
+  row-gap: 32px;
+  padding: 0 var(--page-margin) 72px;
+}
+
+.point p {
+  margin: 0;
+  color: #4d585e;
+  max-width: 34em;
+}
+
+/* Tablet and phone: one column, so each paragraph keeps a readable line length. */
+@media (max-width: 900px) {
+  :root {
+    --page-margin: 32px;
+  }
+
+  .hero,
+  .points {
+    grid-template-columns: 1fr;
+  }
+
+  /* One shared right edge for the stacked blocks. */
+  .hero-text,
+  .today,
+  .point p {
+    grid-column: auto;
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --page-margin: 20px;
+  }
+
+  .hero {
+    padding-top: 40px;
+  }
+
+  .site-nav {
+    gap: 20px;
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "image": { "path": "/tmp/critloop-bookshop/round-2/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "/tmp/critloop-bookshop/round-2/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "/tmp/critloop-bookshop/round-2/phone.png", "width": 390, "height": 1179 },
+    { "viewport": "tablet", "path": "/tmp/critloop-bookshop/round-2/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "/tmp/critloop-bookshop/round-2/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "/tmp/critloop-bookshop/round-2/crit.md",
+  "facts_file": "/tmp/critloop-bookshop/round-2/facts.json",
+  "findings": [
+    {
+      "id": "trial-terms-and-proof",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The trial button gives no terms, and nothing on the page backs up the promise",
+      "location": {
+        "description": "the \"Start a 30-day trial\" button, and the empty space below the features",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "a.button.button-primary",
+        "box": [64, 374, 181, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A small-shop owner can read \"30-day trial\" as a free month or as a first paid month, and the wrong reading stops the click. Nothing compares Shelfmark with how the owner works now or shows a price or a named shop, and the \"Pricing\" and \"Shops using it\" nav items point to nothing on the page.",
+      "current": { "value": "the button says only \"Start a 30-day trial\", with no terms under it and no comparison, price or named shop on the page", "measured": false, "facts_field": null },
+      "target": "One line of trial terms directly under the button, and a comparison with the owner's current way of knowing what to reorder, plus the price or a named shop, in the empty lower part of the page.",
+      "fix_direction": "Put the trial terms in one line directly under the button. Then use the empty lower part of the page for a comparison with the owner's current way of knowing what to reorder, plus the price or a named shop. Only the maker has these facts: whether the trial is free or paid, whether a card is needed, what happens after day 30, the price, and a real shop. The maker must supply them.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, a fresh critic sees a line of trial terms directly under \"Start a 30-day trial\", and a comparison with the owner's current method plus a price or a named shop on the page." }
+    },
+    {
+      "id": "tablet-text-measure",
+      "rank": null,
+      "kind": "convention",
+      "title": "The tablet hero paragraph and feature lines run past 75 characters per line",
+      "location": {
+        "description": "the hero paragraph under the headline on the tablet",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "div.hero-text > p",
+        "box": [24, 216, 720, 50],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The lines are too long to track from one line to the next.",
+      "current": { "value": "94 characters per line in the hero paragraph; 79, 87 and 59 in the feature lines", "measured": true, "facts_field": "characters_per_line" },
+      "target": "75 characters per line or fewer, with the text measure capped at about 600 px and the table at full width",
+      "fix_direction": "Cap the text measure at about 600 px, or give the paragraph a max-width, while the table stays at full width.",
+      "source": "Bringhurst 2.1.2",
+      "closed_when": { "method": "measure", "check": "characters_per_line of div.hero-text > p and section.facts > p in the tablet viewport is 75 or less" }
+    },
+    {
+      "id": "phone-table-wrap",
+      "rank": null,
+      "kind": "taste",
+      "title": "The phone table headers and one title wrap onto two lines",
+      "location": {
+        "description": "the \"On shelf\" and \"Sold this week\" table headers on the phone",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "thead > tr > th:nth-of-type(2)",
+        "box": [176, 607, 76, 62],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The header row and the \"Notes from the Ferry\" row are taller than the others, so the table looks uneven.",
+      "current": { "value": "2 lines in the \"On shelf\" header", "measured": true, "facts_field": "lines" },
+      "target": "each table row on one line",
+      "fix_direction": "Shorten the headers on narrow screens (\"Sold this week\" could become \"Sold\") or narrow the cell padding, so each row stays one line.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "lines of thead > tr > th:nth-of-type(2), thead > tr > th:nth-of-type(3) and tbody > tr:nth-of-type(4) > td:nth-of-type(1) in the phone viewport is 1" }
+    },
+    {
+      "id": "table-no-order-quantity",
+      "rank": null,
+      "kind": "taste",
+      "title": "The reorder table has no order-quantity column",
+      "location": {
+        "description": "the header row of the \"Reorder this week\" table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "thead > tr > th:nth-of-type(1)",
+        "box": [737, 187, 209, 40],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The table says what to reorder but not how many copies, so the owner cannot act on it.",
+      "current": { "value": "three columns: Title, On shelf, Sold this week", "measured": false, "facts_field": null },
+      "target": "an order-quantity column if the product suggests a quantity; otherwise the maker confirms it does not and the table stays as it is",
+      "fix_direction": "If the product suggests a quantity, show it. If it does not, the maker should confirm that and the table stays as it is. Only the maker knows whether the product suggests a quantity.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, the table shows an order-quantity column, or the maker has confirmed the product suggests no quantity." }
+    }
+  ]
+}
