@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
@@ -6,6 +7,8 @@ import {
   clusterValues,
   compositeColor,
   contrastRatio,
+  EXIT_CANNOT_MEASURE,
+  EXIT_TOOL_MISSING,
   EXIT_USAGE,
   findMainStyle,
   findViolations,
@@ -331,9 +334,50 @@ describe("runMeasure", () => {
       repositoryRoot,
     );
     expect(result.exitCode).toBe(3);
+    expect(result.exitCode).toBe(EXIT_CANNOT_MEASURE);
     expect(result.lines).toEqual([
       "cannot measure: the file evals/measure/no-such-page.html does not exist",
     ]);
+  });
+
+  it("exits 4 with one line that names the install commands when Playwright is missing", async () => {
+    // A copy of the scripts in a new folder has no packs/ beside it, as in an installed plugin, and
+    // the empty working folder has no project that holds playwright.
+    const installFolder = mkdtempSync(join(tmpdir(), "measure-missing-tool-"));
+    const scriptsCopy = join(
+      installFolder,
+      "plugin/skills/design-critic/scripts",
+    );
+    cpSync(
+      join(repositoryRoot, "plugin/skills/design-critic/scripts"),
+      scriptsCopy,
+      { recursive: true },
+    );
+    const workingFolder = mkdtempSync(join(tmpdir(), "measure-empty-project-"));
+    const pageFile = join(workingFolder, "page.html");
+    writeFileSync(pageFile, "<p>x</p>");
+    const copy = await import(join(scriptsCopy, "measure.mjs"));
+    const result = await copy.runMeasure(
+      [pageFile, "--out", join(workingFolder, "out")],
+      workingFolder,
+    );
+    expect(result.exitCode).toBe(EXIT_TOOL_MISSING);
+    expect(result.exitCode).toBe(4);
+    expect(result.lines).toHaveLength(1);
+    expect(result.lines[0]).toMatch(/^cannot measure: /);
+    expect(result.lines[0]).toContain("npm install --save-exact playwright@");
+    expect(result.lines[0]).toContain("npx playwright install chromium");
+  });
+
+  it("names the Playwright version that packs/package.json pins", () => {
+    const pinned = JSON.parse(
+      readFileSync(join(repositoryRoot, "packs/package.json"), "utf8"),
+    ).devDependencies.playwright;
+    const script = readFileSync(
+      join(repositoryRoot, "plugin/skills/design-critic/scripts/measure.mjs"),
+      "utf8",
+    );
+    expect(script).toContain(`playwright@${pinned}`);
   });
 });
 

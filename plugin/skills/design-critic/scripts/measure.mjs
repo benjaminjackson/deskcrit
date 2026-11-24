@@ -16,8 +16,9 @@
 // the page in a new browser context with no cookies, follows no link, and runs no script of its own
 // in the page other than code that reads layout and styles and scrolls the window.
 //
-// Exit codes: 0 when it measured, 2 for a wrong command line, 3 when it cannot measure (Playwright
-// or its Chromium is missing, the page cannot be opened). On codes 2 and 3 it prints exactly one line.
+// Exit codes: 0 when it measured, 2 for a wrong command line, 3 when it cannot measure because the
+// page cannot be opened (404, redirect, does not load), 4 when Playwright or its Chromium is missing.
+// On codes 2, 3, and 4 it prints exactly one line. On code 4 the line names the install commands.
 
 import { existsSync, mkdirSync, mkdtempSync, realpathSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
@@ -64,15 +65,20 @@ const SETTLE_TIMEOUT_MS = 5_000;
 
 export const EXIT_USAGE = 2;
 export const EXIT_CANNOT_MEASURE = 3;
+export const EXIT_TOOL_MISSING = 4;
 
 const USAGE =
   "usage: node measure.mjs PAGE [--out FOLDER]   (PAGE is an HTML file or an http(s) URL)";
 
+// The version is the one that packs/package.json pins. Keep the two the same.
 const PLAYWRIGHT_MISSING =
-  "Playwright is not installed; run `npm install playwright` and `npx playwright install chromium` in your project, or critique the image alone.";
+  "Playwright is not installed; to install it in your project, run `npm install --save-exact playwright@1.63.0` and `npx playwright install chromium`, or critique the image alone.";
 
 /** An error whose message says why the script cannot measure; it prints it after "cannot measure: ". */
 export class MeasureRefusal extends Error {}
+
+/** A refusal because Playwright or its Chromium is missing; runMeasure turns it into exit code 4. */
+export class ToolMissingRefusal extends MeasureRefusal {}
 
 // ---------------------------------------------------------------------------------------------
 // Pure functions: color, contrast, lines, and grouping. The tests call these without a browser.
@@ -1749,14 +1755,14 @@ export async function measurePage(
   const pageUrl = toPageUrl(pageArgument);
   const playwright = loadPlaywright(workingDirectory);
   if (playwright === null) {
-    throw new MeasureRefusal(PLAYWRIGHT_MISSING);
+    throw new ToolMissingRefusal(PLAYWRIGHT_MISSING);
   }
   let browser;
   try {
     browser = await playwright.chromium.launch({ headless: true });
   } catch (error) {
     const firstLine = String(error).split("\n")[0];
-    throw new MeasureRefusal(
+    throw new ToolMissingRefusal(
       `Chromium did not start (${firstLine}); run \`npx playwright install chromium\`, or critique the image alone.`,
     );
   }
@@ -1835,7 +1841,7 @@ export async function measurePage(
 
 /**
  * Runs the command and returns the lines to print and the exit code. A refusal or any other error
- * becomes one "cannot measure:" line and exit code 3. It writes nothing to the terminal itself.
+ * becomes one "cannot measure:" line and exit code 3, or exit code 4 when Playwright or Chromium is missing. It writes nothing to the terminal itself.
  *
  * @param {string[]} commandArguments the arguments after the script path
  * @param {string} workingDirectory
@@ -1869,7 +1875,10 @@ export async function runMeasure(commandArguments, workingDirectory) {
     return { exitCode: 0, lines };
   } catch (error) {
     return {
-      exitCode: EXIT_CANNOT_MEASURE,
+      exitCode:
+        error instanceof ToolMissingRefusal
+          ? EXIT_TOOL_MISSING
+          : EXIT_CANNOT_MEASURE,
       lines: [`cannot measure: ${firstLineOf(error)}`],
     };
   }

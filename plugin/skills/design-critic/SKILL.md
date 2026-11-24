@@ -25,6 +25,8 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
    When the critique is done, end with the full critique as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the full critique.
    ```
 
+   If the person gives a page or a URL and you run `scripts/measure.mjs` on it to get a facts file, and it exits with code 4, Playwright or its Chromium is missing: show the person the install commands from its `cannot measure:` line, ask whether to install them, and never install without their yes. On no, critique the image alone and say so.
+
    When you have a measured facts file for the page in the image (`facts.json` from `scripts/measure.mjs`), add this line right after the `Image(s)` line, with the path filled:
 
    ```
