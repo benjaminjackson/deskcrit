@@ -16,27 +16,12 @@
 // --beside SHA replays the runs without facts of another skill commit on the same images and
 // prints them next to this run, one column pair per commit.
 //
-// With --jev it scores the live criteria only, and the critic gets each image's Jev evidence file
-// (FR-78): the criteria of the image's pack that Jev fired on, from the saved answers under
-// evals/agreement/runs/ replayed with no key (EV-4 rule 5), written by the skill's own
-// scripts/jev-evidence.mjs. An image Jev fired on nothing for gets no file, so its prompt and its
-// saved crit are the ones without Jev; an image with a file has its own request key and prompt hash.
-//
 // With --deep the crit of each image comes from the skill's deep mode (agents/deep-mode.md, run by
 // deep-run.ts): one section critic per checklist section and a director. Deep runs have their own
 // request keys and prompt hash, so they never share a saved crit or a judge answer with single runs.
 
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import {
-  existsSync,
-  mkdtempSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -50,7 +35,6 @@ import {
   deepRequestKeyOf,
   ensureDeepCrits,
 } from "./deep-run.ts";
-import { type JevFinding, readJevFindingsByReplay } from "./jev-replay.ts";
 import {
   ensureJudgeAnswer,
   JUDGE_MODEL,
@@ -179,13 +163,6 @@ export type DetectOptions = {
   readonly reportProgress?: (line: string) => void;
   /** Where --refute saves and reads refutations (FR-81). main passes evals/critic/refutations/. */
   readonly refutationsDirectory?: string;
-  /**
-   * Returns Jev's findings on each image, keyed by display path, for --jev. main passes the replay
-   * of the saved answers; tests pass a stub.
-   */
-  readonly readJevFindings?: (
-    selected: readonly SelectedCriterion[],
-  ) => Promise<ReadonlyMap<string, readonly JevFinding[]>>;
 };
 
 /** What the command prints on stdout and stderr, and its exit code. */
@@ -851,12 +828,8 @@ export function critRequestFor(
   repositoryDirectory: string,
   image: FixtureImage,
   withFacts: boolean,
-  jevEvidencePath?: string,
 ): CritRequest {
   if (!withFacts) {
-    if (jevEvidencePath !== undefined) {
-      return { imagePaths: [image.absolutePath], jevEvidencePath };
-    }
     return { imagePaths: [image.absolutePath] };
   }
   const factsPath = factsPathFor(repositoryDirectory, image);
@@ -865,48 +838,7 @@ export function critRequestFor(
       `no facts file for ${image.displayPath}: ${portablePath(factsPath, 4)}; run node evals/critic/measure-fixtures.ts`,
     );
   }
-  if (jevEvidencePath !== undefined) {
-    return { imagePaths: [image.absolutePath], factsPath, jevEvidencePath };
-  }
   return { imagePaths: [image.absolutePath], factsPath };
-}
-
-/**
- * Writes the Jev evidence file of each image with the skill's own scripts/jev-evidence.mjs, from a
- * report that holds Jev's findings on that image, and returns the file path of each image that
- * got one. The script writes no file when nothing fired, so such an image has no entry.
- */
-export function writeJevEvidenceFiles(
-  skillDirectory: string,
-  images: readonly FixtureImage[],
-  findingsByImage: ReadonlyMap<string, readonly JevFinding[]>,
-  outputDirectory: string,
-): Map<string, string> {
-  const script = join(skillDirectory, "scripts", "jev-evidence.mjs");
-  const evidenceByImagePath = new Map<string, string>();
-  images.forEach((image, index) => {
-    const findings = findingsByImage.get(image.displayPath);
-    if (findings === undefined) {
-      return;
-    }
-    const reportPath = join(outputDirectory, `report-${index + 1}.json`);
-    writeFileSync(reportPath, JSON.stringify({ findings }));
-    const evidencePath = join(outputDirectory, `evidence-${index + 1}.txt`);
-    const run = spawnSync(
-      process.execPath,
-      [script, "--report", reportPath, "--out", evidencePath],
-      { encoding: "utf8" },
-    );
-    if (run.status !== 0) {
-      throw new Error(
-        `jev-evidence.mjs exited with code ${run.status}: ${run.stderr}`,
-      );
-    }
-    if (run.stdout.trim() !== "") {
-      evidenceByImagePath.set(image.absolutePath, evidencePath);
-    }
-  });
-  return evidenceByImagePath;
 }
 
 /**
@@ -1031,7 +963,7 @@ const HELP_TEXT = `Detection evaluation (EV-14) on the live and the removed crit
 Usage:
   node evals/critic/detect.ts [--replay] [--pairs-per-criterion N] [--skill DIR] [--skill-commit SHA]
                               [--parallel N]
-                              [--facts] [--jev] [--live-only] [--beside SHA]...
+                              [--facts] [--live-only] [--beside SHA]...
                               [--refute [--refuter-commit SHA]] [--deep]
   node evals/critic/detect.ts --help
 
@@ -1050,25 +982,19 @@ Flags:
                              measured facts file from evals/critic/facts/ (FR-79). These runs
                              never share a saved crit with runs without facts.
   --live-only                Score the live criteria only, as --facts does, without facts files.
-  --jev                      Score the live criteria only, and give the critic each image's Jev
-                             evidence file (FR-78): the criteria of its pack that Jev fired on,
-                             from the saved answers in evals/agreement/runs/ replayed through
-                             dist/crit.js with no key. Run npm run build first. An image Jev fired
-                             on nothing for keeps its run without Jev. Prints one more table: the
-                             images where Jev fired on their own criterion, without and with Jev.
   --beside SHA               Replay the runs without facts of this skill commit on the same
                              images and print them in a side-by-side table after the main table.
                              May be given more than once. Starts no child process for them.
   --refute                   Also run the refuter (FR-81, agents/refuter.md) on the run-1 crit of
                              each image, judge each crit it changed, and print the table on the
                              crits after the refuter, the ranked findings it dropped, and each
-                             image whose judge answer changed. Not with --facts or --jev.
+                             image whose judge answer changed. Not with --facts.
   --refuter-commit SHA       With --refute, use the refutations of this commit instead of the
                              skill folder's commit.
   --deep                     Make each crit with the deep mode (agents/deep-mode.md): one section
                              critic per checklist section and a director, at most
                              the --parallel number of child processes at once. These runs never share a
-                             saved crit with single-critic runs. Not with --jev or --refute.
+                             saved crit with single-critic runs. Not with --refute.
   --help, -h                 Print this help.
 
 The judge reads one crit, the criterion title, and its rule, never the image name or polarity,
@@ -1144,21 +1070,6 @@ export async function runDetect(
   argv: readonly string[],
   options: DetectOptions,
 ): Promise<DetectOutput> {
-  // The Jev evidence files of --jev go in this folder, which is removed when the run ends.
-  const evidenceDirectory = mkdtempSync(join(tmpdir(), "crit-detect-jev-"));
-  try {
-    return await scoreDetection(argv, options, evidenceDirectory);
-  } finally {
-    rmSync(evidenceDirectory, { recursive: true, force: true });
-  }
-}
-
-/** Parses the command line, runs or replays the critic and the judge, and returns the report (EV-14). */
-async function scoreDetection(
-  argv: readonly string[],
-  options: DetectOptions,
-  evidenceDirectory: string,
-): Promise<DetectOutput> {
   const parsed = parseArgs({
     args: [...argv],
     options: {
@@ -1168,7 +1079,6 @@ async function scoreDetection(
       "skill-commit": { type: "string" },
       parallel: { type: "string" },
       facts: { type: "boolean", default: false },
-      jev: { type: "boolean", default: false },
       "live-only": { type: "boolean", default: false },
       beside: { type: "string", multiple: true },
       refute: { type: "boolean", default: false },
@@ -1193,18 +1103,17 @@ async function scoreDetection(
   const commit =
     parsed.values["skill-commit"] ?? skillCommit(skillDirectory, replay);
   const withFacts = parsed.values.facts === true;
-  const withJev = parsed.values.jev === true;
   const besideCommits = parsed.values.beside ?? [];
   const withRefuter = parsed.values.refute === true;
-  if (withRefuter && (withFacts || withJev)) {
-    throw new Error("--refute does not go with --facts or --jev");
+  if (withRefuter && withFacts) {
+    throw new Error("--refute does not go with --facts");
   }
   if (!withRefuter && parsed.values["refuter-commit"] !== undefined) {
     throw new Error("--refuter-commit needs --refute");
   }
   const withDeep = parsed.values.deep === true;
-  if (withDeep && (withJev || withRefuter)) {
-    throw new Error("--deep does not go with --jev or --refute");
+  if (withDeep && withRefuter) {
+    throw new Error("--deep does not go with --refute");
   }
   const selection = selectCriteria(
     options.repositoryDirectory,
@@ -1212,46 +1121,16 @@ async function scoreDetection(
   );
   const notes = selection.notes;
   // The removed criteria have no templates on this branch, so they have no facts files.
-  // Jev's saved answers cover the live packs only.
-  const liveOnly = withFacts || withJev || parsed.values["live-only"] === true;
+  const liveOnly = withFacts || parsed.values["live-only"] === true;
   const selected = liveOnly
     ? selection.selected.filter((entry) => entry.criterion.group === "live")
     : selection.selected;
 
-  // With --jev, each image's evidence file. An image with no entry gets no file.
-  let evidenceByImagePath = new Map<string, string>();
-  let jevFindingsByImage: ReadonlyMap<string, readonly JevFinding[]> =
-    new Map();
-  if (withJev) {
-    if (options.readJevFindings === undefined) {
-      throw new Error("--jev needs a reader of Jev's saved answers");
-    }
-    jevFindingsByImage = await options.readJevFindings(selected);
-    const allImages = selected.flatMap((entry) =>
-      entry.scored.map((scoredImage) => scoredImage.image),
-    );
-    evidenceByImagePath = writeJevEvidenceFiles(
-      skillDirectory,
-      allImages,
-      jevFindingsByImage,
-      evidenceDirectory,
-    );
-  }
   const requestFor = (image: FixtureImage): CritRequest =>
-    critRequestFor(
-      options.repositoryDirectory,
-      image,
-      withFacts,
-      evidenceByImagePath.get(image.absolutePath),
-    );
-  // A run with an evidence file has its own prompt hash; one without keeps the hash it had.
-  const identityFor = (image: FixtureImage): RunIdentity =>
-    withDeep
-      ? currentDeepRunIdentity(withFacts)
-      : currentRunIdentity(
-          withFacts,
-          evidenceByImagePath.has(image.absolutePath),
-        );
+    critRequestFor(options.repositoryDirectory, image, withFacts);
+  const runIdentity: RunIdentity = withDeep
+    ? currentDeepRunIdentity(withFacts)
+    : currentRunIdentity(withFacts);
   // A deep run has its own key, so it never shares a folder or a judge answer with a single run.
   const keyFor = (image: FixtureImage): string =>
     withDeep
@@ -1279,8 +1158,8 @@ async function scoreDetection(
     for (const image of imagesToCrit) {
       const key = keyByImagePath.get(image.absolutePath) ?? "";
       if (
-        readSavedCrits(options.runsDirectory, commit, key, identityFor(image))
-          .length > 0
+        readSavedCrits(options.runsDirectory, commit, key, runIdentity).length >
+        0
       ) {
         critsSaved += 1;
       }
@@ -1297,7 +1176,7 @@ async function scoreDetection(
           options.runsDirectory,
           commit,
           key,
-          identityFor(scoredImage.image),
+          runIdentity,
         )[0];
         if (saved === undefined) {
           continue;
@@ -1360,7 +1239,7 @@ async function scoreDetection(
         options.runsDirectory,
         commit,
         key,
-        identityFor(scoredImage.image),
+        runIdentity,
       )[0];
       if (saved === undefined) {
         missing.push(
@@ -1476,9 +1355,6 @@ async function scoreDetection(
   if (withDeep) {
     factsText += ", deep mode";
   }
-  if (withJev) {
-    factsText += `, with Jev evidence on ${evidenceByImagePath.size} of ${imagesToCrit.length} images`;
-  }
   const header = `skill commit ${commit}${factsText}, judge model ${JUDGE_MODEL}, pairs per criterion ${pairsPerCriterion}`;
   const table = formatTable(
     TABLE_HEADERS,
@@ -1506,31 +1382,12 @@ async function scoreDetection(
       });
     }
     columns.push({
-      label: `${commit.slice(0, 8)}${withFacts ? "+facts" : ""}${withJev ? "+jev" : ""}${withDeep ? "+deep" : ""}`,
+      label: `${commit.slice(0, 8)}${withFacts ? "+facts" : ""}${withDeep ? "+deep" : ""}`,
       counts: countsByCriterion,
     });
     besideText = `\nside by side, raised on positive and quiet on negative (n/d); a column without +facts had no facts file\n${buildBesideTable(selected, columns)}\n`;
   }
-  let jevText = "";
-  if (withJev) {
-    const jevRows = buildJevFiredRows(
-      selected,
-      questionItems,
-      answers,
-      jevFindingsByImage,
-      (image) =>
-        replayAnswerWithoutJev(
-          image,
-          selected,
-          options.repositoryDirectory,
-          options.runsDirectory,
-          commit,
-          withFacts,
-        ),
-    );
-    jevText = `\nimages where Jev fired on the image's own criterion: the judge answer without and with Jev evidence at this commit\n${jevRows}\n`;
-  }
-  const text = `${header}\n${noteText}${table}\n${besideText}${jevText}${refuterText}${JEV_FIGURES_LINE}\n`;
+  const text = `${header}\n${noteText}${table}\n${besideText}${refuterText}${JEV_FIGURES_LINE}\n`;
   if (missing.length > 0) {
     const errorLines = [...missing];
     if (replay) {
@@ -1801,98 +1658,6 @@ async function scoreWithRefuter(
   return { text, missing };
 }
 
-/**
- * Returns the judge answer of an image's own criterion from the run without Jev evidence at the
- * same commit, or undefined when that crit or answer is not saved. It starts no child process.
- */
-function replayAnswerWithoutJev(
-  image: FixtureImage,
-  selected: readonly SelectedCriterion[],
-  repositoryDirectory: string,
-  runsDirectory: string,
-  commit: string,
-  withFacts: boolean,
-): DetectionAnswer | undefined {
-  const entry = selected.find((candidate) =>
-    candidate.scored.some(
-      (scoredImage) => scoredImage.image.absolutePath === image.absolutePath,
-    ),
-  );
-  if (entry === undefined) {
-    return undefined;
-  }
-  const key = requestKeyOf(
-    critRequestFor(repositoryDirectory, image, withFacts),
-  );
-  const saved = readSavedCrits(
-    runsDirectory,
-    commit,
-    key,
-    currentRunIdentity(withFacts),
-  )[0];
-  if (saved === undefined) {
-    return undefined;
-  }
-  return readJudgeAnswer(
-    buildDetectionQuestion(
-      entry.criterion.title,
-      judgeRule(entry.criterion.question),
-      key,
-      saved,
-    ),
-    parseDetectionAnswer,
-    runsDirectory,
-    commit,
-  );
-}
-
-/**
- * Returns a table with one row per scored image where Jev fired (verdict fail or warn) on the
- * image's own criterion: the criterion, what the image counts as, Jev's verdict, and the judge
- * answer without and with Jev evidence.
- */
-export function buildJevFiredRows(
-  selected: readonly SelectedCriterion[],
-  questionItems: readonly {
-    criterionIndex: number;
-    scoredImage: ScoredImage;
-  }[],
-  answers: readonly (DetectionAnswer | undefined)[],
-  jevFindingsByImage: ReadonlyMap<string, readonly JevFinding[]>,
-  answerWithoutJev: (image: FixtureImage) => DetectionAnswer | undefined,
-): string {
-  const rows: string[][] = [];
-  questionItems.forEach((item, index) => {
-    const criterion = selected[item.criterionIndex]?.criterion;
-    if (criterion === undefined) {
-      return;
-    }
-    const image = item.scoredImage.image;
-    const findings = jevFindingsByImage.get(image.displayPath) ?? [];
-    const own = findings.find(
-      (finding) => finding.criterion === `${criterion.pack}/${criterion.id}`,
-    );
-    if (
-      own === undefined ||
-      (own.verdict !== "fail" && own.verdict !== "warn")
-    ) {
-      return;
-    }
-    rows.push([
-      criterion.pack,
-      criterion.id,
-      item.scoredImage.truth,
-      own.verdict,
-      answerWithoutJev(image)?.says_defect ?? "missing",
-      answers[index]?.says_defect ?? "missing",
-    ]);
-  });
-  return formatTable(
-    ["pack", "criterion", "image", "jev", "without-jev", "with-jev"],
-    rows,
-  );
-}
-
 /** Runs the command, writes its output, and sets the exit code: 2 when anything stopped the run. */
 export async function main(): Promise<void> {
   try {
@@ -1909,19 +1674,6 @@ export async function main(): Promise<void> {
       runClaude: runClaudeProcess,
       reportProgress: (line) => {
         process.stderr.write(`${line}\n`);
-      },
-      readJevFindings: async (selected) => {
-        const images = selected.flatMap((entry) =>
-          entry.scored.map((scoredImage) => ({
-            criterion: entry.criterion,
-            scoredImage,
-          })),
-        );
-        const replayed = await readJevFindingsByReplay(
-          REPOSITORY_DIRECTORY,
-          images,
-        );
-        return replayed.findingsByImage;
       },
     });
     process.stdout.write(output.text);

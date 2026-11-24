@@ -232,7 +232,7 @@ describe("ensureDeepCrits", () => {
     ).toHaveLength(0);
   });
 
-  it("refuses two images, a focus, and a Jev evidence file", () => {
+  it("refuses two images and a focus", () => {
     const { imagePath } = setUp();
     expect(() =>
       deepRequestKeyOf({ imagePaths: [imagePath, imagePath] }),
@@ -240,9 +240,6 @@ describe("ensureDeepCrits", () => {
     expect(() =>
       deepRequestKeyOf({ imagePaths: [imagePath], focus: "the chart" }),
     ).toThrow(/no focus/);
-    expect(() =>
-      deepRequestKeyOf({ imagePaths: [imagePath], jevEvidencePath: imagePath }),
-    ).toThrow(/Jev/);
   });
 });
 
