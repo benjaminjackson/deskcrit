@@ -833,3 +833,55 @@ The critic now raises 35 of the 38 tells (25 at the baseline) and praises none o
 Praised on negative went from 4 of 38 to 6 of 38. In all 6 crits (color washes, every element highlighted, too many type sizes and weights, every chart in shades of the accent, pill badge above the headline, neutral dark template look), the praise is under "What's working" and is for the fix that the clean twin shows, not for the tell: for example "The announcement is a plain underlined link rather than a pill badge" and "doesn't look like a generic dark template." So these are correct calls that the judge counts as praise, and the count stays as the judge gives it.
 
 Decision: keep. The ticket rule is to keep the change only if tells raised on positive rises, praised on positive falls, and detection and repeat run do not fall. Tells raised on positive rose from 25/38 to 35/38, and praised on positive fell from 6/38 to 0/38. Detection did not fall (`SCORES.md`): live raised on positive is 35/37 and quiet on negative 37/37, inside the range of the earlier versions (32 to 37 and 35 to 37), and removed raised on positive is 35/40 and quiet on negative 39/40, against 36/40 and 39/40 at `3a8d079b`. Repeat run batch 1 is 0.779 in all 3 runs, 0.638 in all 3 ranked lists, and verdicts agree on 6 of 10. That is lower than 0.854 and 0.742 at `3f0e7ca5` (9 images), but the noise-floor section of `SCORES.md` shows that two batches of one commit differ by up to 0.169 and 0.244, and the drops here (0.075 and 0.104) are smaller than that. Against the baseline (0.710 and 0.619) repeat run rose. So the repeat run did not fall by more than its measured noise, and the change stays.
+
+## Recheck critic on template tells (EV-24, crit-7hw.5)
+
+One recheck per pair of `packs/_tells/`: the image without the tell is the before image, the image with the tell is the after image, and the last work order is the hand-written one in `evals/critic/recheck-tells/work-orders/`. The answer file expects the tell to close a finding in 13 of the 38 pairs. `npm run eval:critic:recheck-tells` replays it with no model call.
+
+```
+$ npm run eval:critic:recheck-tells
+pair                                                      closes  status               new problem   closed-new-problem  praised      quiet
+purple-to-blue-or-violet-to-pink-gradients                no                           yes           no                  no           no
+gradient-text-in-headings-numbers-or-the-logo             yes     closed, new problem  yes           yes                 no           no
+colored-glows-around-elements                             yes     closed, new problem  yes           yes                 no           no
+color-washes-and-blurred-blobs-behind-content             yes     closed, new problem  yes           yes                 no           no
+neon-or-bright-colored-borders                            no                           yes           no                  no           no
+many-near-identical-tints-of-one-hue-for-text             no                           yes           no                  no           no
+every-element-highlighted                                 yes     closed, new problem  yes           yes                 no           no
+glass-cards-with-an-inner-highlight-and-a-colored-shadow  no                           yes           no                  no           no
+headings-at-weight-800-or-900                             yes     closed, new problem  yes           yes                 no           no
+uppercase-labels-with-wide-tracking                       no                           yes           no                  no           no
+too-many-type-sizes-and-weights-on-one-screen             yes     closed               no            no                  no           yes
+numbers-in-mixed-formats                                  no                           yes           no                  no           no
+negative-letter-spacing-on-small-text                     yes     closed, new problem  yes           yes                 no           no
+italic-used-for-emphasis-in-interface-text                yes     closed, new problem  yes           yes                 no           no
+emoji-as-icons-or-status                                  no                           yes           no                  no           no
+emoji-inside-pills-and-counts                             no                           yes           no                  no           no
+icons-in-many-sizes-and-colors                            no                           yes           no                  no           no
+icons-nudged-off-the-column                               no                           yes           no                  no           no
+sparkle-icon-as-decoration                                no                           yes           no                  no           no
+glowing-pills-for-counts-and-status                       yes     closed, new problem  yes           yes                 no           no
+pro-new-and-beta-badges-everywhere                        no                           yes           no                  no           no
+every-element-a-full-pill                                 no                           yes           no                  no           no
+rainbow-glowing-or-pill-shaped-chart-bars                 no                           yes           no                  no           no
+every-chart-in-shades-of-the-accent                       no                           yes           no                  no           no
+sparklines-on-every-stat-card                             yes     closed, new problem  yes           yes                 no           no
+equal-cards-side-by-side-with-the-same-chart              no                           yes           yes                 no           no
+gradient-logo-tile-with-a-sparkle                         no                           yes           no                  no           no
+logo-mark-as-a-glossy-orb                                 no                           yes           no                  no           no
+pill-badge-above-the-headline                             yes     closed, new problem  yes           yes                 no           no
+hero-stacked-on-one-centered-axis                         no                           yes           no                  no           no
+three-or-more-buttons-in-the-hero                         no                           yes           no                  no           no
+feature-cards-with-an-emoji-and-a-bold-title              no                           yes           no                  no           no
+glossy-3d-blob-as-the-hero-visual                         no                           yes           no                  no           no
+stock-robots-glowing-brains-and-holograms                 no                           yes           no                  no           no
+image-that-does-not-blend-into-the-page                   yes     closed               no            no                  no           yes
+a-visual-on-every-section                                 yes     closed, new problem  yes           yes                 no           no
+neutral-dark-template-look                                no                           yes           no                  no           no
+empty-box-or-generic-picture-as-the-hero-visual           no                           yes           no                  no           no
+Total                                                                                  0.95 (36/38)  0.85 (11/13)        0.00 (0/38)  0.05 (2/38)
+skill commit 4a9dc619da91c6305dabff2576875b023a7df08a
+replay: node evals/critic/recheck-tells.ts --replay --skill-commit 4a9dc619da91c6305dabff2576875b023a7df08a
+```
+
+The recheck critic lists the added tell as a new problem in 36 of the 38 pairs and praises it in none. In 11 of the 13 pairs where the tell meets the target of a finding, it marks that finding "closed, new problem" and names the tell. It also marks one finding "closed, new problem" where the answer file did not expect it: in the equal-cards pair, the three same charts remove the blank space that the finding was about. It misses the tell in 2 pairs, and in both it marks the expected finding plain "closed". In the type sizes pair it says no new element was added, because the fix changed the size and weight of text that was already there, and the rule of crit-7hw.4 checks only elements that the after image adds. In the image that does not blend pair it checks the new panel against the Template tells section and passes it as a flat fill with no stock effect. Both misses are tells that change an element already on the page, not tells that add one. No pass bar is set yet (EV-24).
