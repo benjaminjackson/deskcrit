@@ -12,6 +12,8 @@ A source that could not be confirmed against its book, standard, or paper is mar
 
 Sources for the color, accessibility, UX, data visualization, and art direction sections: Benjamin Jackson decided on 2026-10-25 that these five sections may cite the standard references of their field as well as the reading list: Don Norman, *The Design of Everyday Things*; Steve Krug, *Don't Make Me Think*; Jakob Nielsen and the Nielsen Norman Group; W3C WCAG; the Apple Human Interface Guidelines; Google Material Design; Johannes Itten, *The Art of Color*; Adam Wathan and Steve Schoger, *Refactoring UI*; Claus Wilke, *Fundamentals of Data Visualization*; and Stephen Few. The source must still state the rule. They never cite *The Non-Designer's Design Book*. Reason: these fields have their own standard references, and the reading list does not cover them. Reconsider if a check from one of these references starts to stand in for a finer rule that a book on the reading list states.
 
+Source for the Template tells section: Benjamin Jackson accepted Damir Sokolovsky's unslop on 2026-11-24 ("I accept unslop"). unslop is a list of signs that an interface came from an AI template. It is accepted as a source for that section only, and it is not on the reading list for any other section (PRD FR-86).
+
 ---
 
 ## Typography, legibility, and readability: guidelines for deskcrit
@@ -1437,6 +1439,271 @@ Sources: the dataviz pack cites practice references (Wilke, Few, and Borland and
 - **Source:** Wucius Wong, *Principles of Two-Dimensional Design* (1972); Johannes Itten, *Design and Form: The Basic Course at the Bauhaus* (1963); Wassily Kandinsky, *Point and Line to Plane* (1926).
 - **Link:** https://books.google.com/books/about/Principles_of_Two_dimensional_Design.html?id=AWhQAAAAMAAJ
 - **Judged by:** askable.
+
+---
+
+## Template tells: stock moves of AI-made interfaces (draft)
+
+Draft (PRD FR-86). This section is not a pack, and the critic does not see it yet: `plugin/skills/design-critic/checklist.yaml` lists every entry here under `excluded` until crit-7hw.3 adds a checklist section for it and Benjamin Jackson ratifies the rest of FR-86. Its source is Damir Sokolovsky's unslop, a list of signs that an interface came from an AI template, each with its fix. Benjamin Jackson accepted unslop as a source for this section only on 2026-11-24 ("I accept unslop"). Each entry quotes its sign word for word on its Source line, from the commit named there, so the rule is stated in the source (FR-45).
+
+The source is published under CC BY 4.0, which allows adaptation with credit and a note of the changes. Changes: each sign is rewritten as a rule and a yes-or-no question, the fixes are reworded, two pairs of duplicate signs are merged, an eyebrow entry combines two signs, and an emoji inside a quote is written as a word in square brackets. The Copy, Motion, Spacing, and Right to left groups are left out, and the last entry of this section lists each sign left out with the reason.
+
+Each entry names a move that an AI template makes by default, such as a purple gradient or a small uppercase line above the headline, and that a viewer has seen on many other products. Some of these moves are right in other work, such as a kicker above a heading in a magazine article, and an entry's Note says where. Yes to a question means the defect is there.
+
+### Purple-to-blue or violet-to-pink gradients
+- **Rule:** Backgrounds, cards, buttons, and the active navigation item use one neutral surface, and an accent color appears only where it carries meaning. A purple-to-blue or violet-to-pink gradient on these surfaces is the stock look of an AI-made template.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Surfaces and color": "Purple to blue or violet to pink gradients on backgrounds, cards, buttons or the active nav item → one neutral surface, accent only where it means something". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Does a background, card, button, or active navigation item have a purple-to-blue or violet-to-pink gradient fill?"
+
+### Gradient text in headings, numbers, or the logo
+- **Rule:** Headings, numbers, and the logo are set in one solid text color, not filled with a color gradient.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Surfaces and color": "Gradient text in headings, numbers or the logo → solid primary text color", and group "Landing pages and heroes": "Gradient or shimmer on the headline → solid text". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: the two signs are merged; shimmer is motion, which a still image cannot show, so it is left out.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is a heading, a number, or the logo filled with a color gradient instead of one solid color?"
+
+### Colored glows around elements
+- **Rule:** Depth comes from steps between surface colors and from hairlines, not from a colored glow around a card, button, pill, icon, or emoji.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Surfaces and color": "Colored glows, like `shadow-[0_0_20px_rgba(139,92,246,0.5)]`, `drop-shadow` on emoji or glowing pills → remove, depth from surface steps and hairlines". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question about the visible glow, not the CSS class.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Does a colored glow or a blurred colored halo surround a card, button, pill, icon, or emoji?"
+
+### Color washes and blurred blobs behind content
+- **Rule:** The background behind the content and the hero is plain, or it shows one real product visual. Radial color washes, blurred color blobs, orbs, decorative grids, and glowing lines behind the content give the viewer nothing to use.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Surfaces and color": "Radial color washes or blurred blobs behind content → remove", and group "Landing pages and heroes": "Floating blobs, orbs, grids and glowing lines behind the hero → plain background or one real product visual". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: the two signs are merged; the entry judges only the shapes a still image shows, not whether they float.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is there a radial color wash, a blurred color blob, an orb, a decorative grid, or a glowing line behind the content or the hero?"
+
+### Neon or bright colored borders
+- **Rule:** Borders that separate surfaces are thin and quiet, such as a hairline at 6 to 10% opacity. A neon or bright colored border pulls the eye to the frame and away from the content.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Surfaces and color": "Neon or high contrast colored borders → hairline at 6 to 10% opacity". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Does a card, panel, or input have a neon or bright colored border?"
+
+### Many near-identical tints of one hue for text
+- **Rule:** Text uses three color roles from one neutral ramp. Many near-identical tints of one hue make the roles hard to tell apart.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Surfaces and color": "Many near identical tints of the same hue for text, like five lavenders → three text roles from one neutral ramp". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question; the count of four in the question is this catalog's choice.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable as a visual judgment. Question: "Is the text on the screen set in four or more near-identical tints of one hue, such as several lavenders?"
+
+### Every element highlighted
+- **Rule:** The accent appears once or twice per screen, on what matters. When every element is highlighted, nothing stands out.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Surfaces and color": "Every element highlighted, so nothing stands out → one accent used once or twice per screen". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is the accent color or a highlight applied to so many elements on the screen that none of them stands out?"
+- **Note:** The Color entry "Accent color restraint" states a close rule from the field's references.
+
+### Glass cards with an inner highlight and a colored shadow
+- **Rule:** A card is a plain raised surface with a hairline edge, not frosted glass with a white inner highlight and a colored shadow.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Surfaces and color": "Glass cards with a white inner highlight and a colored shadow → plain raised surface with a hairline". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is a card drawn as frosted glass, with a white inner highlight along its edge and a colored shadow?"
+
+### Headings at weight 800 or 900
+- **Rule:** Headings get their rank from size and are set at weight 400 to 500, not at an extra-bold or black weight.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Headings at weight 800 or 900 → 400 to 500 and size for hierarchy". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable as a visual judgment. Question: "Is a heading set in an extra-bold or black weight?" The exact weight cannot be read from pixels, so the question asks only for the heaviest weights a viewer can see.
+
+### Uppercase labels with wide tracking
+- **Rule:** Interface labels, such as section names and stat titles, are set in sentence case at normal or slightly open tracking.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Uppercase labels with wide tracking, like `NAVIGATION` or `PAID THIS MONTH` → sentence case at normal or slightly open tracking". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Are interface labels, such as section names or stat titles, set in uppercase with wide letterspacing?"
+- **Note:** The Typography entry "Letterspace capitals and small caps" asks that capitals be letterspaced when they are used. That entry judges how capitals are set, and this one judges whether a label is in capitals at all.
+
+### Too many type sizes and weights on one screen
+- **Rule:** One screen uses a few sizes from one scale and two weights, 400 and 500.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Too many sizes and weights on one screen → a few sizes from the scale, weights 400 and 500". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question; the counts in the question are this catalog's choice.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable as a visual judgment. Question: "Does one screen show six or more different text sizes, or three or more weights?"
+- **Note:** The Typography entry "Sizes come from a scale" states a close rule from the reading list.
+
+### Numbers in mixed formats
+- **Rule:** Numbers of one kind on one screen share one format, with the same decimals, separators, and padding, and use tabular figures.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Numbers in mixed formats, like `$48,210` next to `$124,860.40`, or `07` → one format, tabular figures". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question about the format of the figures, not about what the numbers say (NG-10).
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Do numbers of the same kind on one screen appear in different formats, such as an amount with cents next to an amount without, or a number padded with a leading zero?"
+- **Note:** The Typography entry "Figures in tables and text" states a close rule from the reading list.
+
+### Negative letter spacing on small text
+- **Rule:** Small text has zero or slightly positive letterspacing.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Negative letter spacing on small text → zero or slightly positive". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable as a visual judgment. Question: "Is small text, such as body text, captions, or labels, set so tight that its letters nearly touch?" The difference can be a fraction of a pixel, so it is easy to miss.
+- **Note:** The Typography entry "Letterspacing (tracking) of text" states a close rule from the reading list.
+
+### Italic used for emphasis in interface text
+- **Rule:** In interface text, emphasis comes from color or weight, not from italic.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Italic used for emphasis → color or weight instead". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: limited to interface text, because italic is the book convention for emphasis in long reading text.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is italic used to emphasize words in labels, buttons, or other short interface text?"
+- **Note:** The Typography entry "One change at a time for emphasis" covers emphasis in general.
+
+### Emoji as icons or status
+- **Rule:** Navigation, labels, and status use one set of line icons, or no icons.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Icons": "Emoji as nav icons, label decoration or status ... → one line icon set or nothing". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: the emoji examples are cut from the quote; rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is an emoji used as a navigation icon, as decoration on a label, or as a status marker?"
+
+### Emoji inside pills and counts
+- **Rule:** A count is a plain number, with no emoji beside it.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Icons": "Emoji inside pills and counts, like `18 [person emoji]` → plain number". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Does a pill, badge, or count hold an emoji next to its number?"
+
+### Icons in many sizes and colors
+- **Rule:** The icons on one screen share one size, one stroke weight, and the color of a text role.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Icons": "Icons in many sizes and colors → one size, one stroke, text role color". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Do the icons on one screen come in several sizes, stroke weights, or colors?"
+
+### Icons nudged off the column
+- **Rule:** In a list or menu, every row's icon sits in a box of the same width, so the icons and the text after them line up in columns.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Icons": "Icons nudged off the column → same icon box width in every row". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable as a visual judgment. Question: "In a list or menu, do the icons, or the text after them, fail to line up in one vertical column?" The offset can be a few pixels, so it is easy to miss.
+
+### Sparkle icon for AI features
+- **Rule:** A feature that uses AI gets a plain icon only where the icon explains something, and no sparkle as decoration.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Icons": "A sparkle [sparkle emoji] for anything AI → remove or use a plain icon only where it explains something". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is a sparkle icon or sparkle emoji used to mark a feature as AI?"
+
+### Glowing pills for counts and status
+- **Rule:** Counts, plan names, keyboard shortcuts, and status are quiet monospaced text or a keycap, not a glowing pill.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Components": "Glowing pills for counts, plans, shortcuts or status → quiet mono text or a keycap". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is a count, plan name, keyboard shortcut, or status shown in a pill that glows?"
+
+### PRO, New, and Beta badges everywhere
+- **Rule:** A screen carries at most one quiet text badge.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Components": "`PRO`, `New [sparkle emoji]`, `Beta [rocket emoji]` badges everywhere → remove or one quiet text badge". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question; the count of two in the question is this catalog's choice.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Do two or more elements on one screen carry a badge such as PRO, New, or Beta?"
+
+### Every element a full pill
+- **Rule:** Corner radius follows the size of the element, and a nested element's radius is set from its container's radius. Search fields, buttons, and cards are not all drawn as full pills.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Components": "Every element a full pill, from search to buttons to cards → radius by size, nested radius math". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Are the search field, the buttons, and the cards all drawn with fully rounded pill ends?"
+
+### Rainbow, glowing, or pill-shaped chart bars
+- **Rule:** A chart shows one or two series on a muted grid, with monospaced labels and one highlight color.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Components": "Charts with rainbow bars, glowing bars, pill shaped bars or uppercase day labels → one or two series, muted grid and mono labels, one highlight color". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Does a chart have bars in rainbow colors, glowing bars, bars with fully rounded ends, or day labels in uppercase?"
+- **Note:** The Data visualization entries "No chartjunk" and "Limit categorical colors in a chart" state close rules from the field's references.
+
+### Every chart in shades of the accent
+- **Rule:** Charts and stacked bars use neutral steps, with the accent only on the one value that matters.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Components": "Every chart or stack in several shades of the accent, so nothing leads → neutral steps with the accent only on the one thing that matters". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is every series of a chart or stacked bar drawn in a shade of the accent color, so that no series leads?"
+
+### Sparklines on every stat card
+- **Rule:** A stat card shows the number, its label, and its change, with no sparkline, tally, or mini bars added by default.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Components": "Sparklines, tallies or mini bars added to every stat card → the number, its label and its change". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Does every stat card in a row carry a sparkline, a tally, or a set of mini bars?"
+
+### Equal cards side by side with the same chart
+- **Rule:** A dashboard has one main chart, compact stats, and cards of varied widths, not a row of equal cards that each hold the same chart or layout.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Components": "Equal cards side by side, each with the same chart or layout → one main chart, compact stats, varied widths". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Does a dashboard row hold equal cards side by side, each with the same chart or the same layout?"
+- **Note:** Equal cards are right for a set of peers (Layout entry "Repeated elements follow one program"). This entry asks about a dashboard where no card leads.
+
+### Gradient logo tile with a sparkle
+- **Rule:** The logo is the product name as text plus a simple flat mark.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Components": "Logo as a gradient tile with a sparkle and a gradient wordmark → product name as text plus a simple flat mark". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is the logo a gradient tile with a sparkle, next to a wordmark filled with a gradient?"
+
+### Logo mark as a glossy orb
+- **Rule:** The logo mark is a flat glyph in one solid color, or the logo is the wordmark alone.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Components": "Logo mark as a glossy orb, a gradient ball or a glowing dot → a flat glyph in one solid color, or the wordmark alone". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is the logo mark a glossy orb, a gradient ball, or a glowing dot?"
+
+### Pill badge above the headline
+- **Rule:** No pill badge sits above the hero headline. Real news gets a quiet text link.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Landing pages and heroes": "A pill badge above the headline ... → remove, or a quiet text link if it is real news". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: the example badge text is cut from the quote; whether the news is real reads the content (NG-10), so the question asks only whether the badge is there.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Does a pill-shaped badge sit directly above the hero headline?"
+
+### Hero stacked on one centered axis
+- **Rule:** The hero is an asymmetric split, or text over a large product view, not a centered stack of headline, text, buttons, and a picture below.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Landing pages and heroes": "Everything stacked and centered, headline, text, buttons and a picture below → an asymmetric split or text over a large product view, see the Layout pass". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Are the hero headline, its text, its buttons, and a picture below them all stacked on one centered axis?"
+- **Note:** The Layout entry "No central axis by default" states a close rule from the reading list.
+
+### Three or more buttons in the hero
+- **Rule:** A hero has one primary action and at most one secondary action, with no chips or avatars stacked under the buttons.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Landing pages and heroes": "Three or more buttons, or chips and avatars stacked under the buttons → one primary and at most one secondary action". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Does the hero have three or more buttons, or chips or avatars stacked under its buttons?"
+
+### Feature cards with an emoji and a bold title
+- **Rule:** Feature cards use line icons or no icons, not one emoji per card above a bold title and one line of text.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Landing pages and heroes": "Feature cards with an emoji, a bold title and a vague line each → fewer features, concrete copy, line icons or none". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: whether the line is vague and the call for concrete copy judge what the text says (NG-5, NG-10), so the entry keeps only the visual pattern.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is there a row of feature cards, each with an emoji, a bold title, and one line of text?"
+
+### Glossy 3D blob as the hero visual
+- **Rule:** The hero visual shows the product itself, or one concrete metaphor for what it does.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Visuals": "Glossy 3D blobs, orbs, liquid chrome shapes or a purple nebula as the hero visual → the product itself or one concrete metaphor for what it does". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is the hero visual a glossy 3D blob, an orb, a liquid chrome shape, or a purple nebula?"
+
+### Stock robots and glowing brains for AI
+- **Rule:** A visual about AI shows what the AI produces.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Visuals": "Stock robots, glowing brains, circuit lines or holograms for anything AI → remove, or show what the AI actually produces". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Does the page show a stock robot, a glowing brain, circuit lines, or a hologram to stand for AI?"
+
+### Image that does not blend into the page
+- **Rule:** An image has a background matched to the page and soft edges, so it does not sit on the page as a box with a seam.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Visuals": "An image that does not blend into the page, with a hard edge and a different black → background matched to the page and a soft mask at the edges". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Does an image sit on the page as a box with a hard edge, on a background, such as a different black, that almost matches the page and does not?"
+- **Note:** A framed photograph with a deliberate border passes. This entry asks about a near match that shows a seam.
+
+### A visual on every section
+- **Rule:** A page has one visual where it helps, usually only in the hero.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Visuals": "A visual on every section → one visual where it helps, usually only the hero". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable only on an image of the whole page. Question: "Does every section of the page have its own decorative visual?" One screen of a long page cannot show this.
+
+### Neutral dark template on a warm or bright product
+- **Rule:** The page's neutrals are tinted toward the product's world, and the accent comes from that world. A pure neutral dark gray page with white text, a stock neutral sans serif, and the brand color on one button is what a page falls back to when nobody chose.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Template look": "Pure grey #161616 page, Inter, white text and the old brand color on one button, on a product whose world is warm or bright → a ramp tinted toward the world and an accent from it". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: Inter is widened to a stock neutral sans serif, because a still image does not show the font name for certain.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is the page a pure neutral dark gray with white text in a stock neutral sans serif and the brand color on only one button, for a product whose world is warm or bright?" Whether the product's world is warm or bright comes from what the piece is for, which the critic reads first.
+
+### Empty box or generic picture as the hero visual
+- **Rule:** The hero visual is a product preview or an image from the product's world.
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Template look": "A hero visual that is an empty box or a generic picture → a product preview in code or an image from the world". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: rewritten as a rule and a question.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Is the hero visual an empty box, or a generic picture that shows nothing of this product?"
+
+### Eyebrow label above the hero headline
+- **Rule:** A hero headline does not sit under a short line of small, uppercase, letterspaced text (an eyebrow).
+- **Source:** unslop by Damir Sokolovsky, CC BY 4.0, skills/unslop/references/signs.md, commit 620163eedb3529d9cd23a3994ed8d287d06f760d, group "Type": "Uppercase labels with wide tracking, like `NAVIGATION` or `PAID THIS MONTH` → sentence case at normal or slightly open tracking", and group "Landing pages and heroes": "A pill badge above the headline". Part of unslop by Damir Sokolovsky (@heydamir), CC BY 4.0. Changes: this entry combines the two signs for a label above the headline that is uppercase, letterspaced text with no pill.
+- **Link:** https://github.com/heydamir/unslop/blob/620163eedb3529d9cd23a3994ed8d287d06f760d/skills/unslop/references/signs.md
+- **Judged by:** askable. Question: "Does a short line of small, uppercase, letterspaced text sit directly above the hero headline?"
+- **Note:** The letterspacing of such a line can be correct, and the Typography entry "Letterspace capitals and small caps" passes it. A short kicker above a heading is also a print convention in long-form editorial work. This entry asks only about the stock line above a landing-page hero. Reason for the entry: in the EV-10 loop run of 2026-11-24 the fixing agent added one, and Benjamin Jackson called it "an AI design slop cliche."
+
+### Template tells left out
+These signs from Damir Sokolovsky's unslop, at the same commit, have no entry here:
+- Copy, all 7 signs (greeting headlines, exclamation marks, changes with no reference, wordy placeholders, hype words, trailing periods on labels and buttons, and fake-looking data): each judges what the text says, and this catalog does no content linting (PRD NG-5, NG-10).
+- Motion, all 6 signs: a still image cannot show motion. For the same reason, "Parallax and elements floating on scroll" in the Landing pages group and the shimmer part of "Gradient or shimmer on the headline" are left out.
+- Spacing, all 5 signs, because the Layout section covers each one from the reading list. Arbitrary values off the 4 px scale: an image does not show the CSS values, and "Repeated elements follow one program" and "Equal intervals between columns" judge the visible result. Rows in one list with different heights or gaps: "Repeated elements follow one program" and "Equal intervals between columns". Groups that sit closer to their neighbors than to their own items: "Space shows the groups" and "Boxes do not split or join groups". Uneven padding inside sibling cards: "Repeated elements follow one program". Big empty gaps above a section and cramped space below it: "White space is gathered, not scattered" and "Unrelated elements do not crowd each other".
+- Right to left, all 14 signs: this catalog has no right-to-left scope. Three of them can be seen in a still image and could be a later ticket: Arabic or Hebrew text aligned left, a layout that is not mirrored, and two digit systems mixed on one screen.
+- Landing pages: "A headline that could fit any product" judges what the headline says (NG-10). The sign about "Trusted by" lines, rows of avatar dots, and five stars with no source asks whether a claim is true, which an image cannot show (NG-10). "Gradient or shimmer on the headline" and "Floating blobs, orbs, grids and glowing lines behind the hero" are merged into "Gradient text in headings, numbers, or the logo" and "Color washes and blurred blobs behind content".
+- Visuals: "Text, fake buttons or a fake logo baked into an image" reads the content of the image, and NG-10 records that text baked into an image was cut in M-1.
+- Template look: "A headline that would fit another product if you swapped the name" judges the copy (NG-5, NG-10). "Every product getting the same layout, type and palette" compares many products, so one image cannot show it.
 
 ---
 
