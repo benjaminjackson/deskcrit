@@ -712,12 +712,13 @@ describe("a measured facts file", () => {
 });
 
 describe("the committed runs", () => {
-  // The runs committed before facts existed must still replay: each saved run's prompt hash must
-  // match a run without facts, and each folder name must be the key its saved request gives.
+  // Every committed run must still replay: each folder name must be the key its saved request
+  // gives, and its prompt hash must match a new run of the same kind (with or without facts). A
+  // run made before facts existed has no facts in its request, so its key and hash are unchanged.
   const runsDirectory = join(import.meta.dirname, "runs");
   const commits = existsSync(runsDirectory) ? readdirSync(runsDirectory) : [];
   for (const commit of commits) {
-    it(`replays every saved run of skill commit ${commit.slice(0, 8)} with no facts file`, () => {
+    it(`replays every saved run of skill commit ${commit.slice(0, 8)}`, () => {
       const keys = readdirSync(join(runsDirectory, commit)).filter(
         (name) => name !== "judge",
       );
@@ -728,7 +729,7 @@ describe("the committed runs", () => {
           continue;
         }
         const metadata = JSON.parse(readFileSync(metadataPath, "utf8"));
-        expect(metadata.request.facts).toBeUndefined();
+        const factsSha256: string | undefined = metadata.request.facts?.sha256;
         const imageSha256s = metadata.request.images.map(
           (image: { sha256: string }) => image.sha256,
         );
@@ -737,10 +738,16 @@ describe("the committed runs", () => {
             imageSha256s,
             metadata.request.note ?? undefined,
             metadata.request.focus ?? undefined,
+            factsSha256,
           ),
         ).toBe(key);
         expect(
-          readSavedCrits(runsDirectory, commit, key).length,
+          readSavedCrits(
+            runsDirectory,
+            commit,
+            key,
+            currentRunIdentity(factsSha256 !== undefined),
+          ).length,
         ).toBeGreaterThan(0);
         checked += 1;
       }
