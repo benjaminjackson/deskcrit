@@ -276,11 +276,21 @@ function matchesIdentity(
 }
 
 /**
- * Returns the one Bash rule the critic is allowed: running the skill's crop script, by its
+ * Returns the first Bash rule the critic is allowed: running the skill's crop script, by its
  * absolute path, on any arguments (agents/critic.md step 1).
  */
 export function cropCommandRule(skillDirectory: string): string {
   return `Bash(node ${skillDirectory}/scripts/crop.mjs *)`;
+}
+
+/**
+ * Returns the second Bash rule the critic is allowed: running the skill's entries script, by its
+ * absolute path, on any arguments, to open the guideline entries a checklist line names
+ * (agents/critic.md step 5). The allowed rules are not part of the run identity, so adding this
+ * rule keeps the keys and the replays of runs saved before it.
+ */
+export function entriesCommandRule(skillDirectory: string): string {
+  return `Bash(node ${skillDirectory}/scripts/entries.mjs *)`;
 }
 
 /**
@@ -306,6 +316,7 @@ export function buildClaudeArguments(
     "--allowedTools",
     "Read",
     cropCommandRule(skillDirectory),
+    entriesCommandRule(skillDirectory),
     "--permission-prompts",
     "none",
     "--strict-mcp-config",
