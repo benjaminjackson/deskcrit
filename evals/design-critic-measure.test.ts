@@ -8,7 +8,9 @@ import {
   contrastRatio,
   EXIT_USAGE,
   findMainStyle,
+  findViolations,
   formatFactsJson,
+  isLargeText,
   measureContrast,
   measureLines,
   nameDrawnFont,
@@ -332,5 +334,135 @@ describe("runMeasure", () => {
     expect(result.lines).toEqual([
       "cannot measure: the file evals/measure/no-such-page.html does not exist",
     ]);
+  });
+});
+
+describe("findViolations", () => {
+  /** Returns a text block with the fields findViolations reads. */
+  function block(
+    selector: string,
+    fields: {
+      contrast?: number | null;
+      fontSize?: number;
+      fontWeight?: number;
+      lines?: number;
+      charactersPerLine?: number | null;
+    },
+  ) {
+    return {
+      selector,
+      box: [0, 0, 100, 20],
+      font_size: fields.fontSize ?? 16,
+      font_weight: fields.fontWeight ?? 400,
+      lines: fields.lines ?? 1,
+      characters_per_line: fields.charactersPerLine ?? 20,
+      contrast: fields.contrast ?? 21,
+    };
+  }
+
+  /** Returns a target with a box [x, y, width, height]. */
+  function target(selector: string, box: number[]) {
+    return { selector, box };
+  }
+
+  /** Returns `rule selector value` for each violation, so a test reads in one line. */
+  function names(
+    violations: { rule: string; selector: string; value: number }[],
+  ) {
+    return violations.map(
+      (violation) =>
+        `${violation.rule} ${violation.selector} ${violation.value}`,
+    );
+  }
+
+  it("counts 24 px, and 18.66 px at weight 700, as large text, and nothing smaller", () => {
+    expect(isLargeText(24, 400)).toBe(true);
+    expect(isLargeText(18.66, 700)).toBe(true);
+    expect(isLargeText(18.66, 400)).toBe(false);
+    expect(isLargeText(23.9, 600)).toBe(false);
+  });
+
+  it("flags normal text under 4.5 and large text under 3, and passes the limits themselves", () => {
+    const blocks = [
+      block("#normal-low", { contrast: 4.49 }),
+      block("#normal-at", { contrast: 4.5 }),
+      block("#large-between", { contrast: 3.6, fontSize: 24 }),
+      block("#large-low", { contrast: 2.9, fontSize: 24 }),
+      block("#unmeasured", { contrast: null }),
+    ];
+    const found = findViolations(
+      blocks,
+      blocks.map(() => null),
+      [],
+      [],
+    );
+    expect(names(found)).toEqual([
+      "text-contrast #normal-low 4.49",
+      "large-text-contrast #large-low 2.9",
+    ]);
+    expect(found[0]).toMatchObject({
+      guideline: "Text contrast (minimum)",
+      threshold: 4.5,
+      box: [0, 0, 100, 20],
+    });
+  });
+
+  it("leaves out text with an exemption", () => {
+    const blocks = [
+      block("#logo", { contrast: 1.9 }),
+      block("#off", { contrast: 2 }),
+    ];
+    const found = findViolations(
+      blocks,
+      ["logo or image", "disabled control"],
+      [],
+      [],
+    );
+    expect(found).toEqual([]);
+  });
+
+  it("flags lines over 75 characters only in blocks of 3 or more lines", () => {
+    const blocks = [
+      block("#long", { lines: 3, charactersPerLine: 76 }),
+      block("#at", { lines: 5, charactersPerLine: 75 }),
+      block("#two-lines", { lines: 2, charactersPerLine: 120 }),
+    ];
+    const found = findViolations(
+      blocks,
+      blocks.map(() => null),
+      [],
+      [],
+    );
+    expect(names(found)).toEqual(["line-length #long 76"]);
+  });
+
+  it("flags small targets whose 24 px circles touch, and passes one with room or an exemption", () => {
+    const targets = [
+      target("#a", [0, 0, 16, 16]),
+      target("#b", [18, 0, 16, 16]),
+      target("#lone", [200, 200, 16, 16]),
+      target("#big", [0, 100, 24, 24]),
+      target("#near-big", [0, 125, 20, 20]),
+      target("#inline", [300, 300, 30, 10]),
+    ];
+    const exemptions = [null, null, null, null, null, "inline link in text"];
+    const found = findViolations([], [], targets, exemptions);
+    expect(names(found)).toEqual([
+      "target-size #a 16",
+      "target-size #b 16",
+      "target-size #near-big 20",
+    ]);
+    expect(found[0]).toMatchObject({
+      guideline: "Target size (minimum)",
+      threshold: 24,
+    });
+  });
+
+  it("passes two small targets whose centers are exactly 24 px apart", () => {
+    const targets = [
+      target("#a", [0, 0, 20, 20]),
+      target("#b", [24, 0, 20, 20]),
+    ];
+    expect(findViolations([], [], targets, [null, null])).toEqual([]);
   });
 });

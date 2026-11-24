@@ -6,6 +6,11 @@
   characters; #gray is #777777 on white (contrast 4.48); #on-gradient sits on a gradient, #covered
   sits under an opaque box, #faded has opacity 0.5, so none of the three has a contrast number;
   #hidden is not displayed; #action is a 120 x 40 px button.
+  Violations (crit-576.13): #gray breaks 4.5:1; #large is 24 px #888888 (3.54), large text, so it
+  passes; #brand-mark (#bbbbbb, 1.9) sits in a logo and #off (#aaaaaa on #eeeeee) in a disabled
+  button, so both are exempt; #long has three lines of exactly 90 characters, over 75; #pair-a and
+  #pair-b are 16 x 16 px buttons 2 px apart, so both break 24 px; #lone is 16 x 16 px with room
+  around it, so it passes; #in-text is a link inside a sentence, so it is exempt.
 -->
 <html lang="en">
 <head>
@@ -31,6 +36,13 @@
     .overlay { position: absolute; left: 0; top: 0; width: 100%; height: 24px; background: #ff0000; }
     #faded { opacity: 0.5; }
     #hidden { display: none; }
+    #large { font-size: 24px; line-height: 32px; color: #888888; }
+    .logo { font-size: 16px; color: #bbbbbb; }
+    #off { width: 120px; height: 40px; border: 0; font: 16px "Inter", sans-serif; background: #eeeeee; color: #aaaaaa; }
+    #long { white-space: pre-line; }
+    .pair { display: flex; gap: 2px; margin: 24px 0; }
+    .pair button, #lone { width: 16px; height: 16px; margin: 0; padding: 0; border: 0; background: #000000; }
+    #lone { display: block; margin: 48px 0; }
     #action { width: 120px; height: 40px; margin: 0; padding: 0; border: 0; font: 16px "Inter", sans-serif; background: #000000; color: #ffffff; }
   </style>
 </head>
@@ -47,6 +59,15 @@ abcd efgh ijkl mnop qrst uvwx yzab cdefg</p>
     <p id="faded">Text at half opacity.</p>
     <p id="hidden">Text that is not displayed.</p>
     <button id="action" type="button">Go</button>
+    <p id="large">Large text in mid gray.</p>
+    <p><span class="logo" id="brand-mark">Acme</span></p>
+    <p><button id="off" type="button" disabled>Off</button></p>
+    <p id="long">abcd efgh ijkl mnop qrst uvwx yzab cdef ghij klmn opqr stuv wxyz abcd efgh ijkl mnop qrstu
+abcd efgh ijkl mnop qrst uvwx yzab cdef ghij klmn opqr stuv wxyz abcd efgh ijkl mnop qrstu
+abcd efgh ijkl mnop qrst uvwx yzab cdef ghij klmn opqr stuv wxyz abcd efgh ijkl mnop qrstu</p>
+    <div class="pair"><button id="pair-a" type="button"></button><button id="pair-b" type="button"></button></div>
+    <button id="lone" type="button"></button>
+    <p id="sentence">Read the <a href="#top" id="in-text">terms</a> before you start.</p>
   </main>
 </body>
 </html>
