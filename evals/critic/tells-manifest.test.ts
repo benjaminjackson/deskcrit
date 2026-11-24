@@ -63,9 +63,7 @@ describe("the Template tells section of GUIDELINES.md", () => {
   });
 });
 
-// The fixture lane of crit-7hw.2 adds packs/_tells/tells.json; until then these tests skip so
-// `npm run ci` passes. The integrator removes the skip when the fixtures land.
-describe.skipIf(!existsSync(MANIFEST_PATH))("packs/_tells/tells.json", () => {
+describe("packs/_tells/tells.json", () => {
   /** Returns the tells of the manifest. */
   function readManifest() {
     return parseTellsManifest(readFileSync(MANIFEST_PATH, "utf8"));

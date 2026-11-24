@@ -2,7 +2,7 @@
 // critic critiques the image with the tell planted (`<template>.positive.png`) and its twin
 // without it (`<template>.negative.png`). The judge reads each crit alone and says whether it
 // names the tell as a problem, praises it, or does not mention it. It prints raised-on-positive,
-// quiet-on-negative, and praised-on-positive per tell and in total.
+// quiet-on-negative, praised-on-positive, and praised-on-negative per tell and in total.
 //
 // Why: in the EV-10 loop run of 2026-11-24 the recheck critic praised a tell (a small uppercase
 // eyebrow line above the headline) under "What's working", and no evaluation measured whether the
@@ -12,9 +12,9 @@
 // Each image is a one-image request with no facts, note, or focus, so its crit is shared with any
 // other evaluation of the same image. Live mode runs the critic and the judge, so `npm run ci`
 // never runs it (CS-21); a person starts it by hand. Replay mode (--replay) reads the saved crits
-// and judge answers and starts no child process. The npm script `eval:critic:tells` replays with
-// `--skill-commit PENDING`; the integrator pins the real commit after the live run, as
-// `eval:critic:detect:refute` is pinned. HELP_TEXT holds the usage and the exit codes.
+// and judge answers and starts no child process. The npm script `eval:critic:tells` replays the
+// baseline run at the skill commit it pins, as `eval:critic:detect:refute` is pinned. HELP_TEXT
+// holds the usage and the exit codes.
 
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -116,6 +116,7 @@ export type TellCounts = {
   readonly praisedOnPositive: number;
   readonly positivesJudged: number;
   readonly quietOnNegative: number;
+  readonly praisedOnNegative: number;
   readonly negativesJudged: number;
 };
 
@@ -206,13 +207,16 @@ Anywhere in the critique, in any section, does it name this tell as a problem (r
 /**
  * Adds up the EV-23 counts. Raised on positive: the crit of the image with the tell raises it.
  * Praised on positive: that crit praises it. Quiet on negative: the crit of the twin does not
- * raise it (praising or not mentioning both count as quiet). A missing answer counts nowhere.
+ * raise it (praising or not mentioning both count as quiet). Praised on negative: that crit
+ * praises the tell, counted on its own so a praise on a clean twin stays visible. A missing
+ * answer counts nowhere.
  */
 export function countTells(answers: readonly TellAnswers[]): TellCounts {
   let raisedOnPositive = 0;
   let praisedOnPositive = 0;
   let positivesJudged = 0;
   let quietOnNegative = 0;
+  let praisedOnNegative = 0;
   let negativesJudged = 0;
   for (const answer of answers) {
     if (answer.positive !== undefined) {
@@ -229,6 +233,9 @@ export function countTells(answers: readonly TellAnswers[]): TellCounts {
       if (answer.negative.says_tell !== "raised") {
         quietOnNegative += 1;
       }
+      if (answer.negative.says_tell === "praised") {
+        praisedOnNegative += 1;
+      }
     }
   }
   return {
@@ -236,6 +243,7 @@ export function countTells(answers: readonly TellAnswers[]): TellCounts {
     praisedOnPositive,
     positivesJudged,
     quietOnNegative,
+    praisedOnNegative,
     negativesJudged,
   };
 }
@@ -287,7 +295,8 @@ Flags:
 The judge reads each crit alone and says whether it raises the tell as a problem, praises it, or
 does not mention it. Raised on positive counts crits of the image with the tell that raise it;
 praised on positive counts those that praise it; quiet on negative counts crits of the twin that
-do not raise it.
+do not raise it; praised on negative counts crits of the twin that praise it. A failed critic run
+is named and the other images go on.
 
 Exit codes: 0 full report, 2 could not run or a crit or answer is missing.
 `;
@@ -330,6 +339,7 @@ export async function runTells(
     parsed.values["skill-commit"] ?? skillCommit(skillDirectory, replay);
   const tells = parseTellsManifest(readFileSync(manifestPath, "utf8"));
 
+  const failedRuns: string[] = [];
   if (!replay) {
     const imagePaths: string[] = [];
     for (const tell of tells) {
@@ -342,13 +352,23 @@ export async function runTells(
       skillCommit: commit,
       runClaude: options.runClaude,
     };
-    await runPooled(imagePaths, parallel, (imagePath) =>
-      ensureCrits({ imagePaths: [imagePath] }, criticOptions),
-    );
+    // A failed run (a refusal, a usage limit) is named and the other images go on; its crit is
+    // then missing, so the report exits 2 and a later live run tries it again.
+    await runPooled(imagePaths, parallel, async (imagePath) => {
+      try {
+        await ensureCrits({ imagePaths: [imagePath] }, criticOptions);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        failedRuns.push(
+          `critic run failed: ${portablePath(imagePath, 3)}: ${message.slice(0, 300)}`,
+        );
+      }
+    });
   }
 
-  // One question per image, in the order positive then negative of each tell.
-  const missing: string[] = [];
+  // One question per image, in the order positive then negative of each tell. The failed runs
+  // come first in the list of what is missing.
+  const missing: string[] = [...failedRuns];
   const questions: (JudgeQuestion | undefined)[] = [];
   const imageLabels: string[] = [];
   for (const tell of tells) {
@@ -444,6 +464,7 @@ function renderResult(
       yesNo(positive === undefined ? undefined : positive === "raised"),
       yesNo(negative === undefined ? undefined : negative !== "raised"),
       yesNo(positive === undefined ? undefined : positive === "praised"),
+      yesNo(negative === undefined ? undefined : negative === "praised"),
     ]);
   });
   const total = countTells(answersByTell);
@@ -454,6 +475,7 @@ function renderResult(
     formatRate(total.raisedOnPositive, total.positivesJudged),
     formatRate(total.quietOnNegative, total.negativesJudged),
     formatRate(total.praisedOnPositive, total.positivesJudged),
+    formatRate(total.praisedOnNegative, total.negativesJudged),
   ]);
   const table = formatTable(
     [
@@ -463,6 +485,7 @@ function renderResult(
       "raised-on-positive",
       "quiet-on-negative",
       "praised-on-positive",
+      "praised-on-negative",
     ],
     rows,
   );

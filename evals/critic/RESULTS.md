@@ -730,51 +730,51 @@ The picker agrees with the preference on 24 of 30 pairs, the same figure as the 
 
 ## Template tells (baseline, EV-23)
 
-One critic run per image at skill commit `15fe4169`, the critic before it was told about the tells, on the 76 frozen fixtures of `packs/_tells/` (crit-7hw.2): one positive image with the tell and one negative twin without it, for each of the 38 entries of the Template tells section of GUIDELINES.md. A fresh agent that saw no crit or score did the realism pass before the run (37 of 38 ok, one title fix). The judge read each crit and said whether it raises the tell, praises it, or does not mention it. A praise on a negative image counts as quiet. `npm run eval:critic:tells` replays this table with no model call:
+One critic run per image at skill commit `15fe4169`, the critic before it was told about the tells, on the 76 frozen fixtures of `packs/_tells/` (crit-7hw.2): one positive image with the tell and one negative twin without it, for each of the 38 entries of the Template tells section of GUIDELINES.md. A fresh agent that saw no crit or score did the realism pass before the run (37 of 38 ok, one title fix). The judge read each crit and said whether it raises the tell, praises it, or does not mention it. A praise on a negative image counts as quiet, and the praised-on-negative column counts it again on its own. `npm run eval:critic:tells` replays this table with no model call:
 
 ```
-tell                                                      positive       negative       raised-on-positive  quiet-on-negative  praised-on-positive
-purple-to-blue-or-violet-to-pink-gradients                raised         not_mentioned  yes                 yes                no
-gradient-text-in-headings-numbers-or-the-logo             raised         not_mentioned  yes                 yes                no
-colored-glows-around-elements                             raised         not_mentioned  yes                 yes                no
-color-washes-and-blurred-blobs-behind-content             praised        not_mentioned  no                  yes                yes
-neon-or-bright-colored-borders                            raised         not_mentioned  yes                 yes                no
-many-near-identical-tints-of-one-hue-for-text             not_mentioned  not_mentioned  no                  yes                no
-every-element-highlighted                                 raised         praised        yes                 yes                no
-glass-cards-with-an-inner-highlight-and-a-colored-shadow  raised         not_mentioned  yes                 yes                no
-headings-at-weight-800-or-900                             praised        not_mentioned  no                  yes                yes
-uppercase-labels-with-wide-tracking                       praised        not_mentioned  no                  yes                yes
-too-many-type-sizes-and-weights-on-one-screen             raised         praised        yes                 yes                no
-numbers-in-mixed-formats                                  raised         not_mentioned  yes                 yes                no
-negative-letter-spacing-on-small-text                     not_mentioned  not_mentioned  no                  yes                no
-italic-used-for-emphasis-in-interface-text                raised         not_mentioned  yes                 yes                no
-emoji-as-icons-or-status                                  raised         not_mentioned  yes                 yes                no
-emoji-inside-pills-and-counts                             raised         not_mentioned  yes                 yes                no
-icons-in-many-sizes-and-colors                            raised         not_mentioned  yes                 yes                no
-icons-nudged-off-the-column                               raised         not_mentioned  yes                 yes                no
-sparkle-icon-as-decoration                                raised         not_mentioned  yes                 yes                no
-glowing-pills-for-counts-and-status                       raised         not_mentioned  yes                 yes                no
-pro-new-and-beta-badges-everywhere                        raised         not_mentioned  yes                 yes                no
-every-element-a-full-pill                                 not_mentioned  not_mentioned  no                  yes                no
-rainbow-glowing-or-pill-shaped-chart-bars                 raised         not_mentioned  yes                 yes                no
-every-chart-in-shades-of-the-accent                       raised         not_mentioned  yes                 yes                no
-sparklines-on-every-stat-card                             praised        not_mentioned  no                  yes                yes
-equal-cards-side-by-side-with-the-same-chart              praised        not_mentioned  no                  yes                yes
-gradient-logo-tile-with-a-sparkle                         not_mentioned  not_mentioned  no                  yes                no
-logo-mark-as-a-glossy-orb                                 raised         not_mentioned  yes                 yes                no
-pill-badge-above-the-headline                             raised         not_mentioned  yes                 yes                no
-hero-stacked-on-one-centered-axis                         not_mentioned  not_mentioned  no                  yes                no
-three-or-more-buttons-in-the-hero                         raised         praised        yes                 yes                no
-feature-cards-with-an-emoji-and-a-bold-title              raised         not_mentioned  yes                 yes                no
-glossy-3d-blob-as-the-hero-visual                         raised         not_mentioned  yes                 yes                no
-stock-robots-glowing-brains-and-holograms                 raised         not_mentioned  yes                 yes                no
-image-that-does-not-blend-into-the-page                   not_mentioned  not_mentioned  no                  yes                no
-a-visual-on-every-section                                 not_mentioned  not_mentioned  no                  yes                no
-neutral-dark-template-look                                praised        praised        no                  yes                yes
-empty-box-or-generic-picture-as-the-hero-visual           raised         not_mentioned  yes                 yes                no
-Total                                                                                   0.66 (25/38)        1.00 (38/38)       0.16 (6/38)
+tell                                                      positive       negative       raised-on-positive  quiet-on-negative  praised-on-positive  praised-on-negative
+purple-to-blue-or-violet-to-pink-gradients                raised         not_mentioned  yes                 yes                no                   no
+gradient-text-in-headings-numbers-or-the-logo             raised         not_mentioned  yes                 yes                no                   no
+colored-glows-around-elements                             raised         not_mentioned  yes                 yes                no                   no
+color-washes-and-blurred-blobs-behind-content             praised        not_mentioned  no                  yes                yes                  no
+neon-or-bright-colored-borders                            raised         not_mentioned  yes                 yes                no                   no
+many-near-identical-tints-of-one-hue-for-text             not_mentioned  not_mentioned  no                  yes                no                   no
+every-element-highlighted                                 raised         praised        yes                 yes                no                   yes
+glass-cards-with-an-inner-highlight-and-a-colored-shadow  raised         not_mentioned  yes                 yes                no                   no
+headings-at-weight-800-or-900                             praised        not_mentioned  no                  yes                yes                  no
+uppercase-labels-with-wide-tracking                       praised        not_mentioned  no                  yes                yes                  no
+too-many-type-sizes-and-weights-on-one-screen             raised         praised        yes                 yes                no                   yes
+numbers-in-mixed-formats                                  raised         not_mentioned  yes                 yes                no                   no
+negative-letter-spacing-on-small-text                     not_mentioned  not_mentioned  no                  yes                no                   no
+italic-used-for-emphasis-in-interface-text                raised         not_mentioned  yes                 yes                no                   no
+emoji-as-icons-or-status                                  raised         not_mentioned  yes                 yes                no                   no
+emoji-inside-pills-and-counts                             raised         not_mentioned  yes                 yes                no                   no
+icons-in-many-sizes-and-colors                            raised         not_mentioned  yes                 yes                no                   no
+icons-nudged-off-the-column                               raised         not_mentioned  yes                 yes                no                   no
+sparkle-icon-as-decoration                                raised         not_mentioned  yes                 yes                no                   no
+glowing-pills-for-counts-and-status                       raised         not_mentioned  yes                 yes                no                   no
+pro-new-and-beta-badges-everywhere                        raised         not_mentioned  yes                 yes                no                   no
+every-element-a-full-pill                                 not_mentioned  not_mentioned  no                  yes                no                   no
+rainbow-glowing-or-pill-shaped-chart-bars                 raised         not_mentioned  yes                 yes                no                   no
+every-chart-in-shades-of-the-accent                       raised         not_mentioned  yes                 yes                no                   no
+sparklines-on-every-stat-card                             praised        not_mentioned  no                  yes                yes                  no
+equal-cards-side-by-side-with-the-same-chart              praised        not_mentioned  no                  yes                yes                  no
+gradient-logo-tile-with-a-sparkle                         not_mentioned  not_mentioned  no                  yes                no                   no
+logo-mark-as-a-glossy-orb                                 raised         not_mentioned  yes                 yes                no                   no
+pill-badge-above-the-headline                             raised         not_mentioned  yes                 yes                no                   no
+hero-stacked-on-one-centered-axis                         not_mentioned  not_mentioned  no                  yes                no                   no
+three-or-more-buttons-in-the-hero                         raised         praised        yes                 yes                no                   yes
+feature-cards-with-an-emoji-and-a-bold-title              raised         not_mentioned  yes                 yes                no                   no
+glossy-3d-blob-as-the-hero-visual                         raised         not_mentioned  yes                 yes                no                   no
+stock-robots-glowing-brains-and-holograms                 raised         not_mentioned  yes                 yes                no                   no
+image-that-does-not-blend-into-the-page                   not_mentioned  not_mentioned  no                  yes                no                   no
+a-visual-on-every-section                                 not_mentioned  not_mentioned  no                  yes                no                   no
+neutral-dark-template-look                                praised        praised        no                  yes                yes                  yes
+empty-box-or-generic-picture-as-the-hero-visual           raised         not_mentioned  yes                 yes                no                   no
+Total                                                                                   0.66 (25/38)        1.00 (38/38)       0.16 (6/38)          0.11 (4/38)
 skill commit 15fe41698c70411d5cffd822320277c11552224e
 replay: node evals/critic/tells.ts --replay --skill-commit 15fe41698c70411d5cffd822320277c11552224e
 ```
 
-The unchanged critic raises 25 of the 38 tells, never raises one on a clean twin, and praises 6 tells as good design: the color washes behind the hero, headings at weight 800, uppercase labels with wide tracking, sparklines on every stat card, equal cards with the same chart, and the neutral dark template look. crit-7hw.3 compares its rescore with this table.
+The unchanged critic raises 25 of the 38 tells, never raises one on a clean twin, and praises 6 tells as good design: the color washes behind the hero, headings at weight 800, uppercase labels with wide tracking, sparklines on every stat card, equal cards with the same chart, and the neutral dark template look. On 4 of the 38 clean twins the judge marked the crit as praising the tell: every element highlighted, too many type sizes and weights on one screen, three or more buttons in the hero, and the neutral dark template look. crit-7hw.3 compares its rescore with this table.

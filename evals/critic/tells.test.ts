@@ -293,7 +293,7 @@ describe("buildTellQuestion", () => {
 });
 
 describe("countTells", () => {
-  it("counts raised and praised on positives and anything but raised as quiet on negatives", () => {
+  it("counts raised and praised on positives, anything but raised as quiet on negatives, and praised on negatives", () => {
     const counts = countTells([
       { positive: answerOf("raised"), negative: answerOf("not_mentioned") },
       { positive: answerOf("praised"), negative: answerOf("praised") },
@@ -305,6 +305,7 @@ describe("countTells", () => {
       praisedOnPositive: 1,
       positivesJudged: 3,
       quietOnNegative: 2,
+      praisedOnNegative: 1,
       negativesJudged: 3,
     });
   });
@@ -325,17 +326,30 @@ describe("runTells --replay", () => {
     expect(output.errorText).toBe("");
     expect(output.exitCode).toBe(0);
     expect(output.text).toMatch(
-      /^zz-alpha-fixture +raised +not_mentioned +yes +yes +no$/m,
+      /^zz-alpha-fixture +raised +not_mentioned +yes +yes +no +no$/m,
     );
     expect(output.text).toMatch(
-      /^zz-beta-fixture +praised +raised +no +no +yes$/m,
+      /^zz-beta-fixture +praised +raised +no +no +yes +no$/m,
     );
     expect(output.text).toMatch(
-      /^Total +0\.50 \(1\/2\) +0\.50 \(1\/2\) +0\.50 \(1\/2\)$/m,
+      /^Total +0\.50 \(1\/2\) +0\.50 \(1\/2\) +0\.50 \(1\/2\) +0\.00 \(0\/2\)$/m,
     );
     expect(output.text).toContain(`skill commit ${COMMIT}`);
     expect(output.text).toContain(
       `node evals/critic/tells.ts --replay --skill-commit ${COMMIT}`,
+    );
+  });
+
+  it("counts a praise on a negative as quiet and as praised-on-negative", async () => {
+    const folder = newTestFolder();
+    await seedRuns(folder, { "zz-alpha-fixture negative": "praised" }, []);
+    const output = await replay(folder);
+    expect(output.exitCode).toBe(0);
+    expect(output.text).toMatch(
+      /^zz-alpha-fixture +raised +praised +yes +yes +no +yes$/m,
+    );
+    expect(output.text).toMatch(
+      /^Total +1\.00 \(2\/2\) +1\.00 \(2\/2\) +0\.00 \(0\/2\) +0\.50 \(1\/2\)$/m,
     );
   });
 
@@ -345,7 +359,7 @@ describe("runTells --replay", () => {
     const output = await replay(folder);
     expect(output.exitCode).toBe(2);
     expect(output.text).toMatch(
-      /^zz-alpha-fixture +raised +missing +yes +- +no$/m,
+      /^zz-alpha-fixture +raised +missing +yes +- +no +-$/m,
     );
     expect(output.errorText).toContain(
       "/fixtures/zz-alpha-fixture.negative.png at skill commit",
@@ -438,6 +452,62 @@ describe("runTells live, with a stub critic and a stub judge", () => {
         "utf8",
       ),
     ).toContain('"name": "tell"');
+  });
+});
+
+describe("runTells live, when one critic run fails", () => {
+  it("judges the other images, names the failed image, and exits 2", async () => {
+    const folder = newTestFolder();
+    const failingImage = "zz-alpha-fixture.negative.png";
+    let judgeCalls = 0;
+    const stub: ClaudeRunner = async (args, _environment, workingDirectory) => {
+      if (args[0] === "--version") {
+        return { stdout: "2.0.0 (Claude Code)", stderr: "", exitCode: 0 };
+      }
+      if (args.includes("--json-schema")) {
+        judgeCalls += 1;
+        return {
+          stdout: judgeStdout(answerOf("raised")),
+          stderr: "",
+          exitCode: 0,
+        };
+      }
+      // The critic sees its image only as image-1.png in its work folder. Each fake PNG holds its
+      // own file name after the signature, so the stub finds the failing image by those bytes.
+      const bytes = readFileSync(
+        join(workingDirectory, "image-1.png"),
+        "latin1",
+      );
+      if (bytes.includes(failingImage)) {
+        return { stdout: "", stderr: "usage limit reached", exitCode: 1 };
+      }
+      return {
+        stdout: JSON.stringify({
+          type: "result",
+          subtype: "success",
+          is_error: false,
+          result: "A crit.",
+          modelUsage: { "claude-opus-5-5": {} },
+        }),
+        stderr: "",
+        exitCode: 0,
+      };
+    };
+    const output = await runTells(folderFlags(folder), optionsOf(folder, stub));
+    expect(output.exitCode).toBe(2);
+    expect(judgeCalls).toBe(TELLS.length * 2 - 1);
+    expect(output.errorText).toMatch(
+      /^critic run failed: .*zz-alpha-fixture\.negative\.png: /m,
+    );
+    expect(output.errorText).toContain(
+      "/fixtures/zz-alpha-fixture.negative.png at skill commit",
+    );
+    expect(output.text).toMatch(
+      /^zz-alpha-fixture +raised +missing +yes +- +no +-$/m,
+    );
+    expect(output.text).toMatch(
+      /^zz-beta-fixture +raised +raised +yes +no +no +no$/m,
+    );
   });
 });
 
