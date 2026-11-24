@@ -44,9 +44,25 @@ Count the images first. The count picks the mode, and nothing else does.
    Measured facts file: <absolute path of facts.json>
    ```
 
-3. Give the critique to the user as the agent wrote it. Do not soften or trim it. Add your own comment only if the user asked for it.
+3. Add the section "Where it could go further" with a second agent, which reads the image and the finished crit and writes only that section. Pick the work folder: the folder that holds `facts.json` when there is one, else the image's folder. Save the critique there as `crit.md`, exactly as the agent wrote it, with the Write tool. Then spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`, with this prompt and the placeholders filled:
 
-4. Write the work order, the JSON a coding agent acts on (schema: `schemas/work-order.schema.json` in the deskcrit repository). Pick the work folder: the folder that holds `facts.json` when there is one, else the image's folder. Save the critique there as `crit.md`, exactly as the agent wrote it, with the Write tool. Then spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "sonnet"`, with this prompt, the placeholders filled, and the facts line only when the critic had that file:
+   ```
+   Time matters here: do not spend time that can be avoided, and the earlier a correct result is obtained, the better.
+
+   Read <skill folder>/agents/go-further.md and follow it. The skill folder is <skill folder>; every path in go-further.md is relative to it.
+
+   Image: <absolute path of the image>
+   Crit file: <absolute path of crit.md>
+
+   You write only the section. Do not edit, move, or create any file except crops in a temporary folder.
+   End with the section as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the section.
+   ```
+
+   Join the section into the crit exactly as the agent wrote it, as its own paragraph right after "What's working": before "Couldn't judge from a still" when the crit has it, else before "Checklist". Write the joined crit over `crit.md`. With two or more images, skip this step: the section is about one piece.
+
+4. Give the critique to the user, joined with the section. Do not soften or trim it. Add your own comment only if the user asked for it.
+
+5. Write the work order, the JSON a coding agent acts on (schema: `schemas/work-order.schema.json` in the deskcrit repository). Use the `crit.md` of step 3; the work-order agent leaves the items of "Where it could go further" out. Then spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "sonnet"`, with this prompt, the placeholders filled, and the facts line only when the critic had that file:
 
    ```
    Time matters here: do not spend time that can be avoided, and the earlier a correct result is obtained, the better.
@@ -93,6 +109,7 @@ Use this mode for two or more images, once you know the mode from "Pick the mode
 - `references/checklist.md`: yes-or-no questions in sections, whole page first and detail last, where yes means fine; each kind of defect has one question, and each question points to the full entries it stands for.
 - `references/<domain>.md`: full entries for basics, layout, typography, color, art direction, ux, accessibility, and dataviz. Each gives the rule, what to look for, the source, caveats about the source, and the approved fix.
 - `agents/deep-mode.md`, `agents/section-critic.md`, `agents/director.md`, and `references/checklist-<section>.md`: the deep mode, one critic per checklist section and a director who merges and ranks their reports.
+- `agents/go-further.md`: the instructions of the second agent, which reads the image and the finished crit and writes only the section "Where it could go further".
 - `agents/work-order.md`: the instructions of the agent that turns the finished crit into `work-order.json`.
 - `scripts/work-order.mjs`: checks a work order against its crit, image, and facts file: one entry per ranked finding, and every pixel box taken from the facts file or a crop.
 - `agents/set-critic.md`: the consistency check of contact-sheet mode, which judges whether a set of images keeps one pattern and names each image that breaks it.
