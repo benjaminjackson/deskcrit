@@ -676,3 +676,54 @@ false break on a clean set: 0 of 3
 ```
 
 The set critic found every planted break, named only the planted tile on all 7 broken sets, and reported no break on the 3 clean sets. One run per set, on generated screens, so this shows the mode works and is not yet a rate; EV-21 has no pass bar yet.
+
+## Picker (FR-83, EV-15 pairs)
+
+One picker run per pair at skill commit `b3e5f343`, on the 30 labeled pairs of `evals/compare-pairs/labels.json` (crit-j8y.7). Each run read a contact sheet of the two versions plus both full-size images, in the order `compare.ts` uses, and a tie counts as "same". `node evals/critic/picker.ts` printed:
+
+```
+Picker on the compare pairs (FR-83, EV-15)
+Mode: live
+Skill commit: b3e5f3439dda0d05ec567b2cbbf91e0de80828cb
+Pairs: 30
+
+pair                                         tile-1-is  picker said  preference  outcome
+decorative-face-for-paragraphs-fix           before     tile 2       after       agreed
+decorative-face-for-paragraphs-2-regression  before     tile 1       before      agreed
+text-reads-faint-fix                         after      tile 1       after       agreed
+text-reads-faint-2-regression                after      tile 2       same        disagreed
+text-reads-faint-3-fix                       before     tile 2       after       agreed
+centered-or-right-paragraphs-fix             before     tile 2       after       agreed
+centered-or-right-paragraphs-2-regression    after      tile 2       before      agreed
+all-caps-long-text-fix                       after      tile 1       after       agreed
+all-caps-long-text-2-regression              after      tile 2       before      agreed
+competing-primary-buttons-fix                after      tile 1       after       agreed
+competing-primary-buttons-2-regression       after      tile 2       before      agreed
+no-dominant-element-fix                      before     tile 2       after       agreed
+no-dominant-element-2-regression             before     tile 1       before      agreed
+uniform-scale-fix                            before     tile 2       after       agreed
+uniform-scale-2-regression                   before     tile 1       before      agreed
+everything-centered-fix                      after      tile 1       after       agreed
+everything-centered-2-regression             before     tile 1       before      agreed
+heavy-rules-and-boxes-fix                    before     tile 2       after       agreed
+heavy-rules-and-boxes-2-regression           after      tile 2       before      agreed
+heading-lines-collide-fix                    after      tile 1       after       agreed
+heading-lines-collide-2-regression           after      tile 2       before      agreed
+heading-indistinct-fix                       after      tile 1       after       agreed
+heading-indistinct-2-regression              before     tile 1       before      agreed
+headings-differ-only-in-size-fix             after      tile 1       after       agreed
+headings-differ-only-in-size-2-regression    after      tile 2       before      agreed
+same-button-radius                           after      tile 1       same        disagreed
+same-button-hue                              after      tie          after       disagreed
+same-page-background                         after      tile 1       before      disagreed
+same-illustration-fill                       after      tie          before      disagreed
+same-link-underline-offset                   after      tile 2       same        disagreed
+
+agreed 24, disagreed 6, undecided 0, rate 0.800 (of 30 scored)
+
+agrees with the preference: 24 of 30; old compare path (EV-15, SCORES.md): 24 of 30
+
+ties on the 3 pairs preferred "same": 0; ties on the 27 other pairs: 2
+```
+
+The picker agrees with the preference on 24 of 30 pairs, the same figure as the old compare path (24 of 30 at every scored skill version in `SCORES.md`), and it misses the same 6 pairs: `text-reads-faint-2-regression`, `same-button-radius`, `same-button-hue`, `same-page-background`, `same-illustration-fill`, and `same-link-underline-offset`. It gave 2 ties, both on pairs where the preference is not "same". All 24 `-fix` and `-regression` pairs except `text-reads-faint-2-regression` agree. One run per pair, so this is not yet a rate.
