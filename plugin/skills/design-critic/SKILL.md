@@ -67,6 +67,7 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
 - `agents/work-order.md`: the instructions of the agent that turns the finished crit into `work-order.json`.
 - `scripts/work-order.mjs`: checks a work order against its crit, image, and facts file: one entry per ranked finding, and every pixel box taken from the facts file or a crop.
 - `scripts/jev-evidence.mjs`: runs `crit report --json` when it can and writes the criteria Jev fired on to the evidence file.
+- `agents/recheck.md` and `scripts/jev-recheck.mjs`: the recheck critic and the Jev recheck of the crit-loop skill, which check a fix against the last work order.
 - `scripts/build.rb`: makes `references/` from this repository's `GUIDELINES.md` and `packs/`.
 
 ## Update the references

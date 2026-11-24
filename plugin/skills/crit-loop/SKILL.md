@@ -1,66 +1,73 @@
 ---
 name: crit-loop
-description: Use after you change UI code (HTML, CSS, components) and want to check the design. Takes a screenshot with your own browser tool, runs crit report --json, fixes the top findings, then runs crit compare and crit gate until the gate passes or two rounds in a row improve nothing.
+description: Use after you change UI code (HTML, CSS, components) and want to check the design and fix it. Runs the design-critic skill, fixes from the top of its work order, captures the page again at the same viewport, and has a fresh critic mark each finding closed, open, or worse, until no ranked finding is left or two rounds in a row close nothing.
 ---
 
-# The crit fix loop
+# The fix loop
 
-crit judges a picture of a design and tells you what looks wrong. This skill tells you which crit commands to run, how to read their JSON, and when to stop. crit decides every verdict, change, and threshold. You do not compute any of them. The rules are in `docs/PRD.md` of the deskcrit repository.
+The design-critic skill judges a picture of a design and writes a work order: the findings, ranked, each with where it is, what the viewer meets, the target, and the check that closes it. This skill tells you how to fix from that work order, how to check each fix, and when to stop. The critics decide every finding, rank, and status. You do not judge them again. The rules are FR-78 and FR-82 in `docs/PRD.md` of the deskcrit repository.
 
-## Before you start
+In the steps below, `<design-critic folder>` is the `design-critic` folder next to this skill's folder, and `<loop folder>` is a new folder in the system temp folder that holds one folder per round.
 
-- `.crit.yaml` names a screenshot path. Always keep your latest screenshot at that path, so each round compares the same file.
-- In the commands below, `after.png` stands for the image at the screenshot path, and `before.png` is the screenshot from the round before.
-- If you give crit report options such as `--pack` or `--context`, give the same options to crit compare and crit gate.
-- Read the JSON from stdout only. Errors go to stderr.
+## Capture
 
-## Round 1: report and gate
+Use the same capture in every round, so each round compares like with like.
 
-1. Build the app and start it.
-2. Take a screenshot with the tool you already have, such as Playwright or a browser tool. crit does not take screenshots.
-3. Take one screen height or one section per image. Never take a full-page screenshot. crit refuses an image that it would shrink below half size, with exit code 2. For a taller page, work on one part at a time, and keep the part you fix at the screenshot path.
-4. Run `crit report after.png --json`.
-5. Run `crit gate after.png --json`. If `gate.passed` is true, stop now. A page that already passes needs no fix.
-6. Read `findings`. They are already sorted, most important first. Do not sort them again and do not score them again.
-7. Fix from the top of the list. Each finding has a `verdict` and a `fix` hint. When its `region` is not null, it shows where on the image to look, in pixels of your screenshot.
+- When you have the page source or a URL, capture with the measure script: `node <design-critic folder>/scripts/measure.mjs <page> --out <round folder>`. It writes `desktop.png`, `phone.png`, and `facts.json` into the round folder, always at the same two viewports. Pick `desktop.png` or `phone.png` in round 1 and use that one in every round. If it prints `cannot measure:`, use your own tool, as below, for the whole loop.
+- Otherwise, take the screenshot with the tool you already have, such as Playwright or a browser tool, at the same viewport width and height and the same part of the page in every round, and save it in the round folder.
 
-Round 1 never counts as a stalled round.
+Rebuild or reload the app before each capture, so the image shows your fix and not the old build.
+
+## Round 1: the crit
+
+1. Capture into `<loop folder>/round-1`.
+2. Run the design-critic skill on that image, steps 1 to 4 of its `SKILL.md`, with the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder. If its step 2 printed a Jev evidence file, keep that path: every later round needs it.
+3. If the work order has no finding with a rank, stop: there is nothing to fix.
 
 ## Each round after that
 
-A round is one fix, one new screenshot, one crit compare, and one crit gate.
+1. Fix from the top of the last work order. Take the findings in `rank` order. Each has a `location` (with a `selector` and a `box` when one was measured), a `target`, and a `fix_direction`. Fix as many as you can do well in one pass, from the top; the findings with `rank` null come last.
+2. Capture into `<loop folder>/round-<n>`, the same way as in round 1.
+3. When round 1 printed a Jev evidence file, run `node <design-critic folder>/scripts/jev-recheck.mjs <evidence file> after.png` with Bash, from the user's working folder, where `after.png` is this round's image. It asks Jev about the new image only when crit runs and `TYPESAFE_API_KEY` is set, and prints the path of the recheck file, or nothing. Never read, print, or pass on the key. Do not use the file to judge a finding yourself; it is for the recheck critic.
+4. Start a fresh recheck critic with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`. Use this prompt, with the placeholders filled, the facts line only when this round has a `facts.json`, and the Jev line only when step 3 printed a path:
 
-1. Copy the image at the screenshot path to `before.png`.
-2. Make your fix.
-3. Rebuild or reload the app, so that the screenshot shows your fix and not the old build.
-4. Take a new screenshot of the same section, with the same viewport and the same size as before, and save it at the screenshot path.
-5. Run `crit compare before.png after.png --json`. Read `summary` and each entry in `changes`. Each entry has a `change`.
-6. Run `crit gate after.png --json`. Trust `gate.passed`, `gate.blocking`, and the exit code. Do not work them out again.
-7. Check the stop rule below. If you do not stop, use the `findings` of the gate output to pick the next fix, from the top.
+   ```
+   Time matters here: do not spend time that can be avoided, and the earlier a correct result is obtained, the better.
 
-An uncertain change is not an improvement. Only `summary.improved` counts.
+   Read <design-critic folder>/agents/recheck.md and follow it. The skill folder is <design-critic folder>; every path in recheck.md is relative to it.
 
-If `skipped` is not empty, mention it to the person. It does not count for the stop rule.
+   Before image: <absolute path of the last round's image>
+   After image: <absolute path of this round's image>
+   Last work order: <absolute path of the last work-order.json>
+   Measured facts file: <absolute path of this round's facts.json>
+   Jev recheck file: <absolute path that jev-recheck.mjs printed>
 
-## Exit codes
+   You critique only. Do not edit, move, or create any file except crops in a temporary folder.
+   When the recheck is done, end with the full recheck as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the full recheck.
+   ```
 
-- crit gate exits 0 when the gate passes, 1 when it fails, and 2 when crit could not run.
-- crit report and crit compare exit 0 whatever the verdicts. Exit 0 from them is not a pass.
-- On exit code 2 from any command, do not retry. Tell the person what stderr says, for example that the API key is missing, and stop.
+5. Save its final message as `crit.md` in the round folder, exactly as it wrote it.
+6. Count the findings it marked closed under "Finding status", and check the stop rule below.
+7. If you do not stop, write the new work order with step 4 of the design-critic skill's `SKILL.md`: this round's `crit.md`, this round's image, its facts file, and the Jev evidence file of round 1. Then start the next round.
+
+A finding marked worse is not progress. Fix it before the findings ranked below it.
 
 ## When to stop
 
 Stop when one of these is true:
 
-- `gate.passed` is true.
-- Two rounds in a row have `summary.improved` equal to 0.
+- The recheck has no ranked finding left: under "What would move it most" it says "None.".
+- Two rounds in a row have no finding marked closed.
 
 When you stop, tell the person:
 
 - which of the two rules made you stop,
-- the last `summary` from crit compare,
-- the criteria in `gate.blocking`.
+- the last first read and verdict,
+- the findings still open or worse, with their places,
+- the path of the loop folder.
+
+If a script or a critic cannot run, do not retry it in a loop. Tell the person what it printed, and stop.
 
 ## Fix the design, not the score
 
-Fix the design for the person who will use it. Do not hide or remove content to make a criterion pass.
+Fix the design for the person who will use it. Do not hide or remove content to close a finding. Never use the preferences of crit compare or a pass of crit gate as evidence that a fix worked.

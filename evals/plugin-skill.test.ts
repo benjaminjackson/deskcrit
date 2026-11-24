@@ -1,20 +1,26 @@
-// The durable check that the crit-loop plugin skill names real commands and real JSON fields
-// (FR-60, FR-66, FR-69, sections 8.1 to 8.3, crit-bts.1). It reads plugin/skills/crit-loop/SKILL.md
-// and checks two things.
+// The durable check that the crit-loop plugin skill names real commands, real files, and real JSON
+// fields (FR-60, FR-69, FR-78, FR-82, crit-bts.1, crit-9td.1). It reads
+// plugin/skills/crit-loop/SKILL.md and checks three things.
 //
-// First, every code span or fenced line that starts with "crit " is a command line the CLI accepts.
-// The test runs the built bundle, dist/crit.js, as a child process on each line (CS-21), with each
-// image name swapped for a path that does not exist, only PATH in the environment, and a new empty
-// working directory with no .crit.yaml. The bundle checks the command line before it reads the
-// image, so a good line stops on the missing image (exit 2, "cannot read image"), and a line with an
-// unknown flag or a wrong command stops on a usage error instead. No line reaches TypeSafe.
+// First, every code span or fenced line that starts with "crit " or "node " is a command line that
+// its program accepts. Each line runs as a child process (CS-21), with each image name and each
+// <placeholder> swapped for a path that does not exist, only PATH in the environment, and a new
+// empty working directory with no .crit.yaml. A "crit" line runs the built bundle, dist/crit.js,
+// and must stop on the missing image (exit 2, "cannot read image"). A "node" line runs the
+// design-critic script it names and must stop on the missing input that MISSING_INPUT_RESULTS
+// gives for that script. A line with an unknown flag or a wrong number of arguments stops on a
+// usage error instead. No line reaches TypeSafe or opens a browser.
 //
-// Second, every code span that looks like a JSON field or a dotted path (such as `findings` or
-// `gate.passed`) is a field of schemas/report.schema.json, schemas/compare.schema.json, or
-// schemas/gate.schema.json. The test reads the schema files as JSON and imports nothing from src/,
-// so it still holds if crit is rewritten in another language (AC-6).
+// Second, every path under <design-critic folder> that the skill names exists.
+//
+// Third, every code span that looks like a JSON field or a dotted path (such as `rank` or
+// `closed_when.method`) is a field of one of the output schemas in schemas/: the report, compare,
+// and gate documents of crit, the work order (FR-80), and the measured facts file (FR-79). The test
+// reads the schema files as JSON and imports nothing from src/, so it still holds if crit is
+// rewritten in another language (AC-6).
 
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,23 +30,38 @@ import { runCritBundle } from "./support/run-crit-bundle.js";
 /** The repository root, one folder above evals/. */
 const REPOSITORY_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
+/** The design-critic skill folder, which the skill names as <design-critic folder>. */
+const DESIGN_CRITIC_FOLDER = join(
+  REPOSITORY_ROOT,
+  "plugin",
+  "skills",
+  "design-critic",
+);
+
+/** The placeholder the skill uses for the design-critic skill folder. */
+const DESIGN_CRITIC_PLACEHOLDER = "<design-critic folder>";
+
 /** The text of the skill file. */
 const SKILL_TEXT = readFileSync(
   join(REPOSITORY_ROOT, "plugin", "skills", "crit-loop", "SKILL.md"),
   "utf8",
 );
 
-/** The names of the three output schemas, which are also the ids that their $ref values use. */
+/** The names of the output schemas, which are also the ids that their $ref values use. */
 type SchemaFileName =
   | "report.schema.json"
   | "compare.schema.json"
-  | "gate.schema.json";
+  | "gate.schema.json"
+  | "work-order.schema.json"
+  | "facts.schema.json";
 
-/** The three schema file names, in the order the field check tries them. */
+/** The schema file names, in the order the field check tries them. */
 const SCHEMA_FILE_NAMES: readonly SchemaFileName[] = [
   "report.schema.json",
   "compare.schema.json",
   "gate.schema.json",
+  "work-order.schema.json",
+  "facts.schema.json",
 ];
 
 /** A JSON Schema node, read as plain data. */
@@ -55,11 +76,13 @@ function readSchema(fileName: SchemaFileName): SchemaNode {
   return JSON.parse(text);
 }
 
-/** The three schemas by file name, so a $ref such as "report.schema.json#/..." can be followed. */
+/** The schemas by file name, so a $ref such as "report.schema.json#/..." can be followed. */
 const SCHEMAS: Record<SchemaFileName, SchemaNode> = {
   "report.schema.json": readSchema("report.schema.json"),
   "compare.schema.json": readSchema("compare.schema.json"),
   "gate.schema.json": readSchema("gate.schema.json"),
+  "work-order.schema.json": readSchema("work-order.schema.json"),
+  "facts.schema.json": readSchema("facts.schema.json"),
 };
 
 /** Returns the text of every inline code span, without the backticks. */
@@ -91,16 +114,44 @@ function listFencedLines(text: string): string[] {
   return lines;
 }
 
-/** Returns every crit command line in the text, from code spans and fenced code blocks. */
-function listCritCommandLines(text: string): string[] {
+/** Returns every command line in the text that starts with the program name and a space. */
+function listCommandLines(text: string, programName: string): string[] {
   const candidates = [...listCodeSpans(text), ...listFencedLines(text)];
   const commandLines: string[] = [];
   for (const candidate of candidates) {
-    if (candidate.startsWith("crit ")) {
+    if (candidate.startsWith(`${programName} `)) {
       commandLines.push(candidate);
     }
   }
   return commandLines;
+}
+
+/**
+ * Splits a command line into words. A <placeholder> such as <evidence file> is one word, even
+ * when it holds spaces, and so is a path that starts with one, such as <design-critic folder>/x.
+ */
+function splitWords(commandLine: string): string[] {
+  // Each match is a run of placeholders and plain characters with no space outside the brackets.
+  return commandLine.match(/(?:<[^>]+>|[^\s<])+/g) ?? [];
+}
+
+/**
+ * Returns every path that starts with <design-critic folder>/ in the skill, from code spans and
+ * fenced lines, with the folder swapped for its place in this repository.
+ */
+function listDesignCriticPaths(text: string): string[] {
+  const paths: string[] = [];
+  const candidates = [...listCodeSpans(text), ...listFencedLines(text)];
+  for (const candidate of candidates) {
+    for (const word of splitWords(candidate)) {
+      if (word.startsWith(`${DESIGN_CRITIC_PLACEHOLDER}/`)) {
+        paths.push(
+          word.replace(DESIGN_CRITIC_PLACEHOLDER, DESIGN_CRITIC_FOLDER),
+        );
+      }
+    }
+  }
+  return paths;
 }
 
 /**
@@ -112,7 +163,7 @@ function listFieldSpans(text: string): string[] {
   const fields: string[] = [];
   for (const span of listCodeSpans(text)) {
     const looksLikeField = /^[a-z_]+(\.[a-z_]+)*$/.test(span);
-    const looksLikeFileName = /\.(png|jpg|yaml|yml|json|md)$/.test(span);
+    const looksLikeFileName = /\.(png|jpg|yaml|yml|json|md|mjs)$/.test(span);
     if (looksLikeField && !looksLikeFileName) {
       fields.push(span);
     }
@@ -176,7 +227,7 @@ function listChildren(placed: PlacedNode): Map<string, PlacedNode> {
   return children;
 }
 
-/** Returns true when the path, such as ["gate", "passed"], starts at this node. */
+/** Returns true when the path, such as ["closed_when", "method"], starts at this node. */
 function pathStartsAt(path: readonly string[], placed: PlacedNode): boolean {
   let current = placed;
   for (const fieldName of path) {
@@ -190,8 +241,8 @@ function pathStartsAt(path: readonly string[], placed: PlacedNode): boolean {
 }
 
 /**
- * Returns true when the dotted path is a field at any depth of any of the three schemas. So
- * `verdict` matches the verdict of each finding, and `gate.passed` matches the gate object. It walks
+ * Returns true when the dotted path is a field at any depth of any of the schemas. So `rank`
+ * matches the rank of each work-order finding, and `gate.passed` matches the gate object. It walks
  * every object reachable from each schema root, and remembers the nodes it has seen so that a $ref
  * that points back up cannot loop.
  */
@@ -232,18 +283,18 @@ function findUnknownFields(text: string): string[] {
 /** A new empty working directory, so crit finds no .crit.yaml (FR-51). */
 const WORKING_DIRECTORY = mkdtempSync(join(tmpdir(), "crit-plugin-skill-"));
 
-/** A folder that never exists, so each image path under it cannot be read. */
+/** A folder that never exists, so each input path under it cannot be read. */
 const MISSING_FOLDER = join(WORKING_DIRECTORY, "does-not-exist");
 
-/** Only PATH, so no TYPESAFE_API_KEY reaches crit (CS-21). */
+/** Only PATH, so no TYPESAFE_API_KEY reaches crit or a script (CS-21). */
 const ENVIRONMENT = { PATH: process.env.PATH ?? "" };
 
 afterAll(() => {
   rmSync(WORKING_DIRECTORY, { recursive: true, force: true });
 });
 
-/** Runs one skill command line with its image names swapped for paths under MISSING_FOLDER. */
-async function runWithMissingImages(commandLine: string) {
+/** Runs one crit command line with its image names swapped for paths under MISSING_FOLDER. */
+async function runCritWithMissingImages(commandLine: string) {
   const words = commandLine.split(" ").slice(1);
   const critArguments: string[] = [];
   for (const word of words) {
@@ -256,52 +307,145 @@ async function runWithMissingImages(commandLine: string) {
   return runCritBundle(critArguments, ENVIRONMENT, WORKING_DIRECTORY);
 }
 
-describe("the crit-loop skill commands", () => {
-  const commandLines = listCritCommandLines(SKILL_TEXT);
+/** What a design-critic script gives when its input is missing: exit code and a piece of output. */
+type MissingInputResult = { exitCode: number; output: string };
 
-  it("names the report, compare, and gate commands", () => {
-    const commandNames = commandLines.map(
-      (commandLine) => commandLine.split(" ")[1],
+/**
+ * The missing-input result of each script the skill may run. measure.mjs checks the page before it
+ * looks for Playwright, so no browser opens. jev-recheck.mjs checks the key first, and the test
+ * passes none, so it exits 0 and asks nothing. A script the skill names that is not in this table
+ * fails the test, so a new script gets a row here.
+ */
+const MISSING_INPUT_RESULTS: Record<string, MissingInputResult> = {
+  "measure.mjs": { exitCode: 3, output: "does not exist" },
+  "jev-recheck.mjs": { exitCode: 0, output: "TYPESAFE_API_KEY is not set" },
+};
+
+/**
+ * Runs one node command line: the design-critic folder is swapped for its place in this
+ * repository, and every other placeholder and every .png word for a path under MISSING_FOLDER.
+ * Returns the script's file name, its exit code, and its stdout and stderr together.
+ */
+function runNodeWithMissingInputs(commandLine: string): {
+  scriptName: string;
+  exitCode: number | null;
+  output: string;
+} {
+  const words = splitWords(commandLine).slice(1);
+  const nodeArguments: string[] = [];
+  for (const word of words) {
+    if (word.startsWith(DESIGN_CRITIC_PLACEHOLDER)) {
+      nodeArguments.push(
+        word.replace(DESIGN_CRITIC_PLACEHOLDER, DESIGN_CRITIC_FOLDER),
+      );
+    } else if (word.startsWith("<") || word.endsWith(".png")) {
+      // A placeholder becomes a safe file name, so "<evidence file>" becomes "evidence-file".
+      const fileName = word.replace(/[<>]/g, "").replace(/\s+/g, "-");
+      nodeArguments.push(join(MISSING_FOLDER, fileName));
+    } else {
+      nodeArguments.push(word);
+    }
+  }
+  const scriptPath = nodeArguments[0] ?? "";
+  const run = spawnSync(process.execPath, nodeArguments, {
+    cwd: WORKING_DIRECTORY,
+    env: ENVIRONMENT,
+    encoding: "utf8",
+  });
+  return {
+    scriptName: scriptPath.split("/").pop() ?? "",
+    exitCode: run.status,
+    output: `${run.stdout}${run.stderr}`,
+  };
+}
+
+describe("the crit-loop skill commands", () => {
+  const critLines = listCommandLines(SKILL_TEXT, "crit");
+  const nodeLines = listCommandLines(SKILL_TEXT, "node");
+
+  it("names the measure and Jev recheck scripts", () => {
+    // The script is the second word, such as <design-critic folder>/scripts/measure.mjs.
+    const scriptNames = nodeLines.map(
+      (commandLine) => splitWords(commandLine)[1]?.split("/").pop() ?? "",
     );
-    expect(commandNames).toContain("report");
-    expect(commandNames).toContain("compare");
-    expect(commandNames).toContain("gate");
+    expect(scriptNames).toContain("measure.mjs");
+    expect(scriptNames).toContain("jev-recheck.mjs");
   });
 
-  for (const commandLine of commandLines) {
+  for (const commandLine of critLines) {
     it(`passes the command-line check: ${commandLine}`, async () => {
-      const run = await runWithMissingImages(commandLine);
+      const run = await runCritWithMissingImages(commandLine);
       expect(run.exitCode).toBe(2);
       expect(run.stderr).toContain("cannot read image");
       expect(run.stderr).not.toContain("usage:");
     });
   }
 
-  // Lines that are wrong on purpose. Each gives the usage error and not the missing-image error,
-  // which shows that the check above can fail.
-  const wrongLines = [
+  for (const commandLine of nodeLines) {
+    it(`passes the command-line check: ${commandLine}`, () => {
+      const run = runNodeWithMissingInputs(commandLine);
+      const expected = MISSING_INPUT_RESULTS[run.scriptName];
+      expect(
+        expected,
+        `no missing-input result for ${run.scriptName}`,
+      ).toBeDefined();
+      expect(run.exitCode).toBe(expected?.exitCode);
+      expect(run.output).toContain(expected?.output);
+      expect(run.output).not.toContain("usage:");
+    });
+  }
+
+  // Lines that are wrong on purpose. Each gives the usage error and not the missing-input error,
+  // which shows that the checks above can fail.
+  const wrongCritLines = [
     "crit report after.png --jsn",
     "crit compar after.png --json",
     "crit gate after.png --json --save-answers saved.json",
     "crit compare after.png --json",
   ];
-  for (const wrongLine of wrongLines) {
+  for (const wrongLine of wrongCritLines) {
     it(`fails the command-line check: ${wrongLine}`, async () => {
-      const run = await runWithMissingImages(wrongLine);
+      const run = await runCritWithMissingImages(wrongLine);
       expect(run.exitCode).toBe(2);
       expect(run.stderr).toContain("usage:");
       expect(run.stderr).not.toContain("cannot read image");
     });
   }
+  const wrongNodeLines = [
+    "node <design-critic folder>/scripts/measure.mjs <page> --outt <round folder>",
+    "node <design-critic folder>/scripts/jev-recheck.mjs <evidence file>",
+    "node <design-critic folder>/scripts/jev-recheck.mjs <evidence file> after.png --after <x>",
+  ];
+  for (const wrongLine of wrongNodeLines) {
+    it(`fails the command-line check: ${wrongLine}`, () => {
+      const run = runNodeWithMissingInputs(wrongLine);
+      expect(run.exitCode).toBe(2);
+      expect(run.output).toContain("usage:");
+    });
+  }
+});
+
+describe("the crit-loop skill files", () => {
+  const paths = listDesignCriticPaths(SKILL_TEXT);
+
+  it("names the recheck critic's instructions", () => {
+    expect(paths).toContain(join(DESIGN_CRITIC_FOLDER, "agents", "recheck.md"));
+  });
+
+  for (const path of paths) {
+    it(`names a file that exists: ${path}`, () => {
+      expect(existsSync(path)).toBe(true);
+    });
+  }
 });
 
 describe("the crit-loop skill fields", () => {
-  it("names the fields the loop reads", () => {
+  it("names the work-order fields the loop reads", () => {
     const fields = listFieldSpans(SKILL_TEXT);
-    expect(fields).toContain("findings");
-    expect(fields).toContain("summary.improved");
-    expect(fields).toContain("gate.passed");
-    expect(fields).toContain("gate.blocking");
+    expect(fields).toContain("rank");
+    expect(fields).toContain("location");
+    expect(fields).toContain("target");
+    expect(fields).toContain("fix_direction");
   });
 
   it("names only fields that the output schemas have", () => {
@@ -310,9 +454,9 @@ describe("the crit-loop skill fields", () => {
 
   it("finds a field that no schema has, so the check can fail", () => {
     const wrongText =
-      "Read `summary.improvements` and `gate.passes`, not `summary.improved`.";
+      "Read `closed_when.methods` and `gate.passes`, not `closed_when.method`.";
     expect(findUnknownFields(wrongText)).toEqual([
-      "summary.improvements",
+      "closed_when.methods",
       "gate.passes",
     ]);
   });

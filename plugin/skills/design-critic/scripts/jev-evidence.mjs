@@ -85,7 +85,7 @@ export function evidenceText(report) {
 }
 
 /** Returns true when the variable is set to a non-empty value; its value is never kept or shown. */
-function keyIsSet() {
+export function keyIsSet() {
   const value = process.env.TYPESAFE_API_KEY;
   return value !== undefined && value !== "";
 }
@@ -109,11 +109,16 @@ function findCrit() {
   return undefined;
 }
 
-/** Runs `crit report IMAGE --json` and returns the parsed report, or undefined with a reason on stderr. */
-function runCritReport(imagePath) {
+/**
+ * Runs `crit report IMAGE --json` and returns the parsed report, or undefined with a reason on
+ * stderr. Each reason starts with scriptName, so jev-recheck.mjs can share this function.
+ */
+export function runCritReport(imagePath, scriptName = "jev-evidence") {
   const crit = findCrit();
   if (crit === undefined) {
-    process.stderr.write("jev-evidence: crit does not run here; no evidence\n");
+    process.stderr.write(
+      `${scriptName}: crit does not run here; no evidence\n`,
+    );
     return undefined;
   }
   const [program, ...leading] = crit;
@@ -126,14 +131,14 @@ function runCritReport(imagePath) {
   if (run.status !== 0) {
     const firstLine = (run.stderr ?? "").split("\n")[0];
     process.stderr.write(
-      `jev-evidence: crit report could not run (${firstLine}); no evidence\n`,
+      `${scriptName}: crit report could not run (${firstLine}); no evidence\n`,
     );
     return undefined;
   }
   try {
     return JSON.parse(run.stdout);
   } catch {
-    process.stderr.write("jev-evidence: crit printed no JSON; no evidence\n");
+    process.stderr.write(`${scriptName}: crit printed no JSON; no evidence\n`);
     return undefined;
   }
 }
