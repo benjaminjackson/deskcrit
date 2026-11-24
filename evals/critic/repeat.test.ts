@@ -342,6 +342,60 @@ describe("extraction", () => {
     expect(readCrit(proseSmallerThings).type).toBe("unreadable");
   });
 
+  it('reads a Smaller things heading line that starts with "None" as an empty list', () => {
+    const base = sampleCrit("Weak.", ["One."], []);
+    for (const rest of [
+      "None.",
+      "None beyond the above.",
+      "None worth listing. The copy is good.",
+    ]) {
+      const crit = base.replace(
+        "**Smaller things.**\n",
+        `**Smaller things.** ${rest}\n`,
+      );
+      expect(smallerThings(crit)).toEqual([]);
+      expect(readCrit(crit).type).toBe("read");
+    }
+  });
+
+  it('keeps refusing other text on the Smaller things line, and a "None" line with items below it', () => {
+    const base = sampleCrit("Weak.", ["One."], []);
+    const nonetheless = base.replace(
+      "**Smaller things.**\n",
+      "**Smaller things.** Nonetheless the line is long.\n",
+    );
+    expect(readCrit(nonetheless)).toEqual({
+      type: "unreadable",
+      problem: "text on the line of the smaller-things heading",
+    });
+    const noneWithItem = base.replace(
+      "**Smaller things.**\n",
+      "**Smaller things.** None worth listing.\n- The line is long.\n",
+    );
+    expect(readCrit(noneWithItem)).toEqual({
+      type: "unreadable",
+      problem: 'text below a "None" smaller-things heading',
+    });
+  });
+
+  it('reads the saved crits whose Smaller things line says "None"', () => {
+    // bare-kpi-number.positive.png at 581fdaf runs 1 and 3, all-caps-long-text.positive.png at
+    // 8006d3a run 3: each wrote "**Smaller things.** None ..." (crit-576.11).
+    const paths = [
+      "581fdaf090d4c83ac390aec2cbd61002d2e4b35b/12a1a435e03c74d0fa9b893e6aeec8f7f53b00bc8e980e4a3218e11eaba04c11/1.md",
+      "581fdaf090d4c83ac390aec2cbd61002d2e4b35b/12a1a435e03c74d0fa9b893e6aeec8f7f53b00bc8e980e4a3218e11eaba04c11/3.md",
+      "8006d3a2831b64dd0305b88936ac253ce60b9c2d/25551a27a6f47a4b5a3cbdc8959e633b15d04e499e87f668e767939dc382ea8f/3.md",
+    ];
+    for (const path of paths) {
+      const reading = readCrit(readFileSync(join(SAVED_RUNS, path), "utf8"));
+      if (reading.type !== "read") {
+        throw new Error(`${path}: ${JSON.stringify(reading)}`);
+      }
+      expect(reading.sections.smallerThings).toEqual([]);
+      expect(reading.sections.rankedFindings.length).toBeGreaterThan(0);
+    }
+  });
+
   it("reports a heading that critic.md does not name", () => {
     const smallerToFix = sampleCrit("Weak.", ["One."], ["Two."]).replace(
       "**Smaller things.**",
@@ -563,6 +617,120 @@ describe("runRepeat --replay", () => {
       );
     }
     expect(output.errorText).toContain("without --replay");
+  });
+});
+
+describe("runRepeat --batch", () => {
+  it("gives the same replay with --batch 1 as with no flag, for every saved skill commit", async () => {
+    for (const commit of readdirSync(SAVED_RUNS)) {
+      const options = {
+        repositoryDirectory: REPOSITORY_DIRECTORY,
+        runsDirectory: SAVED_RUNS,
+        skillDirectory: SKILL_DIRECTORY,
+        runClaude: throwingRunner,
+      };
+      const plain = await runRepeat(
+        ["--replay", "--skill-commit", commit],
+        options,
+      );
+      const batchOne = await runRepeat(
+        ["--replay", "--skill-commit", commit, "--batch", "1"],
+        options,
+      );
+      expect(batchOne).toEqual(plain);
+    }
+  });
+
+  it("scores batch 2 from runs 4 to 6 with its own judge answers, and leaves batch 1 as it was", async () => {
+    const runsDirectory = newRunsDirectory();
+    await seedRuns(runsDirectory, []);
+    const before = await replay(runsDirectory);
+    const batchTwoCrits = [
+      sampleCrit("Strong.", ["Gap."], []),
+      sampleCrit("Strong.", ["Gap."], []),
+      sampleCrit("Strong.", ["Gap."], []),
+    ];
+    for (const fixture of REPEAT_FIXTURES) {
+      writeSavedCrits(runsDirectory, fixture, [
+        ...SEED_CRITS,
+        ...batchTwoCrits,
+      ]);
+    }
+    const judgeCalls: string[] = [];
+    const stub: ClaudeRunner = async (args) => {
+      if (args[0] === "--version") {
+        return { stdout: "2.0.0 (Claude Code)", stderr: "", exitCode: 0 };
+      }
+      if (!args.includes("--json-schema")) {
+        throw new Error(
+          "batch 2 must start no critic run: runs 4 to 6 are saved",
+        );
+      }
+      judgeCalls.push(args.join(" "));
+      return {
+        stdout: judgeStdout({
+          reason: "stub",
+          groups: [["A1", "B1"], ["C1"]],
+          verdicts_agree: true,
+        }),
+        stderr: "",
+        exitCode: 0,
+      };
+    };
+    const options = {
+      repositoryDirectory: REPOSITORY_DIRECTORY,
+      runsDirectory,
+      skillDirectory: SKILL_DIRECTORY,
+      runClaude: stub,
+    };
+    const live = await runRepeat(
+      ["--skill-commit", COMMIT, "--batch", "2"],
+      options,
+    );
+    expect(live.errorText).toBe("");
+    expect(judgeCalls).toHaveLength(10);
+    expect(live.text).toContain("mean share in all 3: 0.000 (10 of 10 images)");
+    for (const fixture of REPEAT_FIXTURES) {
+      expect(live.text).toMatch(
+        new RegExp(`^${fixture} +1/1/1 +0\\.000 +0\\.000 +yes$`, "m"),
+      );
+    }
+    const after = await replay(runsDirectory);
+    expect(after).toEqual(before);
+    expect(after.text).toContain(
+      "mean share in all 3: 0.600 (10 of 10 images)",
+    );
+  });
+
+  it("names the missing crits of batch 2 and starts no run in replay", async () => {
+    const runsDirectory = newRunsDirectory();
+    await seedRuns(runsDirectory, []);
+    const output = await runRepeat(
+      ["--replay", "--skill-commit", COMMIT, "--batch", "2"],
+      {
+        repositoryDirectory: REPOSITORY_DIRECTORY,
+        runsDirectory,
+        skillDirectory: SKILL_DIRECTORY,
+        runClaude: throwingRunner,
+      },
+    );
+    expect(output.exitCode).toBe(2);
+    expect(output.errorText).toContain(
+      `missing crits of ${REPEAT_FIXTURES[0]}: 0 of 3 saved`,
+    );
+  });
+
+  it("refuses a batch that is not a whole number from 1 up", async () => {
+    for (const value of ["0", "1.5", "two", "01"]) {
+      const output = await runRepeat(["--replay", "--batch", value], {
+        repositoryDirectory: REPOSITORY_DIRECTORY,
+        runsDirectory: newRunsDirectory(),
+        skillDirectory: SKILL_DIRECTORY,
+        runClaude: throwingRunner,
+      });
+      expect(output.exitCode).toBe(2);
+      expect(output.errorText).toContain("--batch must be a whole number");
+    }
   });
 });
 

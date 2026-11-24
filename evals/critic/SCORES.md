@@ -6,15 +6,26 @@ This file holds the scores of each version of the design-critic skill after the 
 
 | Measure | Baseline `01218fd9` | Crop script `a80aa550` | Written walk `581fdaf0` | MECE checklist `8006d3a2` |
 |---|---|---|---|---|
-| Repeat run: ranked findings in all 3 runs | 0.710 | 0.740 | 0.842 (9 of 10 images) | 0.687 (9 of 10 images) |
-| Repeat run: ranked findings in all 3 ranked lists | 0.619 | 0.581 | 0.761 (9 of 10 images) | 0.495 (9 of 10 images) |
-| Repeat run: verdicts agree | 8 of 10 | 7 of 10 | 5 of 9 | 6 of 9 |
+| Repeat run: ranked findings in all 3 runs | 0.710 | 0.740 | 0.824 | 0.719 |
+| Repeat run: ranked findings in all 3 ranked lists | 0.619 | 0.581 | 0.752 | 0.546 |
+| Repeat run: verdicts agree | 8 of 10 | 7 of 10 | 6 of 10 | 7 of 10 |
 | Detection, live: raised on positive | 34 of 37 | 37 of 37 | 33 of 37 | 35 of 37 |
 | Detection, live: quiet on negative | 37 of 37 | 35 of 37 | 35 of 37 | 36 of 37 |
 | Detection, removed: raised on positive | 34 of 40 | 34 of 40 | 35 of 40 | 35 of 40 |
 | Detection, removed: quiet on negative | 39 of 40 | 39 of 40 | 40 of 40 | 37 of 40 |
 | Compare: agrees with the preference | 24 of 30 | 24 of 30 | 24 of 30 | 24 of 30 |
 | Praise text: pass, fail, inconclusive | 11, 2, 1 | 12, 1, 1 | 12, 2, 0 | 14, 0, 0 |
+
+## Repeat-run noise floor
+
+Batch 1 is runs 1 to 3 of each image, the runs the summary scores; batch 2 is runs 4 to 6 of the same skill commit, made on 2026-11-23 with `--batch 2` and judged with their own judge answers (crit-576.12). Each cell is a mean line of `node evals/critic/repeat.ts --replay --skill-commit <commit> --batch <n>`; the shell loop in the crit-576.12 notes prints this table from those replays.
+
+| Skill commit | In all 3, batch 1 | In all 3, batch 2 | In all 3 ranked lists, batch 1 | In all 3 ranked lists, batch 2 | Verdicts agree, batch 1 | Verdicts agree, batch 2 |
+|---|---|---|---|---|---|---|
+| `581fdaf0` | 0.824 | 0.786 | 0.752 | 0.645 | 6 of 10 | 5 of 10 |
+| `8006d3a2` | 0.719 | 0.888 | 0.546 | 0.790 | 7 of 10 | 8 of 10 |
+
+Between the two batches of one commit, the share in all 3 runs moves by 0.038 at `581fdaf0` and 0.169 at `8006d3a2`, and the share in all 3 ranked lists moves by 0.107 and 0.244. Between the two commits, the share in all 3 runs differs by 0.105 in batch 1 and 0.102 in batch 2, and the share in all 3 ranked lists differs by 0.206 in batch 1 and 0.145 in batch 2.
 
 ## Crop script, skill commit `a80aa550cae9b7add0571bb9efcbc4779dfff627`
 
@@ -211,28 +222,27 @@ passed 12, failed 1, inconclusive 1 of 14
 
 The change: the critic writes a yes, no, or unsure answer for every checklist line before it ranks, every line ends as yes or no after the deep read, and a Checklist tally ends the crit (crit-0a0.8). The checklist is still the one generated from GUIDELINES.md, one line per entry. Scored on 2026-11-23 with critic and judge model `claude-opus-5-5`. 218 critic runs. No run failed and no command was refused. Compare and detection ran side by side, up to 30 runs at once; that changes the speed, not the runs.
 
-Read with care: the repeat-run means cover 9 of 10 images, because the reader leaves out `bare-kpi-number.positive.png`, whose two crits wrote "**Smaller things.** None ..." on the heading line (bug filed). Detection uses one run per image, so a move of 2 or 3 images is within noise. The 5 removed typography details missed in all three versions (`display-kerning-gap`, `display-ligature-missing`, `faux-italic-display`, `heading-at-column-foot`, `rag-staircase`) are still missed.
+Read with care: the repeat-run means cover 10 of 10 images. Two crits of `bare-kpi-number.positive.png` wrote "**Smaller things.** None ..." on the heading line, which the reader now takes as an empty list (crit-576.11). Detection uses one run per image, so a move of 2 or 3 images is within noise. The 5 removed typography details missed in all three versions (`display-kerning-gap`, `display-ligature-missing`, `faux-italic-display`, `heading-at-column-foot`, `rag-staircase`) are still missed.
 
 ### Repeat run (EV-17)
 
 `node evals/critic/repeat.ts --replay --skill-commit 581fdaf090d4c83ac390aec2cbd61002d2e4b35b`
 
 ```
-image                                                            findings(A/B/C)  in-all-3                                                                                                                   in-all-3-ranked                                                                                                            verdicts-agree
-packs/accessibility/fixtures/chart-without-text.positive.png     3/3/3            0.556                                                                                                                      0.333                                                                                                                      yes
-packs/art-direction/fixtures/mixed-level-of-detail.negative.png  2/3/2            0.857                                                                                                                      0.857                                                                                                                      no
-packs/basics/fixtures/all-caps-long-text.positive.png            3/2/3            0.750                                                                                                                      0.750                                                                                                                      yes
-packs/basics/fixtures/centered-or-right-paragraphs.negative.png  3/3/2            0.750                                                                                                                      0.750                                                                                                                      yes
-packs/color/fixtures/accent-overused.positive.png                3/3/4            1.000                                                                                                                      0.900                                                                                                                      yes
-packs/dataviz/fixtures/bar-axis-not-at-zero.negative.png         3/4/4            0.818                                                                                                                      0.818                                                                                                                      no
-packs/dataviz/fixtures/bare-kpi-number.positive.png              ?/3/?            unreadable (run A: text on the line of the smaller-things heading; run C: text on the line of the smaller-things heading)  unreadable (run A: text on the line of the smaller-things heading; run C: text on the line of the smaller-things heading)  -
-packs/layout/fixtures/everything-centered.negative.png           2/2/2            1.000                                                                                                                      1.000                                                                                                                      no
-packs/typography/fixtures/heading-indistinct.positive.png        4/4/5            0.846                                                                                                                      0.692                                                                                                                      yes
-packs/ux/fixtures/actions-look-like-plain-text.negative.png      3/2/3            1.000                                                                                                                      0.750                                                                                                                      no
-mean share in all 3: 0.842 (9 of 10 images)
-mean share in all 3 ranked lists: 0.761 (9 of 10 images)
-verdicts agree 5 of 9
-1 of 10 images left out of the means: a crit has no ranked list or could not be read
+image                                                            findings(A/B/C)  in-all-3  in-all-3-ranked  verdicts-agree
+packs/accessibility/fixtures/chart-without-text.positive.png     3/3/3            0.556     0.333            yes
+packs/art-direction/fixtures/mixed-level-of-detail.negative.png  2/3/2            0.857     0.857            no
+packs/basics/fixtures/all-caps-long-text.positive.png            3/2/3            0.750     0.750            yes
+packs/basics/fixtures/centered-or-right-paragraphs.negative.png  3/3/2            0.750     0.750            yes
+packs/color/fixtures/accent-overused.positive.png                3/3/4            1.000     0.900            yes
+packs/dataviz/fixtures/bar-axis-not-at-zero.negative.png         3/4/4            0.818     0.818            no
+packs/dataviz/fixtures/bare-kpi-number.positive.png              3/3/3            0.667     0.667            yes
+packs/layout/fixtures/everything-centered.negative.png           2/2/2            1.000     1.000            no
+packs/typography/fixtures/heading-indistinct.positive.png        4/4/5            0.846     0.692            yes
+packs/ux/fixtures/actions-look-like-plain-text.negative.png      3/2/3            1.000     0.750            no
+mean share in all 3: 0.824 (10 of 10 images)
+mean share in all 3 ranked lists: 0.752 (10 of 10 images)
+verdicts agree 6 of 10
 Jev (EV-17): Jev's largest probability movement was 0.08 (EV-6).
 ```
 
@@ -403,28 +413,27 @@ passed 12, failed 2, inconclusive 0 of 14
 
 The change: the checklist became 124 yes-or-no questions in 8 sections divided by what the viewer is trying to do, where every guideline entry is under exactly one question (crit-0a0.9). The written walk of crit-0a0.8 is unchanged. Scored on 2026-11-23 with critic and judge model `claude-opus-5-5`. 218 critic runs. No run failed. In 7 runs the critic tried to read several guideline entries at once with `grep`, which the runner refuses, so those runs judged their `no` lines without the entries.
 
-Read with care: the repeat-run means cover 9 of 10 images, because the reader leaves out `all-caps-long-text.positive.png`, whose run C wrote text on the line of the Smaller things heading (the same reader bug as before). Detection uses one run per image, so a move of 2 or 3 images is within noise. The repeat-run drop from the written walk (0.842 to 0.687 in all 3 runs, 0.761 to 0.495 in all 3 ranked lists) is larger than the movement between earlier versions.
+Read with care: the repeat-run means cover 10 of 10 images. Run C of `all-caps-long-text.positive.png` wrote "**Smaller things.** None worth listing separately." on the heading line, which the reader now takes as an empty list (crit-576.11). Detection uses one run per image, so a move of 2 or 3 images is within noise. The repeat-run drop from the written walk (0.824 to 0.719 in all 3 runs, 0.752 to 0.546 in all 3 ranked lists) is larger than the movement between earlier versions; the repeat-run noise floor section above puts it next to the movement between two batches of one commit.
 
 ### Repeat run (EV-17)
 
 `node evals/critic/repeat.ts --replay --skill-commit 8006d3a2831b64dd0305b88936ac253ce60b9c2d`
 
 ```
-image                                                            findings(A/B/C)  in-all-3                                                            in-all-3-ranked                                                     verdicts-agree
-packs/accessibility/fixtures/chart-without-text.positive.png     3/3/3            0.556                                                               0.333                                                               yes
-packs/art-direction/fixtures/mixed-level-of-detail.negative.png  1/1/2            0.500                                                               0.000                                                               no
-packs/basics/fixtures/all-caps-long-text.positive.png            2/2/?            unreadable (run C: text on the line of the smaller-things heading)  unreadable (run C: text on the line of the smaller-things heading)  -
-packs/basics/fixtures/centered-or-right-paragraphs.negative.png  3/2/2            0.429                                                               0.429                                                               yes
-packs/color/fixtures/accent-overused.positive.png                3/4/4            0.727                                                               0.545                                                               yes
-packs/dataviz/fixtures/bar-axis-not-at-zero.negative.png         3/4/3            0.700                                                               0.600                                                               no
-packs/dataviz/fixtures/bare-kpi-number.positive.png              2/2/2            0.667                                                               0.500                                                               yes
-packs/layout/fixtures/everything-centered.negative.png           2/2/3            0.857                                                               0.857                                                               no
-packs/typography/fixtures/heading-indistinct.positive.png        4/4/3            1.000                                                               0.818                                                               yes
-packs/ux/fixtures/actions-look-like-plain-text.negative.png      3/3/2            0.750                                                               0.375                                                               yes
-mean share in all 3: 0.687 (9 of 10 images)
-mean share in all 3 ranked lists: 0.495 (9 of 10 images)
-verdicts agree 6 of 9
-1 of 10 images left out of the means: a crit has no ranked list or could not be read
+image                                                            findings(A/B/C)  in-all-3  in-all-3-ranked  verdicts-agree
+packs/accessibility/fixtures/chart-without-text.positive.png     3/3/3            0.556     0.333            yes
+packs/art-direction/fixtures/mixed-level-of-detail.negative.png  1/1/2            0.500     0.000            no
+packs/basics/fixtures/all-caps-long-text.positive.png            2/2/2            1.000     1.000            yes
+packs/basics/fixtures/centered-or-right-paragraphs.negative.png  3/2/2            0.429     0.429            yes
+packs/color/fixtures/accent-overused.positive.png                3/4/4            0.727     0.545            yes
+packs/dataviz/fixtures/bar-axis-not-at-zero.negative.png         3/4/3            0.700     0.600            no
+packs/dataviz/fixtures/bare-kpi-number.positive.png              2/2/2            0.667     0.500            yes
+packs/layout/fixtures/everything-centered.negative.png           2/2/3            0.857     0.857            no
+packs/typography/fixtures/heading-indistinct.positive.png        4/4/3            1.000     0.818            yes
+packs/ux/fixtures/actions-look-like-plain-text.negative.png      3/3/2            0.750     0.375            yes
+mean share in all 3: 0.719 (10 of 10 images)
+mean share in all 3 ranked lists: 0.546 (10 of 10 images)
+verdicts agree 7 of 10
 Jev (EV-17): Jev's largest probability movement was 0.08 (EV-6).
 ```
 

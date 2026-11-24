@@ -43,6 +43,17 @@ const MAX_PARALLEL_CALLS = 4;
 /** How many crits of each image the evaluation compares (EV-17). */
 export const RUNS_PER_IMAGE = 3;
 
+/**
+ * Returns the run numbers of a batch as a range: batch 1 is runs 1 to 3, batch 2 is runs 4 to 6,
+ * and so on. Batch 1 reads the same runs the evaluation read before batches existed.
+ */
+export function batchRuns(batch: number): { first: number; last: number } {
+  return {
+    first: (batch - 1) * RUNS_PER_IMAGE + 1,
+    last: batch * RUNS_PER_IMAGE,
+  };
+}
+
 /** The labels of runs 1, 2, and 3 in the judge prompt and in the finding ids, one letter each. */
 const RUN_LABELS = "ABC";
 
@@ -286,12 +297,22 @@ export function rankedFindings(markdown: string): string[] {
 /**
  * Returns the items under "Smaller things", up to the next section heading (EV-17). Items may be
  * bulleted with `-` or `*` or numbered. Returns an empty list when the crit has no such heading,
- * because critic.md says to omit the section when there is nothing to list. It throws when the
- * section holds text that is not a list item.
+ * because critic.md says to omit the section when there is nothing to list, and when the heading
+ * line goes on with text that starts with "None", such as "None beyond the above.", because that
+ * says the list is empty. It throws on any other text on the heading line, on a "None" line with
+ * text below it, and when the section holds text that is not a list item.
  */
 export function smallerThings(markdown: string): string[] {
   const section = readSection(markdown, "Smaller things");
   if (section === undefined) {
+    return [];
+  }
+  // \b is a word boundary, so "None." and "None worth listing" match and "Nonetheless" does not.
+  if (/^None\b/.test(section.headingRest)) {
+    const textBelow = section.lines.some((line) => line.trim() !== "");
+    if (textBelow) {
+      throw new Error('text below a "None" smaller-things heading');
+    }
     return [];
   }
   if (section.headingRest !== "") {
@@ -563,18 +584,22 @@ function imageKey(imagePath: string): string {
 }
 
 /**
- * Reads the saved crits of one image at a commit, the first 3 of the current run identity, reads
- * their sections, and builds the judge question when all 3 crits can be read.
+ * Reads the saved crits of one image at a commit, the 3 of the batch among the saved crits of the
+ * current run identity in order (batch 1: the 1st to 3rd, batch 2: the 4th to 6th), reads their
+ * sections, and builds the judge question when all 3 crits can be read. The judge question names
+ * each crit's run number, so each batch has its own judge answer.
  */
 function readImageState(
   fixture: string,
   options: RepeatOptions,
   commit: string,
+  batch: number,
 ): ImageState {
   const key = imageKey(join(options.repositoryDirectory, fixture));
+  const runs = batchRuns(batch);
   const crits = readSavedCrits(options.runsDirectory, commit, key).slice(
-    0,
-    RUNS_PER_IMAGE,
+    runs.first - 1,
+    runs.last,
   );
   if (crits.length < RUNS_PER_IMAGE) {
     return { fixture, crits, readings: undefined, ready: undefined };
@@ -636,15 +661,17 @@ function readSavedAnswer(
 const HELP_TEXT = `Repeat-run evaluation (EV-17) on ${REPEAT_FIXTURES.length} fixed fixture images.
 
 Usage:
-  node evals/critic/repeat.ts [--replay] [--skill DIR] [--skill-commit SHA]
+  node evals/critic/repeat.ts [--replay] [--batch N] [--skill DIR] [--skill-commit SHA]
   node evals/critic/repeat.ts --help
 
-Without --replay it runs the critic until each image has ${RUNS_PER_IMAGE} saved crits (at most
-${REPEAT_FIXTURES.length * RUNS_PER_IMAGE} runs, ${MAX_PARALLEL_CALLS} images at once), then the judge once per image that has no saved
+Without --replay it runs the critic until each image has the ${RUNS_PER_IMAGE} saved crits of the batch (at most
+${REPEAT_FIXTURES.length * RUNS_PER_IMAGE} runs per batch, ${MAX_PARALLEL_CALLS} images at once), then the judge once per image that has no saved
 answer. It asks a model; never run it in npm run ci.
 
 Flags:
   --replay            Read saved crits and judge answers only. Starts no child process.
+  --batch N           Which ${RUNS_PER_IMAGE} runs of each image to score (default 1): batch 1 is runs 1 to 3,
+                      batch 2 is runs 4 to 6, and so on. Each batch has its own judge answers.
   --skill DIR         The skill folder (default plugin/skills/design-critic).
   --skill-commit SHA  Use the runs of this commit instead of the skill folder's commit.
   --help, -h          Print this help.
@@ -669,6 +696,7 @@ export async function runRepeat(
     args: [...argv],
     options: {
       replay: { type: "boolean", default: false },
+      batch: { type: "string", default: "1" },
       skill: { type: "string" },
       "skill-commit": { type: "string" },
       help: { type: "boolean", short: "h", default: false },
@@ -680,6 +708,16 @@ export async function runRepeat(
     return { text: HELP_TEXT, errorText: "", exitCode: 0 };
   }
   const replay = parsed.values.replay === true;
+  const batchText = parsed.values.batch ?? "1";
+  // Only a whole number from 1 up, written without a sign or leading zero.
+  if (!/^[1-9]\d*$/.test(batchText)) {
+    return {
+      text: "",
+      errorText: `--batch must be a whole number from 1 up, not "${batchText}"\n`,
+      exitCode: EXIT_CODE_COULD_NOT_RUN,
+    };
+  }
+  const batch = Number(batchText);
   const skillDirectory = resolve(parsed.values.skill ?? options.skillDirectory);
   // A replay may read runs of a skill folder with uncommitted changes; a live run may not.
   // ?? gives the right side only when --skill-commit is not given.
@@ -687,31 +725,36 @@ export async function runRepeat(
     parsed.values["skill-commit"] ?? skillCommit(skillDirectory, replay);
 
   if (!replay) {
-    await runLive(options, skillDirectory, commit);
+    await runLive(options, skillDirectory, commit, batch);
   }
 
   const states: ImageState[] = [];
   for (const fixture of REPEAT_FIXTURES) {
-    states.push(readImageState(fixture, options, commit));
+    states.push(readImageState(fixture, options, commit, batch));
   }
   return renderResult(states, options, commit, replay);
 }
 
 /**
- * Live mode: writes the plan, makes sure each image has 3 crits, then asks the judge for each image
- * whose 3 crits can be read and whose answer is not saved. It saves what it makes and returns
- * nothing; the caller then reads everything back as a replay does.
+ * Live mode: writes the plan, makes sure each image has the crits up to the last run of the batch,
+ * then asks the judge for each image whose 3 crits of the batch can be read and whose answer is not
+ * saved. It saves what it makes and returns nothing; the caller then reads everything back as a
+ * replay does.
  */
 async function runLive(
   options: RepeatOptions,
   skillDirectory: string,
   commit: string,
+  batch: number,
 ): Promise<void> {
+  const runsNeeded = batchRuns(batch).last;
   let savedCrits = 0;
   let savedAnswers = 0;
   for (const fixture of REPEAT_FIXTURES) {
-    const state = readImageState(fixture, options, commit);
-    savedCrits += state.crits.length;
+    const key = imageKey(join(options.repositoryDirectory, fixture));
+    const allSaved = readSavedCrits(options.runsDirectory, commit, key).length;
+    savedCrits += Math.min(allSaved, runsNeeded);
+    const state = readImageState(fixture, options, commit, batch);
     if (
       state.ready !== undefined &&
       readSavedAnswer(state.ready, options, commit) !== undefined
@@ -719,7 +762,7 @@ async function runLive(
       savedAnswers += 1;
     }
   }
-  const totalCrits = REPEAT_FIXTURES.length * RUNS_PER_IMAGE;
+  const totalCrits = REPEAT_FIXTURES.length * runsNeeded;
   options.writeProgress?.(
     `Plan: ${totalCrits} critic runs (${savedCrits} saved), then ${REPEAT_FIXTURES.length} judge calls (${savedAnswers} saved), at most ${MAX_PARALLEL_CALLS} at once.\n`,
   );
@@ -733,7 +776,7 @@ async function runLive(
     ensureCrits(
       { imagePaths: [join(options.repositoryDirectory, fixture)] },
       criticOptions,
-      RUNS_PER_IMAGE,
+      runsNeeded,
     ),
   );
   const judgeOptions = {
@@ -742,7 +785,7 @@ async function runLive(
     runClaude: options.runClaude,
   };
   await runPooled(REPEAT_FIXTURES, MAX_PARALLEL_CALLS, async (fixture) => {
-    const ready = readImageState(fixture, options, commit).ready;
+    const ready = readImageState(fixture, options, commit, batch).ready;
     if (ready === undefined) {
       return undefined;
     }
