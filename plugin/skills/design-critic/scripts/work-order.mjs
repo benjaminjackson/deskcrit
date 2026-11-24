@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // Checks a work order (PRD FR-80) for what its JSON Schema, schemas/work-order.schema.json, cannot
 // check: that the ranked entries match the prose crit's ranked list one to one by rank, and that
-// every pixel box comes from something real, the facts file or a crop, and is never invented. The
+// every pixel box comes from something real, the facts file or a crop, and is never invented. When
+// the work order has `images`, the screenshots of one page at several viewports, it also checks each
+// image and that each box lies inside the image of its viewport (crit-9w5.6). The
 // work-order agent (agents/work-order.md) runs it on the file it wrote and fixes each problem it
 // prints. It uses only Node's own modules, so the installed plugin needs no install step.
 //
@@ -234,10 +236,83 @@ export function checkWorkOrder(
       `the crit ranks ${critCount} findings, but the work order ranks ${rankedCount}`,
     );
   }
+  if (Array.isArray(workOrder?.images)) {
+    problems.push(...checkViewports(workOrder, findings, facts, readFile));
+    return problems;
+  }
   if (imageSize !== undefined) {
     const imageBox = { width: imageSize[0], height: imageSize[1] };
     for (const finding of findings) {
       problems.push(...checkLocation(finding, imageBox, facts, readFile));
+    }
+  }
+  return problems;
+}
+
+/**
+ * Checks a work order that has an `images` list, the screenshots of one page at several viewports
+ * that the critic judged in one crit (FR-85, crit-9w5.6), and returns the problems. Each image must
+ * be the size it says and a viewport of the facts file; each finding names the viewports it applies
+ * to, its `location.viewport` is one of them, and its box lies inside that viewport's image.
+ */
+function checkViewports(workOrder, findings, facts, readFile) {
+  const problems = [];
+  const images = workOrder.images;
+  const first = images[0] ?? {};
+  const image = workOrder.image ?? {};
+  if (
+    first.path !== image.path ||
+    first.width !== image.width ||
+    first.height !== image.height
+  ) {
+    problems.push("image is not the first entry of images");
+  }
+  // The size of each viewport's image, by viewport name, as read from the PNG file.
+  const sizes = new Map();
+  for (const entry of images) {
+    const bytes = readFile(entry.path);
+    const size = bytes === undefined ? undefined : pngSize(bytes);
+    if (size === undefined) {
+      problems.push(`cannot read the image ${entry.path} as a PNG`);
+    } else if (entry.width !== size[0] || entry.height !== size[1]) {
+      problems.push(
+        `image ${entry.path} is ${size[0]} x ${size[1]} px, but the work order says ${entry.width} x ${entry.height}`,
+      );
+    } else {
+      sizes.set(entry.viewport, { width: size[0], height: size[1] });
+    }
+    if (
+      facts !== undefined &&
+      !facts.viewports?.some((candidate) => candidate.name === entry.viewport)
+    ) {
+      problems.push(`the facts file has no viewport ${entry.viewport}`);
+    }
+  }
+  const names = new Set(images.map((entry) => entry.viewport));
+  for (const finding of findings) {
+    const label = `finding ${finding.id}`;
+    const location = finding.location ?? {};
+    const viewports = location.viewports;
+    if (!Array.isArray(viewports)) {
+      problems.push(`${label}: has no location.viewports`);
+      continue;
+    }
+    for (const name of viewports) {
+      if (!names.has(name)) {
+        problems.push(`${label}: viewport ${name} is not in images`);
+      }
+    }
+    if (location.viewport !== null && !viewports.includes(location.viewport)) {
+      problems.push(
+        `${label}: location.viewport ${location.viewport} is not in location.viewports`,
+      );
+      continue;
+    }
+    // The box is in the pixels of the image of location.viewport, or of the first image when the
+    // finding has no viewport.
+    const boxImage = sizes.get(location.viewport ?? first.viewport);
+    if (boxImage !== undefined) {
+      problems.push(...checkLocation(finding, boxImage, facts, readFile));
     }
   }
   return problems;

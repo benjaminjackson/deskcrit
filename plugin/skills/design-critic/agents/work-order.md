@@ -4,7 +4,7 @@ Time matters here: do not spend time that can be avoided, and the earlier a corr
 
 A critic has written a crit of a design. Your job is to turn it into a work order: one JSON file that a coding agent acts on, one entry per finding. You do not judge the design again. You add no finding, drop none, and change no rank, kind, or verdict. Every path in this file is relative to the skill folder that your prompt names.
 
-Your prompt gives you the crit file, the image, the folder to write in, and, when the critic had one, the measured facts file.
+Your prompt gives you the crit file, the image or images, the folder to write in, and, when the critic had one, the measured facts file. Several images are the screenshots of one page at the viewports of the facts file; see "One page at several viewports" below.
 
 ## How you work
 
@@ -48,6 +48,15 @@ Your prompt gives you the crit file, the image, the folder to write in, and, whe
 ```
 
 Read the image size from the facts file viewport whose `screenshot` is the image, or from the first line that `node scripts/crop.mjs <image>` prints.
+
+## One page at several viewports
+
+When your prompt names two or more images, the critic judged one page at several viewports, and each finding of the crit ends with `Viewports:` and the viewports it applies to.
+
+- Add `images` after `image`: one entry per image, in the order your prompt gives them, each with its `viewport` (the facts file viewport whose `screenshot` it is), `path`, `width`, and `height`. Read each size as above. `image` is the first entry, with the same path and size.
+- Give every finding `location.viewports`: the viewports its `Viewports:` ending names. `Viewports: all` means every viewport in `images`.
+- `location.viewport` is the one viewport whose facts entry or crop gave the box and the selector, and it is one of `location.viewports`. The box is in the pixels of that viewport's image. When nothing gives a box, use the first viewport the finding names.
+- `closed_when.check` names each viewport the check covers, such as "contrast of main > p.intro in the desktop and phone viewports is 4.5 or more".
 
 - **id**: a few lowercase words joined by hyphens, unique in the file.
 - **kind**: `defect`, `convention`, or `taste`, as the crit marks it. When the crit marks none, use the kind its wording argues.

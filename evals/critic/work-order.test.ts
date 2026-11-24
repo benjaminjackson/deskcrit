@@ -188,3 +188,127 @@ describe("scripts/work-order.mjs", () => {
     expect(problems.join("\n")).toContain("the crit ranks");
   });
 });
+
+describe("a work order for one page at several viewports (crit-9w5.6)", () => {
+  const facts = readJson(join(caseFolder, "facts.json"));
+  const critText = readFileSync(join(caseFolder, "crit.md"), "utf8");
+
+  /** Returns the first 24 bytes of a PNG, which hold its signature and its width and height. */
+  function pngHeader(width: number, height: number): Buffer {
+    const header = Buffer.alloc(24);
+    Buffer.from("89504e470d0a1a0a", "hex").copy(header, 0);
+    header.writeUInt32BE(13, 8);
+    header.write("IHDR", 12, "ascii");
+    header.writeUInt32BE(width, 16);
+    header.writeUInt32BE(height, 20);
+    return header;
+  }
+
+  // The images the work order names, by path: the desktop and phone screenshots at the sizes the
+  // committed facts file gives, and a crop 100 x 20 px that crop.mjs would write.
+  const files: Record<string, Buffer> = {
+    "desktop.png": pngHeader(1280, 800),
+    "phone.png": pngHeader(390, 844),
+    "low-crop.png": pngHeader(100, 20),
+  };
+
+  /** Returns the bytes of a named file above, or undefined, as the script's readFile does. */
+  function readFile(path: string): Buffer | undefined {
+    return files[path];
+  }
+
+  /**
+   * Returns a copy of the committed work order with images for desktop and phone, every finding on
+   * desktop, and the first finding a crop box low on the page in the given viewport. The box lies
+   * below the bottom of the 800 px desktop image but inside the 844 px phone image.
+   */
+  function severalViewports(viewport: string): Record<string, unknown> {
+    const copy = structuredClone(readJson(workOrderPath));
+    copy.images = [
+      { viewport: "desktop", path: "desktop.png", width: 1280, height: 800 },
+      { viewport: "phone", path: "phone.png", width: 390, height: 844 },
+    ];
+    for (const finding of findingsOf(copy)) {
+      const location = finding.location as Record<string, unknown>;
+      location.viewports = ["desktop"];
+    }
+    const first = findingsOf(copy)[0] as Record<string, unknown>;
+    first.location = {
+      description: "the footer links",
+      viewport,
+      viewports: ["desktop", "phone"],
+      selector: null,
+      box: [0, 810, 100, 20],
+      box_source: "crop",
+      crop: "low-crop.png",
+    };
+    return copy;
+  }
+
+  /** Runs the script's check on a work order with the fixed sizes above. */
+  function problemsOf(workOrder: Record<string, unknown>): string[] {
+    return checkWorkOrder(workOrder, critText, [1280, 800], facts, readFile);
+  }
+
+  it("accepts a box inside the phone image when its viewport is phone", () => {
+    expect(problemsOf(severalViewports("phone"))).toEqual([]);
+  });
+
+  it("refuses the same box when its viewport is desktop, whose image is shorter", () => {
+    expect(problemsOf(severalViewports("desktop")).join("\n")).toContain(
+      "is not inside the image",
+    );
+  });
+
+  it("refuses a viewport that is not in images", () => {
+    const copy = severalViewports("phone");
+    const location = findingsOf(copy)[0]?.location as Record<string, unknown>;
+    location.viewports = ["phone", "tablet"];
+    expect(problemsOf(copy).join("\n")).toContain(
+      "viewport tablet is not in images",
+    );
+  });
+
+  it("refuses a location.viewport that is not in location.viewports", () => {
+    const copy = severalViewports("phone");
+    const location = findingsOf(copy)[0]?.location as Record<string, unknown>;
+    location.viewports = ["desktop"];
+    expect(problemsOf(copy).join("\n")).toContain(
+      "is not in location.viewports",
+    );
+  });
+
+  it("refuses a finding without location.viewports when the work order has images", () => {
+    const copy = severalViewports("phone");
+    const location = findingsOf(copy)[1]?.location as Record<string, unknown>;
+    delete location.viewports;
+    expect(problemsOf(copy).join("\n")).toContain("has no location.viewports");
+  });
+
+  it("refuses an image whose size is not the size of its file", () => {
+    const copy = severalViewports("phone");
+    (copy.images as Record<string, unknown>[])[1] = {
+      viewport: "phone",
+      path: "phone.png",
+      width: 390,
+      height: 800,
+    };
+    expect(problemsOf(copy).join("\n")).toContain(
+      "image phone.png is 390 x 844 px",
+    );
+  });
+
+  it("is valid against the schema with the new fields", () => {
+    const validate = compileValidator();
+    const copy = severalViewports("phone");
+    expect(validate(copy), JSON.stringify(validate.errors)).toBe(true);
+  });
+
+  it("the schema refuses an empty viewports list", () => {
+    const validate = compileValidator();
+    const copy = severalViewports("phone");
+    const location = findingsOf(copy)[0]?.location as Record<string, unknown>;
+    location.viewports = [];
+    expect(validate(copy)).toBe(false);
+  });
+});

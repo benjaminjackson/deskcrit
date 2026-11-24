@@ -13,7 +13,7 @@ In the steps below, `<design-critic folder>` is the `design-critic` folder next 
 
 Use the same capture in every round, so each round compares like with like.
 
-- When you have the page source or a URL, capture with the measure script: `node <design-critic folder>/scripts/measure.mjs <page> --out <round folder> --desktop --phone`. It writes `desktop.png`, `phone.png`, and `facts.json` into the round folder, always at the same two viewports. Pass `--desktop --phone` in every round, so each round captures the same viewports; the script can render more widths, and crit-9w5.6 decides when the critic gets them. Pick `desktop.png` or `phone.png` in round 1 and use that one in every round. Decide `--dark` in round 1 too: add it when the person asks for dark mode or the code you changed touches the theme, and then pass the same flags in every round. If round 1 found a dark mode and a later round's `facts.json` sets `dark_mode.found_by` to none, say at the stop that the fix broke dark mode. If it prints `cannot measure:` and exits with code 3 (the page does not open), use your own tool, as below, for the whole loop. If it exits with code 4, Playwright or its Chromium is missing: stop, show the person the install commands from the `cannot measure:` line, and ask whether to install them. Never install without their yes. On yes, run the install commands in the project, then run the measure script again. On no, use your own tool, as below, for the whole loop, and say at the stop that the loop ran without measured facts.
+- When you have the page source or a URL, capture with the measure script: `node <design-critic folder>/scripts/measure.mjs <page> --out <round folder>`. With no viewport flag it writes `desktop.png`, `phone.png`, `tablet.png`, `widescreen.png`, and `facts.json` into the round folder. Pick the flags in round 1: none, or the viewport flags the person asked for (`--desktop`, `--phone`, `--tablet`, `--widescreen`, `--width N`), and `--dark` when the person asks for dark mode or the code you changed touches the theme. Then pass exactly the same flags in every round, so each round captures the same viewports. Every screenshot that `facts.json` lists goes to the critic and to the work order, in the order of the facts file viewports. If round 1 found a dark mode and a later round's `facts.json` sets `dark_mode.found_by` to none, say at the stop that the fix broke dark mode. If it prints `cannot measure:` and exits with code 3 (the page does not open), use your own tool, as below, for the whole loop. If it exits with code 4, Playwright or its Chromium is missing: stop, show the person the install commands from the `cannot measure:` line, and ask whether to install them. Never install without their yes. On yes, run the install commands in the project, then run the measure script again. On no, use your own tool, as below, for the whole loop, and say at the stop that the loop ran without measured facts.
 - Otherwise, take the screenshot with the tool you already have, such as Playwright or a browser tool, at the same viewport width and height and the same part of the page in every round, and save it in the round folder.
 
 Rebuild or reload the app before each capture, so the image shows your fix and not the old build.
@@ -21,7 +21,7 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 ## Round 1: the crit
 
 1. Capture into `<loop folder>/round-1`.
-2. Run the design-critic skill on that image, steps 1 to 5 of its `SKILL.md`, with the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder.
+2. Run the design-critic skill on that capture, steps 1 to 5 of its `SKILL.md`, with every screenshot and the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder.
 3. If the work order has no finding with a rank, stop: there is nothing to fix.
 
 ## Each round after that
@@ -44,9 +44,11 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
    When the recheck is done, end with the full recheck as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the full recheck.
    ```
 
+   With a facts file of several viewports, write `Before images: <absolute paths of the last round's screenshots>` and `After images: <absolute paths of this round's screenshots>` in place of the two image lines, both in the order of the facts file viewports.
+
 4. Save its final message as `crit.md` in the round folder, exactly as it wrote it.
 5. Count the findings it marked closed under "Finding status", and check the stop rule below.
-6. If you do not stop, write the new work order with step 5 of the design-critic skill's `SKILL.md`: this round's `crit.md`, this round's image, and its facts file. Then start the next round.
+6. If you do not stop, write the new work order with step 5 of the design-critic skill's `SKILL.md`: this round's `crit.md`, this round's images, and its facts file. Then start the next round.
 
 A finding marked worse is not progress. Fix it before the findings ranked below it.
 
