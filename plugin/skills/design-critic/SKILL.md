@@ -1,6 +1,6 @@
 ---
 name: design-critic
-description: Critiques still images of a design (a screenshot, mockup, poster, slide, chart, or illustration) the way a senior design director would in a crit, backed by a checklist of about 220 guidelines from Bringhurst, Müller-Brockmann, Tufte, WCAG, Nielsen and the rest of an approved reading list. One image gets a crit. Two or more images get a crit each, plus either a consistency check of the set or a pick of the best version. Use when the user or the main thread wants a design critiqued, reviewed, or judged, asks "how does this look", "crit this", "what's wrong with this design", wants feedback on a screenshot before shipping, wants screens checked for consistency, or wants the best of several versions picked. Critiques only; it does not edit files or redesign the piece.
+description: Critiques still images of a design (a screenshot, mockup, poster, slide, chart, or illustration) the way a senior design director would in a crit, backed by a checklist of about 220 guidelines from Bringhurst, Müller-Brockmann, Tufte, WCAG, Nielsen and the rest of an approved reading list. One image gets a crit. Two to twelve images get a crit each plus one check, which the request names: a consistency check of the set ("are these consistent") or a best pick ("which is best"). An agent caller must name one, or it gets a one-line refusal. Use when the user or the main thread wants a design critiqued, reviewed, or judged, asks "how does this look", "crit this", "what's wrong with this design", wants feedback on a screenshot before shipping, wants screens checked for consistency, or wants the best of several versions picked. Critiques only; it does not edit files or redesign the piece.
 ---
 
 # Design critic
@@ -17,6 +17,8 @@ Count the images first. The count picks the mode, and nothing else does.
   - **Best pick** (`agents/picker.md`): which version does the job best. Requests such as "which is best", "pick one", "compare v1 and v2", or "before and after" mean this. The old before-and-after compare is now the best pick with two images.
 - **When the request does not say which**, ask the person one question that names the two: "Do you want a consistency check of the set, or a pick of the best version?" When the caller is another agent and no person can be asked, the caller must name the mode. If it did not, stop and reply with this one line, and do not guess: `Two or more images need a mode: "consistency check" or "best pick".`
 - **Several images to critique with neither check**: call this skill once per image, each time with one image. Contact-sheet mode always adds the last agent.
+- **At most twelve images.** The contact sheet holds twelve; with more, split the set or ask the person which twelve.
+- **Cost.** Contact-sheet mode starts two Opus agents and one Sonnet agent per image, plus one Opus agent for the last step: five images start eleven Opus agents.
 
 ## Run it
 
