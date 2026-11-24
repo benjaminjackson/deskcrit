@@ -4,7 +4,7 @@ This folder holds the source of the first-party packs (PRD FR-53) and the tool t
 
 ## Rendering fixtures
 
-The renderer is a development tool. It has its own `package.json` here, with Playwright pinned to an exact version. The `deskcrit` package never installs or bundles it, so `crit` has no browser dependency (NFR-3, NG-1).
+The renderer is a development tool. It has its own `package.json` here, with Playwright pinned to an exact version. The root package never installs it, so `npm run ci` needs no browser (NFR-3).
 
 Run these from the repository root. The first two commands are needed once per machine. `setup` downloads the Chromium build that the pinned Playwright uses into Playwright's per-user cache.
 
@@ -52,7 +52,7 @@ Charts use inline SVG in the same template, and the same switch reaches SVG elem
 
 ## Blind fixtures and the defect declaration
 
-`docs/PRD.md` FR-54 rules 1 to 4 and EV-4 rule 5 say how fixtures stay blind to Jev's scores. Do not change a fixture because of a score. Commit the fixtures before any scored run, and get the blind review of rule 4 first.
+`docs/PRD.md` FR-54 rules 1 to 4 say how fixtures stay blind to scores. Do not change a fixture because of a score. Commit the fixtures before any scored run, and get the blind review of rule 4 first.
 
 Each criterion has one declaration, `packs/<pack>/templates/<criterion-id>.defect.json`, that all its numbered templates (`<criterion-id>--2.html` and so on) share:
 

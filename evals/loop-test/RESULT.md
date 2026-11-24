@@ -1,6 +1,6 @@
 # EV-10 loop test: result
 
-This is the record of one EV-10 run (`docs/PRD.md` EV-10, R-5, FR-66, FR-67, M-5). `README.md` says how to run the test. Each field marked `TO FILL` is blank until the run is done. Fill every field with real values from the run, not placeholders.
+This is the record of one EV-10 run (`docs/PRD.md` EV-18, R-5, FR-82). `README.md` says how to run the test. Each field marked `TO FILL` is blank until the run is done. Fill every field with real values from the run, not placeholders.
 
 ## The bad page
 
@@ -23,46 +23,43 @@ The page in `bad-page/` starts with these defects. Each one is a plain mistake t
 |---|---|
 | Date | TO FILL (YYYY-MM-DD) |
 | Person who ran it | Benjamin Jackson |
-| crit version | TO FILL: `tool.version` from the first `crit report --json`, and the commit SHA of the clone `crit` was built from |
 | Plugin version | TO FILL: commit SHA of the `plugin/` folder that Claude Code loaded |
 | How the plugin was loaded | TO FILL: `/plugin install deskcrit@deskcrit`, or `claude --plugin-dir <path>` |
-| Pinned model id (FR-22, FR-26) | TO FILL: `model` from the first `crit report --json`; `.crit.yaml` pins `jev-1.14.0` |
-| Packs | basics, typography, layout, ux (bundled with the CLI, from `.crit.yaml`; record the versions from `packs` in the first report: TO FILL) |
-| Screenshot size the agent used | TO FILL |
+| Capture the agent used | TO FILL: `measure.mjs`, or the agent's own tool, and the viewport size and image it used each round |
 | Starting prompt, verbatim | `Improve the design of the web page in this folder (index.html and styles.css). Use the crit-loop skill. When you stop, tell me why you stopped.` |
 | Messages to the agent after the starting prompt | TO FILL: none, or each one verbatim |
 
 ### Round definition
 
-A round is one fix, one new screenshot, one `crit compare`, and one `crit gate`. The first round, `crit report` and `crit gate` on the starting screenshot, does not count. This is the definition in the `crit-loop` skill. Use it for every later run, so that round counts stay comparable.
+Round 1 is the critic on the starting screenshot. It writes `crit.md` and `work-order.json` and does not count as a fix round. A later round is one fix from the top of the last work order, one new capture, and one recheck critic. This is the definition in the `crit-loop` skill. Use it for every later run, so that round counts stay comparable.
 
 ### Starting state
 
 | Field | Value |
 |---|---|
-| First `crit gate` result | TO FILL: passed or failed, and `gate.blocking` |
-| First report findings | TO FILL: each criterion id with its verdict |
-| Defects from the table above that the first report found | TO FILL |
-| Defects from the table above that the first report missed | TO FILL |
+| First read and verdict of the round 1 crit | TO FILL |
+| Ranked findings in the round 1 work order | TO FILL: each rank with its title |
+| Defects from the table above that the round 1 crit found | TO FILL |
+| Defects from the table above that the round 1 crit missed | TO FILL |
 
 ### Rounds
 
-| Round | Fix the agent made | `crit compare` summary (improved, regressed, same, uncertain; FR-39) | `crit gate` counts (fail, warn, pass, uncertain) | `gate.passed` |
-|---|---|---|---|---|
-| TO FILL | | | | |
+| Round | Fix the agent made | Findings the recheck marked closed, open, and worse | New problems the recheck listed |
+|---|---|---|---|
+| TO FILL | | | |
 
-Add one row per round. Each summary must come from `crit compare` output, which compares two full reports, and not from a diff the agent wrote by hand (R-5). Write here whether that held for every round: TO FILL.
+Add one row per round after round 1. Each count must come from the recheck critic's "Finding status" and new-problems lists, and not from a diff the agent wrote by hand (R-5). Write here whether that held for every round: TO FILL.
 
 ### Outcome
 
 | Field | Value |
 |---|---|
-| Rounds to clear the gate | TO FILL: the count, or "did not clear" |
-| Stop reason (FR-67) | TO FILL: "the gate passed", or "two rounds in a row with no criterion improved" |
-| Last `crit compare` summary | TO FILL |
-| Last `gate.blocking` | TO FILL |
-| Criteria skipped in any round | TO FILL |
-| EV-10 round-count target | Not applicable: no target set. `docs/PRD.md` EV-10 records that the target stays unset (decided 2026-10-24, crit-oj5.4). |
+| Rounds used | TO FILL: the count of rounds after round 1 |
+| Stop reason (FR-82) | TO FILL: "no ranked finding left", or "two rounds in a row closed nothing" |
+| Last recheck first read and verdict | TO FILL |
+| Findings still open or worse at stop | TO FILL |
+| Loop folder path the agent named | TO FILL |
+| Round-count target | Not applicable: no target set. `docs/PRD.md` EV-10 records that the target stays unset (decided 2026-10-24, crit-oj5.4). |
 
 ### Before and after
 
@@ -72,19 +69,19 @@ Add one row per round. Each summary must come from `crit compare` output, which 
 - Diff of the page: `runs/<date>/page.diff` (TO FILL: path)
 - Transcript summary: `runs/<date>/transcript-summary.md` (TO FILL: path)
 
-### Points where the agent judged without crit (FR-69)
+### Points where the agent judged without the critic (FR-69)
 
-TO FILL: each place in the transcript where the agent decided a design question on its own because the plugin or `crit` gave no answer, for example when it picked a fix for a finding that had no clear fix, or changed something no finding named. Write "none" if there were none.
+TO FILL: each place in the transcript where the agent decided a design question on its own because the work order gave no answer, for example when it picked a fix for a finding that had no clear fix, or changed something no finding named. Write "none" if there were none.
 
 ### Gaming check (R-5)
 
 TO FILL: did any change raise a score without improving the page, for example by hiding or removing content, such as deleting the second button instead of making it secondary? Name each such change, or write "none seen".
 
-If the gate passed and the verdict below is "same" or "worse", this run fired the R-5 review trigger: "EV-10 shows a designer rejecting results that cleared the gate." Write here whether it fired, and the follow-up ticket id if it did: TO FILL.
+If the loop stopped with no ranked finding left and the verdict below is "same" or "worse", this run fired the R-5 review trigger: a designer rejecting a result that the loop accepted. Write here whether it fired, and the follow-up ticket id if it did: TO FILL.
 
 ## Verdict
 
-Only Benjamin Jackson writes this section. An agent never writes or edits it. He is the only reviewer. He looked at the before and after screenshots before he read any `crit` output.
+Only Benjamin Jackson writes this section. An agent never writes or edits it. He is the only reviewer. He looked at the before and after screenshots before he read the transcript, a crit, or a work order.
 
 - Verdict (better, same, or worse): TO FILL BY BENJAMIN JACKSON
 - Reasoning (one or two sentences): TO FILL BY BENJAMIN JACKSON
