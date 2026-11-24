@@ -846,7 +846,7 @@ describe("runDetect live, with a stub critic and a stub judge", () => {
     expect(criticCalls).toBe(6);
     expect(judgeCalls).toBe(6);
     expect(progress).toEqual([
-      "plan: 3 criteria, 6 critic runs and 6 judge calls to make (0 crits and 0 judge answers already saved), at most 4 at once",
+      "plan: 3 criteria, 6 critic runs and 6 judge calls to make (0 crits and 0 judge answers already saved), at most 40 at once",
     ]);
 
     const second = await runDetect(["--skill-commit", COMMIT], options);
@@ -854,7 +854,7 @@ describe("runDetect live, with a stub critic and a stub judge", () => {
     expect(criticCalls).toBe(6);
     expect(judgeCalls).toBe(6);
     expect(progress[1]).toBe(
-      "plan: 3 criteria, 0 critic runs and 0 judge calls to make (6 crits and 6 judge answers already saved), at most 4 at once",
+      "plan: 3 criteria, 0 critic runs and 0 judge calls to make (6 crits and 6 judge answers already saved), at most 40 at once",
     );
 
     const replayed = await replay(repository, runsDirectory);
@@ -1068,5 +1068,16 @@ describe("runDetect --jev", () => {
     expect(replayed.errorText).toBe("");
     expect(replayed.exitCode).toBe(0);
     expect(replayed.text).toContain("01234567+jev raised");
+  });
+});
+
+describe("runDetect --parallel", () => {
+  it("stops with a usage error on a value that is not a positive integer", async () => {
+    for (const value of ["0", "-1", "1.5", "lots"]) {
+      await expect(
+        // The value is refused before the options are read, so an empty object is enough.
+        runDetect([`--parallel=${value}`], {} as never),
+      ).rejects.toThrow("--parallel must be a whole number of 1 or more");
+    }
   });
 });

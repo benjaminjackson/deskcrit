@@ -37,7 +37,25 @@ import {
 
 const REPOSITORY_DIRECTORY = resolve(import.meta.dirname, "..", "..");
 const EXIT_CODE_COULD_NOT_RUN = 2;
-const MAX_PARALLEL_RUNS = 4;
+/** How many critic runs or judge calls run at once when --parallel is not given. */
+export const DEFAULT_PARALLEL = 40;
+
+/**
+ * Reads the value of --parallel: a whole number of 1 or more, or the default when the flag is
+ * absent. Anything else stops the script with a usage error, because a zero or a word would
+ * start no work or hang the pool.
+ */
+export function parseParallel(text: string | undefined): number {
+  if (text === undefined) {
+    return DEFAULT_PARALLEL;
+  }
+  if (!/^[1-9]\d*$/.test(text)) {
+    throw new Error(
+      `--parallel must be a whole number of 1 or more, not "${text}"`,
+    );
+  }
+  return Number(text);
+}
 
 /**
  * The focus line of every compare request. It names the images only by their neutral names, so it
@@ -87,12 +105,14 @@ const HELP_TEXT = `Ask the design critic which version of each labeled pair is b
 
 Usage:
   node evals/critic/compare.ts [--replay] [--skill DIR] [--skill-commit SHA]
+                              [--parallel N]
 
 Flags:
   --replay            Read the saved crits and start no child process. Without it, the script runs
                       the critic on each pair with no saved crit, which asks a model.
   --skill DIR         The skill folder (default plugin/skills/design-critic).
   --skill-commit SHA  Use the runs of this commit instead of the skill folder's commit.
+  --parallel N        How many critic runs or judge calls run at once (default ${DEFAULT_PARALLEL}).
   --help, -h          Print this help.
 
 Exit codes: 0 after a full report, 2 when it could not run or replay found a missing crit.
@@ -283,6 +303,7 @@ export async function runCompare(
       replay: { type: "boolean", default: false },
       skill: { type: "string" },
       "skill-commit": { type: "string" },
+      parallel: { type: "string" },
       help: { type: "boolean", short: "h", default: false },
     },
     strict: true,
@@ -292,6 +313,7 @@ export async function runCompare(
     return { text: HELP_TEXT, errorText: "", exitCode: 0 };
   }
   const replay = parsed.values.replay === true;
+  const parallel = parseParallel(parsed.values.parallel);
   const skillDirectory = resolve(parsed.values.skill ?? options.skillDirectory);
   const labelsPath = join(
     options.repositoryDirectory,
@@ -324,7 +346,7 @@ export async function runCompare(
     );
   } else {
     const indexes = pairs.map((_pair, index) => index);
-    crits = await runPooled(indexes, MAX_PARALLEL_RUNS, async (index) => {
+    crits = await runPooled(indexes, parallel, async (index) => {
       const pair = pairs[index] as LabeledPair;
       try {
         const saved = await ensureCrits(requests[index] as CritRequest, {

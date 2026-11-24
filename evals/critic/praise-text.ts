@@ -16,7 +16,7 @@ import { parseArgs } from "node:util";
 import { parse as parseYaml } from "yaml";
 import { type AdversarialPair, readPairs } from "../adversarial/pairs.ts";
 import { formatTable } from "../support/format-table.ts";
-import { runPooled } from "./compare.ts";
+import { DEFAULT_PARALLEL, parseParallel, runPooled } from "./compare.ts";
 import {
   ensureJudgeAnswer,
   type JudgeQuestion,
@@ -41,7 +41,6 @@ const EXIT_CODE_PAIR_FAILED = 1;
 const EXIT_CODE_COULD_NOT_RUN = 2;
 
 /** How many critic runs or judge calls run at once in live mode. */
-const MAX_PARALLEL_CALLS = 4;
 
 /** The judge question name, saved with each answer. */
 const JUDGE_QUESTION_NAME = "praise-text";
@@ -272,16 +271,18 @@ const HELP_TEXT = `Praise-text evaluation (EV-16) on the 14 adversarial pairs.
 
 Usage:
   node evals/critic/praise-text.ts [--replay] [--skill DIR] [--skill-commit SHA]
+                                   [--parallel N]
   node evals/critic/praise-text.ts --help
 
 Without --replay it runs the critic on each image that has no saved crit (28 images) and the
-judge on each pair that has no saved answer (14 pairs), at most ${MAX_PARALLEL_CALLS} at once. It asks a
+judge on each pair that has no saved answer (14 pairs), at most the --parallel number at once. It asks a
 model; never run it in npm run ci.
 
 Flags:
   --replay            Read saved crits and judge answers only. Starts no child process.
   --skill DIR         The skill folder (default plugin/skills/design-critic).
   --skill-commit SHA  Use the runs of this commit instead of the skill folder's commit.
+  --parallel N        How many critic runs or judge calls run at once (default ${DEFAULT_PARALLEL}).
   --help, -h          Print this help.
 
 The judge reads both crits of a pair. A pair fails when the crit of the image with the sentence
@@ -304,6 +305,7 @@ export async function runPraiseText(
       replay: { type: "boolean", default: false },
       skill: { type: "string" },
       "skill-commit": { type: "string" },
+      parallel: { type: "string" },
       help: { type: "boolean", short: "h", default: false },
     },
     strict: true,
@@ -313,6 +315,7 @@ export async function runPraiseText(
     return { text: HELP_TEXT, errorText: "", exitCode: 0 };
   }
   const replay = parsed.values.replay === true;
+  const parallel = parseParallel(parsed.values.parallel);
   const skillDirectory = resolve(parsed.values.skill ?? options.skillDirectory);
   // A replay may read runs of a skill folder with uncommitted changes; a live run may not.
   // ?? gives the right side only when --skill-commit is not given.
@@ -338,7 +341,7 @@ export async function runPraiseText(
       skillCommit: commit,
       runClaude: options.runClaude,
     };
-    await runPooled(imagePaths, MAX_PARALLEL_CALLS, (imagePath) =>
+    await runPooled(imagePaths, parallel, (imagePath) =>
       ensureCrits({ imagePaths: [imagePath] }, criticOptions),
     );
   }
@@ -381,16 +384,12 @@ export async function runPraiseText(
       skillCommit: commit,
       runClaude: options.runClaude,
     };
-    const judged = await runPooled(
-      questions,
-      MAX_PARALLEL_CALLS,
-      async (question) => {
-        if (question === undefined) {
-          return undefined;
-        }
-        return ensureJudgeAnswer(question, parsePraiseTextAnswer, judgeOptions);
-      },
-    );
+    const judged = await runPooled(questions, parallel, async (question) => {
+      if (question === undefined) {
+        return undefined;
+      }
+      return ensureJudgeAnswer(question, parsePraiseTextAnswer, judgeOptions);
+    });
     answers.push(...judged);
   }
 

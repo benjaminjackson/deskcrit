@@ -28,7 +28,7 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { formatTable } from "../support/format-table.ts";
-import { runPooled } from "./compare.ts";
+import { DEFAULT_PARALLEL, parseParallel, runPooled } from "./compare.ts";
 import { DETECTION_SYSTEM } from "./detect.ts";
 import {
   ensureJudgeAnswer,
@@ -54,7 +54,6 @@ const REPOSITORY_DIRECTORY = resolve(import.meta.dirname, "..", "..");
 const EXIT_CODE_COULD_NOT_RUN = 2;
 
 /** How many critic runs or judge calls run at once in live mode. */
-const MAX_PARALLEL_CALLS = 4;
 
 /** How many crits each image gets in each condition, so a difference can be read against run-to-run noise. */
 export const RUNS_PER_IMAGE = 3;
@@ -1274,14 +1273,14 @@ const HELP_TEXT = `Threshold evaluation (crit-576.13): does the measured facts f
 change the critic's call where a number and the eye disagree?
 
 Usage:
-  node evals/critic/thresholds.ts [--replay] [--skill DIR] [--skill-commit SHA]
+  node evals/critic/thresholds.ts [--replay] [--skill DIR] [--skill-commit SHA] [--parallel N]
   node evals/critic/thresholds.ts --help
 
 It reads evals/critic/thresholds/manifest.json. For each image it makes sure there are
 ${RUNS_PER_IMAGE} crits with the image alone and ${RUNS_PER_IMAGE} with the image and its facts file. For each crit it
 asks the judge whether the crit calls the case's defect present, absent, uncertain, or does not
 mention it, and where it raises it; and, for cases measured from the facts file, which number it
-states. Without --replay it runs at most ${MAX_PARALLEL_CALLS} critic runs or judge calls at once and asks a
+states. Without --replay it runs at most the --parallel number of critic runs or judge calls at once and asks a
 model; never run it in npm run ci. A critic run that fails is counted and named on stderr, and
 the other runs go on.
 
@@ -1289,6 +1288,7 @@ Flags:
   --replay              Read saved crits and judge answers only. Starts no child process.
   --skill DIR           The skill folder (default plugin/skills/design-critic).
   --skill-commit SHA    Use the runs of this commit instead of the skill folder's commit.
+  --parallel N          How many critic runs or judge calls run at once (default ${DEFAULT_PARALLEL}).
   --help, -h            Print this help.
 
 A crit is right on an image that should have the defect when it says present, and right on an
@@ -1309,6 +1309,7 @@ export async function runThresholds(
       replay: { type: "boolean", default: false },
       skill: { type: "string" },
       "skill-commit": { type: "string" },
+      parallel: { type: "string" },
       help: { type: "boolean", short: "h", default: false },
     },
     strict: true,
@@ -1318,6 +1319,7 @@ export async function runThresholds(
     return { text: HELP_TEXT, errorText: "", exitCode: 0 };
   }
   const replay = parsed.values.replay === true;
+  const parallel = parseParallel(parsed.values.parallel);
   const skillDirectory = resolve(parsed.values.skill ?? options.skillDirectory);
   // A replay may read runs of a skill folder with uncommitted changes; a live run may not.
   // ?? gives the right side only when --skill-commit is not given.
@@ -1357,7 +1359,7 @@ export async function runThresholds(
       critsToMake += RUNS_PER_IMAGE - savedCritsOf(item).length;
     }
     options.reportProgress?.(
-      `plan: ${items.length} image and condition pairs, ${critsToMake} critic runs to make, then up to 2 judge questions per crit, at most ${MAX_PARALLEL_CALLS} at once`,
+      `plan: ${items.length} image and condition pairs, ${critsToMake} critic runs to make, then up to 2 judge questions per crit, at most ${parallel} at once`,
     );
     const criticOptions = {
       runsDirectory: options.runsDirectory,
@@ -1367,7 +1369,7 @@ export async function runThresholds(
     };
     // A failed run (a refusal, a usage limit) is recorded and the other runs go on; the run is
     // then missing, so the report exits 2 and a later live run tries it again.
-    await runPooled(items, MAX_PARALLEL_CALLS, async (item) => {
+    await runPooled(items, parallel, async (item) => {
       try {
         await ensureCrits(item.request, criticOptions, RUNS_PER_IMAGE);
       } catch (error) {
@@ -1455,7 +1457,7 @@ export async function runThresholds(
           );
     return { detection, number, rankedCount };
   };
-  const judged = await runPooled(questions, MAX_PARALLEL_CALLS, answerOf);
+  const judged = await runPooled(questions, parallel, answerOf);
 
   const runsByItem: JudgedCrit[][] = items.map(() => []);
   questions.forEach((question, index) => {

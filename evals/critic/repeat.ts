@@ -14,7 +14,7 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { formatTable } from "../support/format-table.ts";
-import { runPooled } from "./compare.ts";
+import { DEFAULT_PARALLEL, parseParallel, runPooled } from "./compare.ts";
 import {
   ensureJudgeAnswer,
   type JudgeQuestion,
@@ -38,7 +38,6 @@ const REPOSITORY_DIRECTORY = resolve(import.meta.dirname, "..", "..");
 const EXIT_CODE_COULD_NOT_RUN = 2;
 
 /** How many images the critic works on at once in live mode, and how many judge calls run at once. */
-const MAX_PARALLEL_CALLS = 4;
 
 /** How many crits of each image the evaluation compares (EV-17). */
 export const RUNS_PER_IMAGE = 3;
@@ -663,10 +662,11 @@ const HELP_TEXT = `Repeat-run evaluation (EV-17) on ${REPEAT_FIXTURES.length} fi
 
 Usage:
   node evals/critic/repeat.ts [--replay] [--batch N] [--skill DIR] [--skill-commit SHA]
+                              [--parallel N]
   node evals/critic/repeat.ts --help
 
 Without --replay it runs the critic until each image has the ${RUNS_PER_IMAGE} saved crits of the batch (at most
-${REPEAT_FIXTURES.length * RUNS_PER_IMAGE} runs per batch, ${MAX_PARALLEL_CALLS} images at once), then the judge once per image that has no saved
+${REPEAT_FIXTURES.length * RUNS_PER_IMAGE} runs per batch, the --parallel number of images at once), then the judge once per image that has no saved
 answer. It asks a model; never run it in npm run ci.
 
 Flags:
@@ -675,6 +675,7 @@ Flags:
                       batch 2 is runs 4 to 6, and so on. Each batch has its own judge answers.
   --skill DIR         The skill folder (default plugin/skills/design-critic).
   --skill-commit SHA  Use the runs of this commit instead of the skill folder's commit.
+  --parallel N        How many critic runs or judge calls run at once (default ${DEFAULT_PARALLEL}).
   --help, -h          Print this help.
 
 The judge groups the findings of the ${RUNS_PER_IMAGE} crits of an image that name the same problem in the same
@@ -700,6 +701,7 @@ export async function runRepeat(
       batch: { type: "string", default: "1" },
       skill: { type: "string" },
       "skill-commit": { type: "string" },
+      parallel: { type: "string" },
       help: { type: "boolean", short: "h", default: false },
     },
     strict: true,
@@ -709,6 +711,7 @@ export async function runRepeat(
     return { text: HELP_TEXT, errorText: "", exitCode: 0 };
   }
   const replay = parsed.values.replay === true;
+  const parallel = parseParallel(parsed.values.parallel);
   const batchText = parsed.values.batch ?? "1";
   // Only a whole number from 1 up, written without a sign or leading zero.
   if (!/^[1-9]\d*$/.test(batchText)) {
@@ -726,7 +729,7 @@ export async function runRepeat(
     parsed.values["skill-commit"] ?? skillCommit(skillDirectory, replay);
 
   if (!replay) {
-    await runLive(options, skillDirectory, commit, batch);
+    await runLive(options, skillDirectory, commit, batch, parallel);
   }
 
   const states: ImageState[] = [];
@@ -747,6 +750,7 @@ async function runLive(
   skillDirectory: string,
   commit: string,
   batch: number,
+  parallel: number,
 ): Promise<void> {
   const runsNeeded = batchRuns(batch).last;
   let savedCrits = 0;
@@ -765,7 +769,7 @@ async function runLive(
   }
   const totalCrits = REPEAT_FIXTURES.length * runsNeeded;
   options.writeProgress?.(
-    `Plan: ${totalCrits} critic runs (${savedCrits} saved), then ${REPEAT_FIXTURES.length} judge calls (${savedAnswers} saved), at most ${MAX_PARALLEL_CALLS} at once.\n`,
+    `Plan: ${totalCrits} critic runs (${savedCrits} saved), then ${REPEAT_FIXTURES.length} judge calls (${savedAnswers} saved), at most ${parallel} at once.\n`,
   );
   const criticOptions = {
     runsDirectory: options.runsDirectory,
@@ -773,7 +777,7 @@ async function runLive(
     skillCommit: commit,
     runClaude: options.runClaude,
   };
-  await runPooled(REPEAT_FIXTURES, MAX_PARALLEL_CALLS, (fixture) =>
+  await runPooled(REPEAT_FIXTURES, parallel, (fixture) =>
     ensureCrits(
       { imagePaths: [join(options.repositoryDirectory, fixture)] },
       criticOptions,
@@ -785,7 +789,7 @@ async function runLive(
     skillCommit: commit,
     runClaude: options.runClaude,
   };
-  await runPooled(REPEAT_FIXTURES, MAX_PARALLEL_CALLS, async (fixture) => {
+  await runPooled(REPEAT_FIXTURES, parallel, async (fixture) => {
     const ready = readImageState(fixture, options, commit, batch).ready;
     if (ready === undefined) {
       return undefined;
