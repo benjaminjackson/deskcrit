@@ -11,11 +11,13 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import type { ClaudeRunner } from "./run-critic.ts";
 import {
   buildSetJudgeQuestion,
   buildSetRequest,
+  buildSheet,
   parseBreaksLine,
   parseSetAnswers,
   runSets,
@@ -25,6 +27,17 @@ import {
 
 const COMMIT = "0123456789abcdef0123456789abcdef01234567";
 const REAL_SETS = join(import.meta.dirname, "..", "sets");
+const CONTACT_SHEET_SCRIPT = join(
+  import.meta.dirname,
+  "..",
+  "..",
+  "plugin",
+  "skills",
+  "design-critic",
+  "scripts",
+  "contact-sheet.mjs",
+);
+const SCREEN_NAMES = ["screen-1", "screen-2", "screen-3"];
 
 /** A successful `claude -p` result with a crit, or with a structured judge answer. */
 function successStdout(crit: string, structured?: unknown): string {
@@ -43,19 +56,28 @@ function successStdout(crit: string, structured?: unknown): string {
 }
 
 /**
- * Makes two tiny sets: set-01 has a break at tile 2 of kind "palette", set-02 is clean. The files
- * hold plain text under PNG names, because only their bytes are hashed.
+ * Makes two tiny sets: set-01 has a break at tile 2 (screen-2) of kind "palette", set-02 is clean.
  */
-function makeSets(): { setsDirectory: string; skillDirectory: string } {
+async function makeSets(): Promise<{
+  setsDirectory: string;
+  skillDirectory: string;
+}> {
   const root = mkdtempSync(join(tmpdir(), "critic-sets-test-"));
   const setsDirectory = join(root, "sets");
   for (const name of ["set-01", "set-02"]) {
     mkdirSync(join(setsDirectory, name), { recursive: true });
-    for (const file of ["sheet", "screen-1", "screen-2", "screen-3"]) {
-      writeFileSync(
-        join(setsDirectory, name, `${file}.png`),
-        `${name} ${file}`,
-      );
+    // A real, tiny PNG per screen. Its color names the set, so the stub can tell the sets apart.
+    for (const file of SCREEN_NAMES) {
+      await sharp({
+        create: {
+          width: 64,
+          height: 40,
+          channels: 3,
+          background: name === "set-01" ? "#ff0000" : "#0000ff",
+        },
+      })
+        .png()
+        .toFile(join(setsDirectory, name, `${file}.png`));
     }
   }
   writeFileSync(
@@ -76,14 +98,17 @@ function makeSets(): { setsDirectory: string; skillDirectory: string } {
   return { setsDirectory, skillDirectory };
 }
 
-/** Reads the text of the first image copied into a critic work folder. */
-function findSheetText(workingDirectory: string): string {
+/** Returns "set-01" when the first screen copied into a critic work folder (image-2) is red, else "set-02". */
+async function findSetName(workingDirectory: string): Promise<string> {
   for (const name of readdirSync(workingDirectory)) {
-    if (name.startsWith("image-1")) {
-      return readFileSync(join(workingDirectory, name), "utf8");
+    if (name.startsWith("image-2")) {
+      const { data } = await sharp(join(workingDirectory, name))
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      return data[0] === 255 ? "set-01" : "set-02";
     }
   }
-  throw new Error(`no image-1 in ${workingDirectory}`);
+  throw new Error(`no image-2 in ${workingDirectory}`);
 }
 
 /** Returns a runner that answers each set crit by the first image name in the prompt, and each judge call with the given verdict. */
@@ -105,9 +130,8 @@ function stubRunner(
         exitCode: 0,
       };
     }
-    // The runner copies the images into the work folder; the first one is the sheet, whose bytes name the set.
-    const sheetText = findSheetText(workingDirectory);
-    const setName = sheetText.startsWith("set-01") ? "set-01" : "set-02";
+    // The runner copies the images into the work folder; the first screen's color names the set.
+    const setName = await findSetName(workingDirectory);
     return {
       stdout: successStdout(`Crit text.\n\n${critLines[setName]}`),
       stderr: "",
@@ -118,13 +142,14 @@ function stubRunner(
 }
 
 function options(
-  made: ReturnType<typeof makeSets>,
+  made: Awaited<ReturnType<typeof makeSets>>,
   runner: ClaudeRunner,
 ): SetsOptions {
   return {
     setsDirectory: made.setsDirectory,
     runsDirectory: join(made.setsDirectory, "..", "runs"),
     skillDirectory: made.skillDirectory,
+    contactSheetScript: CONTACT_SHEET_SCRIPT,
     runClaude: runner,
   };
 }
@@ -176,7 +201,14 @@ describe("the frozen sets", () => {
     expect(answers).toHaveLength(10);
     expect(answers.filter((answer) => answer.tile !== null)).toHaveLength(7);
     for (const answer of answers) {
-      const request = buildSetRequest(join(REAL_SETS, answer.set));
+      const sheet = buildSheet(
+        join(REAL_SETS, answer.set),
+        CONTACT_SHEET_SCRIPT,
+      );
+      const request = buildSetRequest(
+        join(REAL_SETS, answer.set),
+        sheet.sheetPath,
+      );
       expect(request.imagePaths.length).toBeGreaterThanOrEqual(6);
       expect(request.imagePaths.length).toBeLessThanOrEqual(7);
       expect(request.imagePaths[0]).toMatch(/sheet\.png$/);
@@ -191,7 +223,9 @@ describe("the frozen sets", () => {
   });
 
   it("gives the critic a sheet first and the screens in tile order, with a focus that names no break", () => {
-    const request = buildSetRequest(join(REAL_SETS, "set-01"));
+    const sheet = buildSheet(join(REAL_SETS, "set-01"), CONTACT_SHEET_SCRIPT);
+    const request = buildSetRequest(join(REAL_SETS, "set-01"), sheet.sheetPath);
+    expect(sheet.screenOfTile.get(4)).toBe("screen-4.png");
     expect(
       request.imagePaths.slice(1).map((path) => path.split("/").pop()),
     ).toEqual([
@@ -225,7 +259,7 @@ describe("the frozen sets", () => {
 
 describe("runSets", () => {
   it("scores a live run, then a replay with no child process, and a missing crit exits 2", async () => {
-    const made = makeSets();
+    const made = await makeSets();
     const { runner, calls } = stubRunner(
       { "set-01": "Breaks: tile 2", "set-02": "Breaks: tile 3" },
       "found",
@@ -253,7 +287,7 @@ describe("runSets", () => {
       ),
     );
 
-    const empty = makeSets();
+    const empty = await makeSets();
     const missing = await runSets(
       ["--replay", "--skill-commit", COMMIT],
       options(empty, throwingRunner),
@@ -263,7 +297,7 @@ describe("runSets", () => {
   });
 
   it("leaves a crit with a malformed or missing Breaks line out of the counts and names it", async () => {
-    const made = makeSets();
+    const made = await makeSets();
     const { runner, calls } = stubRunner(
       { "set-01": "Breaks: tile two", "set-02": "The set is fine." },
       "found",
@@ -282,8 +316,20 @@ describe("runSets", () => {
     expect(calls()).toBe(2);
   });
 
+  it("stops with a clear line when the contact-sheet script is missing", async () => {
+    const made = await makeSets();
+    const { runner } = stubRunner({}, "found");
+    const failing = {
+      ...options(made, runner),
+      contactSheetScript: "/nope/contact-sheet.mjs",
+    };
+    await expect(runSets(["--skill-commit", COMMIT], failing)).rejects.toThrow(
+      /contact-sheet script/,
+    );
+  });
+
   it("stops a live run with a clear line when agents/set-critic.md is missing from the skill folder", async () => {
-    const made = makeSets();
+    const made = await makeSets();
     const { runner } = stubRunner({}, "found");
     const failing = {
       ...options(made, runner),
@@ -295,7 +341,7 @@ describe("runSets", () => {
   });
 
   it("reports a clean set that the critic leaves alone as no false break", async () => {
-    const made = makeSets();
+    const made = await makeSets();
     const { runner } = stubRunner(
       { "set-01": "Breaks: tile 2", "set-02": "Breaks: none" },
       "not_found",

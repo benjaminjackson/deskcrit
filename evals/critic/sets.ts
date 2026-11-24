@@ -6,8 +6,8 @@
 // false break on a clean set. One judge call per set that has a break asks whether the crit
 // describes that kind of break (found, not found, or no break claimed).
 //
-// Tile n of the sheet is screen-n of the set, because evals/sets/render.mjs lays the sheet out in file
-// order; so the tile numbers need no mapping file. The sets and answers.json are frozen before the
+// The sheet is made at run time by the skill's own scripts/contact-sheet.mjs into a temporary folder,
+// so the evaluation tests the product's sheet. Its tiles.json maps each tile number to the screen file. The sets and answers.json are frozen before the
 // first live run and never changed after (memory: fixtures-never-tuned-to-scores).
 //
 // Live mode asks a model, so `npm run ci` never runs it (CS-21). Replay (`npm run eval:critic:sets`)
@@ -16,8 +16,10 @@
 // Usage: node evals/critic/sets.ts [--replay] [--skill DIR] [--skill-commit SHA] [--parallel N]
 // Exit codes: 0 after a full report, 2 when it could not run or replay found a missing crit or answer.
 
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdtempSync, readdirSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { basename, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { formatTable } from "../support/format-table.ts";
@@ -97,6 +99,8 @@ export type SetsOptions = {
   readonly setsDirectory: string;
   readonly runsDirectory: string;
   readonly skillDirectory: string;
+  /** The contact-sheet script; defaults to scripts/contact-sheet.mjs in the skill folder. Tests may point elsewhere. */
+  readonly contactSheetScript?: string;
   readonly runClaude: ClaudeRunner;
 };
 
@@ -226,14 +230,74 @@ export function parseSetJudgeAnswer(value: unknown): BreakVerdict {
   );
 }
 
-/** Returns the critic request of one set: its sheet, then its screens in file order. */
-export function buildSetRequest(setDirectory: string): CritRequest {
-  const screenPaths = readdirSync(setDirectory)
+/** The sheet of one set and the screen file name behind each tile number. */
+export type BuiltSheet = {
+  readonly sheetPath: string;
+  readonly screenOfTile: ReadonlyMap<number, string>;
+};
+
+/**
+ * Makes the contact sheet of one set with the skill's contact-sheet.mjs, in a new temporary folder,
+ * and reads tiles.json to learn which screen file each tile number shows. The screens go to the
+ * script in file order. Throws with one line when the script is missing or fails.
+ */
+export function buildSheet(
+  setDirectory: string,
+  scriptPath: string,
+): BuiltSheet {
+  if (!existsSync(scriptPath)) {
+    throw new Error(
+      `${scriptPath} is missing; the contact-sheet script (crit-j8y.3) must be merged first`,
+    );
+  }
+  const screenPaths = listScreens(setDirectory);
+  const outDirectory = mkdtempSync(join(tmpdir(), "critic-sets-sheet-"));
+  try {
+    execFileSync("node", [scriptPath, ...screenPaths, "--out", outDirectory], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`contact-sheet.mjs failed on ${setDirectory}: ${message}`);
+  }
+  const tilesFile: unknown = JSON.parse(
+    readFileSync(join(outDirectory, "tiles.json"), "utf8"),
+  );
+  const screenOfTile = new Map<number, string>();
+  if (isRecord(tilesFile) && Array.isArray(tilesFile.tiles)) {
+    for (const tile of tilesFile.tiles) {
+      if (
+        isRecord(tile) &&
+        typeof tile.tile === "number" &&
+        typeof tile.path === "string"
+      ) {
+        screenOfTile.set(tile.tile, basename(tile.path));
+      }
+    }
+  }
+  if (screenOfTile.size !== screenPaths.length) {
+    throw new Error(`tiles.json of ${setDirectory} does not list every screen`);
+  }
+  return { sheetPath: join(outDirectory, "sheet.png"), screenOfTile };
+}
+
+/** Returns the screen PNG paths of a set in numeric file order. */
+function listScreens(setDirectory: string): string[] {
+  return readdirSync(setDirectory)
     .filter((name) => /^screen-\d+\.png$/.test(name))
     .sort((first, second) => screenNumber(first) - screenNumber(second))
     .map((name) => join(setDirectory, name));
+}
+
+/** Returns the critic request of one set: its sheet, then its screens in file order. */
+export function buildSetRequest(
+  setDirectory: string,
+  sheetPath: string,
+): CritRequest {
+  const screenPaths = listScreens(setDirectory);
   return {
-    imagePaths: [join(setDirectory, "sheet.png"), ...screenPaths],
+    imagePaths: [sheetPath, ...screenPaths],
     note: SET_NOTE,
     focus: setFocus(screenPaths.length),
   };
@@ -353,8 +417,17 @@ export async function runSets(
   const answers = parseSetAnswers(
     readFileSync(join(options.setsDirectory, "answers.json"), "utf8"),
   );
-  const requests = answers.map((answer) =>
-    buildSetRequest(join(options.setsDirectory, answer.set)),
+  const scriptPath =
+    options.contactSheetScript ??
+    join(skillDirectory, "scripts", "contact-sheet.mjs");
+  const sheets = answers.map((answer) =>
+    buildSheet(join(options.setsDirectory, answer.set), scriptPath),
+  );
+  const requests = answers.map((answer, index) =>
+    buildSetRequest(
+      join(options.setsDirectory, answer.set),
+      (sheets[index] as BuiltSheet).sheetPath,
+    ),
   );
 
   let crits: (SavedCrit | undefined)[];
@@ -477,7 +550,13 @@ export async function runSets(
       tile: answer.tile,
       claimed,
       excluded: false,
-      rightTile: isBreakSet ? tiles.includes(answer.tile as number) : undefined,
+      rightTile: isBreakSet
+        ? tiles.some(
+            (tile) =>
+              (sheets[index] as BuiltSheet).screenOfTile.get(tile) ===
+              (answer.break_screen as string).replace(".html", ".png"),
+          )
+        : undefined,
       verdict: verdicts[index],
       falseBreak: isBreakSet ? undefined : tiles.length > 0,
     };
