@@ -519,3 +519,45 @@ describe("runTells --parallel", () => {
     ).rejects.toThrow("--parallel must be a whole number of 1 or more");
   });
 });
+
+describe("runTells live, when one judge call fails", () => {
+  it("judges the other images, names the failed one, and exits 2", async () => {
+    const folder = newTestFolder();
+    let judgeCalls = 0;
+    const stub: ClaudeRunner = async (args) => {
+      if (args[0] === "--version") {
+        return { stdout: "2.0.0 (Claude Code)", stderr: "", exitCode: 0 };
+      }
+      if (args.includes("--json-schema")) {
+        judgeCalls += 1;
+        if (judgeCalls === 1) {
+          return { stdout: "", stderr: "usage limit reached", exitCode: 1 };
+        }
+        return {
+          stdout: judgeStdout(answerOf("raised")),
+          stderr: "",
+          exitCode: 0,
+        };
+      }
+      return {
+        stdout: JSON.stringify({
+          type: "result",
+          subtype: "success",
+          is_error: false,
+          result: "A crit.",
+          modelUsage: { "claude-opus-5-5": {} },
+        }),
+        stderr: "",
+        exitCode: 0,
+      };
+    };
+    const output = await runTells(
+      [...folderFlags(folder), "--parallel", "1"],
+      optionsOf(folder, stub),
+    );
+    expect(output.exitCode).toBe(2);
+    expect(judgeCalls).toBe(TELLS.length * 2);
+    expect(output.errorText).toMatch(/^judge failed: \S+ positive: /m);
+    expect(output.text.match(/missing/g)).toHaveLength(1);
+  });
+});

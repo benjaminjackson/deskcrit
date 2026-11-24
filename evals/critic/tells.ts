@@ -418,12 +418,32 @@ export async function runTells(
       skillCommit: commit,
       runClaude: options.runClaude,
     };
-    const judged = await runPooled(questions, parallel, async (question) => {
-      if (question === undefined) {
-        return undefined;
-      }
-      return ensureJudgeAnswer(question, parseTellAnswer, judgeOptions);
-    });
+    // A failed judge call is named and the other images go on, so the report exits 2 and a later
+    // live run asks again.
+    const judged = await runPooled(
+      [...questions.keys()],
+      parallel,
+      async (index) => {
+        const question = questions[index];
+        if (question === undefined) {
+          return undefined;
+        }
+        try {
+          return await ensureJudgeAnswer(
+            question,
+            parseTellAnswer,
+            judgeOptions,
+          );
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          missing.push(
+            `judge failed: ${imageLabels[index]}: ${message.slice(0, 300)}`,
+          );
+          return undefined;
+        }
+      },
+    );
     answers.push(...judged);
   }
 
