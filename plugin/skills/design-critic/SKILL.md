@@ -9,6 +9,8 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
 
 ## Run it
 
+The deep mode is off by default. Use it only when the caller asks for the deep mode and gives one image: then follow `agents/deep-mode.md` in place of step 2.
+
 1. Collect the inputs: the absolute path of each image, and whatever you know about the piece's purpose, audience, and medium. Do not ask the user for context they did not give; the critic states its own assumption.
 2. Spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`. Use this prompt, with the placeholders filled. `<skill folder>` is the base directory Claude Code gave when it loaded this skill.
 
@@ -64,6 +66,7 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
 - `agents/critic.md`: the critic's instructions, how it looks, what makes a good finding, and the output format.
 - `references/checklist.md`: yes-or-no questions in sections, whole page first and detail last, where yes means fine; each kind of defect has one question, and each question points to the full entries it stands for.
 - `references/<domain>.md`: full entries for basics, layout, typography, color, art direction, ux, accessibility, and dataviz. Each gives the rule, what to look for, the source, caveats about the source, and the approved fix.
+- `agents/deep-mode.md`, `agents/section-critic.md`, `agents/director.md`, and `references/checklist-<section>.md`: the deep mode, one critic per checklist section and a director who merges and ranks their reports.
 - `agents/work-order.md`: the instructions of the agent that turns the finished crit into `work-order.json`.
 - `scripts/work-order.mjs`: checks a work order against its crit, image, and facts file: one entry per ranked finding, and every pixel box taken from the facts file or a crop.
 - `scripts/jev-evidence.mjs`: runs `crit report --json` when it can and writes the criteria Jev fired on to the evidence file.
