@@ -25,6 +25,12 @@ This skill runs a critic agent on one image. The agent walks a checklist of guid
    When the critique is done, end with the full critique as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the full critique.
    ```
 
+   When you have a measured facts file for the page in the image (`facts.json` from `scripts/measure.mjs`), add this line right after the `Image(s)` line, with the path filled:
+
+   ```
+   Measured facts file: <absolute path of facts.json>
+   ```
+
 3. Give the critique to the user as the agent wrote it. Do not soften or trim it. Add your own comment only if the user asked for it.
 
 ## What is in the folder

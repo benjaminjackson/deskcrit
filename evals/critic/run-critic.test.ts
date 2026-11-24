@@ -4,6 +4,7 @@
 
 import { execFileSync } from "node:child_process";
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readdirSync,
@@ -18,8 +19,12 @@ import {
   type ClaudeRunner,
   CRITIC_MODEL,
   CRITIC_PROMPT_TEMPLATE,
+  currentRunIdentity,
   ensureCrits,
+  FACTS_PROMPT_LINE,
   parseClaudeResult,
+  readSavedCrits,
+  requestKey,
   skillCommit,
 } from "./run-critic.ts";
 
@@ -619,7 +624,7 @@ describe("the command line", () => {
     });
     expect(help).toContain("run ");
     expect(help).toContain("replay ");
-    expect(help).toContain("[--note TEXT] IMAGE");
+    expect(help).toContain("[--note TEXT] [--facts FILE] IMAGE");
   });
 
   it("keeps the prompt template equal to the prompt block in step 2 of the skill's SKILL.md", () => {
@@ -638,4 +643,115 @@ describe("the command line", () => {
       .join("\n");
     expect(block).toBe(CRITIC_PROMPT_TEMPLATE);
   });
+});
+
+describe("a measured facts file", () => {
+  it("copies it as facts.json, names that copy on its own line after Image(s), and keys and hashes the run apart", async () => {
+    const { root, imagePath, runsDirectory } = setUp();
+    const factsPath = join(root, "heading-indistinct.positive.facts.json");
+    writeFileSync(factsPath, '{"version":1}\n');
+    const stub = recordingStub();
+    const withFacts = await ensureCrits(
+      { imagePaths: [imagePath], factsPath },
+      options(runsDirectory, stub.runner),
+    );
+    const [critCall] = stub.critCalls();
+    expect(critCall?.images).toContain("facts.json");
+    const prompt = critCall?.args.at(-1) ?? "";
+    expect(prompt).toContain(
+      `${join(critCall?.cwd ?? "", "image-1.png")}\nMeasured facts file: ${join(critCall?.cwd ?? "", "facts.json")}\n`,
+    );
+    expect(prompt).not.toContain(factsPath);
+    expect(prompt).not.toContain("positive");
+    const metadata = withFacts[0]?.metadata ?? {};
+    const request = metadata.request as {
+      images: { sha256: string }[];
+      facts: { sha256: string; path: string };
+    };
+    expect(request.facts.path).toBe("heading-indistinct.positive.facts.json");
+    expect(metadata.prompt_sha256).toBe(currentRunIdentity(true).prompt_sha256);
+    expect(metadata.prompt_sha256).not.toBe(currentRunIdentity().prompt_sha256);
+    const imageSha256 = request.images[0]?.sha256 ?? "";
+    // The key is not the bare image hash, so the run never lands in the folder of a run without facts.
+    expect(withFacts[0]?.critPath).toContain(
+      join(
+        runsDirectory,
+        COMMIT,
+        requestKey([imageSha256], undefined, undefined, request.facts.sha256),
+      ),
+    );
+    expect(withFacts[0]?.critPath).not.toContain(
+      join(runsDirectory, COMMIT, imageSha256),
+    );
+
+    // The same image without facts has no saved run yet, so a new one starts.
+    const withoutFacts = await ensureCrits(
+      { imagePaths: [imagePath] },
+      options(runsDirectory, stub.runner),
+    );
+    expect(stub.critCalls()).toHaveLength(2);
+    expect(withoutFacts[0]?.critPath).toContain(
+      join(runsDirectory, COMMIT, imageSha256),
+    );
+    // Another facts file for the same image is another request.
+    writeFileSync(factsPath, '{"version":1,"notes":["other"]}\n');
+    await ensureCrits(
+      { imagePaths: [imagePath], factsPath },
+      options(runsDirectory, stub.runner),
+    );
+    expect(stub.critCalls()).toHaveLength(3);
+  });
+
+  it("keeps the facts line equal to the line step 2 of the skill's SKILL.md says to add", () => {
+    const skillText = readFileSync(
+      join(REPOSITORY_ROOT, "plugin", "skills", "design-critic", "SKILL.md"),
+      "utf8",
+    );
+    expect(skillText).toContain(`   ${FACTS_PROMPT_LINE}\n`);
+  });
+});
+
+describe("the committed runs", () => {
+  // Every committed run must still replay: each folder name must be the key its saved request
+  // gives, and its prompt hash must match a new run of the same kind (with or without facts). A
+  // run made before facts existed has no facts in its request, so its key and hash are unchanged.
+  const runsDirectory = join(import.meta.dirname, "runs");
+  const commits = existsSync(runsDirectory) ? readdirSync(runsDirectory) : [];
+  for (const commit of commits) {
+    it(`replays every saved run of skill commit ${commit.slice(0, 8)}`, () => {
+      const keys = readdirSync(join(runsDirectory, commit)).filter(
+        (name) => name !== "judge",
+      );
+      let checked = 0;
+      for (const key of keys) {
+        const metadataPath = join(runsDirectory, commit, key, "1.json");
+        if (!existsSync(metadataPath)) {
+          continue;
+        }
+        const metadata = JSON.parse(readFileSync(metadataPath, "utf8"));
+        const factsSha256: string | undefined = metadata.request.facts?.sha256;
+        const imageSha256s = metadata.request.images.map(
+          (image: { sha256: string }) => image.sha256,
+        );
+        expect(
+          requestKey(
+            imageSha256s,
+            metadata.request.note ?? undefined,
+            metadata.request.focus ?? undefined,
+            factsSha256,
+          ),
+        ).toBe(key);
+        expect(
+          readSavedCrits(
+            runsDirectory,
+            commit,
+            key,
+            currentRunIdentity(factsSha256 !== undefined),
+          ).length,
+        ).toBeGreaterThan(0);
+        checked += 1;
+      }
+      expect(checked).toBeGreaterThan(0);
+    });
+  }
 });
