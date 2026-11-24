@@ -14,6 +14,7 @@ import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import type { ClaudeRunner } from "../critic/run-critic.ts";
 import {
+  allowedTools,
   buildJudgeQuestion,
   dropLoopFiles,
   IMAGE_PLACEHOLDER,
@@ -25,6 +26,7 @@ import {
   readPages,
   readSavedRun,
   readTemplateSigns,
+  redactText,
   runCommand,
   STARTING_PROMPT,
 } from "./run.ts";
@@ -48,11 +50,19 @@ afterEach(() => {
   }
 });
 
+/** Where the stub loop puts its loop folder, and whether the transcript names it. */
+type StubLoopSetup = {
+  readonly folderInPage?: string;
+  readonly named?: boolean;
+  readonly rounds?: readonly number[];
+};
+
 /**
  * A stub loop: it edits styles.css in the work folder, writes a loop folder with two rounds in the
- * temp folder, and prints a stream-json line that names the loop folder, as a real run would.
+ * temp folder (or at `folderInPage` inside the page), and prints a stream-json line that names the
+ * loop folder, as a real run would. Each work order holds the loop folder's path.
  */
-function stubLoop(calls: string[][], loopFolderInPage = false): LoopRunner {
+function stubLoop(calls: string[][], setup: StubLoopSetup = {}): LoopRunner {
   return async (args, workingDirectory) => {
     calls.push([...args]);
     const stylesPath = join(workingDirectory, "styles.css");
@@ -60,14 +70,14 @@ function stubLoop(calls: string[][], loopFolderInPage = false): LoopRunner {
       stylesPath,
       `${readFileSync(stylesPath, "utf8")}\nh1 { font-size: 48px; }\n`,
     );
-    let loopFolder = join(workingDirectory, ".crit-loop");
-    if (loopFolderInPage) {
-      mkdirSync(loopFolder);
+    let loopFolder = join(workingDirectory, setup.folderInPage ?? "");
+    if (setup.folderInPage !== undefined) {
+      mkdirSync(loopFolder, { recursive: true });
     } else {
       loopFolder = mkdtempSync(join(tmpdir(), "crit-loop-stub-"));
       temporaryDirectories.push(loopFolder);
     }
-    for (const round of [1, 2]) {
+    for (const round of setup.rounds ?? [1, 2]) {
       mkdirSync(join(loopFolder, `round-${round}`));
       writeFileSync(
         join(loopFolder, `round-${round}`, "crit.md"),
@@ -75,12 +85,15 @@ function stubLoop(calls: string[][], loopFolderInPage = false): LoopRunner {
       );
       writeFileSync(
         join(loopFolder, `round-${round}`, "work-order.json"),
-        "{}\n",
+        `${JSON.stringify({ image: join(loopFolder, `round-${round}`, "desktop.png") })}\n`,
       );
     }
     const line = JSON.stringify({
       type: "assistant",
-      text: `Captured into ${loopFolder}/round-2/desktop.png`,
+      text:
+        setup.named === false
+          ? "Captured."
+          : `Captured into ${loopFolder}/round-2/desktop.png`,
     });
     const imageLine = JSON.stringify({
       type: "user",
@@ -346,7 +359,7 @@ describe("run, score, and replay with stubs", () => {
     const runsDirectory = makeTemporaryDirectory();
     const options = {
       ...stubOptions(runsDirectory, [], NO_SIGN_ANSWER, []),
-      runLoop: stubLoop([], true),
+      runLoop: stubLoop([], { folderInPage: "work/.crit-loop", named: false }),
     };
     await runCommand(["run"], options);
     const savedDirectory = join(
@@ -358,9 +371,21 @@ describe("run, score, and replay with stubs", () => {
     const diff = readFileSync(join(savedDirectory, "page.diff"), "utf8");
     expect(diff).toContain("+h1 { font-size: 48px; }");
     expect(diff).not.toContain(".crit-loop");
-    expect(existsSync(join(savedDirectory, "final-page", ".crit-loop"))).toBe(
-      false,
+    expect(
+      existsSync(join(savedDirectory, "final-page", "work", ".crit-loop")),
+    ).toBe(false);
+    // The transcript names no loop folder, so the runner finds the one in the page.
+    const metadata = JSON.parse(
+      readFileSync(join(savedDirectory, "run.json"), "utf8"),
     );
+    expect(metadata.loop_folder_found).toBe(true);
+    // The saved work order holds no temp folder path of this machine.
+    const workOrder = readFileSync(
+      join(savedDirectory, "loop", "round-1", "work-order.json"),
+      "utf8",
+    );
+    expect(workOrder).toContain("<temp>");
+    expect(workOrder).not.toContain(tmpdir());
     expect(existsSync(join(savedDirectory, "loop", "round-2", "crit.md"))).toBe(
       true,
     );
@@ -372,6 +397,73 @@ describe("run, score, and replay with stubs", () => {
     expect(dropLoopFiles(diff)).toBe(
       "diff --git a/styles.css b/styles.css\n+h1 {}\n",
     );
+  });
+
+  it("marks a run with no recheck crit, and does not count it as no praise", async () => {
+    const runsDirectory = makeTemporaryDirectory();
+    const options = {
+      ...stubOptions(runsDirectory, [], NO_SIGN_ANSWER, []),
+      runLoop: stubLoop([], { rounds: [1] }),
+    };
+    await runCommand(["run"], options);
+    await runCommand(["score"], options);
+    const replay = await runCommand(["--replay"], options);
+    expect(replay.exitCode).toBe(0);
+    expect(replay.text).toContain(
+      "harbor-tides | 1 | 0 | none | no recheck crits",
+    );
+    expect(replay.text).toContain(
+      "Runs where a recheck praised a sign: 0 of 0",
+    );
+    expect(replay.text).toContain(
+      "Runs with no recheck crit, left out of the praise count: 12",
+    );
+  });
+
+  it("keeps the run another process saved first", async () => {
+    const runsDirectory = makeTemporaryDirectory();
+    const base = stubOptions(runsDirectory, [], NO_SIGN_ANSWER, []);
+    const inner = stubLoop([]);
+    const options = {
+      ...base,
+      runLoop: async (
+        args: readonly string[],
+        workingDirectory: string,
+        limit: number,
+      ) => {
+        const result = await inner(args, workingDirectory, limit);
+        // Another process saves the same run while this one runs.
+        const commit = readCommitIfAny(runsDirectory);
+        const pageName = workingDirectory.includes("harbor-tides")
+          ? "harbor-tides"
+          : undefined;
+        if (commit !== undefined && pageName !== undefined) {
+          for (const run of ["1", "2", "3"]) {
+            const other = join(runsDirectory, commit, pageName, run);
+            mkdirSync(other, { recursive: true });
+            writeFileSync(join(other, "run.json"), "{}\n");
+          }
+        }
+        return result;
+      },
+    };
+    const run = await runCommand(["run"], options);
+    expect(run.exitCode).toBe(0);
+    expect(run.text).toContain("harbor-tides run 1: already saved");
+  });
+
+  it("removes this machine's temp and home paths, also when cut short", () => {
+    const text = `cd ${tmpdir()}/loop-tells-x/round-1 and "Running cat /private/var/folders/ab/cd…" and "jq /private/var/folders…" and /Users/somebody/file`;
+    const redacted = redactText(text);
+    expect(redacted).not.toMatch(/\/var\/folders|\/Users\//);
+    expect(redacted).toContain("<temp>");
+    expect(redacted).toContain("<home>/file");
+  });
+
+  it("lets node run only the plugin's skill scripts", () => {
+    const tools = allowedTools("/plugin");
+    expect(tools).toContain("Bash(node /plugin/skills/*/scripts/*)");
+    expect(tools).not.toContain("Bash(node *)");
   });
 
   it("refuses a judge answer that names a sign not in the list", () => {
@@ -390,6 +482,14 @@ describe("run, score, and replay with stubs", () => {
     ).toThrow(/may not/);
   });
 });
+
+/** Returns the one plugin commit folder in the runs folder, or undefined when there is none yet. */
+function readCommitIfAny(runsDirectory: string): string | undefined {
+  if (!existsSync(runsDirectory)) {
+    return undefined;
+  }
+  return readdirSync(runsDirectory).find((name) => /^[0-9a-f]{40}$/.test(name));
+}
 
 /** Returns the one plugin commit folder a stub run wrote. */
 function readCommit(runsDirectory: string): string {

@@ -54,12 +54,15 @@ export const STARTING_PROMPT =
   "Improve the design of the web page in this folder (index.html and styles.css). Use the crit-loop skill. When you stop, tell me why you stopped.";
 
 /**
- * The tools the loop may use without a prompt. The permission mode is acceptEdits, so every other
- * call is refused, and no flag bypasses the permission checks (EV-25). Bash is limited to the
- * commands the skill names (node for its scripts) and a few that only read or make folders.
+ * Returns the tools the loop may use without a prompt. The permission mode is acceptEdits, so every
+ * other call is refused, and no flag bypasses the permission checks (EV-25). node may run only the
+ * skill scripts of the plugin; ls, mkdir, and the three git commands only read or make folders. cp is
+ * not limited: it may copy any file the run can read. The first run (plugin commit 4a9dc619) used
+ * Bash(node *), as its run.json records.
  */
-export const ALLOWED_TOOLS =
-  "Read Edit Write Glob Grep Agent Skill Bash(node *) Bash(ls *) Bash(mkdir *) Bash(cp *) Bash(git diff *) Bash(git status *) Bash(git log *)";
+export function allowedTools(pluginDirectory: string): string {
+  return `Read Edit Write Glob Grep Agent Skill Bash(node ${pluginDirectory}/skills/*/scripts/*) Bash(ls *) Bash(mkdir *) Bash(cp *) Bash(git diff *) Bash(git status *) Bash(git log *)`;
+}
 
 /**
  * The time limit of one loop run. This project's choice for the first run (crit-7hw.6): a loop of
@@ -145,7 +148,7 @@ export function loopArguments(pluginDirectory: string): string[] {
     "--permission-mode",
     "acceptEdits",
     "--allowedTools",
-    ALLOWED_TOOLS,
+    allowedTools(pluginDirectory),
     "--output-format",
     "stream-json",
     "--verbose",
@@ -161,7 +164,6 @@ export function runLoopProcess(
   timeLimitMilliseconds: number,
 ): Promise<LoopRunResult> {
   return new Promise((resolvePromise, rejectPromise) => {
-    const startedAt = Date.now();
     const child = spawn("claude", [...args], {
       cwd: workingDirectory,
       env: process.env,
@@ -179,7 +181,8 @@ export function runLoopProcess(
         stderr: Buffer.concat(stderrChunks).toString("utf8"),
         // A child stopped by the timeout signal has no exit code.
         exitCode: code ?? EXIT_CODE_COULD_NOT_RUN,
-        timedOut: Date.now() - startedAt >= timeLimitMilliseconds,
+        // Node sets killed when the timeout option stopped the child.
+        timedOut: child.killed,
       });
     });
   });
@@ -213,7 +216,12 @@ function git(directory: string, args: readonly string[]): string {
       "commit.gpgsign=false",
       ...args,
     ],
-    { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+    // A diff of a large page can pass the default 1 MB output limit.
+    {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      maxBuffer: 256 * 1024 * 1024,
+    },
   );
 }
 
@@ -268,13 +276,34 @@ function isLoopFolder(path: string): boolean {
 }
 
 /**
- * Returns the names of the loop folders at the top of the page folder. Some loops put their loop
- * folder there, and its crits and screenshots are not part of the page.
+ * Returns the paths, relative to the page folder, of the loop folders at any depth inside it, not
+ * looking into .git or node_modules. Some loops put their loop folder in the page folder, and its
+ * crits and screenshots are not part of the page.
  */
-function loopFoldersInPage(pageDirectory: string): string[] {
-  return readdirSync(pageDirectory).filter((name) =>
-    isLoopFolder(join(pageDirectory, name)),
-  );
+export function loopFoldersInPage(pageDirectory: string): string[] {
+  const found: string[] = [];
+  /** Walks one folder, given by its path relative to the page folder. */
+  function walk(relativePath: string): void {
+    const absolutePath = join(pageDirectory, relativePath);
+    for (const entry of readdirSync(absolutePath, { withFileTypes: true })) {
+      if (
+        !entry.isDirectory() ||
+        entry.name === ".git" ||
+        entry.name === "node_modules"
+      ) {
+        continue;
+      }
+      const childPath =
+        relativePath === "" ? entry.name : `${relativePath}/${entry.name}`;
+      if (isLoopFolder(join(pageDirectory, childPath))) {
+        found.push(childPath);
+      } else {
+        walk(childPath);
+      }
+    }
+  }
+  walk("");
+  return found;
 }
 
 /** Copies the page files of a folder, leaving out git, node_modules, and loop folders. */
@@ -284,10 +313,22 @@ function copyPageFiles(fromDirectory: string, toDirectory: string): void {
     recursive: true,
     filter: (source) => {
       const name = source.slice(fromDirectory.length + 1);
-      const topName = name.split("/")[0] ?? "";
-      return !leftOut.includes(topName);
+      return !leftOut.some(
+        (folder) => name === folder || name.startsWith(`${folder}/`),
+      );
     },
   });
+}
+
+/**
+ * Returns text with every path of this machine's temp and home folders replaced by <temp> or
+ * <home>. It also replaces a temp path that a transcript cut short, such as a tool description
+ * that ends in "…", which the exact replacement of redactPaths cannot match.
+ */
+export function redactText(text: string): string {
+  return redactPaths(text)
+    .replace(/(?:\/private)?\/var\/folders(?:\/[^\s"'`\\…]*)?/g, "<temp>")
+    .replace(/\/Users\/[^\s"'`\\…/]+/g, "<home>");
 }
 
 /** Options of one loop run. */
@@ -358,23 +399,28 @@ export async function runOnce(
     );
     // Stage every file, so a file the loop added shows in the diff too.
     git(workDirectory, ["add", "-A"]);
-    writeFileSync(
-      join(partialDirectory, "page.diff"),
-      git(workDirectory, [
-        "diff",
-        "--cached",
-        "start",
-        "--",
-        ".",
-        ...loopFoldersInPage(workDirectory).map((name) => `:(exclude)${name}`),
-      ]),
-    );
+    // git writes the diff straight to the file, so no output limit applies.
+    git(workDirectory, [
+      "diff",
+      "--cached",
+      `--output=${join(partialDirectory, "page.diff")}`,
+      "start",
+      "--",
+      ".",
+      ...loopFoldersInPage(workDirectory).map((name) => `:(exclude)${name}`),
+    ]);
     copyPageFiles(workDirectory, join(partialDirectory, "final-page"));
     rmSync(join(partialDirectory, "final-page", ".gitignore"), { force: true });
 
     // The loop folder is in the system temp folder, so it is found from the transcript before the
     // transcript paths are redacted. The one with the most rounds is the loop's own.
-    const loopFolders = findLoopFolders(result.stdout);
+    let loopFolders = findLoopFolders(result.stdout);
+    // When the transcript names no loop folder, look for one inside the page folder.
+    if (loopFolders.length === 0) {
+      loopFolders = loopFoldersInPage(workDirectory).map((name) =>
+        join(workDirectory, name),
+      );
+    }
     let loopFolder: string | undefined;
     for (const folder of loopFolders) {
       if (
@@ -392,7 +438,11 @@ export async function runOnce(
         for (const name of ["crit.md", "work-order.json"]) {
           if (existsSync(join(roundSource, name))) {
             mkdirSync(roundTarget, { recursive: true });
-            cpSync(join(roundSource, name), join(roundTarget, name));
+            // Crits and work orders name the round folder, so the copy holds no path of this machine.
+            writeFileSync(
+              join(roundTarget, name),
+              redactText(readFileSync(join(roundSource, name), "utf8")),
+            );
           }
         }
         if (existsSync(join(roundSource, "crit.md"))) {
@@ -412,9 +462,7 @@ export async function runOnce(
       } catch {
         parsed = line;
       }
-      transcriptLines.push(
-        JSON.stringify(redactPaths(removeImageData(parsed))),
-      );
+      transcriptLines.push(redactText(JSON.stringify(removeImageData(parsed))));
     }
     writeFileSync(
       join(partialDirectory, "transcript.jsonl"),
@@ -425,10 +473,10 @@ export async function runOnce(
       run: runNumber,
       plugin_commit: options.pluginCommit,
       prompt: STARTING_PROMPT,
-      allowed_tools: ALLOWED_TOOLS,
+      allowed_tools: allowedTools(options.pluginDirectory),
       exit_code: result.exitCode,
       timed_out: result.timedOut,
-      stderr: redactPaths(result.stderr.slice(0, 2000)),
+      stderr: redactText(result.stderr.slice(0, 2000)),
       started_at: startedAt.toISOString(),
       finished_at: finishedAt.toISOString(),
       loop_folder_found: loopFolder !== undefined,
@@ -440,7 +488,17 @@ export async function runOnce(
     );
     // renameSync onto a folder that exists and is not empty fails, so a run saved by another
     // process in the meantime is kept and this one is dropped.
-    renameSync(partialDirectory, finalDirectory);
+    try {
+      renameSync(partialDirectory, finalDirectory);
+    } catch (error) {
+      if (
+        isRecord(error) &&
+        (error.code === "ENOTEMPTY" || error.code === "EEXIST")
+      ) {
+        return "already saved";
+      }
+      throw error;
+    }
     return "saved";
   } finally {
     rmSync(partialDirectory, { recursive: true, force: true });
@@ -506,7 +564,6 @@ export type SavedRun = {
   readonly run: number;
   readonly directory: string;
   readonly diff: string;
-  readonly finalCrit: string | undefined;
   readonly rechecks: readonly { round: number; text: string }[];
   readonly exitCode: number;
   readonly timedOut: boolean;
@@ -530,7 +587,6 @@ export function readSavedRun(
     throw new Error(`${directory}/run.json is not a JSON object`);
   }
   const rechecks: { round: number; text: string }[] = [];
-  let finalCrit: string | undefined;
   const loopDirectory = join(directory, "loop");
   if (existsSync(loopDirectory)) {
     for (const round of roundNumbers(loopDirectory)) {
@@ -539,7 +595,6 @@ export function readSavedRun(
         continue;
       }
       const text = readFileSync(critPath, "utf8");
-      finalCrit = text;
       // Round 1 is the first crit; every later round is a recheck (FR-82).
       if (round >= 2) {
         rechecks.push({ round, text });
@@ -551,7 +606,6 @@ export function readSavedRun(
     run: runNumber,
     directory,
     diff: dropLoopFiles(readFileSync(join(directory, "page.diff"), "utf8")),
-    finalCrit,
     rechecks,
     exitCode: Number(metadata.exit_code),
     timedOut: metadata.timed_out === true,
@@ -762,6 +816,7 @@ export function replayReport(options: ScoreOptions): {
   let runsWithElementSign = 0;
   let runsWithStyleSign = 0;
   let runsWithPraise = 0;
+  let runsWithoutRecheck = 0;
   for (const page of options.pages) {
     for (let runNumber = 1; runNumber <= options.runsPerPage; runNumber += 1) {
       const savedRun = readSavedRun(
@@ -801,7 +856,11 @@ export function replayReport(options: ScoreOptions): {
         runsWithStyleSign += 1;
       }
       let praised = "no";
-      if (answer.recheck_praised.length > 0) {
+      if (savedRun.rechecks.length === 0) {
+        // With no recheck crit there is nothing to praise a sign, so "no" would not be a result.
+        runsWithoutRecheck += 1;
+        praised = "no recheck crits";
+      } else if (answer.recheck_praised.length > 0) {
         runsWithPraise += 1;
         praised = answer.recheck_praised
           .map((praise) => `${praise.title} (round ${praise.round})`)
@@ -818,8 +877,13 @@ export function replayReport(options: ScoreOptions): {
     `Runs whose final page adds a sign: ${runsWithSign} of ${scored}`,
     `  by a new element: ${runsWithElementSign} of ${scored}`,
     `  by a style change: ${runsWithStyleSign} of ${scored}`,
-    `Runs where a recheck praised a sign: ${runsWithPraise} of ${scored}`,
+    `Runs where a recheck praised a sign: ${runsWithPraise} of ${scored - runsWithoutRecheck}`,
   );
+  if (runsWithoutRecheck > 0) {
+    lines.push(
+      `Runs with no recheck crit, left out of the praise count: ${runsWithoutRecheck}`,
+    );
+  }
   return { text: lines.join("\n"), complete };
 }
 
@@ -841,7 +905,7 @@ const HELP_TEXT = `Run the EV-25 loop on the pages of evals/loop-tells/, score t
 Usage:
   node evals/loop-tells/run.ts run    [--parallel N]
   node evals/loop-tells/run.ts score  [--parallel N] [--plugin-commit SHA]
-  node evals/loop-tells/run.ts replay [--plugin-commit SHA]
+  node evals/loop-tells/run.ts replay [--plugin-commit SHA]   (or --replay)
 
 Modes:
   run     Start the loop runs that are not saved yet (${RUNS_PER_PAGE} per page), all at once by default,
@@ -870,7 +934,8 @@ export async function runCommand(
   args: readonly string[],
   options: MainOptions,
 ): Promise<{ text: string; exitCode: number }> {
-  const mode = args[0];
+  // `--replay` is the flag the other evaluations use for the same mode.
+  const mode = args[0] === "--replay" ? "replay" : args[0];
   if (mode === undefined || mode === "--help" || mode === "-h") {
     return {
       text: HELP_TEXT,
