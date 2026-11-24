@@ -1,0 +1,67 @@
+{
+  "title": "deskcrit measured differences across pages",
+  "description": "The file that plugin/skills/design-critic/scripts/compare-facts.mjs writes (docs/PRD.md FR-84): the differences across the facts files (FR-79) of the pages of one set, for the set critic and the picker. Written for JSON Schema draft 2020-12; the $schema keyword is left out by project rule, so a validator must be set to draft 2020-12. A value that every page shares is not listed. Pages are numbered from 1 in the order given, like the tiles of the contact sheet.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "viewport", "pages", "differences"],
+  "properties": {
+    "version": { "const": 1 },
+    "viewport": { "enum": ["desktop", "phone"] },
+    "pages": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["page", "file"],
+        "properties": {
+          "page": { "type": "integer", "minimum": 1 },
+          "file": {
+            "description": "The facts file path as given.",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "differences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "what", "pages"],
+        "properties": {
+          "kind": {
+            "enum": ["left_edge", "content_width", "type_size", "text_color"]
+          },
+          "what": { "type": "string" },
+          "pages": {
+            "description": "One entry per page, in page order. A value of null means the page has no such value.",
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["page", "file", "value", "selector", "box"],
+              "properties": {
+                "page": { "type": "integer", "minimum": 1 },
+                "file": { "type": "string" },
+                "value": { "type": ["number", "string", "null"] },
+                "selector": {
+                  "description": "The selector of a text block that shows the value, or null.",
+                  "type": ["string", "null"]
+                },
+                "box": {
+                  "description": "[x, y, width, height] of that block in px of the viewport's full-page screenshot, or null.",
+                  "type": ["array", "null"],
+                  "items": { "type": "integer" },
+                  "minItems": 4,
+                  "maxItems": 4
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
