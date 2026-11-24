@@ -8,14 +8,15 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 export const EXIT_USAGE = 2;
 export const USAGE =
-  "usage: node compare-facts.mjs FACTS.json FACTS.json ... --out FILE [--viewport desktop|phone|tablet|widescreen|wN]";
+  "usage: node compare-facts.mjs FACTS.json FACTS.json ... --out FILE [--viewport desktop|phone|tablet|widescreen|wN, each with an optional -dark]";
 
 /**
- * The viewport names this script compares. It mirrors the light names that the `viewports[].name`
- * rule of schemas/facts.schema.json allows (FR-85): the four default names and w<N> for a width
- * given with --width. The `-dark` entries stay out of compare-facts.
+ * The viewport names this script compares. It mirrors the `viewports[].name` rule of
+ * schemas/facts.schema.json (FR-85): the four default names and w<N> for a width given with
+ * --width, each with an optional `-dark` suffix for the dark entry that --dark writes.
  */
-const VIEWPORT_NAME = /^(desktop|phone|tablet|widescreen|w[1-9][0-9]{2,3})$/;
+const VIEWPORT_NAME =
+  /^(desktop|phone|tablet|widescreen|w[1-9][0-9]{2,3})(-dark)?$/;
 
 /** Two edges or widths within this many px are the same value, as in measure.mjs left_edges. */
 const SAME_WITHIN_PX = 1;
