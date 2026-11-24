@@ -965,3 +965,70 @@ describe("a Jev evidence file (FR-78)", () => {
     expect(skillText).toContain(`   ${JEV_EVIDENCE_PROMPT_LINE}\n`);
   });
 });
+
+describe("run --parallel", () => {
+  it("starts every image before any one finishes, and prints them in the order given", async () => {
+    const { root, runsDirectory } = setUp();
+    // The run command needs a committed skill folder with SKILL.md and agents/critic.md.
+    const skillDirectory = join(root, "skill");
+    mkdirSync(join(skillDirectory, "agents"), { recursive: true });
+    writeFileSync(join(skillDirectory, "SKILL.md"), "skill");
+    writeFileSync(join(skillDirectory, "agents", "critic.md"), "critic");
+    git(skillDirectory, ["init", "-q"]);
+    git(skillDirectory, ["add", "."]);
+    git(skillDirectory, ["commit", "-q", "-m", "skill"]);
+    const firstImage = join(root, "first.png");
+    const secondImage = join(root, "second.png");
+    writeFileSync(firstImage, "first image bytes");
+    writeFileSync(secondImage, "second image bytes");
+    // Each crit call waits until both have started, so the test hangs (and times out)
+    // if the command runs the images one after another.
+    let started = 0;
+    let releaseAll: () => void = () => {};
+    const bothStarted = new Promise<void>((resolve) => {
+      releaseAll = resolve;
+    });
+    const runner: ClaudeRunner = async (args) => {
+      if (args[0] === "--version") {
+        return { stdout: "9.9.9 (Claude Code)\n", stderr: "", exitCode: 0 };
+      }
+      started += 1;
+      if (started === 2) {
+        releaseAll();
+      }
+      await bothStarted;
+      return { stdout: successStdout("A crit."), stderr: "", exitCode: 0 };
+    };
+    const { runCriticCommand } = await import("./run-critic.ts");
+    const output = await runCriticCommand(
+      [
+        "run",
+        "--skill",
+        skillDirectory,
+        "--parallel",
+        "2",
+        firstImage,
+        secondImage,
+      ],
+      { runsDirectory, defaultSkillDirectory: "/no-skill", runClaude: runner },
+    );
+    expect(output.exitCode).toBe(0);
+    const imageLines = output.text
+      .split("\n")
+      .filter((line) => line.includes(".png: "));
+    expect(imageLines[0]).toContain(firstImage);
+    expect(imageLines[1]).toContain(secondImage);
+  });
+
+  it("refuses a --parallel value that is not a whole number of 1 or more", async () => {
+    const { imagePath, runsDirectory } = setUp();
+    const { runCriticCommand } = await import("./run-critic.ts");
+    await expect(
+      runCriticCommand(["run", "--parallel", "0", imagePath], {
+        runsDirectory,
+        defaultSkillDirectory: "/no-skill",
+        runClaude: recordingStub().runner,
+      }),
+    ).rejects.toThrow("--parallel must be a whole number");
+  });
+});

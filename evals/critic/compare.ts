@@ -27,35 +27,22 @@ import { formatTable } from "../support/format-table.ts";
 import {
   type ClaudeRunner,
   type CritRequest,
+  DEFAULT_PARALLEL,
   ensureCrits,
+  parseParallel,
   readSavedCrits,
   requestKey,
   runClaudeProcess,
+  runPooled,
   type SavedCrit,
   skillCommit,
 } from "./run-critic.ts";
 
+// These three moved to run-critic.ts, which uses them too; the other scripts still import them from here.
+export { DEFAULT_PARALLEL, parseParallel, runPooled };
+
 const REPOSITORY_DIRECTORY = resolve(import.meta.dirname, "..", "..");
 const EXIT_CODE_COULD_NOT_RUN = 2;
-/** How many critic runs or judge calls run at once when --parallel is not given. */
-export const DEFAULT_PARALLEL = 40;
-
-/**
- * Reads the value of --parallel: a whole number of 1 or more, or the default when the flag is
- * absent. Anything else stops the script with a usage error, because a zero or a word would
- * start no work or hang the pool.
- */
-export function parseParallel(text: string | undefined): number {
-  if (text === undefined) {
-    return DEFAULT_PARALLEL;
-  }
-  if (!/^[1-9]\d*$/.test(text)) {
-    throw new Error(
-      `--parallel must be a whole number of 1 or more, not "${text}"`,
-    );
-  }
-  return Number(text);
-}
 
 /**
  * The focus line of every compare request. It names the images only by their neutral names, so it
@@ -233,46 +220,6 @@ export function formatSummaryLine(outcomes: readonly PairOutcome[]): string {
   }
   const rate = outcomes.length === 0 ? 0 : agreed / outcomes.length;
   return `agreed ${agreed}, disagreed ${disagreed}, undecided ${undecided}, rate ${rate.toFixed(3)}`;
-}
-
-/**
- * Runs `work` on every item with at most `limit` running at once, and keeps the results in item
- * order. After the first failure no worker takes a new item; the runs already started finish, so
- * what they save stays saved. Then it throws one error that names every failure.
- */
-export async function runPooled<Item, Result>(
-  items: readonly Item[],
-  limit: number,
-  work: (item: Item) => Promise<Result>,
-): Promise<Result[]> {
-  const results: Result[] = new Array(items.length);
-  const failures: string[] = [];
-  let nextIndex = 0;
-  // Each worker takes the next index until none is left or a run has failed. JavaScript runs one
-  // callback at a time, so two workers never take the same index.
-  const worker = async (): Promise<void> => {
-    while (nextIndex < items.length && failures.length === 0) {
-      const index = nextIndex;
-      nextIndex += 1;
-      try {
-        results[index] = await work(items[index] as Item);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        failures.push(message);
-      }
-    }
-  };
-  const workers: Promise<void>[] = [];
-  for (let count = 0; count < Math.min(limit, items.length); count += 1) {
-    workers.push(worker());
-  }
-  await Promise.all(workers);
-  if (failures.length > 0) {
-    throw new Error(
-      `${failures.length} ${failures.length === 1 ? "run" : "runs"} failed:\n${failures.join("\n")}`,
-    );
-  }
-  return results;
 }
 
 /** Returns one warning per call that the permission rules refused in a saved run of a pair. */
