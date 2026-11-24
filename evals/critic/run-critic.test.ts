@@ -532,6 +532,7 @@ describe("buildClaudeArguments", () => {
       "--allowedTools",
       "Read",
       "Bash(node /skill/scripts/crop.mjs *)",
+      "Bash(node /skill/scripts/entries.mjs *)",
       "--permission-prompts",
       "none",
       "--strict-mcp-config",
