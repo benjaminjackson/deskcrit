@@ -34,6 +34,7 @@ import sharp from "sharp";
 import {
   formatFactsJson,
   measurePage,
+  VIEWPORTS,
 } from "../../plugin/skills/design-critic/scripts/measure.mjs";
 import { type FixtureImage, factsPathFor, selectCriteria } from "./detect.ts";
 import { isRecord } from "./run-critic.ts";
@@ -317,7 +318,13 @@ async function measureFixture(
   const pageUrl = `http://127.0.0.1:${port}/${record.template}?defect=${record.defect}`;
   const outputFolder = mkdtempSync(join(tmpdir(), "crit-measure-fixture-"));
   try {
-    await measurePage(pageUrl, outputFolder, PACKS_DIRECTORY);
+    // Render only the default viewport of the fixture's size, the one keepFixtureViewport keeps.
+    const fixtureViewports = VIEWPORTS.filter(
+      (viewport) =>
+        viewport.width === record.viewport.width &&
+        viewport.height === record.viewport.height,
+    );
+    await measurePage(pageUrl, outputFolder, PACKS_DIRECTORY, fixtureViewports);
     const facts = JSON.parse(
       await readFile(join(outputFolder, "facts.json"), "utf8"),
     );

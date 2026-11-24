@@ -32,6 +32,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { parseArgs } from "node:util";
 import {
   decodePng,
   encodeCrop,
@@ -44,8 +45,9 @@ export const FACTS_VERSION = 1;
 
 /**
  * The default viewports, all at device scale factor 1: a laptop screen, a common phone, a tablet
- * held upright, and a large desktop screen (FR-79). Desktop stays first, because readers of
- * facts.json take the first viewport as the desktop one.
+ * held upright, and a large desktop screen (FR-79, FR-85). Desktop is first only in this default
+ * order; with the flags that pick viewports or with --width it may not be, so a reader of facts.json
+ * finds a viewport by its name and never by its position.
  */
 export const VIEWPORTS = [
   { name: "desktop", width: 1280, height: 800 },
@@ -55,11 +57,11 @@ export const VIEWPORTS = [
 ];
 
 /** The narrowest and widest width that --width accepts, in CSS pixels. */
-export const MIN_WIDTH = 200;
-export const MAX_WIDTH = 3840;
+const MIN_WIDTH = 200;
+const MAX_WIDTH = 3840;
 
 /** The height of each viewport that --width asks for, in CSS pixels. */
-export const WIDTH_VIEWPORT_HEIGHT = 800;
+const WIDTH_VIEWPORT_HEIGHT = 800;
 
 /** At most this many text blocks per viewport go into the file, so it fits a critic's context. */
 export const MAX_TEXT_BLOCKS = 60;
@@ -1768,16 +1770,17 @@ export function formatFactsJson(value, depth = 0) {
  */
 export function widthViewports(text) {
   const viewports = [];
-  const seen = new Set();
   for (const item of text.split(",")) {
     if (!/^[1-9][0-9]*$/.test(item)) {
       return null;
     }
     const width = Number(item);
-    if (width < MIN_WIDTH || width > MAX_WIDTH || seen.has(width)) {
+    if (width < MIN_WIDTH || width > MAX_WIDTH) {
       return null;
     }
-    seen.add(width);
+    if (viewports.some((viewport) => viewport.width === width)) {
+      return null;
+    }
     viewports.push({
       name: `w${width}`,
       width,
@@ -1898,42 +1901,49 @@ export async function measurePage(
  * @returns {{ pageArgument: string, folderArgument: string | undefined, viewportList: { name: string, width: number, height: number }[] } | null}
  */
 export function readCommandLine(commandArguments) {
-  const [pageArgument, ...flagArguments] = commandArguments;
-  if (pageArgument === undefined) {
+  let parsed;
+  try {
+    // parseArgs from node:util reads the flags. strict makes it throw on an unknown flag, on a
+    // missing value, and on a value that looks like a flag, such as `--out --phone`; tokens lists
+    // each flag as it was given, so a flag given twice can be found.
+    parsed = parseArgs({
+      args: commandArguments,
+      options: {
+        out: { type: "string" },
+        width: { type: "string" },
+        desktop: { type: "boolean" },
+        phone: { type: "boolean" },
+        tablet: { type: "boolean" },
+        widescreen: { type: "boolean" },
+      },
+      allowPositionals: true,
+      strict: true,
+      tokens: true,
+    });
+  } catch {
     return null;
   }
-  // Flags may come in any order, each at most once. A viewport flag such as --phone takes no
-  // value; --out and --width each take the argument after them.
+  const { values, positionals, tokens } = parsed;
+  if (positionals.length !== 1) {
+    return null;
+  }
+  const pageArgument = positionals[0];
   const pickedNames = new Set();
-  let folderArgument;
-  let widthArgument;
-  let index = 0;
-  while (index < flagArguments.length) {
-    const flag = flagArguments[index];
-    const namedViewport = VIEWPORTS.find(
-      (viewport) => `--${viewport.name}` === flag,
-    );
-    if (namedViewport !== undefined) {
-      if (pickedNames.has(namedViewport.name)) {
-        return null;
-      }
-      pickedNames.add(namedViewport.name);
-      index += 1;
+  const givenFlags = new Set();
+  for (const token of tokens) {
+    if (token.kind !== "option") {
       continue;
     }
-    const value = flagArguments[index + 1];
-    if (value === undefined) {
+    if (givenFlags.has(token.name)) {
       return null;
     }
-    if (flag === "--out" && folderArgument === undefined) {
-      folderArgument = value;
-    } else if (flag === "--width" && widthArgument === undefined) {
-      widthArgument = value;
-    } else {
-      return null;
+    givenFlags.add(token.name);
+    if (VIEWPORTS.some((viewport) => viewport.name === token.name)) {
+      pickedNames.add(token.name);
     }
-    index += 2;
   }
+  const folderArgument = values.out;
+  const widthArgument = values.width;
   let viewportList = VIEWPORTS;
   if (pickedNames.size > 0 || widthArgument !== undefined) {
     // The named viewports keep the order of VIEWPORTS, whatever order their flags came in.

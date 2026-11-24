@@ -416,6 +416,13 @@ describe("readCommandLine", () => {
     expect(pickedNames(["--width", "768"])).toEqual(["w768"]);
   });
 
+  it("refuses a value that looks like a flag, an unknown flag, and two pages", () => {
+    expect(readCommandLine(["page.html", "--out", "--phone"])).toBeNull();
+    expect(readCommandLine(["page.html", "--wide"])).toBeNull();
+    expect(readCommandLine(["page.html", "other.html"])).toBeNull();
+    expect(readCommandLine(["--phone"])).toBeNull();
+  });
+
   it("keeps the page and the output folder", () => {
     expect(
       readCommandLine(["page.html", "--phone", "--out", "folder"]),
