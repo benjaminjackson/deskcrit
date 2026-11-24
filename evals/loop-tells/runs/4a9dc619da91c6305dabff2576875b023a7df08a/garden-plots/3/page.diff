@@ -1,0 +1,330 @@
+diff --git a/index.html b/index.html
+index 71eff7a..2df3d05 100644
+--- a/index.html
++++ b/index.html
+@@ -21,7 +21,7 @@
+     <section class="hero">
+       <div class="hero-text">
+         <h1>Run the waiting list for your garden without the spreadsheet</h1>
+-        <p>Plotwise keeps the plots, the growers, and the waiting list in one place, and offers a free plot to the next person in line the day it comes free.</p>
++        <p>Plotwise keeps the plots, the growers, and the waiting list in one place, and offers an empty plot to the next person in line the day it comes up.</p>
+         <a class="button" href="#">Add your garden</a>
+       </div>
+       <div class="hero-plan" aria-label="Plot plan">
+@@ -29,18 +29,18 @@
+         <div class="plan-grid">
+           <div class="plot taken">1</div>
+           <div class="plot taken">2</div>
+-          <div class="plot free">3</div>
++          <div class="plot free">3<span>Empty</span></div>
+           <div class="plot taken">4</div>
+           <div class="plot taken">5</div>
+           <div class="plot taken">6</div>
+           <div class="plot taken">7</div>
+-          <div class="plot free">8</div>
++          <div class="plot free">8<span>Empty</span></div>
+           <div class="plot taken">9</div>
+           <div class="plot taken">10</div>
+           <div class="plot taken">11</div>
+           <div class="plot taken">12</div>
+         </div>
+-        <div class="plan-key"><span class="swatch free"></span>Free <span class="swatch taken"></span>Taken</div>
++        <div class="plan-key"><span class="swatch free"></span>Empty <span class="swatch taken"></span>Taken</div>
+       </div>
+     </section>
+ 
+@@ -53,11 +53,11 @@
+         </div>
+         <div class="card">
+           <h3>Plot offers</h3>
+-          <p>A free plot goes to the next grower, who has a week to say yes.</p>
++          <p>An empty plot goes to the next grower, who has a week to say yes.</p>
+         </div>
+         <div class="card">
+           <h3>Rent reminders</h3>
+-          <p>Each grower gets one reminder before rent is due in March.</p>
++          <p>Each grower gets a reminder before their rent is due.</p>
+         </div>
+         <div class="card">
+           <h3>Work days</h3>
+diff --git a/styles.css b/styles.css
+index 322f46b..09d622c 100644
+--- a/styles.css
++++ b/styles.css
+@@ -16,6 +16,19 @@
+   src: url("fonts/source-serif-4-latin-400-normal.woff2") format("woff2");
+ }
+ 
++/* Shared measurements: the page side margin, the widest the content gets,
++   and the gap between grid columns. The hero and the cards use the same
++   four-column grid, so the plot map starts on the edge of the third card. */
++:root {
++  --side: 64px;
++  --content-max: 1152px;
++  --gap: 24px;
++  --text: #2f3a2c;
++  --muted: #55604f;
++  --green: #3d6b35;
++  --line: #e6e3da;
++}
++
+ * {
+   box-sizing: border-box;
+ }
+@@ -25,7 +38,7 @@ body {
+   font-family: "Inter", sans-serif;
+   font-size: 15px;
+   line-height: 1.55;
+-  color: #2f3a2c;
++  color: var(--text);
+   background: #fbfaf6;
+ }
+ 
+@@ -33,12 +46,25 @@ a {
+   color: inherit;
+ }
+ 
++/* The header, hero and features each keep their content inside the same
++   centered column. max() keeps the side margin when the window is narrow,
++   and centers the content when the window is wider than --content-max. */
++.site-header,
++.hero,
++.features {
++  padding-left: max(var(--side), calc((100% - var(--content-max)) / 2));
++  padding-right: max(var(--side), calc((100% - var(--content-max)) / 2));
++}
++
+ .site-header {
+   display: flex;
++  flex-wrap: wrap;
+   justify-content: space-between;
+   align-items: center;
+-  padding: 22px 64px;
+-  border-bottom: 1px solid #e6e3da;
++  gap: 8px 28px;
++  padding-top: 18px;
++  padding-bottom: 18px;
++  border-bottom: 1px solid var(--line);
+ }
+ 
+ .logo {
+@@ -47,21 +73,32 @@ a {
+   text-decoration: none;
+ }
+ 
++.site-nav {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 0 20px;
++}
++
++/* Padding makes each link a tap target at least 24 px tall. */
+ .site-nav a {
+-  margin-left: 28px;
++  padding: 6px 0;
+   text-decoration: none;
+-  color: #55604f;
++  color: var(--muted);
+ }
+ 
+ .hero {
+-  display: flex;
+-  justify-content: space-between;
++  display: grid;
++  grid-template-columns: repeat(4, 1fr);
++  column-gap: var(--gap);
++  row-gap: 40px;
+   align-items: center;
+-  padding: 56px 64px 48px;
++  padding-top: 64px;
++  padding-bottom: 64px;
+ }
+ 
+ .hero-text {
+-  max-width: 520px;
++  grid-column: 1 / span 2;
++  max-width: 34em;
+ }
+ 
+ h1 {
+@@ -70,34 +107,35 @@ h1 {
+   font-size: 40px;
+   font-weight: 400;
+   line-height: 1.15;
++  text-wrap: balance;
+ }
+ 
+ .hero-text p {
+   margin: 0 0 24px;
+-  color: #55604f;
++  color: var(--muted);
+ }
+ 
+ .button {
+   display: inline-block;
+   padding: 11px 20px;
+   border-radius: 6px;
+-  background: #3d6b35;
++  background: var(--green);
+   color: #ffffff;
+   text-decoration: none;
+   font-weight: 500;
+ }
+ 
+ .hero-plan {
+-  width: 420px;
++  grid-column: 3 / span 2;
+   padding: 20px;
+-  border: 1px solid #e6e3da;
++  border: 1px solid var(--line);
+   border-radius: 8px;
+   background: #ffffff;
+ }
+ 
+ .plan-title {
+   margin-bottom: 12px;
+-  color: #55604f;
++  color: var(--muted);
+ }
+ 
+ .plan-grid {
+@@ -107,26 +145,34 @@ h1 {
+ }
+ 
+ .plot {
+-  height: 52px;
+-  padding: 4px 6px;
++  height: 56px;
++  padding: 4px 8px;
+   border-radius: 4px;
+   font-size: 13px;
++  line-height: 1.4;
+ }
+ 
+ .plot.taken {
+   background: #e4e8df;
+-  color: #55604f;
++  color: var(--muted);
+ }
+ 
++/* Empty plots carry the word "Empty" as well as the green fill,
++   so the state does not depend on color alone. */
+ .plot.free {
+-  background: #3d6b35;
++  background: var(--green);
+   color: #ffffff;
+ }
+ 
++.plot span {
++  display: block;
++  font-weight: 500;
++}
++
+ .plan-key {
+   margin-top: 12px;
+   font-size: 13px;
+-  color: #55604f;
++  color: var(--muted);
+ }
+ 
+ .swatch {
+@@ -143,39 +189,86 @@ h1 {
+ }
+ 
+ .swatch.free {
+-  background: #3d6b35;
++  background: var(--green);
+ }
+ 
+ .features {
+-  padding: 8px 64px 0;
++  padding-top: 0;
++  padding-bottom: 72px;
+ }
+ 
+ h2 {
+-  margin: 0 0 12px;
+-  font-size: 15px;
++  margin: 0 0 16px;
++  font-family: "Source Serif 4", serif;
++  font-size: 24px;
+   font-weight: 400;
+-  color: #55604f;
++  line-height: 1.25;
++  color: var(--text);
+ }
+ 
+ .cards {
+-  display: flex;
+-  gap: 12px;
++  display: grid;
++  grid-template-columns: repeat(4, 1fr);
++  gap: var(--gap);
+ }
+ 
+ .card {
+-  flex: 1;
+-  padding: 14px 16px;
++  padding: 16px 18px 18px;
+   background: #f1efe8;
+ }
+ 
+ .card h3 {
+-  margin: 0;
++  margin: 0 0 6px;
+   font-size: 15px;
+-  font-weight: 400;
+-  color: #55604f;
++  font-weight: 500;
++  color: var(--text);
+ }
+ 
++/* "pretty" stops a single word from sitting alone on the last line. */
+ .card p {
+   margin: 0;
+-  color: #55604f;
++  color: var(--muted);
++  text-wrap: pretty;
++}
++
++/* Tablet: the text and the plot map stack, and the cards go two by two. */
++@media (max-width: 960px) {
++  .hero-text,
++  .hero-plan {
++    grid-column: 1 / -1;
++  }
++
++  .hero-plan {
++    max-width: 520px;
++  }
++
++  .cards {
++    grid-template-columns: repeat(2, 1fr);
++  }
++}
++
++/* Phone: narrower margins, a smaller headline, one card per row,
++   and the plot map in four columns so each plot stays wide enough. */
++@media (max-width: 600px) {
++  :root {
++    --side: 20px;
++    --gap: 16px;
++  }
++
++  .hero {
++    padding-top: 40px;
++    padding-bottom: 48px;
++  }
++
++  h1 {
++    font-size: 32px;
++  }
++
++  .plan-grid {
++    grid-template-columns: repeat(4, 1fr);
++  }
++
++  .cards {
++    grid-template-columns: 1fr;
++  }
+ }

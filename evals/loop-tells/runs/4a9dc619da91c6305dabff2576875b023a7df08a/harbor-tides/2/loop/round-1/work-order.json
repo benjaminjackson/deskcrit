@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/loop-tells-harbor-tides-m5n9Ul/.critloop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/loop-tells-harbor-tides-m5n9Ul/.critloop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/loop-tells-harbor-tides-m5n9Ul/.critloop/round-1/phone.png", "width": 676, "height": 873 },
+    { "viewport": "tablet", "path": "<temp>/loop-tells-harbor-tides-m5n9Ul/.critloop/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/loop-tells-harbor-tides-m5n9Ul/.critloop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/loop-tells-harbor-tides-m5n9Ul/.critloop/round-1/crit.md",
+  "facts_file": "<temp>/loop-tells-harbor-tides-m5n9Ul/.critloop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "phone-layout-no-reflow",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The phone layout does not reflow, and the tablet layout fails the same way",
+      "location": {
+        "description": "the three text blocks Lock gate times, Depth at the pontoon and Notices, side by side in the bottom band",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "div.points > div.point:nth-of-type(1) > p",
+        "box": [412, 594, 65, 279],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "On a phone the page is wider than the screen and scrolls sideways. The three text columns are strips 6 to 7 characters wide, 10 to 12 lines deep, with staircase rags and headings broken as \"Depth at / the / pontoon\". The nav wraps into a two-by-two block beside the logo.",
+      "current": { "value": "676 px page width on a 390 px screen; 6 to 7 characters per line in the three columns", "measured": true, "facts_field": "page_width" },
+      "target": "no sideways scroll at the phone width, and the bottom band reads in one column with a comfortable line length (45 to 75 characters)",
+      "fix_direction": "Below a tablet width, stack the bottom band into one column (table, then the three points) and let the nav collapse or sit on its own row.",
+      "source": "WCAG 1.4.10 Reflow; Bringhurst, 45 to 75 characters for a line",
+      "closed_when": { "method": "measure", "check": "page_width equals the viewport width in the phone viewport, and characters_per_line of div.points > div.point > p is 30 or more in the phone and tablet viewports" }
+    },
+    {
+      "id": "product-not-shown",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The product is not shown, and the space for it stands empty",
+      "location": {
+        "description": "the right side of the hero beside the headline, and the 12 px Today at Porthmellin table below it",
+        "viewport": "desktop",
+        "viewports": ["desktop", "tablet", "widescreen"],
+        "selector": "tbody > tr:nth-of-type(1) > td:nth-of-type(1)",
+        "box": [64, 552, 140, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "All the weight sits in a 400 px column at the left edge, so the page looks lopsided and unfinished. The one piece of real proof, the tide table, is set at 12 px, smaller than the body copy, and its 13 px title reads as a footnote. A harbor master cannot see what berth holders will see.",
+      "current": { "value": "12 px table text; hero right side blank", "measured": true, "facts_field": "font_size" },
+      "target": "the public harbor page (tide table, gate times, depth and a notice) shown large enough to read in the space beside the headline",
+      "fix_direction": "Make the public harbor page itself the hero visual. Put the table, the gate times, the depth and a notice together, large enough to read, in the space now empty beside the headline.",
+      "source": "Arnheim, Art and Visual Perception, Balance",
+      "closed_when": { "method": "look", "check": "A fresh critic sees the tide table with the gate times, depth and a notice shown large beside the headline in the desktop, tablet and widescreen viewports, and the right side of the hero is no longer empty." }
+    },
+    {
+      "id": "copy-no-comparison",
+      "rank": 3,
+      "kind": "taste",
+      "title": "The copy never lets the visitor compare Tidewell with how they post tides now",
+      "location": {
+        "description": "the whole page copy, including the Today at Porthmellin table that is not called an example",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The visitor has to take \"can stand behind\" on trust. Nothing sets Tidewell against the office's current method (a printed table, a chalkboard, a PDF, phone calls), and a stranger cannot tell whether Porthmellin is a real customer, a demo, or their own harbor.",
+      "current": { "value": "no comparison with the current method; table not labelled as an example", "measured": false, "facts_field": null },
+      "target": "the copy says the table shows the page berth holders see, sets Tidewell against the visitor's current method, and names where the tide predictions come from",
+      "fix_direction": "Say plainly that the table shows the page berth holders see. Add a line that compares Tidewell with the visitor's current way of posting tides. Name the source of the tide predictions: only the maker has that fact and must supply it.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic reads copy that says the table is the page berth holders see, compares Tidewell with the current way of posting tides, and names the source of the tide predictions." }
+    },
+    {
+      "id": "table-header-contrast",
+      "rank": null,
+      "kind": "defect",
+      "title": "The table headers Tide, Time and Height are too faint",
+      "location": {
+        "description": "the table header row of the Today at Porthmellin table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "thead > tr > th:nth-of-type(1)",
+        "box": [64, 530, 140, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The column labels are faint gray text on white and hard to read.",
+      "current": { "value": "3.78:1", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1",
+      "fix_direction": "Darken the table headers to the body gray, #4d585e.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "contrast of thead > tr > th is 4.5 or more in the desktop, phone, tablet and widescreen viewports" }
+    },
+    {
+      "id": "type-sizes-too-close",
+      "rank": null,
+      "kind": "convention",
+      "title": "The 13 px and 12 px sizes are too close to read as two levels, and the table title ranks below the 15 px headings",
+      "location": {
+        "description": "the h2 over the table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [64, 503, 300, 20],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The table title looks smaller than the feature headings next to it, and the table text barely differs from it.",
+      "current": { "value": "13 px h2, 12 px table text, 15 px h3", "measured": true, "facts_field": "font_size" },
+      "target": "four type sizes, with the table title at the h3 size",
+      "fix_direction": "Drop to four sizes and give the table title the h3 size.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "font_size of h2 equals font_size of div.points > div.point > h3 in the desktop, phone, tablet and widescreen viewports, and type_sizes lists four sizes or fewer" }
+    },
+    {
+      "id": "feature-headings-weak-step",
+      "rank": null,
+      "kind": "taste",
+      "title": "The feature headings barely separate from their text",
+      "location": {
+        "description": "the three feature headings Lock gate times, Depth at the pontoon and Notices",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.points > div.point:nth-of-type(1) > h3",
+        "box": [412, 503, 247, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The h3s differ from the body only by weight 500 against 400 at the same 15 px.",
+      "current": { "value": "weight 500 against 400 at 15 px", "measured": true, "facts_field": "font_weight" },
+      "target": "a clearer weight or color step between the headings and their text",
+      "fix_direction": "Add a clearer weight or color step.",
+      "source": "Dair, Design with Type, ch. 9",
+      "closed_when": { "method": "measure", "check": "font_weight of div.points > div.point > h3 is at least 200 above font_weight of div.points > div.point > p, or its color differs from the p color, in the desktop, phone, tablet and widescreen viewports" }
+    }
+  ]
+}

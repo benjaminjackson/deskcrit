@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/loop-tells-garden-plots-fW6KKI/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/loop-tells-garden-plots-fW6KKI/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/loop-tells-garden-plots-fW6KKI/.crit-loop/round-1/phone.png", "width": 497, "height": 1070 },
+    { "viewport": "tablet", "path": "<temp>/loop-tells-garden-plots-fW6KKI/.crit-loop/round-1/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/loop-tells-garden-plots-fW6KKI/.crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/loop-tells-garden-plots-fW6KKI/.crit-loop/round-1/crit.md",
+  "facts_file": "<temp>/loop-tells-garden-plots-fW6KKI/.crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "phone-layout-broken",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The phone layout is broken: the page does not reflow",
+      "location": {
+        "description": "the whole phone page; the nav links pile onto the logo, the plot card runs off the right edge, and the four feature cards are columns a few characters wide",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "nav.site-nav",
+        "box": [153, 22, 173, 70],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A garden organizer who opens the page from a link on their phone meets a page that looks broken before they read a word. It scrolls sideways, the nav overlaps the logo, and the feature text runs 4 to 6 characters per line.",
+      "current": { "value": "page 497 px wide in a 390 px viewport; two nav links 19 px tall; feature text 4 to 6 characters per line", "measured": true, "facts_field": "page_width" },
+      "target": "No sideways scroll at 390 px; nav links at least 24 px tall; the plot card has a margin from the screen edge; feature cards in one column, or two at most.",
+      "fix_direction": "Collapse the nav or let it wrap below the logo. Stack the hero to one column with the plot card under the text. Stack the feature cards to one column, or two at most.",
+      "source": "WCAG 1.4.10 Reflow; WCAG 2.5.8",
+      "closed_when": { "method": "measure", "check": "page_width in the phone viewport equals 390; nav.site-nav > a:nth-of-type(1) and nav.site-nav > a:nth-of-type(3) in the phone viewport are 24 px tall or more; characters_per_line of div.cards > div.card > p in the phone viewport is well above 6" }
+    },
+    {
+      "id": "no-heading-levels",
+      "rank": 2,
+      "kind": "convention",
+      "title": "Nothing below the headline has a level of its own",
+      "location": {
+        "description": "the section heading and the four card titles, set the same as the body text",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "h2",
+        "box": [64, 461, 1152, 23],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The eye cannot scan the four features by name. Each card title sits on its text with no gap, so it reads as one run-on sentence, and the section heading looks like a stray caption.",
+      "current": { "value": "h2, h3, card text, hero paragraph, nav and plot-card title all Inter 15 px, weight 400, #55604f", "measured": true, "facts_field": "text_blocks" },
+      "target": "Card titles differ from card text by weight or color, with a small gap below them; the section heading has a real step up in size or form.",
+      "fix_direction": "Set the card titles in a heavier weight or in the darker #2f3a2c used for the h1, and add a small gap below them. Give the section heading a real step up, for example the serif at a size between the body and the h1. This adds one level, not several.",
+      "source": "Dair, Design with Type",
+      "closed_when": { "method": "measure", "check": "in the desktop, phone, tablet and widescreen viewports, div.cards > div.card > h3 has a font_weight above 400 or a color other than #55604f, and h2 has a font_size above 15" }
+    },
+    {
+      "id": "free-means-two-things",
+      "rank": 3,
+      "kind": "defect",
+      "title": "\"Free\" means two things on a page about rent",
+      "location": {
+        "description": "the \"Plot offers\" card text and the \"Free\" legend in the plot card",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.cards > div.card:nth-of-type(2) > p",
+        "box": [371, 533, 247, 70],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A garden organizer, or a grower they forward the page to, can read \"a free plot\" as \"a plot that costs nothing\". That is a promise about money the garden would then have to walk back.",
+      "current": { "value": "\"free\" used for the vacant plot state in the paragraph, the \"Plot offers\" card and the legend", "measured": false, "facts_field": null },
+      "target": "The plot state is named with a word that cannot mean no cost, and \"free\" does not appear near rent.",
+      "fix_direction": "Use \"empty\", \"open\" or \"vacant\" for the plot state in the paragraph, in the \"Plot offers\" card and in the legend. Keep \"free\" out of anything that sits near rent.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees that the word \"free\" no longer names the plot state in the hero paragraph, the \"Plot offers\" card or the plot-card legend, in every viewport." }
+    },
+    {
+      "id": "picture-misses-waiting-list",
+      "rank": 4,
+      "kind": "taste",
+      "title": "The picture shows the plots but not the waiting list the headline sells",
+      "location": {
+        "description": "the plot card in the hero, with the caption \"Elm Row Gardens, plots 1 to 12\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The one picture on the page repeats the setting and leaves the product's real job, the offer to the next person in line, to the reader's imagination.",
+      "current": { "value": "the plot card shows only which plots are free and which are taken; the caption names only the garden", "measured": false, "facts_field": null },
+      "target": "The plot card shows what happens to plot 3 or plot 8, so that the picture and the headline make one point together, and the caption says that point.",
+      "fix_direction": "Keep the plot card. Make it show what happens to plot 3 or plot 8, and change the caption to say that point instead of only naming the garden. The content is for the maker to supply.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees in the plot card, in every viewport, something that shows a next person or an offer going out for plot 3 or plot 8, and a caption that says that point." }
+    },
+    {
+      "id": "empty-space-and-wide-hero",
+      "rank": null,
+      "kind": "convention",
+      "title": "Empty cream below the feature row, and the hero halves far apart on widescreen",
+      "location": {
+        "description": "the empty bottom third of the page, and the gap between the headline and the plot card",
+        "viewport": "widescreen",
+        "viewports": ["desktop", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The space looks left over, not planned.",
+      "current": { "value": "headline and plot card about 870 px apart on widescreen, with nothing between them", "measured": false, "facts_field": null },
+      "target": "The space looks planned: content width capped, or the two halves of the hero closer together.",
+      "fix_direction": "Cap the content width, or bring the two halves of the hero closer, so the space looks planned.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees in the desktop and widescreen images that the hero text and plot card sit close enough to read as one hero and the empty space looks planned." }
+    },
+    {
+      "id": "tablet-card-line-length",
+      "rank": null,
+      "kind": "convention",
+      "title": "Feature card text breaks every two words on the tablet",
+      "location": {
+        "description": "the feature card text on the tablet, in four narrow columns",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "div.cards > div.card:nth-of-type(1) > p",
+        "box": [80, 603, 119, 93],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The short sentences break every two words and are hard to read.",
+      "current": { "value": "12 to 15 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "Two columns of cards, with longer lines than 12 to 15 characters.",
+      "fix_direction": "Show the feature cards in two columns on the tablet.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "characters_per_line of div.cards > div.card > p in the tablet viewport is above 15" }
+    },
+    {
+      "id": "button-says-nothing-next",
+      "rank": null,
+      "kind": "taste",
+      "title": "\"Add your garden\" does not say what it costs or what happens next",
+      "location": {
+        "description": "the \"Add your garden\" button in the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "a.button",
+        "box": [64, 360, 160, 45],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "An organizer cannot judge what the first step involves, because pricing is only in the nav.",
+      "current": { "value": "the button names the action only; no line about cost or next step", "measured": false, "facts_field": null },
+      "target": "A short line next to the button says what the first step involves.",
+      "fix_direction": "Add a short line next to the button that says what the first step involves. That fact is for the maker to supply.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees a short line next to the button in every viewport that says what the first step involves." }
+    },
+    {
+      "id": "rent-reminder-march",
+      "rank": null,
+      "kind": "defect",
+      "title": "\"Rent is due in March\" reads as a fixed rule",
+      "location": {
+        "description": "the \"Rent reminders\" card text",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.cards > div.card:nth-of-type(3) > p",
+        "box": [662, 533, 247, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "An organizer whose rent is due in October cannot tell whether March is an example or a limit.",
+      "current": { "value": "\"Each grower gets one reminder before rent is due in March.\"", "measured": false, "facts_field": null },
+      "target": "The line says whether March is an example or a limit.",
+      "fix_direction": "Edit the line so it says whether March is an example or a limit.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic reads the \"Rent reminders\" card in every viewport and can tell whether March is an example or a limit." }
+    }
+  ]
+}

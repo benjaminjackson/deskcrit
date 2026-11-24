@@ -1,0 +1,256 @@
+@font-face {
+  font-family: "Inter";
+  font-weight: 400;
+  src: url("fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 500;
+  src: url("fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-weight: 400;
+  src: url("fonts/source-serif-4-latin-400-normal.woff2") format("woff2");
+}
+
+/* Side padding for every full-width band. It is 64px on normal screens.
+   On screens wider than the 1120px content column plus padding, it grows
+   so the content stays in a centred column of 1120px. */
+:root {
+  --content-width: 1120px;
+  --side-padding: max(64px, calc((100% - var(--content-width)) / 2));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #2f3a2c;
+  background: #fbfaf6;
+}
+
+a {
+  color: inherit;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px 32px;
+  padding: 18px var(--side-padding);
+  border-bottom: 1px solid #e6e3da;
+}
+
+.logo {
+  font-family: "Source Serif 4", serif;
+  font-size: 22px;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 28px;
+}
+
+/* Vertical padding makes each link a tap target at least 31px tall. */
+.site-nav a {
+  display: inline-block;
+  padding: 4px 0;
+  text-decoration: none;
+  color: #55604f;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 56px;
+  padding: 64px var(--side-padding) 56px;
+}
+
+.hero-text {
+  max-width: 520px;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-family: "Source Serif 4", serif;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.hero-text p {
+  margin: 0 0 24px;
+  color: #55604f;
+}
+
+.button {
+  display: inline-block;
+  padding: 11px 20px;
+  border-radius: 6px;
+  background: #3d6b35;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.hero-plan {
+  flex-shrink: 0;
+  width: 420px;
+  padding: 20px;
+  border: 1px solid #e6e3da;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.plan-title {
+  margin-bottom: 12px;
+  color: #55604f;
+}
+
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.plot {
+  height: 52px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.plot.taken {
+  background: #e4e8df;
+  color: #55604f;
+}
+
+.plot.free {
+  background: #3d6b35;
+  color: #ffffff;
+}
+
+.plan-key {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #55604f;
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 6px 0 0;
+  border-radius: 2px;
+}
+
+.swatch.taken {
+  margin-left: 16px;
+  background: #e4e8df;
+}
+
+.swatch.free {
+  background: #3d6b35;
+}
+
+.features {
+  padding: 8px var(--side-padding) 72px;
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-family: "Source Serif 4", serif;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #2f3a2c;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.card {
+  padding: 16px 18px 18px;
+  border-radius: 6px;
+  background: #f1efe8;
+}
+
+.card h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #2f3a2c;
+}
+
+.card p {
+  margin: 0;
+  color: #55604f;
+}
+
+/* Tablet and small laptop: the hero text and plot plan stack,
+   and the feature cards go to two columns. */
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 40px;
+  }
+
+  .hero-plan {
+    width: 100%;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Phone: narrower side padding, the nav goes on its own row under
+   the logo, and the feature cards go to one column. */
+@media (max-width: 600px) {
+  :root {
+    --side-padding: 20px;
+  }
+
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .site-nav {
+    gap: 0 20px;
+  }
+
+  .hero {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  .hero-plan {
+    padding: 16px;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}

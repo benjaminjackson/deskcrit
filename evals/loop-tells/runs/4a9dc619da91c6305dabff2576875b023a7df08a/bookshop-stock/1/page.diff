@@ -1,0 +1,257 @@
+diff --git a/index.html b/index.html
+index 7154905..6541d0d 100644
+--- a/index.html
++++ b/index.html
+@@ -20,7 +20,7 @@
+   <main>
+     <section class="hero">
+       <div class="hero-text">
+-        <h1>Know what is on your shelves before a customer asks</h1>
++        <h1>Know what is on your shelves <span class="keep">before a customer asks</span></h1>
+         <p>Shelfmark counts every copy as it is sold, ordered, or returned, and tells you which titles to reorder on Monday morning.</p>
+         <div class="actions">
+           <a class="button button-primary" href="#">Start a 30-day trial</a>
+@@ -35,7 +35,7 @@
+         </div>
+         <table>
+           <thead>
+-            <tr><th>Title</th><th>On shelf</th><th>Sold this week</th></tr>
++            <tr><th>Title</th><th>On shelf</th><th>Sold</th></tr>
+           </thead>
+           <tbody>
+             <tr><td>The Salt Road</td><td>1</td><td>9</td></tr>
+@@ -51,7 +51,7 @@
+     <section class="facts">
+       <p><span class="fact-title">Works with your till.</span> Sales come in from the shop's card reader as they happen.</p>
+       <p><span class="fact-title">Orders from your distributor.</span> One click sends the reorder list in the format they take.</p>
+-      <p><span class="fact-title">Returns tracked.</span> Unsold copies due back are listed by date.</p>
++      <p><span class="fact-title">Tracks your returns.</span> You see which unsold copies are due back, and when.</p>
+     </section>
+   </main>
+ </body>
+diff --git a/styles.css b/styles.css
+index 00b243b..e5c64e1 100644
+--- a/styles.css
++++ b/styles.css
+@@ -10,6 +10,12 @@
+   src: url("fonts/inter-latin-500-normal.woff2") format("woff2");
+ }
+ 
++/* Side padding that grows on wide screens, so the content never gets wider
++   than 1152px and stays centred. max() picks the larger of the two values. */
++:root {
++  --page-side: max(64px, calc((100% - 1152px) / 2));
++}
++
+ * {
+   box-sizing: border-box;
+ }
+@@ -31,7 +37,7 @@ a {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+-  padding: 18px 64px;
++  padding: 18px var(--page-side);
+   border-bottom: 1px solid #ece6dc;
+ }
+ 
+@@ -44,19 +50,17 @@ a {
+ .site-nav {
+   display: flex;
+   align-items: center;
++  gap: 28px;
+ }
+ 
+ .site-nav a {
+-  margin-left: 28px;
+   text-decoration: none;
+   color: #5c544b;
++  white-space: nowrap;
+ }
+ 
+ .site-nav .nav-signin {
+-  padding: 10px 22px;
+-  border-radius: 6px;
+-  background: #8a3b24;
+-  color: #ffffff;
++  color: #2a2622;
+   font-weight: 500;
+ }
+ 
+@@ -65,11 +69,11 @@ a {
+   justify-content: space-between;
+   align-items: center;
+   gap: 64px;
+-  padding: 64px 64px 48px;
++  padding: 64px var(--page-side) 48px;
+ }
+ 
+ .hero-text {
+-  max-width: 540px;
++  max-width: 600px;
+ }
+ 
+ h1 {
+@@ -79,13 +83,20 @@ h1 {
+   line-height: 1.15;
+ }
+ 
++/* Keeps the phrase on one line so the headline breaks before it. */
++.keep {
++  white-space: nowrap;
++}
++
+ .hero-text p {
++  max-width: 540px;
+   margin: 0 0 28px;
+   color: #5c544b;
+ }
+ 
+ .actions {
+   display: flex;
++  flex-wrap: wrap;
+   gap: 12px;
+ }
+ 
+@@ -94,13 +105,14 @@ h1 {
+   padding: 10px 18px;
+   border-radius: 6px;
+   text-decoration: none;
+-  font-size: 15px;
++  white-space: nowrap;
+ }
+ 
+ .button-primary {
+-  border: 1px solid #d6cec2;
+-  background: #f3eee6;
+-  color: #5c544b;
++  border: 1px solid #8a3b24;
++  background: #8a3b24;
++  color: #ffffff;
++  font-weight: 500;
+ }
+ 
+ .button-secondary {
+@@ -125,15 +137,15 @@ h1 {
+ }
+ 
+ .preview-date {
+-  color: #8a8178;
++  color: #5c544b;
+   font-weight: 400;
+-  font-size: 14px;
++  font-size: 13px;
+ }
+ 
+ table {
+   width: 100%;
+   border-collapse: collapse;
+-  font-size: 14px;
++  font-size: 13px;
+ }
+ 
+ th,
+@@ -144,7 +156,7 @@ td {
+ }
+ 
+ th {
+-  color: #8a8178;
++  color: #5c544b;
+   font-weight: 400;
+ }
+ 
+@@ -155,17 +167,92 @@ tbody tr:last-child td {
+ .facts {
+   display: flex;
+   gap: 40px;
+-  padding: 8px 64px 0;
++  padding: 8px var(--page-side) 64px;
+ }
+ 
+ .facts p {
+   flex: 1;
+   margin: 0;
+-  font-size: 15px;
+   color: #5c544b;
++  /* Avoids a single word alone on the last line, in browsers that support it. */
++  text-wrap: pretty;
+ }
+ 
+ .fact-title {
+   color: #2a2622;
+   font-weight: 500;
+ }
++
++/* Below this width the text and the table no longer fit side by side,
++   so the hero and the facts stack in one column. */
++@media (max-width: 1000px) {
++  .hero {
++    flex-direction: column;
++    align-items: stretch;
++    gap: 40px;
++  }
++
++  .hero-text {
++    max-width: 600px;
++  }
++
++  .preview {
++    flex: none;
++    width: 100%;
++    max-width: 600px;
++  }
++
++  .facts {
++    flex-direction: column;
++    gap: 16px;
++    max-width: calc(600px + 2 * var(--page-side));
++  }
++
++  .facts p {
++    max-width: 36em;
++  }
++
++  /* The title gets its own line, so each sentence fits on one line
++     at tablet width and no line ends with one or two words. */
++  .fact-title {
++    display: block;
++  }
++}
++
++@media (max-width: 600px) {
++  :root {
++    --page-side: 24px;
++  }
++
++  .site-header {
++    flex-wrap: wrap;
++    gap: 8px 0;
++  }
++
++  .site-nav {
++    gap: 18px;
++  }
++
++  .hero {
++    padding-top: 40px;
++  }
++
++  h1 {
++    font-size: 32px;
++  }
++
++  /* On a phone the phrase must be free to wrap, or it runs off the screen. */
++  .keep {
++    white-space: normal;
++  }
++
++  th,
++  td {
++    padding: 9px 12px;
++  }
++
++  th,
++  td:first-child {
++    white-space: nowrap;
++  }
++}

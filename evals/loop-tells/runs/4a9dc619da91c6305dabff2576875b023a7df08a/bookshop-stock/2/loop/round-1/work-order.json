@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-1/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-1/phone.png", "width": 789, "height": 1140 },
+    { "viewport": "tablet", "path": "<temp>/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-1/tablet.png", "width": 789, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-1/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-1/crit.md",
+  "facts_file": "<temp>/loop-tells-bookshop-stock-BFcgll/.crit-loop/round-1/facts.json",
+  "findings": [
+    {
+      "id": "no-reflow-below-desktop",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The layout does not reflow below desktop width",
+      "location": {
+        "description": "the whole page on the phone and tablet, starting with the headline squeezed into a narrow column",
+        "viewport": "phone",
+        "viewports": ["phone", "tablet"],
+        "selector": "h1",
+        "box": [64, 175, 181, 322],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The page scrolls sideways, the headline reads as a word list, the buttons wrap into slivers, and the reorder table that shows what the software does is mostly off the screen.",
+      "current": { "value": "page 789 px wide in a 390 px phone viewport and a 768 px tablet viewport; headline 7 lines at 6.8 characters per line", "measured": true, "facts_field": "page_width" },
+      "target": "page width equals the viewport width with no sideways scroll; headline, paragraph, buttons, table and notes stacked in one column; text at 45 to 75 characters per line where the width allows",
+      "fix_direction": "Below a breakpoint, stack the page into one column (headline, paragraph, buttons, then the table at full width, then the notes one under another), and collapse or simplify the navigation so it fits the width.",
+      "source": "WCAG 2.2 SC 1.4.10 Reflow; Müller-Brockmann on keeping content inside the type area; Bringhurst 45 to 75 characters",
+      "closed_when": { "method": "measure", "check": "page_width equals the viewport width (390 and 768) in the phone and tablet viewports, and characters_per_line of h1 in the phone and tablet viewports is 15 or more" }
+    },
+    {
+      "id": "sign-in-outranks-trial-button",
+      "rank": 2,
+      "kind": "convention",
+      "title": "\"Sign in\" is styled as the primary action and the trial button is not",
+      "location": {
+        "description": "the pale \"Start a 30-day trial\" button in the hero, and the rust \"Sign in\" button in the nav",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "a.button.button-primary",
+        "box": [64, 388, 171, 45],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The eye goes to the only saturated button, which is for people who already pay, and the action a new visitor came for looks like one of two equal options.",
+      "current": { "value": "trial button #f3eee6 background with #5c544b text at weight 400; \"Sign in\" #8a3b24 background with white text", "measured": true, "facts_field": "text_blocks" },
+      "target": "one high-emphasis action: the trial button filled rust, \"Sign in\" a text link or outline button",
+      "fix_direction": "Give the trial button the filled rust treatment, and drop \"Sign in\" to a text link or an outline button in the nav.",
+      "source": "Material Design 3, Buttons: one high-emphasis action per view",
+      "closed_when": { "method": "measure", "check": "background of a.button.button-primary in the desktop, phone, tablet and widescreen viewports is a saturated color, and a.nav-signin is no longer a filled button with that same color" }
+    },
+    {
+      "id": "wide-screen-two-edges-empty-floor",
+      "rank": 3,
+      "kind": "defect",
+      "title": "On wide screens the page falls apart into two edges and an empty floor",
+      "location": {
+        "description": "the hero on the widescreen, with the headline at the left edge, the table at the right edge and blank space below the notes",
+        "viewport": "widescreen",
+        "viewports": ["widescreen", "desktop"],
+        "selector": "h1",
+        "box": [64, 157, 540, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The eye must cross the whole screen to connect the claim with its proof, and the page ends in blank space without asking the visitor to do anything.",
+      "current": { "value": "at 1920 px the hero text is at x 64 to 604 and the table starts at x 1377, with about 770 px between; all content ends by y 550 of 1080 px; the bottom 250 px on desktop is also blank", "measured": true, "facts_field": "text_blocks" },
+      "target": "content held to a centered container about the width of the desktop layout; a closing section at the end of the page that repeats the trial ask",
+      "fix_direction": "Constrain the content to a centered container about the width of the desktop layout, so the headline and the table stay a glance apart. End the page with a closing section that repeats the trial ask, using what the nav already promises (\"Shops using it\", \"Pricing\") if that content exists.",
+      "source": "Ruder on gathered rather than leftover space; Arnheim, Balance",
+      "closed_when": { "method": "look", "check": "in the widescreen and desktop images the headline and the table sit close together inside a centered container, and a closing section with the trial ask fills the lower part of the page" }
+    },
+    {
+      "id": "copy-missing-facts-owner-checks",
+      "rank": 4,
+      "kind": "taste",
+      "title": "The copy leaves out the facts a shop owner checks first",
+      "location": {
+        "description": "the three feature notes under the hero, starting with \"Works with your till\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(1)",
+        "box": [64, 501, 357, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The owner cannot tell which tills or distributors it works with, who tracks the returns, or how it compares with what they do now, so they must take the product on trust.",
+      "current": { "value": "\"Works with your till\", \"in the format they take\" and \"Returns tracked.\" name no system, distributor or actor", "measured": false, "facts_field": null },
+      "target": "each note says which kind of system, distributor or actor it covers, and the page lets the owner compare Shelfmark with what they do now",
+      "fix_direction": "Name the kind of fact that is missing in each note: the tills and card readers it supports, the distributors it sends reorder lists to, and who tracks the returns, which the maker must supply. Let the bold lead-in of the returns note follow \"Unsold copies due back are listed by date\". The maker must also supply a comparison with what the owner does now, such as a stock count, a spreadsheet, or the till's own report.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "a fresh critic sees in the new image that the feature notes name which tills, which distributors and who tracks returns, and that a comparison with the owner's current method is present" }
+    },
+    {
+      "id": "table-headers-low-contrast",
+      "rank": null,
+      "kind": "defect",
+      "title": "The table headers and the date are under the 4.5:1 contrast minimum",
+      "location": {
+        "description": "the table column headers and the date \"Mon 9 June\" in the reorder table",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "thead > tr > th:nth-of-type(1)",
+        "box": [737, 201, 209, 40],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "These are the labels that say what the numbers mean, and they are hard to read.",
+      "current": { "value": "3.82:1 (#8a8178)", "measured": true, "facts_field": "contrast" },
+      "target": "contrast of at least 4.5:1",
+      "fix_direction": "Darken the table headers and the date to the body gray #5c544b.",
+      "source": "WCAG 1.4.3",
+      "closed_when": { "method": "measure", "check": "contrast of thead > tr > th and span.preview-date in the desktop, phone, tablet and widescreen viewports is 4.5 or more" }
+    },
+    {
+      "id": "type-sizes-one-pixel-apart",
+      "rank": null,
+      "kind": "convention",
+      "title": "The type sizes 16, 15 and 14 px are 1 px apart",
+      "location": {
+        "description": "the body text (16 px), the buttons and feature notes (15 px) and the table (14 px)",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": null,
+        "box": null,
+        "box_source": "none",
+        "crop": null
+      },
+      "viewer_experience": "The sizes read as accidents, not levels.",
+      "current": { "value": "sizes 16, 15 and 14 px", "measured": true, "facts_field": "type_sizes" },
+      "target": "one or two sizes in place of 16, 15 and 14 px, with levels separated by weight and color",
+      "fix_direction": "Fold the three sizes into one or two, and separate levels with weight and color.",
+      "source": "Bringhurst 3.1.1",
+      "closed_when": { "method": "measure", "check": "type_sizes in the desktop, phone, tablet and widescreen viewports has no two sizes less than 2 px apart" }
+    },
+    {
+      "id": "headline-orphan-asks",
+      "rank": null,
+      "kind": "convention",
+      "title": "The headline leaves \"asks\" alone on a third line",
+      "location": {
+        "description": "the headline, whose third line holds only \"asks\", and the second feature note on the widescreen, which leaves \"take.\" alone",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "h1",
+        "box": [64, 157, 540, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The line break splits the clause \"before a customer asks\".",
+      "current": { "value": "headline in 3 lines with \"asks\" alone on the last line; \"take.\" alone on a line in the second feature note on the widescreen", "measured": false, "facts_field": null },
+      "target": "headline breaks at a phrase, with no single word alone on a line",
+      "fix_direction": "Rebalance the headline's measure so it breaks at a phrase, and check the second feature note on the widescreen for the same lone word.",
+      "source": "Bringhurst 2.4",
+      "closed_when": { "method": "look", "check": "in the desktop and widescreen images the headline breaks at a phrase and no line of the headline or the feature notes holds a single word" }
+    },
+    {
+      "id": "feature-columns-off-table-grid",
+      "rank": null,
+      "kind": "convention",
+      "title": "The three feature columns line up with nothing in the hero above",
+      "location": {
+        "description": "the three feature notes under the hero, which start at x 64, 461 and 859 against the table's left edge at 737",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(2)",
+        "box": [461, 501, 357, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The lower row looks placed by eye against the hero above it.",
+      "current": { "value": "feature notes start at x 64, 461 and 859; the table's left edge is at x 737", "measured": true, "facts_field": "left_edges" },
+      "target": "the feature notes and the hero share one column grid, with at least one note edge matching the table's left edge",
+      "fix_direction": "Put both rows on one column grid.",
+      "source": "Müller-Brockmann",
+      "closed_when": { "method": "look", "check": "in the desktop and widescreen images the left edge of at least one feature note matches the left edge of the table, and the notes sit on the same columns as the hero" }
+    },
+    {
+      "id": "feature-notes-long-measure-widescreen",
+      "rank": null,
+      "kind": "convention",
+      "title": "On the widescreen the feature notes run 79 to 81 characters per line",
+      "location": {
+        "description": "the feature notes on the widescreen",
+        "viewport": "widescreen",
+        "viewports": ["widescreen"],
+        "selector": "section.facts > p:nth-of-type(2)",
+        "box": [675, 501, 571, 47],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The notes are short, but the long line will hurt as soon as a note grows.",
+      "current": { "value": "79 to 81 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "75 characters per line or fewer",
+      "fix_direction": "A content max-width, as in the wide-screen finding, fixes this too.",
+      "source": "Bringhurst 45 to 75 characters",
+      "closed_when": { "method": "measure", "check": "characters_per_line of section.facts > p in the widescreen viewport is 75 or fewer" }
+    }
+  ]
+}

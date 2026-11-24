@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-6/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-6/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-6/phone.png", "width": 390, "height": 1139 },
+    { "viewport": "tablet", "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-6/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-6/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-6/crit.md",
+  "facts_file": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-6/facts.json",
+  "findings": [
+    {
+      "id": "table-lacks-recommendation",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The reorder card shows stock and sales but not the reorder decision",
+      "location": {
+        "description": "the \"Reorder this week\" card",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.preview-head > span:nth-of-type(1)",
+        "box": [541, 159, 138, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The owner reads that Shelfmark tells them which titles to reorder, then sees only On shelf and Sold this week. They have to work out the decision alone, and nothing compares Shelfmark with the till report or spreadsheet they use now.",
+      "current": { "value": "three columns: Title, On shelf, Sold this week; no decision column and no comparison line", "measured": false, "facts_field": null },
+      "target": "a column that states the decision for each title, and a short line that compares Shelfmark with how a shop works now. The maker must supply the column label, its values, and what the comparison says.",
+      "fix_direction": "Add a column that states the decision for each title, and a short line that compares Shelfmark with how a shop works now. The maker must supply the column label, its values, and what the comparison says.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, the reorder card has a column that states the decision for each title, and a line compares Shelfmark with how a shop works now." }
+    },
+    {
+      "id": "till-not-named",
+      "rank": null,
+      "kind": "defect",
+      "title": "The first feature note names no till",
+      "location": {
+        "description": "the first feature note, \"Works with your till\"",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(1)",
+        "box": [64, 503, 394, 74],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "An owner cannot tell whether their till works with it.",
+      "current": { "value": "the note names no till", "measured": false, "facts_field": null },
+      "target": "the note names the tills Shelfmark works with. The maker must supply the list.",
+      "fix_direction": "Name the tills Shelfmark works with; the maker must supply the list.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, the first feature note names at least one till." }
+    },
+    {
+      "id": "feature-notes-uneven-widths",
+      "rank": null,
+      "kind": "defect",
+      "title": "The row of three feature notes has unequal column widths",
+      "location": {
+        "description": "the row of three feature notes under the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(1)",
+        "box": [64, 503, 394, 74],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The middle note wraps to three lines, the others to two, and the third note's left edge lines up with nothing above it. The row reads as uneven where before it read as a set.",
+      "current": { "value": "394, 315 and 315 px wide on desktop", "measured": true, "facts_field": "text_blocks[section.facts > p].box" },
+      "target": "three equal note columns, or the second and third notes on the card's own column lines.",
+      "fix_direction": "Make the three note columns equal again, or put the second and third notes on the card's own column lines. The first note can keep the hero column width only if the other two divide the card width evenly.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "widths of section.facts > p:nth-of-type(1), (2) and (3) in the desktop and widescreen viewports are equal, or the left edges of notes 2 and 3 match the card's column left edges" }
+    }
+  ]
+}

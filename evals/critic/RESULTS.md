@@ -887,3 +887,31 @@ replay: node evals/critic/recheck-tells.ts --replay --skill-commit 4a9dc619da91c
 The recheck critic lists the added tell as a new problem in 36 of the 38 pairs and praises it in none. In 11 of the 13 pairs where the tell meets the target of a finding, it marks that finding "closed, new problem" and names the tell. It also marks one finding "closed, new problem" where the answer file did not expect it: in the equal-cards pair, the three same charts remove the blank space that the finding was about. It misses the tell in 2 pairs, and in both it marks the expected finding plain "closed". In the type sizes pair it says no new element was added, because the fix changed the size and weight of text that was already there, and the rule of crit-7hw.4 checks only elements that the after image adds. In the image that does not blend pair it checks the new panel against the Template tells section and passes it as a flat fill with no stock effect. Both misses are tells that change an element already on the page, not tells that add one. No pass bar is set yet (EV-24).
 
 After review, the closed-new-problem count needs both the judge's yes and a status line that reads "closed, new problem" for the expected finding, and the status parser accepts a dash, parentheses, and numbered lists; the replay above did not change, because all 11 judge yeses already had that status line and no status line was misread. Two work orders, `work-orders/negative-letter-spacing-on-small-text.json` and `work-orders/too-many-type-sizes-and-weights-on-one-screen.json`, cite the title "Grid Systems in Visual Design"; the real title is "Grid Systems in Graphic Design", and the files stay as they are because they are frozen after the run.
+
+# Template tells in the fix loop (EV-25, crit-7hw.6)
+
+The crit-loop skill ran headless 3 times on each of the 4 frozen pages in `evals/loop-tells/`, all 12 runs at once, at plugin commit `4a9dc619`. Each page has real defects whose quick fix is a template sign, such as a flat empty hero or a primary button that does not stand out (`evals/loop-tells/answers.json`). A fresh agent that saw no score did the realism pass before the runs. Every run ended by itself, with no run at the time limit, after 2 to 9 rounds. The judge (question name `loop-tell`) read the starting files, the diff, and the recheck crits of each run. It found no template sign in any final page, either from a new element or from a style change, and no recheck that praised a sign. The new elements the fixer added were plain: a gray panel with a 1 px border and thin rules. On the bookshop page the fixer moved the rust fill from Sign in to the primary button. Several rechecks said that they had checked the new elements against the template tells. In 10 of the 12 runs the loop put its loop folder inside the page folder. The runner copied that folder into `final-page/`, and those copies were removed before the commit, because `loop/` keeps the crits and work orders. `run.ts` now leaves such a folder out of the diff and the final page, and the judge step drops its files from the diff. The replay is `npm run eval:loop-tells`.
+
+```
+EV-25 template signs in the fix loop, plugin commit 4a9dc619da91c6305dabff2576875b023a7df08a
+
+page | run | loop exit | signs added | recheck praised
+harbor-tides | 1 | 0 | none | no
+harbor-tides | 2 | 0 | none | no
+harbor-tides | 3 | 0 | none | no
+garden-plots | 1 | 0 | none | no
+garden-plots | 2 | 0 | none | no
+garden-plots | 3 | 0 | none | no
+boat-hire | 1 | 0 | none | no
+boat-hire | 2 | 0 | none | no
+boat-hire | 3 | 0 | none | no
+bookshop-stock | 1 | 0 | none | no
+bookshop-stock | 2 | 0 | none | no
+bookshop-stock | 3 | 0 | none | no
+
+Runs scored: 12
+Runs whose final page adds a sign: 0 of 12
+  by a new element: 0 of 12
+  by a style change: 0 of 12
+Runs where a recheck praised a sign: 0 of 12
+```

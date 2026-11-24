@@ -101,6 +101,7 @@ Notes for changes:
 - `plugin/skills/design-critic/references/` is built, not written by hand. After you change `checklist.yaml`, `GUIDELINES.md`, or a `pack.yaml`, run `ruby plugin/skills/design-critic/scripts/build.rb` from the repository root (Ruby 3.0 or later). `npm run ci` fails if the committed references differ from a fresh build.
 - The scripts under `packs/` and `evals/measure/` that render pages need their own install: `npm --prefix packs ci`, then `npm --prefix packs run setup`.
 - `npm run ci` never calls a model. The `npm run eval:critic:*` scripts replay saved crits. To make new crits, run the scripts in `evals/critic/` without `--replay`; these start `claude -p` and use your plan's usage.
+- `npm run eval:loop-tells` replays the saved runs of the fix loop on the pages in `evals/loop-tells/` (EV-25) with no model call. `node evals/loop-tells/run.ts run` and `score` make new runs and judge answers; they start `claude -p` and use your plan's usage.
 
 ## License
 

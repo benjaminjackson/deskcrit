@@ -1,0 +1,277 @@
+diff --git a/index.html b/index.html
+index 7154905..0653760 100644
+--- a/index.html
++++ b/index.html
+@@ -51,7 +51,7 @@
+     <section class="facts">
+       <p><span class="fact-title">Works with your till.</span> Sales come in from the shop's card reader as they happen.</p>
+       <p><span class="fact-title">Orders from your distributor.</span> One click sends the reorder list in the format they take.</p>
+-      <p><span class="fact-title">Returns tracked.</span> Unsold copies due back are listed by date.</p>
++      <p><span class="fact-title">Tracks returns.</span> Unsold copies due back are listed by date.</p>
+     </section>
+   </main>
+ </body>
+diff --git a/styles.css b/styles.css
+index 00b243b..16bac59 100644
+--- a/styles.css
++++ b/styles.css
+@@ -14,6 +14,11 @@
+   box-sizing: border-box;
+ }
+ 
++:root {
++  /* Side padding that grows on wide screens so the content stays within 1200px. */
++  --page-gutter: max(64px, calc((100% - 1200px) / 2));
++}
++
+ body {
+   margin: 0;
+   font-family: "Inter", sans-serif;
+@@ -31,7 +36,8 @@ a {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+-  padding: 18px 64px;
++  gap: 16px;
++  padding: 18px var(--page-gutter);
+   border-bottom: 1px solid #ece6dc;
+ }
+ 
+@@ -53,19 +59,36 @@ a {
+ }
+ 
+ .site-nav .nav-signin {
+-  padding: 10px 22px;
++  padding: 8px 18px;
++  border: 1px solid #d6cec2;
+   border-radius: 6px;
+-  background: #8a3b24;
+-  color: #ffffff;
++  color: #2a2622;
+   font-weight: 500;
+ }
+ 
++/*
++ * The hero is a grid of three columns. The hero text takes the first
++ * column and the table spans the other two. The first column is a
++ * quarter wider so the headline breaks into three phrases.
++ */
++.hero,
++.facts {
++  display: grid;
++  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr);
++  column-gap: 48px;
++  padding-left: var(--page-gutter);
++  padding-right: var(--page-gutter);
++}
++
++.preview {
++  grid-column: 2 / 4;
++}
++
+ .hero {
+-  display: flex;
+-  justify-content: space-between;
+-  align-items: center;
+-  gap: 64px;
+-  padding: 64px 64px 48px;
++  /* Top-align so the headline and the table start at the same height. */
++  align-items: start;
++  padding-top: 64px;
++  padding-bottom: 48px;
+ }
+ 
+ .hero-text {
+@@ -77,6 +100,8 @@ h1 {
+   font-size: 40px;
+   font-weight: 500;
+   line-height: 1.15;
++  /* Spread the lines evenly so the last line never holds a single word. */
++  text-wrap: balance;
+ }
+ 
+ .hero-text p {
+@@ -86,6 +111,7 @@ h1 {
+ 
+ .actions {
+   display: flex;
++  flex-wrap: wrap;
+   gap: 12px;
+ }
+ 
+@@ -94,23 +120,25 @@ h1 {
+   padding: 10px 18px;
+   border-radius: 6px;
+   text-decoration: none;
+-  font-size: 15px;
++  font-size: 16px;
++  font-weight: 500;
++  /* Keep "30-day" and the other labels on one line. */
++  white-space: nowrap;
+ }
+ 
+ .button-primary {
+-  border: 1px solid #d6cec2;
+-  background: #f3eee6;
+-  color: #5c544b;
++  border: 1px solid #8a3b24;
++  background: #8a3b24;
++  color: #ffffff;
+ }
+ 
+ .button-secondary {
+   border: 1px solid #d6cec2;
+   background: #fffdf9;
+-  color: #5c544b;
++  color: #2a2622;
+ }
+ 
+ .preview {
+-  flex: 0 0 480px;
+   border: 1px solid #ece6dc;
+   border-radius: 8px;
+   background: #ffffff;
+@@ -125,7 +153,7 @@ h1 {
+ }
+ 
+ .preview-date {
+-  color: #8a8178;
++  color: #5c544b;
+   font-weight: 400;
+   font-size: 14px;
+ }
+@@ -144,7 +172,7 @@ td {
+ }
+ 
+ th {
+-  color: #8a8178;
++  color: #5c544b;
+   font-weight: 400;
+ }
+ 
+@@ -152,20 +180,120 @@ tbody tr:last-child td {
+   border-bottom: none;
+ }
+ 
++/* The three notes get equal columns of their own. */
+ .facts {
+-  display: flex;
+-  gap: 40px;
+-  padding: 8px 64px 0;
++  grid-template-columns: repeat(3, minmax(0, 1fr));
++  padding-top: 8px;
++  padding-bottom: 64px;
+ }
+ 
+ .facts p {
+-  flex: 1;
+   margin: 0;
+-  font-size: 15px;
++  font-size: 16px;
+   color: #5c544b;
++  /* Avoid a single word alone on the last line. */
++  text-wrap: pretty;
+ }
+ 
+ .fact-title {
+   color: #2a2622;
+   font-weight: 500;
+ }
++
++/*
++ * Below 1200px a third of the width is too narrow for the hero text,
++ * so stack the hero and the notes in one column.
++ */
++@media (max-width: 1200px) {
++  .hero,
++  .facts {
++    grid-template-columns: minmax(0, 1fr);
++  }
++
++  .preview {
++    grid-column: auto;
++  }
++
++  .hero {
++    row-gap: 40px;
++    padding-top: 48px;
++  }
++
++  /* 540px keeps the paragraphs at 75 characters per line or fewer. */
++  .hero-text,
++  .preview,
++  .facts p {
++    max-width: 540px;
++  }
++
++  .facts {
++    row-gap: 16px;
++  }
++}
++
++@media (max-width: 900px) {
++  :root {
++    --page-gutter: 32px;
++  }
++}
++
++/*
++ * Phone: logo and "Sign in" share the top row, the other links go on
++ * a second row. "display: contents" lets the nav's links sit directly
++ * in the header's flex row while the nav element stays in the markup.
++ * The empty ::after item takes a full row, which forces the line break.
++ */
++@media (max-width: 600px) {
++  :root {
++    --page-gutter: 20px;
++  }
++
++  .site-header {
++    flex-wrap: wrap;
++    gap: 10px 20px;
++    padding-top: 14px;
++    padding-bottom: 14px;
++  }
++
++  .site-header::after {
++    content: "";
++    order: 2;
++    flex-basis: 100%;
++    height: 0;
++    margin-top: -10px;
++  }
++
++  .site-nav {
++    display: contents;
++  }
++
++  .logo {
++    order: 0;
++    margin-right: auto;
++  }
++
++  .site-nav .nav-signin {
++    order: 1;
++  }
++
++  .site-nav a {
++    order: 3;
++    margin-left: 0;
++    white-space: nowrap;
++  }
++
++  h1 {
++    font-size: 32px;
++  }
++
++  th,
++  td {
++    padding: 9px 10px;
++  }
++
++  /* Keep the column labels and the titles on one line each. */
++  th,
++  td:first-child {
++    white-space: nowrap;
++  }
++}

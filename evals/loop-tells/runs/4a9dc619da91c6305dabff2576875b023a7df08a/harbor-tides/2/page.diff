@@ -1,0 +1,275 @@
+diff --git a/index.html b/index.html
+index 1838f09..b2d97a9 100644
+--- a/index.html
++++ b/index.html
+@@ -24,9 +24,6 @@
+         <p>Tidewell posts the day's tides, lock gate times, and the depth at the visitor pontoon on one page that berth holders can check from the quay.</p>
+         <a class="button" href="#">Set up your harbor</a>
+       </div>
+-    </section>
+-
+-    <section class="lower">
+       <div class="today">
+         <h2>Today at Porthmellin</h2>
+         <table>
+@@ -41,7 +38,9 @@
+           </tbody>
+         </table>
+       </div>
+-      <div class="points">
++    </section>
++
++    <section class="points">
+         <div class="point">
+           <h3>Lock gate times</h3>
+           <p>Gate openings are worked out from each tide and posted before the first boat asks.</p>
+@@ -54,7 +53,6 @@
+           <h3>Notices</h3>
+           <p>Dredging, closed berths, and fuel dock hours go on the same page as the tides.</p>
+         </div>
+-      </div>
+     </section>
+   </main>
+ </body>
+diff --git a/styles.css b/styles.css
+index 62c4c1a..15f49d6 100644
+--- a/styles.css
++++ b/styles.css
+@@ -27,49 +27,77 @@ a {
+   color: inherit;
+ }
+ 
++/* "pretty" asks the browser to balance the last lines, so a paragraph does not end on one lone word. */
++p {
++  text-wrap: pretty;
++}
++
++/* Every band shares one centered column, so wide screens do not leave the content stuck to the left edge. */
++.site-header,
++.hero,
++.points {
++  max-width: 1120px;
++  margin: 0 auto;
++  padding-left: 64px;
++  padding-right: 64px;
++}
++
+ .site-header {
+   display: flex;
++  flex-wrap: wrap;
+   justify-content: space-between;
+   align-items: center;
+-  padding: 22px 64px;
++  gap: 12px 28px;
++  padding-top: 22px;
++  padding-bottom: 22px;
+ }
+ 
+ .logo {
+-  font-size: 19px;
++  font-size: 18px;
+   font-weight: 500;
+   text-decoration: none;
+ }
+ 
++.site-nav {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 8px 28px;
++}
++
+ .site-nav a {
+-  margin-left: 28px;
+   text-decoration: none;
+   color: #4d585e;
+ }
+ 
++/* The hero holds the pitch on the left and the sample harbor page on the right. */
+ .hero {
+-  height: 430px;
+-  padding: 72px 64px 0;
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
++  gap: 64px;
++  align-items: center;
++  padding-top: 72px;
++  padding-bottom: 88px;
+ }
+ 
+ .hero-text {
+-  max-width: 400px;
++  max-width: 440px;
+ }
+ 
+ h1 {
+   margin: 0 0 16px;
+-  font-size: 30px;
++  font-size: 34px;
+   font-weight: 500;
+-  line-height: 1.25;
++  line-height: 1.2;
+ }
+ 
+ .hero-text p {
+-  margin: 0 0 24px;
++  margin: 0 0 28px;
+   color: #4d585e;
+ }
+ 
+ .button {
+   display: inline-block;
+-  padding: 11px 20px;
++  padding: 12px 22px;
+   border-radius: 6px;
+   background: #1f5f7a;
+   color: #ffffff;
+@@ -77,48 +105,83 @@ h1 {
+   font-weight: 500;
+ }
+ 
+-.lower {
+-  display: flex;
+-  gap: 48px;
+-  padding: 0 64px;
++.button:hover {
++  background: #184d63;
++}
++
++.button:focus-visible,
++.site-nav a:focus-visible,
++.logo:focus-visible {
++  outline: 2px solid #1f5f7a;
++  outline-offset: 3px;
+ }
+ 
++/* The tide table is shown as the page berth holders will see: a flat panel, no shadow. */
+ .today {
+-  flex: 0 0 300px;
++  padding: 28px 32px 24px;
++  border: 1px solid #dfe5e8;
++  border-radius: 8px;
++  background: #f5f7f8;
+ }
+ 
+ h2 {
+-  margin: 0 0 6px;
+-  font-size: 13px;
++  margin: 0 0 14px;
++  font-size: 18px;
+   font-weight: 500;
+ }
+ 
+ table {
+   width: 100%;
+   border-collapse: collapse;
+-  font-size: 12px;
+-  color: #4d585e;
++  font-size: 15px;
+ }
+ 
+ th,
+ td {
+-  padding: 2px 0;
++  padding: 10px 0;
+   text-align: left;
+   font-weight: 400;
++  border-bottom: 1px solid #dfe5e8;
++}
++
++tbody tr:last-child td {
++  border-bottom: none;
+ }
+ 
+ th {
+-  color: #7a858b;
++  padding-top: 0;
++  color: #4d585e;
++}
++
++/* Times and heights line up digit by digit and sit flush right, so they compare at a glance. */
++td:nth-child(2),
++td:nth-child(3),
++th:nth-child(2),
++th:nth-child(3) {
++  text-align: right;
++  font-variant-numeric: tabular-nums;
++}
++
++td:nth-child(2),
++td:nth-child(3) {
++  font-weight: 500;
+ }
+ 
+ .points {
+-  display: flex;
+-  gap: 32px;
++  display: grid;
++  grid-template-columns: repeat(3, minmax(0, 1fr));
++  gap: 48px;
++  padding-bottom: 88px;
++}
++
++.point {
++  padding-top: 20px;
++  border-top: 1px solid #dfe5e8;
+ }
+ 
+ .point h3 {
+-  margin: 0 0 4px;
+-  font-size: 15px;
++  margin: 0 0 6px;
++  font-size: 18px;
+   font-weight: 500;
+ }
+ 
+@@ -127,6 +190,48 @@ th {
+   color: #4d585e;
+ }
+ 
+-.point {
+-  flex: 1;
++/* Tablet and below: the hero and the three points stack into one column, so lines keep a readable length. */
++@media (max-width: 900px) {
++  .hero {
++    grid-template-columns: minmax(0, 1fr);
++    gap: 40px;
++    padding-top: 48px;
++    padding-bottom: 64px;
++  }
++
++  .hero-text {
++    max-width: 520px;
++  }
++
++  .points {
++    grid-template-columns: minmax(0, 1fr);
++    gap: 32px;
++    padding-bottom: 64px;
++  }
++
++  .point p {
++    max-width: 520px;
++  }
++}
++
++/* Phone: tighter side margins and a smaller headline. */
++@media (max-width: 480px) {
++  .site-header,
++  .hero,
++  .points {
++    padding-left: 20px;
++    padding-right: 20px;
++  }
++
++  .site-nav {
++    gap: 8px 20px;
++  }
++
++  h1 {
++    font-size: 28px;
++  }
++
++  .today {
++    padding: 20px 20px 16px;
++  }
+ }

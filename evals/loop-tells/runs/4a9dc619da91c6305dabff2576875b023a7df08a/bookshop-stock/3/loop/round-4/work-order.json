@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-4/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-4/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-4/phone.png", "width": 390, "height": 1139 },
+    { "viewport": "tablet", "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-4/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-4/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-4/crit.md",
+  "facts_file": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-4/facts.json",
+  "findings": [
+    {
+      "id": "table-lacks-recommendation",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The reorder table does not show the reorder decision",
+      "location": {
+        "description": "the \"Reorder this week\" card, which has only Title, On shelf and Sold this week columns",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.preview-head > span:nth-of-type(1)",
+        "box": [894, 159, 138, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The owner must compare On shelf with Sold this week for each title and decide alone, though the headline says Shelfmark tells you which titles to reorder. Nothing compares Shelfmark with the till report or spreadsheet the shop uses now.",
+      "current": { "value": "3 columns (Title, On shelf, Sold this week) and no comparison with how a shop works now", "measured": false, "facts_field": null },
+      "target": "A column that states the reorder decision for each title, and a short comparison with how a shop works now. The maker must supply the column label, its values, and what the comparison says.",
+      "fix_direction": "Add a column that states the reorder decision for each title, and a short comparison with how a shop works now. The maker must supply the column label, its values, and what the comparison says.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees, in the desktop, phone, tablet and widescreen images, a column in the reorder card that states the decision for each title, and a short comparison with how a shop works now." }
+    },
+    {
+      "id": "table-card-squeezed",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The reorder card is squeezed on wide screens, so headings and titles wrap",
+      "location": {
+        "description": "the column headings of the reorder card, which break onto two lines, with three wrapped titles below",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "thead > tr > th:nth-of-type(2)",
+        "box": [1020, 199, 83, 62],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Rows have uneven heights (41 px or 62 px) and the five-row list takes longer to scan. Empty space wider than the card's own Title column sits to its left.",
+      "current": { "value": "card about 340 px wide (x 876 to 1215); On shelf and Sold this week on 2 lines; 3 titles on 2 lines", "measured": true, "facts_field": "text_blocks" },
+      "target": "Card covers the second and third note columns (desktop x 469 to 1215), notes stay on their equal columns, and headings and titles fit on one line.",
+      "fix_direction": "Let the card start further left so that it covers the second and third note columns (desktop x 469 to 1215), keep the notes on their equal columns, and let the headings and titles fit on one line.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "in the desktop and widescreen viewports, thead > tr > th:nth-of-type(2) and th:nth-of-type(3) have lines of 1, and tbody td:nth-of-type(1) cells all have lines of 1 with the same height" }
+    },
+    {
+      "id": "till-not-named",
+      "rank": null,
+      "kind": "defect",
+      "title": "The first feature note says \"Works with your till\" without naming one",
+      "location": {
+        "description": "the first feature note under the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(1)",
+        "box": [64, 585, 341, 50],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The owner cannot tell whether Shelfmark works with their till.",
+      "current": { "value": "\"Works with your till\" with no till named", "measured": false, "facts_field": null },
+      "target": "The note names the tills Shelfmark works with. The maker must supply the list.",
+      "fix_direction": "Name the tills Shelfmark works with; the maker must supply the list.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees at least one named till in the first feature note in the desktop, phone, tablet and widescreen images." }
+    },
+    {
+      "id": "headline-card-top-misaligned",
+      "rank": null,
+      "kind": "defect",
+      "title": "The headline and the card no longer share a top edge",
+      "location": {
+        "description": "the three-line headline, whose top sits lower than the top of the card",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "h1",
+        "box": [64, 197, 540, 138],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The hero text centres against the taller card, so the two columns start at different heights.",
+      "current": { "value": "headline top at y 197, card top at y 145", "measured": true, "facts_field": "text_blocks" },
+      "target": "Headline top and card top at the same y (card top at y 145 on desktop).",
+      "fix_direction": "Align the headline top with the card top (y 145), or bring the card down to the headline.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "A fresh critic sees, in the desktop and widescreen images, the headline top and the card top on the same horizontal line." }
+    }
+  ]
+}

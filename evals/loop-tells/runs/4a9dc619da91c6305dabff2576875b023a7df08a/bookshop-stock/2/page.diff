@@ -1,0 +1,299 @@
+diff --git a/index.html b/index.html
+index 7154905..03cdd51 100644
+--- a/index.html
++++ b/index.html
+@@ -7,20 +7,22 @@
+   <link rel="stylesheet" href="styles.css">
+ </head>
+ <body>
+-  <header class="site-header">
+-    <a class="logo" href="#">Shelfmark</a>
+-    <nav class="site-nav">
+-      <a href="#">Features</a>
+-      <a href="#">Pricing</a>
+-      <a href="#">Shops using it</a>
+-      <a class="nav-signin" href="#">Sign in</a>
+-    </nav>
+-  </header>
++  <div class="header-rule">
++    <header class="site-header">
++      <a class="logo" href="#">Shelfmark</a>
++      <nav class="site-nav">
++        <a href="#">Features</a>
++        <a href="#">Pricing</a>
++        <a href="#">Shops using it</a>
++        <a class="nav-signin" href="#">Sign in</a>
++      </nav>
++    </header>
++  </div>
+ 
+   <main>
+     <section class="hero">
+       <div class="hero-text">
+-        <h1>Know what is on your shelves before a customer asks</h1>
++        <h1>Know what is <span class="keep-together">on your shelves</span> before a customer asks</h1>
+         <p>Shelfmark counts every copy as it is sold, ordered, or returned, and tells you which titles to reorder on Monday morning.</p>
+         <div class="actions">
+           <a class="button button-primary" href="#">Start a 30-day trial</a>
+@@ -50,8 +52,8 @@
+ 
+     <section class="facts">
+       <p><span class="fact-title">Works with your till.</span> Sales come in from the shop's card reader as they happen.</p>
+-      <p><span class="fact-title">Orders from your distributor.</span> One click sends the reorder list in the format they take.</p>
+-      <p><span class="fact-title">Returns tracked.</span> Unsold copies due back are listed by date.</p>
++      <p><span class="fact-title">Orders from your distributor.</span> One&nbsp;click sends your reorder list in your distributor's format.</p>
++      <p><span class="fact-title">Unsold copies due back are listed by date.</span> Returns are tracked for you.</p>
+     </section>
+   </main>
+ </body>
+diff --git a/styles.css b/styles.css
+index 00b243b..2ad1f84 100644
+--- a/styles.css
++++ b/styles.css
+@@ -27,11 +27,24 @@ a {
+   color: inherit;
+ }
+ 
++/* Holds every section to one centered width, so wide screens keep the
++   headline and the table a glance apart. */
++.site-header,
++main {
++  max-width: 1280px;
++  margin: 0 auto;
++}
++
+ .site-header {
+   display: flex;
++  flex-wrap: wrap;
+   justify-content: space-between;
+   align-items: center;
++  gap: 8px 28px;
+   padding: 18px 64px;
++}
++
++.header-rule {
+   border-bottom: 1px solid #ece6dc;
+ }
+ 
+@@ -43,40 +56,54 @@ a {
+ 
+ .site-nav {
+   display: flex;
++  flex-wrap: wrap;
+   align-items: center;
++  gap: 4px 28px;
+ }
+ 
+ .site-nav a {
+-  margin-left: 28px;
+   text-decoration: none;
+   color: #5c544b;
++  white-space: nowrap;
+ }
+ 
+ .site-nav .nav-signin {
+-  padding: 10px 22px;
+-  border-radius: 6px;
+-  background: #8a3b24;
+-  color: #ffffff;
++  color: #2a2622;
+   font-weight: 500;
+ }
+ 
++/* The hero is a text column and a 480 px table column; the notes below
++   sit in three equal columns. Both share the same side padding. */
++.hero,
++.facts {
++  display: grid;
++  column-gap: 64px;
++  padding-left: 64px;
++  padding-right: 64px;
++}
++
+ .hero {
+-  display: flex;
+-  justify-content: space-between;
++  grid-template-columns: 1fr 480px;
+   align-items: center;
+-  gap: 64px;
+-  padding: 64px 64px 48px;
++  padding-top: 64px;
++  padding-bottom: 56px;
+ }
+ 
+ .hero-text {
+   max-width: 540px;
+ }
+ 
++/* Keeps a phrase of the headline on one line. */
++.keep-together {
++  white-space: nowrap;
++}
++
+ h1 {
+   margin: 0 0 16px;
+   font-size: 40px;
+   font-weight: 500;
+   line-height: 1.15;
++  text-wrap: balance;
+ }
+ 
+ .hero-text p {
+@@ -86,6 +113,7 @@ h1 {
+ 
+ .actions {
+   display: flex;
++  flex-wrap: wrap;
+   gap: 12px;
+ }
+ 
+@@ -94,23 +122,25 @@ h1 {
+   padding: 10px 18px;
+   border-radius: 6px;
+   text-decoration: none;
+-  font-size: 15px;
++  font-size: 16px;
++  white-space: nowrap;
+ }
+ 
+ .button-primary {
+-  border: 1px solid #d6cec2;
+-  background: #f3eee6;
+-  color: #5c544b;
++  border: 1px solid #8a3b24;
++  background: #8a3b24;
++  color: #ffffff;
++  font-weight: 500;
+ }
+ 
+ .button-secondary {
+   border: 1px solid #d6cec2;
+   background: #fffdf9;
+-  color: #5c544b;
++  color: #2a2622;
+ }
+ 
+ .preview {
+-  flex: 0 0 480px;
++  min-width: 0;
+   border: 1px solid #ece6dc;
+   border-radius: 8px;
+   background: #ffffff;
+@@ -125,7 +155,7 @@ h1 {
+ }
+ 
+ .preview-date {
+-  color: #8a8178;
++  color: #5c544b;
+   font-weight: 400;
+   font-size: 14px;
+ }
+@@ -144,8 +174,9 @@ td {
+ }
+ 
+ th {
+-  color: #8a8178;
++  color: #5c544b;
+   font-weight: 400;
++  white-space: nowrap;
+ }
+ 
+ tbody tr:last-child td {
+@@ -153,19 +184,92 @@ tbody tr:last-child td {
+ }
+ 
+ .facts {
+-  display: flex;
+-  gap: 40px;
+-  padding: 8px 64px 0;
++  grid-template-columns: repeat(3, 1fr);
++  column-gap: 40px;
++  padding-top: 8px;
++  padding-bottom: 80px;
+ }
+ 
++/* "pretty" stops a single word from ending a note on its own line. */
+ .facts p {
+-  flex: 1;
+   margin: 0;
+-  font-size: 15px;
+   color: #5c544b;
++  text-wrap: pretty;
+ }
+ 
+ .fact-title {
+   color: #2a2622;
+   font-weight: 500;
+ }
++
++/* Tablet and phone: one column, the table at full width under the
++   buttons, the notes one under another. */
++@media (max-width: 900px) {
++  .site-header,
++  .hero,
++  .facts {
++    padding-left: 24px;
++    padding-right: 24px;
++  }
++
++  .hero,
++  .facts {
++    grid-template-columns: 1fr;
++    row-gap: 24px;
++  }
++
++  .hero {
++    padding-top: 40px;
++    padding-bottom: 40px;
++    row-gap: 40px;
++  }
++
++  .hero-text {
++    max-width: 600px;
++  }
++
++  .preview {
++    max-width: 600px;
++  }
++
++  /* About 70 characters per line at most. */
++  .facts p {
++    max-width: 34em;
++  }
++}
++
++@media (max-width: 480px) {
++  .site-nav {
++    gap: 4px 20px;
++  }
++
++  h1 {
++    font-size: 32px;
++  }
++
++  /* On a phone the headline wraps on its own; a forced phrase here
++     leaves a short line. */
++  .keep-together {
++    white-space: normal;
++  }
++
++  /* Narrow side padding gives the title column room. */
++  th,
++  td {
++    padding: 9px 8px;
++  }
++
++  th:first-child,
++  td:first-child {
++    padding-left: 12px;
++  }
++
++  th:last-child,
++  td:last-child {
++    padding-right: 16px;
++  }
++
++  .preview-head {
++    padding: 14px 12px;
++  }
++}

@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "image": {"path": "<temp>/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-2/desktop.png", "width": 1280, "height": 800},
+  "images": [
+    {"viewport": "desktop", "path": "<temp>/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-2/desktop.png", "width": 1280, "height": 800},
+    {"viewport": "phone", "path": "<temp>/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-2/phone.png", "width": 390, "height": 1088},
+    {"viewport": "tablet", "path": "<temp>/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-2/tablet.png", "width": 768, "height": 1066},
+    {"viewport": "widescreen", "path": "<temp>/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-2/widescreen.png", "width": 1920, "height": 1080}
+  ],
+  "crit_file": "<temp>/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-2/crit.md",
+  "facts_file": "<temp>/loop-tells-harbor-tides-JxbZvC/.crit-loop/round-2/facts.json",
+  "findings": [
+    {
+      "id": "sample-shows-tides-only",
+      "rank": 1,
+      "kind": "taste",
+      "title": "The sample shows tide times only, so what makes Tidewell different is not shown",
+      "location": {"description": "the Today at Porthmellin sample panel beside the headline", "viewport": "desktop", "viewports": ["desktop", "phone", "tablet", "widescreen"], "selector": "h2", "box": [764, 169, 344, 23], "box_source": "facts", "crop": null},
+      "viewer_experience": "A harbor master sees a table that any tide almanac gives. Gate times, hourly pontoon depth and notices appear only as text claims below it, and nothing compares them with how the office posts them today.",
+      "current": {"value": "four tide rows, no gate times, no pontoon depth, no notice, no comparison", "measured": false, "facts_field": null},
+      "target": "The sample shows a gate-time row, a pontoon depth reading and one notice, with a short before-and-after against the office's current way of posting.",
+      "fix_direction": "Add a gate-time row, a pontoon depth reading and one notice to the sample, and add a short before-and-after against the office's current way of posting. The maker must supply the real gate times, depth figures, notice text and current method.",
+      "source": null,
+      "closed_when": {"method": "look", "check": "In the desktop, phone, tablet and widescreen images, the sample shows gate times, a pontoon depth reading and a notice, and a before-and-after against the current way of posting is visible."}
+    },
+    {
+      "id": "phone-notes-short-lines",
+      "rank": null,
+      "kind": "taste",
+      "title": "Two of the three phone feature notes run 41 and 43 characters per line, under the check of 45",
+      "location": {"description": "the first feature note paragraph on the phone", "viewport": "phone", "viewports": ["phone"], "selector": "section.points > div.point:nth-of-type(1) > p", "box": [20, 742, 350, 47], "box_source": "facts", "crop": null},
+      "viewer_experience": "The lines read normally on a phone; the shortfall is 2 to 4 characters in a 350 px column.",
+      "current": {"value": "43, 41 and 47 characters per line", "measured": true, "facts_field": "chars_per_line"},
+      "target": "45 or more characters per line, or accept the shortfall as fine for this width.",
+      "fix_direction": "Reduce the side padding a little, or accept the measured shortfall.",
+      "source": null,
+      "closed_when": {"method": "measure", "check": "characters per line of section.points > div.point > p in the phone viewport is 45 or more"}
+    },
+    {
+      "id": "tablet-right-band",
+      "rank": null,
+      "kind": "defect",
+      "title": "On tablet the content stops at x 608 while the nav runs to x 704",
+      "location": {"description": "the right edge of the content column against the nav on tablet", "viewport": "tablet", "viewports": ["tablet"], "selector": null, "box": null, "box_source": "none", "crop": null},
+      "viewer_experience": "A 160 px empty band sits on the right with nothing aligned to the nav's right edge.",
+      "current": {"value": "content right edge at x 608, nav right edge at x 704", "measured": true, "facts_field": "text_blocks"},
+      "target": "The content column shares the nav's right edge.",
+      "fix_direction": "Let the content column use the same right edge as the nav.",
+      "source": null,
+      "closed_when": {"method": "measure", "check": "right edge of the content blocks in the tablet viewport equals the right edge of nav.site-nav"}
+    },
+    {
+      "id": "tablet-hero-measure",
+      "rank": null,
+      "kind": "convention",
+      "title": "The tablet hero paragraph runs 77 characters per line, just over 75",
+      "location": {"description": "the hero paragraph on tablet", "viewport": "tablet", "viewports": ["tablet"], "selector": "div.hero-text > p", "box": [64, 212, 544, 47], "box_source": "facts", "crop": null},
+      "viewer_experience": "The line is slightly too long for easy reading.",
+      "current": {"value": "77 characters per line", "measured": true, "facts_field": "chars_per_line"},
+      "target": "75 characters per line or fewer.",
+      "fix_direction": "A slightly narrower measure for this paragraph. The width change for the tablet content column would also fix it.",
+      "source": null,
+      "closed_when": {"method": "measure", "check": "characters per line of div.hero-text > p in the tablet viewport is 75 or fewer"}
+    },
+    {
+      "id": "panel-off-feature-grid",
+      "rank": null,
+      "kind": "taste",
+      "title": "The panel's left edge (x 736 on desktop) does not line up with the third feature column (x 837)",
+      "location": {"description": "the sample panel and the third feature column", "viewport": "desktop", "viewports": ["desktop", "widescreen"], "selector": "section.points > div.point:nth-of-type(3) > h3", "box": [837, 501, 299, 23], "box_source": "facts", "crop": null},
+      "viewer_experience": "The two rows sit on different grids.",
+      "current": {"value": "panel left edge x 736, third column x 837", "measured": true, "facts_field": "left_edges"},
+      "target": "The panel and the third feature column share a left edge.",
+      "fix_direction": "Align the panel to the third column, or align the columns to the panel.",
+      "source": null,
+      "closed_when": {"method": "measure", "check": "left edge of the sample panel equals the left edge of section.points > div.point:nth-of-type(3) in the desktop and widescreen viewports"}
+    }
+  ]
+}

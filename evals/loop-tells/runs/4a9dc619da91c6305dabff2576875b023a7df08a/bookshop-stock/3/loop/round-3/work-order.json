@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "image": { "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-3/desktop.png", "width": 1280, "height": 800 },
+  "images": [
+    { "viewport": "desktop", "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-3/desktop.png", "width": 1280, "height": 800 },
+    { "viewport": "phone", "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-3/phone.png", "width": 395, "height": 1129 },
+    { "viewport": "tablet", "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-3/tablet.png", "width": 768, "height": 1024 },
+    { "viewport": "widescreen", "path": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-3/widescreen.png", "width": 1920, "height": 1080 }
+  ],
+  "crit_file": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-3/crit.md",
+  "facts_file": "<temp>/loop-tells-bookshop-stock-fC3TTu/.crit-loop/round-3/facts.json",
+  "findings": [
+    {
+      "id": "table-lacks-recommendation",
+      "rank": 1,
+      "kind": "defect",
+      "title": "The reorder table shows two numbers and leaves the reorder decision to the owner",
+      "location": {
+        "description": "the Reorder this week table and the area around it",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "div.preview-head > span:nth-of-type(1)",
+        "box": [755, 159, 138, 25],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The headline promises that Shelfmark tells the owner what to reorder, but the owner must compare On shelf and Sold this week and decide for each title. Nothing compares Shelfmark with the till report or spreadsheet the owner uses now, so they must take the value on trust.",
+      "current": { "value": "table has only the On shelf and Sold this week columns, no decision column, no comparison with how a shop works now", "measured": false, "facts_field": null },
+      "target": "a column that states the reorder decision for each title, and a short comparison with how a shop works now. The maker must supply the column label, its values, and what the comparison says.",
+      "fix_direction": "Add a column that states the reorder decision for each title, and add a short comparison with how a shop works now. The maker must supply the column label, its values, and the content of the comparison.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, the Reorder this week table has a column that states the reorder decision for each title, and the page has a short comparison with how a shop works now." }
+    },
+    {
+      "id": "phone-header-sideways-scroll",
+      "rank": 2,
+      "kind": "defect",
+      "title": "The phone header makes the page scroll sideways and the Sign in button touches the screen edge",
+      "location": {
+        "description": "the Sign in button on the logo row of the phone header",
+        "viewport": "phone",
+        "viewports": ["phone"],
+        "selector": "a.nav-signin",
+        "box": [305, 14, 90, 43],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "A page that moves sideways under the thumb feels broken, and this is the first thing on the screen.",
+      "current": { "value": "page 395 px wide on a 390 px screen; Sign in runs from x 305 to 395", "measured": true, "facts_field": "page_width" },
+      "target": "page width equal to the 390 px viewport, with the logo row inside the 20 px side margins",
+      "fix_direction": "Keep the logo row inside the 20 px side margins. For example, let the logo shrink instead of growing to 265 px, or make the Sign in button narrower.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "page_width of the phone viewport is 390 and a.nav-signin in the phone viewport ends at x 370 or less" }
+    },
+    {
+      "id": "feature-notes-uneven-widths",
+      "rank": null,
+      "kind": "defect",
+      "title": "The three feature notes have unequal widths and wrap unevenly",
+      "location": {
+        "description": "the row of three feature notes under the hero",
+        "viewport": "desktop",
+        "viewports": ["desktop", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(1)",
+        "box": [64, 499, 272, 74],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "Notes 1 and 2 wrap to three lines while note 3 fits on one line, so the row looks uneven.",
+      "current": { "value": "notes 1 and 2 are 272 px wide (296 px on widescreen) and 3 lines; note 3 is 480 px wide and 1 line", "measured": true, "facts_field": "text_blocks" },
+      "target": "three notes of equal width on the shared columns, wrapping evenly",
+      "fix_direction": "Give the three notes equal widths on the shared columns, for example on the 64 / 400 / 736 lines, or put the first two notes in the column under the hero text.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "section.facts > p:nth-of-type(1), (2) and (3) have the same width and the same number of lines in the desktop and widescreen viewports" }
+    },
+    {
+      "id": "tablet-line-length",
+      "rank": null,
+      "kind": "defect",
+      "title": "The tablet second feature note runs to 76 characters per line",
+      "location": {
+        "description": "the second feature note on the tablet",
+        "viewport": "tablet",
+        "viewports": ["tablet"],
+        "selector": "section.facts > p:nth-of-type(2)",
+        "box": [32, 867, 560, 50],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "The line is a little longer than the 75 character limit, so it is slightly harder to read.",
+      "current": { "value": "76 characters per line", "measured": true, "facts_field": "characters_per_line" },
+      "target": "75 characters per line or fewer",
+      "fix_direction": "Make the text column a little narrower than 560 px.",
+      "source": null,
+      "closed_when": { "method": "measure", "check": "characters_per_line of section.facts > p:nth-of-type(2) in the tablet viewport is 75 or fewer" }
+    },
+    {
+      "id": "till-not-named",
+      "rank": null,
+      "kind": "defect",
+      "title": "The first feature note says it works with your till and does not name a till",
+      "location": {
+        "description": "the first feature note, Works with your till",
+        "viewport": "desktop",
+        "viewports": ["desktop", "phone", "tablet", "widescreen"],
+        "selector": "section.facts > p:nth-of-type(1)",
+        "box": [64, 499, 272, 74],
+        "box_source": "facts",
+        "crop": null
+      },
+      "viewer_experience": "An owner cannot tell whether their own till works with Shelfmark.",
+      "current": { "value": "the note says Works with your till and names no till", "measured": false, "facts_field": null },
+      "target": "the note names the tills that Shelfmark works with. The maker must supply the list.",
+      "fix_direction": "Name the tills that Shelfmark works with. The maker must supply the list.",
+      "source": null,
+      "closed_when": { "method": "look", "check": "In the desktop, phone, tablet and widescreen images, the first feature note names the tills that Shelfmark works with." }
+    }
+  ]
+}

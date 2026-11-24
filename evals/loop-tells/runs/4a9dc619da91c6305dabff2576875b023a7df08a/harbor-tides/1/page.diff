@@ -1,0 +1,261 @@
+diff --git a/index.html b/index.html
+index 1838f09..7022b01 100644
+--- a/index.html
++++ b/index.html
+@@ -21,12 +21,9 @@
+     <section class="hero">
+       <div class="hero-text">
+         <h1>Tide times your harbor office can stand behind</h1>
+-        <p>Tidewell posts the day's tides, lock gate times, and the depth at the visitor pontoon on one page that berth holders can check from the quay.</p>
++        <p>Tidewell posts the day’s tides, lock gate times, and the depth at the visitor pontoon on one page that berth holders can check from the quay.</p>
+         <a class="button" href="#">Set up your harbor</a>
+       </div>
+-    </section>
+-
+-    <section class="lower">
+       <div class="today">
+         <h2>Today at Porthmellin</h2>
+         <table>
+@@ -41,19 +38,20 @@
+           </tbody>
+         </table>
+       </div>
+-      <div class="points">
+-        <div class="point">
+-          <h3>Lock gate times</h3>
+-          <p>Gate openings are worked out from each tide and posted before the first boat asks.</p>
+-        </div>
+-        <div class="point">
+-          <h3>Depth at the pontoon</h3>
+-          <p>Enter one sounding and Tidewell shows the depth for every hour of the day.</p>
+-        </div>
+-        <div class="point">
+-          <h3>Notices</h3>
+-          <p>Dredging, closed berths, and fuel dock hours go on the same page as the tides.</p>
+-        </div>
++    </section>
++
++    <section class="points">
++      <div class="point">
++        <h3>Lock gate times</h3>
++        <p>Gate openings are worked out from each tide and posted before the first boat asks.</p>
++      </div>
++      <div class="point">
++        <h3>Depth at the pontoon</h3>
++        <p>Enter one sounding and Tidewell shows the depth for every hour of the day.</p>
++      </div>
++      <div class="point">
++        <h3>Notices</h3>
++        <p>Dredging, closed berths, and fuel dock hours go on the same page as the tides.</p>
+       </div>
+     </section>
+   </main>
+diff --git a/styles.css b/styles.css
+index 62c4c1a..abe2f14 100644
+--- a/styles.css
++++ b/styles.css
+@@ -27,11 +27,29 @@ a {
+   color: inherit;
+ }
+ 
++/* "pretty" asks the browser to avoid leaving one word alone on a paragraph's last line. */
++p {
++  text-wrap: pretty;
++}
++
++/* One centered column of content, so wide screens do not leave everything at the left edge. */
++.site-header,
++.hero,
++.points {
++  max-width: 1120px;
++  margin: 0 auto;
++  padding-left: 64px;
++  padding-right: 64px;
++}
++
+ .site-header {
+   display: flex;
++  flex-wrap: wrap;
+   justify-content: space-between;
+   align-items: center;
+-  padding: 22px 64px;
++  gap: 8px 24px;
++  padding-top: 22px;
++  padding-bottom: 22px;
+ }
+ 
+ .logo {
+@@ -40,26 +58,52 @@ a {
+   text-decoration: none;
+ }
+ 
++.site-nav {
++  display: flex;
++  gap: 28px;
++}
++
+ .site-nav a {
+-  margin-left: 28px;
+   text-decoration: none;
+   color: #4d585e;
+ }
+ 
++/* Hero and feature notes share one three-column grid, so the sample panel lines up with the third note. */
++.hero,
++.points {
++  display: grid;
++  grid-template-columns: repeat(3, minmax(0, 1fr));
++  column-gap: 48px;
++}
++
++/* Hero: the pitch across the first two columns, the sample harbor page in the third. */
+ .hero {
+-  height: 430px;
+-  padding: 72px 64px 0;
++  align-items: center;
++  padding-top: 72px;
++  padding-bottom: 72px;
+ }
+ 
++/* The headline runs wide toward the panel; the paragraph keeps a readable line length. */
+ .hero-text {
+-  max-width: 400px;
++  grid-column: 1 / 3;
++  max-width: 36rem;
++}
++
++.hero-text p {
++  max-width: 30rem;
+ }
+ 
+ h1 {
+   margin: 0 0 16px;
+-  font-size: 30px;
++  font-size: 36px;
+   font-weight: 500;
+-  line-height: 1.25;
++  line-height: 1.2;
++}
++
++@media (max-width: 560px) {
++  h1 {
++    font-size: 30px;
++  }
+ }
+ 
+ .hero-text p {
+@@ -77,43 +121,47 @@ h1 {
+   font-weight: 500;
+ }
+ 
+-.lower {
+-  display: flex;
+-  gap: 48px;
+-  padding: 0 64px;
+-}
+-
++/* The sample page a berth holder sees: a flat panel, no shadow. */
+ .today {
+-  flex: 0 0 300px;
++  padding: 24px 28px;
++  border-radius: 6px;
++  background: #f2f5f6;
+ }
+ 
+ h2 {
+-  margin: 0 0 6px;
+-  font-size: 13px;
++  margin: 0 0 12px;
++  font-size: 15px;
+   font-weight: 500;
+ }
+ 
+ table {
+   width: 100%;
+   border-collapse: collapse;
+-  font-size: 12px;
+-  color: #4d585e;
++  color: #2b3236;
++  font-variant-numeric: tabular-nums;
+ }
+ 
+ th,
+ td {
+-  padding: 2px 0;
++  padding: 8px 0;
+   text-align: left;
+   font-weight: 400;
++  border-top: 1px solid #dce3e6;
++}
++
++/* Time and height are numbers, so they line up on the right. */
++th:not(:first-child),
++td:not(:first-child) {
++  text-align: right;
+ }
+ 
+ th {
+-  color: #7a858b;
++  color: #4d585e;
++  border-top: none;
+ }
+ 
+ .points {
+-  display: flex;
+-  gap: 32px;
++  padding-bottom: 96px;
+ }
+ 
+ .point h3 {
+@@ -127,6 +175,49 @@ th {
+   color: #4d585e;
+ }
+ 
+-.point {
+-  flex: 1;
++/* Tablet and below: one column. The sample panel uses the full width, so it meets the nav's right edge;
++   the text keeps a readable line length. */
++@media (max-width: 900px) {
++  .hero,
++  .points {
++    grid-template-columns: minmax(0, 1fr);
++    row-gap: 28px;
++  }
++
++  .hero {
++    padding-top: 48px;
++    padding-bottom: 56px;
++    row-gap: 48px;
++  }
++
++  .hero-text {
++    grid-column: auto;
++    max-width: 32rem;
++  }
++
++  .point {
++    max-width: 32rem;
++  }
++}
++
++/* Phone: narrower side margins and a tighter nav, so nothing runs past the screen. */
++@media (max-width: 560px) {
++  .site-header,
++  .hero,
++  .points {
++    padding-left: 20px;
++    padding-right: 20px;
++  }
++
++  .site-nav {
++    gap: 18px;
++  }
++
++  .hero {
++    padding-top: 32px;
++  }
++
++  .today {
++    padding: 20px;
++  }
+ }

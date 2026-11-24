@@ -1,0 +1,223 @@
+@font-face {
+  font-family: "Inter";
+  font-weight: 400;
+  src: url("fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 500;
+  src: url("fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #2b3236;
+  background: #ffffff;
+}
+
+a {
+  color: inherit;
+}
+
+/* "pretty" asks the browser to avoid leaving one word alone on a paragraph's last line. */
+p {
+  text-wrap: pretty;
+}
+
+/* One centered column of content, so wide screens do not leave everything at the left edge. */
+.site-header,
+.hero,
+.points {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-left: 64px;
+  padding-right: 64px;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 24px;
+  padding-top: 22px;
+  padding-bottom: 22px;
+}
+
+.logo {
+  font-size: 19px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  gap: 28px;
+}
+
+.site-nav a {
+  text-decoration: none;
+  color: #4d585e;
+}
+
+/* Hero and feature notes share one three-column grid, so the sample panel lines up with the third note. */
+.hero,
+.points {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 48px;
+}
+
+/* Hero: the pitch across the first two columns, the sample harbor page in the third. */
+.hero {
+  align-items: center;
+  padding-top: 72px;
+  padding-bottom: 72px;
+}
+
+/* The headline runs wide toward the panel; the paragraph keeps a readable line length. */
+.hero-text {
+  grid-column: 1 / 3;
+  max-width: 36rem;
+}
+
+.hero-text p {
+  max-width: 30rem;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+@media (max-width: 560px) {
+  h1 {
+    font-size: 30px;
+  }
+}
+
+.hero-text p {
+  margin: 0 0 24px;
+  color: #4d585e;
+}
+
+.button {
+  display: inline-block;
+  padding: 11px 20px;
+  border-radius: 6px;
+  background: #1f5f7a;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* The sample page a berth holder sees: a flat panel, no shadow. */
+.today {
+  padding: 24px 28px;
+  border-radius: 6px;
+  background: #f2f5f6;
+}
+
+h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #2b3236;
+  font-variant-numeric: tabular-nums;
+}
+
+th,
+td {
+  padding: 8px 0;
+  text-align: left;
+  font-weight: 400;
+  border-top: 1px solid #dce3e6;
+}
+
+/* Time and height are numbers, so they line up on the right. */
+th:not(:first-child),
+td:not(:first-child) {
+  text-align: right;
+}
+
+th {
+  color: #4d585e;
+  border-top: none;
+}
+
+.points {
+  padding-bottom: 96px;
+}
+
+.point h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.point p {
+  margin: 0;
+  color: #4d585e;
+}
+
+/* Tablet and below: one column. The sample panel uses the full width, so it meets the nav's right edge;
+   the text keeps a readable line length. */
+@media (max-width: 900px) {
+  .hero,
+  .points {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 28px;
+  }
+
+  .hero {
+    padding-top: 48px;
+    padding-bottom: 56px;
+    row-gap: 48px;
+  }
+
+  .hero-text {
+    grid-column: auto;
+    max-width: 32rem;
+  }
+
+  .point {
+    max-width: 32rem;
+  }
+}
+
+/* Phone: narrower side margins and a tighter nav, so nothing runs past the screen. */
+@media (max-width: 560px) {
+  .site-header,
+  .hero,
+  .points {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .site-nav {
+    gap: 18px;
+  }
+
+  .hero {
+    padding-top: 32px;
+  }
+
+  .today {
+    padding: 20px;
+  }
+}

@@ -17,6 +17,7 @@ export default defineConfig({
       "evals/agreement/*.test.ts",
       "evals/adversarial/*.test.ts",
       "evals/critic/**/*.test.ts",
+      "evals/loop-tells/*.test.ts",
     ],
     // Many tests run a script or sharp as a child process. When the machine is busy,
     // such as several test runs at once, they take longer than the Vitest default of 5 seconds.
