@@ -294,3 +294,14 @@ describe("runThresholds with a stub critic and a stub judge", () => {
     expect(output.errorText).toContain("missing crits: exempt-disabled-text");
   });
 });
+
+describe("runThresholds --parallel", () => {
+  it("stops with a usage error on a value that is not a positive integer", async () => {
+    for (const value of ["0", "-1", "1.5", "lots"]) {
+      await expect(
+        // The value is refused before the options are read, so an empty object is enough.
+        runThresholds([`--parallel=${value}`], {} as never),
+      ).rejects.toThrow("--parallel must be a whole number of 1 or more");
+    }
+  });
+});

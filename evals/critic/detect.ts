@@ -39,7 +39,7 @@ import { parseArgs } from "node:util";
 import { parse as parseYaml } from "yaml";
 import { type FixtureLabel, readLabels } from "../agreement/labels.ts";
 import { formatTable } from "../support/format-table.ts";
-import { runPooled } from "./compare.ts";
+import { DEFAULT_PARALLEL, parseParallel, runPooled } from "./compare.ts";
 import { type JevFinding, readJevFindingsByReplay } from "./jev-replay.ts";
 import {
   ensureJudgeAnswer,
@@ -76,7 +76,6 @@ const REPOSITORY_DIRECTORY = resolve(import.meta.dirname, "..", "..");
 const EXIT_CODE_COULD_NOT_RUN = 2;
 
 /** How many critic runs or judge calls run at once in live mode. */
-const MAX_PARALLEL_CALLS = 4;
 
 /** The judge question name, saved with each answer. */
 const JUDGE_QUESTION_NAME = "detection";
@@ -1014,6 +1013,7 @@ const HELP_TEXT = `Detection evaluation (EV-14) on the live and the removed crit
 
 Usage:
   node evals/critic/detect.ts [--replay] [--pairs-per-criterion N] [--skill DIR] [--skill-commit SHA]
+                              [--parallel N]
                               [--facts] [--jev] [--live-only] [--beside SHA]...
                               [--refute [--refuter-commit SHA]]
   node evals/critic/detect.ts --help
@@ -1021,13 +1021,14 @@ Usage:
 For each criterion it takes the first N fixture pairs (a pair is one variant with a positive and a
 negative image; variants sort as numbers). Without --replay it runs the critic on each selected
 image that has no saved crit and the judge on each crit that has no saved answer, at most
-${MAX_PARALLEL_CALLS} at once. It asks a model; never run it in npm run ci.
+the --parallel number at once. It asks a model; never run it in npm run ci.
 
 Flags:
   --replay                   Read saved crits and judge answers only. Starts no child process.
   --pairs-per-criterion N    How many fixture pairs per criterion (default 1).
   --skill DIR                The skill folder (default plugin/skills/design-critic).
   --skill-commit SHA         Use the runs of this commit instead of the skill folder's commit.
+  --parallel N               How many critic runs or judge calls run at once (default ${DEFAULT_PARALLEL}).
   --facts                    Score the live criteria only, and give the critic each image's
                              measured facts file from evals/critic/facts/ (FR-79). These runs
                              never share a saved crit with runs without facts.
@@ -1144,6 +1145,7 @@ async function scoreDetection(
       "pairs-per-criterion": { type: "string" },
       skill: { type: "string" },
       "skill-commit": { type: "string" },
+      parallel: { type: "string" },
       facts: { type: "boolean", default: false },
       jev: { type: "boolean", default: false },
       "live-only": { type: "boolean", default: false },
@@ -1159,6 +1161,7 @@ async function scoreDetection(
     return { text: HELP_TEXT, errorText: "", exitCode: 0 };
   }
   const replay = parsed.values.replay === true;
+  const parallel = parseParallel(parsed.values.parallel);
   const pairsPerCriterion = parsePairsPerCriterion(
     parsed.values["pairs-per-criterion"],
   );
@@ -1282,7 +1285,7 @@ async function scoreDetection(
       }
     }
     options.reportProgress?.(
-      `plan: ${selected.length} criteria, ${imagesToCrit.length - critsSaved} critic runs and ${judgeCallsTotal - answersSaved} judge calls to make (${critsSaved} crits and ${answersSaved} judge answers already saved), at most ${MAX_PARALLEL_CALLS} at once`,
+      `plan: ${selected.length} criteria, ${imagesToCrit.length - critsSaved} critic runs and ${judgeCallsTotal - answersSaved} judge calls to make (${critsSaved} crits and ${answersSaved} judge answers already saved), at most ${parallel} at once`,
     );
     const criticOptions = {
       runsDirectory: options.runsDirectory,
@@ -1290,7 +1293,7 @@ async function scoreDetection(
       skillCommit: commit,
       runClaude: options.runClaude,
     };
-    await runPooled(imagesToCrit, MAX_PARALLEL_CALLS, (image) =>
+    await runPooled(imagesToCrit, parallel, (image) =>
       ensureCrits(requestFor(image), criticOptions),
     );
   }
@@ -1364,20 +1367,16 @@ async function scoreDetection(
       skillCommit: commit,
       runClaude: options.runClaude,
     };
-    const judged = await runPooled(
-      questionItems,
-      MAX_PARALLEL_CALLS,
-      async (item) => {
-        if (item.question === undefined) {
-          return undefined;
-        }
-        return ensureJudgeAnswer(
-          item.question,
-          parseDetectionAnswer,
-          judgeOptions,
-        );
-      },
-    );
+    const judged = await runPooled(questionItems, parallel, async (item) => {
+      if (item.question === undefined) {
+        return undefined;
+      }
+      return ensureJudgeAnswer(
+        item.question,
+        parseDetectionAnswer,
+        judgeOptions,
+      );
+    });
     answers.push(...judged);
   }
 
@@ -1417,6 +1416,7 @@ async function scoreDetection(
       replay,
       options,
       skillDirectory,
+      parallel,
     });
     missing.push(...refuted.missing);
     refuterText = refuted.text;
@@ -1514,6 +1514,7 @@ type RefuterScoringInput = {
   readonly replay: boolean;
   readonly options: DetectOptions;
   readonly skillDirectory: string;
+  readonly parallel: number;
 };
 
 /**
@@ -1580,23 +1581,18 @@ async function scoreWithRefuter(
     }
   } else {
     options.reportProgress?.(
-      `refuter: ${toRefute.length} crits to check at refuter commit ${input.refuterCommit}, at most ${MAX_PARALLEL_CALLS} at once`,
+      `refuter: ${toRefute.length} crits to check at refuter commit ${input.refuterCommit}, at most ${input.parallel} at once`,
     );
     // Each failure is named and the rest go on, so one bad answer does not stop the whole run.
-    const results = await runPooled(
-      toRefute,
-      MAX_PARALLEL_CALLS,
-      async (item) => {
-        try {
-          return await ensureRefutation(item, refuterOptions);
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : String(error);
-          missing.push(`refuter failed on crit ${item.critKey}: ${message}`);
-          return undefined;
-        }
-      },
-    );
+    const results = await runPooled(toRefute, input.parallel, async (item) => {
+      try {
+        return await ensureRefutation(item, refuterOptions);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        missing.push(`refuter failed on crit ${item.critKey}: ${message}`);
+        return undefined;
+      }
+    });
     results.forEach((refutation, index) => {
       const item = toRefute[index];
       if (refutation !== undefined && item !== undefined) {
@@ -1657,7 +1653,7 @@ async function scoreWithRefuter(
   } else {
     const judged = await runPooled(
       refutedQuestions,
-      MAX_PARALLEL_CALLS,
+      input.parallel,
       async (question) =>
         question === undefined
           ? undefined
