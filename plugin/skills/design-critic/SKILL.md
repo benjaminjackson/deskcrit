@@ -100,6 +100,12 @@ Use this mode for two or more images, once you know the mode from "Pick the mode
    When the crit is done, end with the full crit as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the full crit.
    ```
 
+   When the person gave the pages themselves (a URL or an HTML file for each) and `scripts/measure.mjs` ran on each, also run `node <skill folder>/scripts/compare-facts.mjs <facts.json of each page, in tile order> --out <folder>/differences.json`. It writes the differences across pages in measured numbers (content left edge, text width, type sizes, text colors). Add this line to the prompt right after the `Images, in tile order` line, with the path filled. When there are no pages, or it exits with a usage error, leave the line out.
+
+   ```
+   Measured differences file: <absolute path of differences.json>
+   ```
+
    The consistency check and the best pick get no work order.
 3. Give the person the consistency check or the best pick first, then each image's crit under its file name, as the agents wrote them, then the path of each `work-order.json`.
 
@@ -114,6 +120,7 @@ Use this mode for two or more images, once you know the mode from "Pick the mode
 - `scripts/work-order.mjs`: checks a work order against its crit, image, and facts file: one entry per ranked finding, and every pixel box taken from the facts file or a crop.
 - `agents/set-critic.md`: the consistency check of contact-sheet mode, which judges whether a set of images keeps one pattern and names each image that breaks it.
 - `agents/picker.md`: the best pick of contact-sheet mode, which ranks the versions by how well each does the job and names the best one.
+- `scripts/compare-facts.mjs`: compares the facts files of the pages of one set and writes the measured differences across pages (FR-84), checked by `schemas/facts-diff.schema.json`.
 - `scripts/contact-sheet.mjs`: lays several PNG screens out as one numbered contact sheet and writes `tiles.json`, which maps each tile number to its file.
 - `agents/recheck.md`: the recheck critic of the crit-loop skill, which checks a fix against the last work order.
 - `scripts/build.rb`: makes `references/` from this repository's `GUIDELINES.md` and `packs/`.
