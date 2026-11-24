@@ -1,0 +1,28 @@
+<!doctype html>
+<!--
+  A page whose "Dark mode" button is visible but covered, for measure.mjs --dark (PRD FR-85,
+  crit-9w5.4). A clear box lies over the button, so a click on it can never land and times out.
+  evals/measure/browser-check.mjs measures it with --dark and checks that the run still exits 0
+  with its light entries, writes no -dark.png, sets dark_mode.found_by to none, and has a note
+  that says the dark-mode check failed.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Covered toggle</title>
+  <style>
+    body { margin: 0; background: #ffffff; color: #111111; font-family: sans-serif; }
+    html.dark body { background: #121212; color: #eeeeee; }
+    main { padding: 40px; position: relative; }
+    p { font-size: 16px; line-height: 24px; }
+    #cover { position: absolute; inset: 0; background: transparent; }
+  </style>
+</head>
+<body>
+  <main>
+    <p id="body">The button below is shown but a clear box lies over it.</p>
+    <button id="theme" type="button" onclick="document.documentElement.classList.toggle('dark')">Dark mode</button>
+    <div id="cover"></div>
+  </main>
+</body>
+</html>
