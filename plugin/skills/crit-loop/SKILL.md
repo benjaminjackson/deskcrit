@@ -21,7 +21,7 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 ## Round 1: the crit
 
 1. Capture into `<loop folder>/round-1`.
-2. Run the design-critic skill on that image, steps 1 to 4 of its `SKILL.md`, with the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder.
+2. Run the design-critic skill on that image, steps 1 to 5 of its `SKILL.md`, with the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder.
 3. If the work order has no finding with a rank, stop: there is nothing to fix.
 
 ## Each round after that
@@ -46,7 +46,7 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 
 4. Save its final message as `crit.md` in the round folder, exactly as it wrote it.
 5. Count the findings it marked closed under "Finding status", and check the stop rule below.
-6. If you do not stop, write the new work order with step 4 of the design-critic skill's `SKILL.md`: this round's `crit.md`, this round's image, and its facts file. Then start the next round.
+6. If you do not stop, write the new work order with step 5 of the design-critic skill's `SKILL.md`: this round's `crit.md`, this round's image, and its facts file. Then start the next round.
 
 A finding marked worse is not progress. Fix it before the findings ranked below it.
 

@@ -612,3 +612,15 @@ A review of the paired crits, with the base run a second time (`a08b4975` on the
 - The section repeated a ranked finding on 6 pages, moved taste ideas out of the ranked list, "Smaller things", or "What's working", and reused the same few suggestions: own one color, let one number lead, commit to the typeface.
 
 Decision (Benjamin Jackson, 2026-11-24): "that section should appear on every crit". He approved three rules against the review's problems. Also: "we can accept the critic will not flag every single thing on every single run."
+
+## Second step (crit-0a0.14)
+
+The section moved out of `agents/critic.md` into a second agent, `agents/go-further.md`, that writes it after the critic. The blind side-by-side set the second-step section (written on the base `e9d03b22` crits by skill commit `3f0e7ca5`) against the always-on section of `39e113d3`. The pages are in `evals/critic/side-by-side/out-two-step/`, which `.gitignore` lists. Benjamin Jackson picked 3 pages, read them with a reading of the same sections, and stopped there: "Ok I'm convinced. This pick stands" (2026-11-23). His picks, mapped through `key.json`:
+
+```
+01 abstrategies.png picked A = candidate
+02 anthropic.png picked B = candidate
+03 datawrapper.png picked A = candidate
+```
+
+The candidate won 3 of 3. The scores of the candidate are in `evals/critic/SCORES.md`: the repeat-run figures are back inside the range of the two base batches, and two of the three detection images that slipped at `aefb4967` are caught again.
