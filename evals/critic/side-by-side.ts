@@ -8,7 +8,7 @@
 // start a model call; run-critic.ts run makes the crits first.
 //
 // Usage:
-//   node evals/critic/side-by-side.ts prepare --base X --candidate Y [--candidate-deep] [--note TEXT] [--runs-dir DIR] [--out DIR] IMAGE_FOLDER
+//   node evals/critic/side-by-side.ts prepare --base X --candidate Y [--candidate-deep | --candidate-go-further SHA] [--go-further-dir DIR] [--note TEXT] [--runs-dir DIR] [--out DIR] IMAGE_FOLDER
 //   node evals/critic/side-by-side.ts record [--out DIR]
 //   node evals/critic/side-by-side.ts --help
 //
@@ -28,11 +28,13 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { formatTable } from "../support/format-table.ts";
 import { currentDeepRunIdentity, deepRequestKey } from "./deep-run.ts";
+import { goFurtherKey, readSavedGoFurther } from "./go-further.ts";
 import { readSavedCrits, requestKey } from "./run-critic.ts";
 
 const SIDE_BY_SIDE_DIRECTORY = join(import.meta.dirname, "side-by-side");
 const DEFAULT_RUNS_DIRECTORY = join(SIDE_BY_SIDE_DIRECTORY, "runs");
 const DEFAULT_OUT_DIRECTORY = join(SIDE_BY_SIDE_DIRECTORY, "out");
+const DEFAULT_GO_FURTHER_DIRECTORY = join(SIDE_BY_SIDE_DIRECTORY, "go-further");
 const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp"]);
 const REMOVED_TEXT = "[removed]";
 const SHORTEST_HIDDEN_PREFIX = 7;
@@ -83,6 +85,13 @@ export type PrepareInput = {
   readonly candidate: string;
   /** True when the candidate's crits are deep-mode crits (deep-run.ts), not single-critic crits. */
   readonly candidateDeep?: boolean;
+  /**
+   * The skill commit of the go-further step (go-further.ts) when the candidate's crits are its
+   * joined crits: each candidate crit is then the saved crit with the section joined in.
+   */
+  readonly candidateGoFurther?: string;
+  /** The folder go-further.ts saved the joined crits in (default side-by-side/go-further). */
+  readonly goFurtherDirectory?: string;
   readonly note: string | undefined;
   readonly runsDirectory: string;
   readonly outDirectory: string;
@@ -105,7 +114,7 @@ function buildHelpText(runsDirectory: string, outDirectory: string): string {
   return `Pair two unlabeled crits per page, then count the picks (PRD EV-19).
 
 Usage:
-  node evals/critic/side-by-side.ts prepare --base X --candidate Y [--candidate-deep] [--note TEXT] [--runs-dir DIR] [--out DIR] IMAGE_FOLDER
+  node evals/critic/side-by-side.ts prepare --base X --candidate Y [--candidate-deep | --candidate-go-further SHA] [--go-further-dir DIR] [--note TEXT] [--runs-dir DIR] [--out DIR] IMAGE_FOLDER
   node evals/critic/side-by-side.ts record [--out DIR]
   node evals/critic/side-by-side.ts --help
 
@@ -117,7 +126,12 @@ of IMAGE_FOLDER (png, jpg, jpeg, or webp). Use the same --note in all three comm
 Each run makes a folder named after the skill commit under the runs folder. To set the deep mode
 against the single critic of the same skill commit, make the candidate's crits with
   node evals/critic/deep-run.ts run --skill SKILL_DIR --runs-dir ${runsDirectory} IMAGE_FILES
-and pass --candidate-deep, with the same commit as --base and --candidate.
+and pass --candidate-deep, with the same commit as --base and --candidate. To read the
+candidate's crits with the section "Where it could go further" joined in by the second step, make
+them with
+  node evals/critic/go-further.ts run --crit-commit CANDIDATE_COMMIT --skill SKILL_DIR --runs-dir ${runsDirectory} --go-further-dir DIR IMAGE_FILES
+and pass --candidate-go-further with the skill commit it printed the crits under, and the same
+--go-further-dir.
 
 Modes:
   prepare  Read the saved crits and write, in the out folder, pages/page-NN.md (Crit A and Crit B
@@ -130,6 +144,9 @@ Flags:
                            saved <commit> run folder.
   --candidate-deep         Read the candidate's deep-mode crits (deep-run.ts). --base and
                            --candidate may then name the same commit.
+  --candidate-go-further SHA  Read the candidate's crits with the section joined in by the
+                           go-further step of skill commit SHA (go-further.ts).
+  --go-further-dir DIR     The folder of the joined crits (default ${DEFAULT_GO_FURTHER_DIRECTORY}).
   --note TEXT              The note the crits were made with.
   --runs-dir DIR           The runs folder (default ${runsDirectory}).
   --out DIR                The out folder (default ${outDirectory}).
@@ -290,6 +307,11 @@ export function prepareSideBySide(input: PrepareInput): CommandResult {
   const base = resolveSide(input.base, runsDirectory);
   const candidate = resolveSide(input.candidate, runsDirectory);
   const candidateDeep = input.candidateDeep === true;
+  if (candidateDeep && input.candidateGoFurther !== undefined) {
+    throw new Error(
+      "pass --candidate-deep or --candidate-go-further, not both",
+    );
+  }
   if (base.runFolder === candidate.runFolder && !candidateDeep) {
     throw new Error("--base and --candidate name the same run folder");
   }
@@ -326,6 +348,31 @@ export function prepareSideBySide(input: PrepareInput): CommandResult {
           currentDeepRunIdentity(),
         )
       : readSavedCrits(candidate.runsDirectory, candidate.commit, key);
+    if (
+      input.candidateGoFurther !== undefined &&
+      candidateCrits[0] !== undefined
+    ) {
+      // The joined crit replaces the crit it was made from, and keeps that crit's metadata.
+      const first = candidateCrits[0];
+      const joined = readSavedGoFurther(
+        resolve(input.goFurtherDirectory ?? DEFAULT_GO_FURTHER_DIRECTORY),
+        input.candidateGoFurther,
+        goFurtherKey({
+          critCommit: candidate.commit,
+          critKey: key,
+          critRun: first.runNumber,
+          crit: first.crit,
+          imagePath,
+        }),
+      );
+      candidateCrits.splice(
+        0,
+        candidateCrits.length,
+        ...(joined === undefined
+          ? []
+          : [{ ...first, crit: joined.joinedCrit }]),
+      );
+    }
     const lacking: string[] = [];
     if (baseCrits[0] === undefined) {
       lacking.push(`base ${base.value}`);
@@ -369,7 +416,11 @@ export function prepareSideBySide(input: PrepareInput): CommandResult {
   const seed = input.randomSeed();
   // Only a run folder named like a commit is hidden as one, so a folder named with a bare word,
   // such as main, does not remove that word from the crits.
-  const commits = [base.commit, candidate.commit].filter(isCommitName);
+  const commits = [
+    base.commit,
+    candidate.commit,
+    input.candidateGoFurther ?? "",
+  ].filter(isCommitName);
   const keyPages: KeyPage[] = [];
   const pageFiles: { name: string; text: string }[] = [];
   for (const page of pages) {
@@ -423,7 +474,9 @@ export function prepareSideBySide(input: PrepareInput): CommandResult {
     // The record table names the deep mode, since both sides may share one commit.
     candidate: candidateDeep
       ? `${candidate.commit} deep mode`
-      : candidate.commit,
+      : input.candidateGoFurther !== undefined
+        ? `${candidate.commit} with go-further ${input.candidateGoFurther}`
+        : candidate.commit,
     pages: keyPages,
   };
   const pickLines = [
@@ -630,6 +683,8 @@ export function runSideBySideCommand(
         base: { type: "string" },
         candidate: { type: "string" },
         "candidate-deep": { type: "boolean", default: false },
+        "candidate-go-further": { type: "string" },
+        "go-further-dir": { type: "string" },
         note: { type: "string" },
         "runs-dir": { type: "string" },
         out: { type: "string" },
@@ -656,6 +711,8 @@ export function runSideBySideCommand(
         parsed.values.base !== undefined ||
         parsed.values.candidate !== undefined ||
         parsed.values["candidate-deep"] === true ||
+        parsed.values["candidate-go-further"] !== undefined ||
+        parsed.values["go-further-dir"] !== undefined ||
         parsed.values.note !== undefined ||
         parsed.values["runs-dir"] !== undefined
       ) {
@@ -683,6 +740,8 @@ export function runSideBySideCommand(
       base: parsed.values.base,
       candidate: parsed.values.candidate,
       candidateDeep: parsed.values["candidate-deep"] === true,
+      candidateGoFurther: parsed.values["candidate-go-further"],
+      goFurtherDirectory: parsed.values["go-further-dir"],
       note: parsed.values.note,
       runsDirectory: parsed.values["runs-dir"] ?? options.runsDirectory,
       outDirectory,
