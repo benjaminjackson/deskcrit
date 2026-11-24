@@ -5,23 +5,30 @@ import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import {
   clusterValues,
+  colorsDiffer,
   compositeColor,
   contrastRatio,
+  darkViewportName,
+  dropMovingColors,
   EXIT_CANNOT_MEASURE,
   EXIT_TOOL_MISSING,
   EXIT_USAGE,
   findMainStyle,
   findViolations,
   formatFactsJson,
+  guardDarkMode,
   isLargeText,
+  isThemeControlName,
   measureContrast,
   measureLines,
   nameDrawnFont,
+  nameFromAriaSnapshot,
   parseCssColor,
   planScreenCrops,
   readCommandLine,
   resolveBackground,
   runMeasure,
+  summarizeDarkMode,
   VIEWPORTS,
   widthViewports,
 } from "../plugin/skills/design-critic/scripts/measure.mjs";
@@ -282,10 +289,12 @@ describe("facts.json", () => {
   const validate = compileFactsValidator();
   const sample = readJson("evals/measure/known-values.facts.json");
 
-  it("the committed samples of both pages validate against schemas/facts.schema.json", () => {
+  it("the committed samples of every page validate against schemas/facts.schema.json", () => {
     for (const path of [
       "evals/measure/known-values.facts.json",
       "evals/measure/hard-cases.facts.json",
+      "evals/measure/dark-media.facts.json",
+      "evals/measure/dark-toggle.facts.json",
     ]) {
       const valid = validate(readJson(path));
       expect(validate.errors ?? []).toEqual([]);
@@ -313,12 +322,49 @@ describe("facts.json", () => {
       "widescreen",
       "w768",
       "w3840",
+      "desktop-dark",
+      "widescreen-dark",
+      "w768-dark",
     ]) {
       expect(validatesWithName(name), name).toBe(true);
     }
-    for (const name of ["mobile", "wide", "w", "w12a", "W768", "w0768"]) {
+    for (const name of [
+      "mobile",
+      "wide",
+      "w",
+      "w12a",
+      "W768",
+      "w0768",
+      "mobile-dark",
+      "desktop-dim",
+      "dark",
+    ]) {
       expect(validatesWithName(name), name).toBe(false);
     }
+  });
+
+  it("the schema checks the dark-mode fields that --dark writes", () => {
+    /** Returns a fresh copy of the dark-toggle sample, which JSON.parse gives as `any`. */
+    function darkSample() {
+      return JSON.parse(
+        readFileSync(
+          join(repositoryRoot, "evals/measure/dark-toggle.facts.json"),
+          "utf8",
+        ),
+      );
+    }
+    const withDim = darkSample();
+    withDim.viewports[1].color_scheme = "dim";
+    expect(validate(withDim)).toBe(false);
+    const withExtraKey = darkSample();
+    withExtraKey.dark_mode.reason = "extra";
+    expect(validate(withExtraKey)).toBe(false);
+    const withMaybe = darkSample();
+    withMaybe.dark_mode = { found_by: "maybe" };
+    expect(validate(withMaybe)).toBe(false);
+    const withNone = darkSample();
+    withNone.dark_mode = { found_by: "none" };
+    expect(validate(withNone)).toBe(true);
   });
 
   it("the schema rejects a file without its version or with an unknown field", () => {
@@ -364,6 +410,153 @@ describe("viewports", () => {
       { name: "w1024", width: 1024, height: 800 },
     ]);
     expect(widthViewports("200,3840")).toHaveLength(2);
+  });
+});
+
+describe("dark mode", () => {
+  it("names a theme control only by the whole words dark, light, theme, or appearance", () => {
+    for (const name of [
+      "Dark mode",
+      "Toggle theme",
+      "Appearance",
+      "Switch to light",
+    ]) {
+      expect(isThemeControlName(name), name).toBe(true);
+    }
+    for (const name of ["Highlights", "Lightbox", "Flight", "Darkroom"]) {
+      expect(isThemeControlName(name), name).toBe(false);
+    }
+  });
+
+  it("finds a difference only in a value both color probes hold", () => {
+    const light = { "body color": "rgb(0, 0, 0)", "#gone color": null };
+    expect(
+      colorsDiffer(light, {
+        "body color": "rgb(0, 0, 0)",
+        "#gone color": "rgb(1, 1, 1)",
+      }),
+    ).toBe(false);
+    expect(
+      colorsDiffer(light, {
+        "body color": "rgb(255, 255, 255)",
+        "#gone color": null,
+      }),
+    ).toBe(true);
+    expect(
+      colorsDiffer(
+        { "img 0 currentSrc": "a.png" },
+        { "img 0 currentSrc": "a-dark.png" },
+      ),
+    ).toBe(true);
+  });
+
+  it("reads a control's accessible name from its ARIA snapshot", () => {
+    expect(nameFromAriaSnapshot('- button "Dark mode"')).toBe("Dark mode");
+    expect(nameFromAriaSnapshot('- switch "Night \\"dark\\" theme"')).toBe(
+      'Night "dark" theme',
+    );
+    expect(
+      nameFromAriaSnapshot(
+        '- checkbox "Use dark appearance"\n- text: Use dark appearance',
+      ),
+    ).toBe("Use dark appearance");
+    expect(nameFromAriaSnapshot("- text: Light")).toBe("Light");
+    expect(nameFromAriaSnapshot("")).toBeNull();
+  });
+
+  it("turns a failed dark-mode check into no dark mode with the reason", async () => {
+    const failed = await guardDarkMode("desktop", async () => {
+      throw new Error("locator.click: Timeout 2000ms exceeded.\nCall log:");
+    });
+    expect(failed).toEqual({
+      result: {
+        name: "desktop",
+        foundBy: "none",
+        reason:
+          "the dark-mode check failed: locator.click: Timeout 2000ms exceeded.",
+      },
+      measured: null,
+      finalUrl: null,
+      failed: true,
+    });
+    const found = await guardDarkMode("phone", async () => ({
+      result: { name: "phone", foundBy: "system_setting" },
+      measured: null,
+      finalUrl: "file:///page.html",
+    }));
+    expect(found.failed).toBe(false);
+    expect(found.result.foundBy).toBe("system_setting");
+  });
+
+  it("drops the colors that changed between two light reads", () => {
+    const first = {
+      "body background-color": "rgb(255, 255, 255)",
+      "button background-color": "rgb(0, 85, 204)",
+      "#gone color": null,
+    };
+    const second = {
+      "body background-color": "rgb(255, 255, 255)",
+      "button background-color": "rgb(40, 120, 240)",
+      "#gone color": null,
+    };
+    expect(dropMovingColors(first, second)).toEqual({
+      "body background-color": "rgb(255, 255, 255)",
+      "#gone color": null,
+    });
+    // The moving button alone no longer reads as a dark mode.
+    const dark = { ...first, "button background-color": "rgb(51, 136, 255)" };
+    expect(colorsDiffer(dropMovingColors(first, second), dark)).toBe(false);
+    expect(colorsDiffer(first, dark)).toBe(true);
+  });
+
+  it("names a dark entry <name>-dark", () => {
+    expect(darkViewportName("desktop")).toBe("desktop-dark");
+    expect(darkViewportName("w768")).toBe("w768-dark");
+  });
+
+  it("puts the system setting over a toggle, and a toggle over none", () => {
+    const control = { name: "Dark mode", selector: "#theme" };
+    expect(
+      summarizeDarkMode([
+        { name: "desktop", foundBy: "toggle", control },
+        { name: "phone", foundBy: "system_setting" },
+      ]).darkMode,
+    ).toEqual({ found_by: "system_setting" });
+    expect(
+      summarizeDarkMode([
+        { name: "desktop", foundBy: "toggle", control },
+        { name: "phone", foundBy: "none", reason: "no control is visible" },
+      ]).darkMode,
+    ).toEqual({ found_by: "toggle", control });
+    const none = summarizeDarkMode([
+      { name: "desktop", foundBy: "none", reason: "no change" },
+      { name: "phone", foundBy: "none", reason: "no change" },
+    ]);
+    expect(none.darkMode).toEqual({ found_by: "none" });
+    expect(none.notes).toEqual([
+      "--dark: no dark mode was found, so no -dark entry is written: no change",
+    ]);
+    expect(none.viewportNotes.size).toBe(0);
+  });
+
+  it("gives a viewport without a dark entry a note when other viewports have one", () => {
+    const summary = summarizeDarkMode([
+      {
+        name: "desktop",
+        foundBy: "toggle",
+        control: { name: "Dark mode", selector: "#theme" },
+      },
+      {
+        name: "phone",
+        foundBy: "none",
+        reason: "the theme control is not visible",
+      },
+    ]);
+    expect(summary.notes).toEqual([]);
+    expect(summary.viewportNotes.get("phone")).toBe(
+      "--dark: no dark entry for this viewport, though other viewports have one: the theme control is not visible",
+    );
+    expect(summary.viewportNotes.has("desktop")).toBe(false);
   });
 });
 
@@ -421,6 +614,18 @@ describe("readCommandLine", () => {
     expect(readCommandLine(["page.html", "--wide"])).toBeNull();
     expect(readCommandLine(["page.html", "other.html"])).toBeNull();
     expect(readCommandLine(["--phone"])).toBeNull();
+  });
+
+  it("reads --dark anywhere on the line, and only once", () => {
+    expect(readCommandLine(["page.html"])?.dark).toBe(false);
+    expect(readCommandLine(["--dark", "page.html"])?.dark).toBe(true);
+    expect(
+      readCommandLine(["page.html", "--phone", "--dark", "--out", "f"])?.dark,
+    ).toBe(true);
+    expect(
+      readCommandLine(["page.html", "--width", "768", "--dark"])?.dark,
+    ).toBe(true);
+    expect(readCommandLine(["page.html", "--dark", "--dark"])).toBeNull();
   });
 
   it("keeps the page and the output folder", () => {

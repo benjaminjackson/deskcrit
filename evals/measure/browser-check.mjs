@@ -6,6 +6,13 @@
 //   hard-cases.html: the cases from the review of crit-0a0.1, listed at the top of that page.
 // It measures known-values.html with --width 768,1024 and checks that it writes w768.png and
 // w1024.png and a facts.json with only those two viewports, which validates against the schema.
+// With --dark (FR-85, crit-9w5.4) it checks dark-media.html (dark through the system setting),
+// dark-toggle.html (dark through a "Dark mode" button), known-values.html (no dark mode, so no
+// -dark.png and a note), and still-moving.html (a ticking clock and a "Theme" link: no dark mode,
+// and the link is not followed), and dark-covered.html (a covered "Dark mode" button whose click
+// times out: still exit 0, found_by none, and a note that the check failed), and pulse.html (a
+// button whose color pulses, with no dark mode: found_by none); dark-media and
+// dark-toggle are compared with their committed .facts.json.
 // It also serves pages from a local HTTP server to check that a 404 is refused with one line, that
 // a redirect is recorded, and that a page that does not open gives one line. Then it compares the
 // parts of each facts.json that do not depend on the machine with the committed
@@ -28,6 +35,12 @@ import { Ajv2020 } from "ajv/dist/2020.js";
 const repositoryRoot = fileURLToPath(new URL("../..", import.meta.url));
 const measureScript = "plugin/skills/design-critic/scripts/measure.mjs";
 const failures = [];
+
+const validateFacts = new Ajv2020({ allErrors: true }).compile(
+  JSON.parse(
+    readFileSync(join(repositoryRoot, "schemas/facts.schema.json"), "utf8"),
+  ),
+);
 
 /** Records a failure when the condition is false. */
 function check(condition, message) {
@@ -60,9 +73,9 @@ function runMeasureScript(page, extraFlags = []) {
   });
 }
 
-/** Measures a committed page, and returns its facts and the text of its facts.json. */
-async function measureCommittedPage(page) {
-  const run = await runMeasureScript(page);
+/** Measures a committed page, with any extra flags, and returns its facts and the text of its facts.json. */
+async function measureCommittedPage(page, extraFlags = []) {
+  const run = await runMeasureScript(page, extraFlags);
   if (run.exitCode !== 0) {
     throw new Error(
       `measure.mjs exited ${run.exitCode} on ${page}: ${run.lines.join(" | ")}`,
@@ -114,6 +127,7 @@ function stableParts(document) {
     }
     viewports.push({
       name: viewport.name,
+      color_scheme: viewport.color_scheme,
       blocks,
       type_sizes: viewport.type_sizes,
       text_colors: viewport.text_colors,
@@ -124,6 +138,7 @@ function stableParts(document) {
   return {
     version: document.version,
     color_scheme: document.color_scheme,
+    dark_mode: document.dark_mode,
     texts: document.texts,
     viewports,
   };
@@ -339,11 +354,6 @@ if (widthRun.exitCode === 0) {
     JSON.stringify(widthNames) === JSON.stringify(["w768", "w1024"]),
     `--width 768,1024 gave viewports ${JSON.stringify(widthNames)}, expected ["w768","w1024"]`,
   );
-  const validateFacts = new Ajv2020({ allErrors: true }).compile(
-    JSON.parse(
-      readFileSync(join(repositoryRoot, "schemas/facts.schema.json"), "utf8"),
-    ),
-  );
   check(
     validateFacts(widthFacts),
     `the --width 768,1024 facts.json does not validate: ${JSON.stringify(validateFacts.errors)}`,
@@ -354,6 +364,89 @@ if (widthRun.exitCode === 0) {
     `--width 768,1024 gave exit ${widthRun.exitCode}: ${widthRun.lines.join(" | ")}`,
   );
 }
+
+// --dark: dark mode through the system setting, through a toggle, and none.
+/** Checks that a --dark run's facts.json validates and records how dark mode was found. */
+function checkDarkRun(label, measured, foundBy) {
+  check(
+    validateFacts(measured.facts),
+    `${label}: facts.json does not validate: ${JSON.stringify(validateFacts.errors)}`,
+  );
+  check(
+    measured.facts.dark_mode?.found_by === foundBy,
+    `${label}: dark_mode ${JSON.stringify(measured.facts.dark_mode)}, expected found_by ${foundBy}`,
+  );
+  const darkEntry = measured.facts.viewports.find(
+    (viewport) => viewport.name === "desktop-dark",
+  );
+  const darkPng = existsSync(join(measured.outputFolder, "desktop-dark.png"));
+  if (foundBy === "none") {
+    check(
+      darkEntry === undefined && !darkPng,
+      `${label}: wrote a desktop-dark entry or desktop-dark.png with no dark mode`,
+    );
+    check(
+      measured.facts.notes.some((note) =>
+        note.startsWith("--dark: no dark mode was found"),
+      ),
+      `${label}: no note says why there is no dark mode: ${JSON.stringify(measured.facts.notes)}`,
+    );
+  } else {
+    check(
+      darkEntry?.color_scheme === "dark" && darkPng,
+      `${label}: no desktop-dark entry with color_scheme dark, or no desktop-dark.png`,
+    );
+  }
+}
+
+const knownDark = await measureCommittedPage(
+  "evals/measure/known-values.html",
+  ["--dark"],
+);
+checkDarkRun("known-values --dark", knownDark, "none");
+const darkMedia = await measureCommittedPage("evals/measure/dark-media.html", [
+  "--dark",
+]);
+checkDarkRun("dark-media --dark", darkMedia, "system_setting");
+compareWithSample("evals/measure/dark-media.html", darkMedia);
+const darkToggle = await measureCommittedPage(
+  "evals/measure/dark-toggle.html",
+  ["--dark"],
+);
+checkDarkRun("dark-toggle --dark", darkToggle, "toggle");
+check(
+  /dark mode/i.test(darkToggle.facts.dark_mode?.control?.name ?? ""),
+  `dark-toggle --dark: control ${JSON.stringify(darkToggle.facts.dark_mode?.control)}, expected a name matching /dark mode/i`,
+);
+compareWithSample("evals/measure/dark-toggle.html", darkToggle);
+const stillMoving = await measureCommittedPage(
+  "evals/measure/still-moving.html",
+  ["--dark"],
+);
+checkDarkRun("still-moving --dark", stillMoving, "none");
+check(
+  stillMoving.facts.final_url === undefined &&
+    !stillMoving.factsText.includes("followed"),
+  "still-moving --dark: the Theme link was followed",
+);
+
+const darkCovered = await measureCommittedPage(
+  "evals/measure/dark-covered.html",
+  ["--dark"],
+);
+checkDarkRun("dark-covered --dark", darkCovered, "none");
+check(
+  darkCovered.facts.notes.some((note) =>
+    note.includes("the dark-mode check failed"),
+  ),
+  `dark-covered --dark: no note says the dark-mode check failed: ${JSON.stringify(darkCovered.facts.notes)}`,
+);
+
+const pulse = await measureCommittedPage("evals/measure/pulse.html", [
+  "--desktop",
+  "--dark",
+]);
+checkDarkRun("pulse --dark", pulse, "none");
 
 // HTTP: a 404, a redirect, and a page that does not open.
 const server = createServer((request, response) => {
