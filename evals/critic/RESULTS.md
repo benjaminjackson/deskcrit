@@ -778,3 +778,58 @@ replay: node evals/critic/tells.ts --replay --skill-commit 15fe41698c70411d5cffd
 ```
 
 The unchanged critic raises 25 of the 38 tells, never raises one on a clean twin, and praises 6 tells as good design: the color washes behind the hero, headings at weight 800, uppercase labels with wide tracking, sparklines on every stat card, equal cards with the same chart, and the neutral dark template look. On 4 of the 38 clean twins the judge marked the crit as praising the tell: every element highlighted, too many type sizes and weights on one screen, three or more buttons in the hero, and the neutral dark template look. crit-7hw.3 compares its rescore with this table.
+
+## Template tells (rescore, crit-7hw.3)
+
+One critic run per image at skill commit `bb87b6f0`, the critic that is told about the tells, on the same 76 frozen fixtures of `packs/_tells/` and with the same judge question as the baseline. `npm run eval:critic:tells` still replays the baseline; this table replays with the command on its last line and no model call:
+
+```
+tell                                                      positive       negative       raised-on-positive  quiet-on-negative  praised-on-positive  praised-on-negative
+purple-to-blue-or-violet-to-pink-gradients                raised         not_mentioned  yes                 yes                no                   no
+gradient-text-in-headings-numbers-or-the-logo             raised         not_mentioned  yes                 yes                no                   no
+colored-glows-around-elements                             raised         not_mentioned  yes                 yes                no                   no
+color-washes-and-blurred-blobs-behind-content             raised         praised        yes                 yes                no                   yes
+neon-or-bright-colored-borders                            raised         not_mentioned  yes                 yes                no                   no
+many-near-identical-tints-of-one-hue-for-text             raised         not_mentioned  yes                 yes                no                   no
+every-element-highlighted                                 raised         praised        yes                 yes                no                   yes
+glass-cards-with-an-inner-highlight-and-a-colored-shadow  raised         not_mentioned  yes                 yes                no                   no
+headings-at-weight-800-or-900                             not_mentioned  not_mentioned  no                  yes                no                   no
+uppercase-labels-with-wide-tracking                       raised         not_mentioned  yes                 yes                no                   no
+too-many-type-sizes-and-weights-on-one-screen             raised         praised        yes                 yes                no                   yes
+numbers-in-mixed-formats                                  raised         not_mentioned  yes                 yes                no                   no
+negative-letter-spacing-on-small-text                     not_mentioned  not_mentioned  no                  yes                no                   no
+italic-used-for-emphasis-in-interface-text                raised         not_mentioned  yes                 yes                no                   no
+emoji-as-icons-or-status                                  raised         not_mentioned  yes                 yes                no                   no
+emoji-inside-pills-and-counts                             raised         not_mentioned  yes                 yes                no                   no
+icons-in-many-sizes-and-colors                            raised         not_mentioned  yes                 yes                no                   no
+icons-nudged-off-the-column                               raised         not_mentioned  yes                 yes                no                   no
+sparkle-icon-as-decoration                                raised         not_mentioned  yes                 yes                no                   no
+glowing-pills-for-counts-and-status                       raised         not_mentioned  yes                 yes                no                   no
+pro-new-and-beta-badges-everywhere                        raised         not_mentioned  yes                 yes                no                   no
+every-element-a-full-pill                                 raised         not_mentioned  yes                 yes                no                   no
+rainbow-glowing-or-pill-shaped-chart-bars                 raised         not_mentioned  yes                 yes                no                   no
+every-chart-in-shades-of-the-accent                       raised         praised        yes                 yes                no                   yes
+sparklines-on-every-stat-card                             raised         not_mentioned  yes                 yes                no                   no
+equal-cards-side-by-side-with-the-same-chart              raised         not_mentioned  yes                 yes                no                   no
+gradient-logo-tile-with-a-sparkle                         raised         not_mentioned  yes                 yes                no                   no
+logo-mark-as-a-glossy-orb                                 raised         not_mentioned  yes                 yes                no                   no
+pill-badge-above-the-headline                             raised         praised        yes                 yes                no                   yes
+hero-stacked-on-one-centered-axis                         raised         not_mentioned  yes                 yes                no                   no
+three-or-more-buttons-in-the-hero                         raised         not_mentioned  yes                 yes                no                   no
+feature-cards-with-an-emoji-and-a-bold-title              raised         not_mentioned  yes                 yes                no                   no
+glossy-3d-blob-as-the-hero-visual                         raised         not_mentioned  yes                 yes                no                   no
+stock-robots-glowing-brains-and-holograms                 raised         not_mentioned  yes                 yes                no                   no
+image-that-does-not-blend-into-the-page                   not_mentioned  not_mentioned  no                  yes                no                   no
+a-visual-on-every-section                                 raised         not_mentioned  yes                 yes                no                   no
+neutral-dark-template-look                                raised         praised        yes                 yes                no                   yes
+empty-box-or-generic-picture-as-the-hero-visual           raised         not_mentioned  yes                 yes                no                   no
+Total                                                                                   0.92 (35/38)        1.00 (38/38)       0.00 (0/38)          0.16 (6/38)
+skill commit bb87b6f0f1a3e8ce58cbcd2fd42236ce5dcbc18c
+replay: node evals/critic/tells.ts --replay --skill-commit bb87b6f0f1a3e8ce58cbcd2fd42236ce5dcbc18c
+```
+
+The critic now raises 35 of the 38 tells (25 at the baseline) and praises none of them (6 at the baseline). It still never raises a tell on a clean twin. The 3 tells it does not raise are headings at weight 800 or 900, negative letter spacing on small text, and an image that does not blend into the page.
+
+Praised on negative went from 4 of 38 to 6 of 38. In all 6 crits (color washes, every element highlighted, too many type sizes and weights, every chart in shades of the accent, pill badge above the headline, neutral dark template look), the praise is under "What's working" and is for the fix that the clean twin shows, not for the tell: for example "The announcement is a plain underlined link rather than a pill badge" and "doesn't look like a generic dark template." So these are correct calls that the judge counts as praise, and the count stays as the judge gives it.
+
+Decision: keep. The ticket rule is to keep the change only if tells raised on positive rises, praised on positive falls, and detection and repeat run do not fall. Tells raised on positive rose from 25/38 to 35/38, and praised on positive fell from 6/38 to 0/38. Detection did not fall (`SCORES.md`): live raised on positive is 35/37 and quiet on negative 37/37, inside the range of the earlier versions (32 to 37 and 35 to 37), and removed raised on positive is 35/40 and quiet on negative 39/40, against 36/40 and 39/40 at `3a8d079b`. Repeat run batch 1 is 0.779 in all 3 runs, 0.638 in all 3 ranked lists, and verdicts agree on 6 of 10. That is lower than 0.854 and 0.742 at `3f0e7ca5` (9 images), but the noise-floor section of `SCORES.md` shows that two batches of one commit differ by up to 0.169 and 0.244, and the drops here (0.075 and 0.104) are smaller than that. Against the baseline (0.710 and 0.619) repeat run rose. So the repeat run did not fall by more than its measured noise, and the change stays.

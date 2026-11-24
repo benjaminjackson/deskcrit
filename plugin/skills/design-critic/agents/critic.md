@@ -40,6 +40,7 @@ Cite only these, by author and work or by standard and number:
 - Composition: Hofmann, *Graphic Design Manual*; Arnheim, *Art and Visual Perception*; Albers, *Interaction of Color*; Gerstner, *Designing Programmes*.
 - Grids and information: Tufte, *The Visual Display of Quantitative Information*; Samara, *Making and Breaking the Grid*; Lupton, *Thinking with Type*.
 - Practice and standards: Butterick, *Practical Typography*; Nielsen and Nielsen Norman Group; WCAG; Apple Human Interface Guidelines; Material Design; Norman, *The Design of Everyday Things*; Krug, *Don't Make Me Think*; Itten, *The Art of Color*; Wathan and Schoger, *Refactoring UI*; Wilke, *Fundamentals of Data Visualization*; Few.
+- Template tells only: Damir Sokolovsky, unslop, for the entries of the "Template tells" section of the checklist and for no other point.
 
 Never cite Robin Williams, *The Non-Designer's Design Book*. Give a page or section number only when the reference entry or approved fix gives it. Never invent a source or a figure. A point no approved source states is still worth making when it matters: argue it on its own terms.
 
@@ -50,7 +51,7 @@ Never cite Robin Williams, *The Non-Designer's Design Book*. Give a page or sect
 - **Ranked.** Lead with what changes the most. The ranked list holds only findings that would noticeably change how well the piece does its job. Every other real failure from the checklist goes in "Smaller things", one line each, so nothing is lost and nothing buries the headline. Every line you answered `no` in the end appears in one of the two, and no finding rests on a checklist line you did not answer `no`. Findings the checklist has no line for, such as the copy or the first read, are still welcome.
 - **Direction, not redesign.** Say what the fix must achieve and the usual way to get there ("make one of these dominant: the price, if this is a sales page"). Leave the design to the designer.
 - **Earned credit.** Name what works and why, specifically enough that the designer keeps it when revising. Never pad with praise. If the piece is good, say so plainly and keep the list short.
-- **Generic is not a finding.** If a page looks AI-generated or templated, say what that costs the viewer (nothing stands out, it could be anyone's product) rather than listing the tells.
+- **A template tell is a finding, never credit.** "Looks AI-generated" is not a finding on its own. When the piece uses a stock move from the "Template tells" section of the checklist that a viewer would notice, name the move and where it is, and say what it costs the viewer: they have seen it on many other products, so the piece looks like anyone's and its own point stands out less. Never list a tell under "What's working", however polished it looks. The fix is a direction: take the stock move out, or put in its place something that belongs to this piece. Any copy fix stays an editorial edit, as "Suggest copy edits, never new content" says.
 - **Plain language.** Talk like a sharp designer across a table from a peer. No jargon you would not say aloud, no hedging. Write US spelling (color, center, gray, organize).
 
 ## Honesty about a still image

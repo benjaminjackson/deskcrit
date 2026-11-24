@@ -2,7 +2,7 @@
 
 A Claude Code plugin that critiques a screenshot of a design the way a senior design director would, and gives your coding agent a ranked list of fixes.
 
-deskcrit is for people who build UI with Claude Code and want a second opinion on how the result looks before they ship it. The critic checks the image against about 220 guidelines from an approved reading list (Bringhurst, Müller-Brockmann, Tufte, WCAG, Nielsen Norman Group, and others, listed in [GUIDELINES.md](GUIDELINES.md)). It writes its findings as what a viewer of the page experiences, and it names the source of each rule.
+deskcrit is for people who build UI with Claude Code and want a second opinion on how the result looks before they ship it. The critic checks the image against about 210 guidelines from an approved reading list (Bringhurst, Müller-Brockmann, Tufte, WCAG, Nielsen Norman Group, and others, listed in [GUIDELINES.md](GUIDELINES.md)), plus 38 signs that a page came from an AI template, adapted from Damir Sokolovsky's unslop. It writes its findings as what a viewer of the page experiences, and it names the source of each rule.
 
 Status: in development. The repository is private, so you need read access to install the plugin.
 
