@@ -53,6 +53,7 @@ Count the images first. The count picks the mode, and nothing else does. The scr
    <Label>, not: <text>
    ```
 
+   When the caller gave, as a path in the request, the real thing that the piece mocks, such as a product screen, a report, or an app, pass that path to the critic on a `Real thing:` line, as step 2 says. Check it with the Read tool; if the file does not exist, stop and reply with one line: `real thing <path> does not exist`. Never search the disk for the real thing, and never ask the user for one: with none given, the critic says what it could not check.
 2. Spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`. Use this prompt, with the placeholders filled. `<skill folder>` is the base directory Claude Code gave when it loaded this skill.
 
    ```
@@ -69,6 +70,8 @@ Count the images first. The count picks the mode, and nothing else does. The scr
    ```
 
    With a brief from step 1, put the Brief block in place of the `What I know about the piece:` line, and leave out the focus line, because Ask holds it. With no brief, use the prompt exactly as shown.
+
+   When step 1 has a real thing, add the line `Real thing: <absolute path>` as the last line before `You critique only.`, with or without a brief. With two or more real things, put all their paths on that one line, separated by commas.
 
    If the person gives a page or a URL, run `scripts/measure.mjs` on it to get a facts file. Pass no viewport flag, so it renders its four default viewports, or the flags that pick the viewports the person asked for (`--desktop`, `--phone`, `--tablet`, `--widescreen`, `--width N`). Add `--dark` only when the person asks about dark mode, the theme, or both modes. With `--dark`, the script writes a `<name>-dark` entry and `<name>-dark.png` for each viewport only when the page has a dark mode, and `dark_mode.found_by` in `facts.json` says how it found it, or `none`. If it exits with code 4, Playwright or its Chromium is missing: show the person the install commands from its `cannot measure:` line, ask whether to install them, and never install without their yes. On no, critique the image alone and say so.
 

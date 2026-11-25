@@ -68,6 +68,8 @@ or "crit this screenshot". If you also give the page's URL or HTML file, the cri
 
 The critic does not suggest a change to what is fixed or a change toward what the piece is not going for. With `crit-loop`, the brief you give in round 1 applies to every round, and a decision you make about a finding during the loop is added to it.
 
+**Name the real thing a mock shows.** When the design shows a mock of something real, such as a report, an app screen, or a product, give the path of the real one (an image or a PDF) in your request, and the critic checks the mock against it. Without one, the crit says what it could not check. The skill never searches your disk for one.
+
 **Compare several images.** Give it 2 to 12 images and say which check you want:
 
 - "Are these consistent?" gives a consistency check that names each screen that breaks a pattern the others keep.
