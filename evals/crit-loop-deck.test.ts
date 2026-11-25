@@ -4,7 +4,8 @@
 // agents of a round in one message, and turns the set critic's breaks into a set work order; that
 // the design-critic skill runs the consistency check for slides of one deck with no mode named and
 // keeps the refusal line for every other set; that the work-order agent knows how to read a set
-// crit; and that the PRD rows record the change.
+// crit; that a screen a cut left too thin is caught by the recheck critic and the set critic and stays
+// out of every fenced prompt block (crit-1kh); and that the PRD rows record the change.
 
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -148,5 +149,110 @@ describe("the FR-82 row after fix round 1", () => {
     expect(row).toContain(
       "a flow of screens of one product runs the same way; this is the orchestrator's detail",
     );
+  });
+});
+
+/** Returns the text inside each ``` fence of a file: the odd segments of a split on the fence marker. */
+function fencedBlocks(text: string): string[] {
+  const segments = text.split("```");
+  const blocks: string[] = [];
+  for (let index = 1; index < segments.length; index += 2) {
+    blocks.push(segments[index] ?? "");
+  }
+  return blocks;
+}
+
+/** Counts how many times a phrase occurs in a text. */
+function countOccurrences(text: string, phrase: string): number {
+  return text.split(phrase).length - 1;
+}
+
+describe("a screen a cut left too thin (crit-1kh)", () => {
+  const recheckPath = "plugin/skills/design-critic/agents/recheck.md";
+  const setCriticPath = "plugin/skills/design-critic/agents/set-critic.md";
+  const skillPath = "plugin/skills/crit-loop/SKILL.md";
+  const recheck = readRepositoryFile(recheckPath);
+  const setCritic = readRepositoryFile(setCriticPath);
+  const skill = readRepositoryFile(skillPath);
+
+  it("states the rule once, in step 5 of the recheck critic", () => {
+    const start = recheck.indexOf("5. **Look for new problems.**");
+    const end = recheck.indexOf("6. **Rank what is left.**");
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const stepFive = recheck.slice(start, end);
+    for (const phrase of [
+      "one element on a mostly empty frame",
+      "no longer makes the point it made in the before image",
+      "never respacing, enlarging, or moving what is left",
+      "a title slide, a section divider, or an end slide",
+      "`Fact needed from the maker:`",
+      "This is the one statement of the thin-screen rule",
+    ]) {
+      expect(stepFive).toContain(phrase);
+    }
+  });
+
+  it("has no second copy of the rule in another agent file or the crit-loop skill", () => {
+    const files = [
+      recheckPath,
+      setCriticPath,
+      "plugin/skills/design-critic/agents/critic.md",
+      "plugin/skills/design-critic/agents/work-order.md",
+      skillPath,
+    ];
+    const counts = files.map((path) =>
+      countOccurrences(
+        readRepositoryFile(path),
+        "one element on a mostly empty frame",
+      ),
+    );
+    expect(counts).toEqual([1, 0, 0, 0, 0]);
+  });
+
+  it("gives the set critic one exception for a screen with far less content", () => {
+    expect(countOccurrences(setCritic, "far less content")).toBe(1);
+    expect(setCritic).toContain("there is no fixed number");
+    expect(setCritic).toContain("`agents/recheck.md` step 5");
+    expect(setCritic).toContain(
+      "leave out every problem that a single screen shows by itself",
+    );
+  });
+
+  it("tells the fix loop that each screen must still make its point", () => {
+    const fixSection = section(skill, "Fix the design, not the score");
+    expect(fixSection).toContain("each screen must still make its point");
+    expect(fixSection).toContain("`<design-critic folder>/agents/recheck.md`");
+    expect(fixSection).toContain(
+      "Do not hide or remove content to close a finding.",
+    );
+    expect(fixSection).toContain("is not a new section");
+    expect(skill).toContain(
+      "or one that carries a fact or a real example that section allows",
+    );
+  });
+
+  it("keeps the rule out of every fenced prompt block", () => {
+    for (const text of [recheck, setCritic, skill]) {
+      for (const block of fencedBlocks(text)) {
+        for (const phrase of [
+          "too thin",
+          "far less content",
+          "mostly empty frame",
+        ]) {
+          expect(block).not.toContain(phrase);
+        }
+      }
+    }
+  });
+
+  it("records the rule in the FR-82 and FR-83 rows", () => {
+    const fr82 = prdRow("FR-82");
+    expect(fr82).toContain("Decision 2026-11-25 (crit-1kh)");
+    expect(fr82).toContain("one element on a mostly empty frame");
+    expect(fr82).toContain("crit-1kh, 2026-11-25");
+    const fr83 = prdRow("FR-83");
+    expect(fr83).toContain("(crit-1kh)");
+    expect(fr83).toContain("far less content");
   });
 });
