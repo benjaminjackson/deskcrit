@@ -13,7 +13,8 @@
   around it, so it passes; #in-text is a link inside a sentence, so it is exempt.
   Short last lines (crit-y75): #widow is 260 px wide and draws two lines, the last the one word
   "uvwxyzabcdefgh.", so it breaks the rule; #two-words draws two lines whose last holds two words,
-  and #forced draws two lines whose last word follows a <br>, so neither is flagged.
+  #forced draws two lines whose last word follows a <br>, and #newline draws two lines whose last
+  holds "and more.", two words with a source newline between them, so none of the three is flagged.
 -->
 <html lang="en">
 <head>
@@ -43,7 +44,7 @@
     .logo { font-size: 16px; color: #bbbbbb; }
     #off { width: 120px; height: 40px; border: 0; font: 16px "Inter", sans-serif; background: #eeeeee; color: #aaaaaa; }
     #long { white-space: pre-line; }
-    #widow, #two-words { width: 260px; }
+    #widow, #two-words, #newline { width: 260px; }
     .pair { display: flex; gap: 2px; margin: 24px 0; }
     .pair button, #lone { width: 16px; height: 16px; margin: 0; padding: 0; border: 0; background: #000000; }
     #lone { display: block; margin: 48px 0; }
@@ -72,6 +73,8 @@ abcd efgh ijkl mnop qrst uvwx yzab cdef ghij klmn opqr stuv wxyz abcd efgh ijkl 
     <p id="widow">abcd efgh ijkl mnop qrst uvwxyzabcdefgh.</p>
     <p id="two-words">abcd efgh ijkl mnop qrst uvwxyzabcdefgh. abcd.</p>
     <p id="forced">abcd efgh<br>ijkl.</p>
+    <p id="newline">abcd efgh ijkl mnop qrst uvwxyz and
+more.</p>
     <div class="pair"><button id="pair-a" type="button"></button><button id="pair-b" type="button"></button></div>
     <button id="lone" type="button"></button>
     <p id="sentence">Read the <a href="#top" id="in-text">terms</a> before you start.</p>

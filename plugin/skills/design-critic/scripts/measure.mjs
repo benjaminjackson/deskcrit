@@ -310,9 +310,10 @@ export function resolveBackground(layers, canvasColor) {
  * line holds fewer than LAST_LINE_MINIMUM_WORDS words, the line before holds that many or more,
  * and no forced line break starts the last line. Otherwise shortLastLine is null.
  *
- * @param {{ top: number, bottom: number, space?: boolean, breakBefore?: boolean }[]} characterRects
- *   `space` marks a white-space character, and `breakBefore` a character that a forced line break
- *   (a `<br>`, or a newline the white-space style keeps) comes right before.
+ * @param {{ top: number, bottom: number, space?: boolean, breakBefore?: boolean, spaceBefore?: boolean }[]} characterRects
+ *   `space` marks a white-space character, `breakBefore` a character that a forced line break
+ *   (a `<br>`, or a newline the white-space style keeps) comes right before, and `spaceBefore` a
+ *   character that a source newline comes right before, which the browser draws as a space.
  * @returns {{ lines: number, charactersPerLine: number | null, shortLastLine: number | null }}
  */
 export function measureLines(characterRects) {
@@ -341,6 +342,10 @@ export function measureLines(characterRects) {
       afterSpace = true;
     }
     const isSpace = rect.space === true;
+    // A skipped source newline before this character ends the word before it.
+    if (rect.spaceBefore === true) {
+      afterSpace = true;
+    }
     if (!isSpace && afterSpace) {
       wordCounts[wordCounts.length - 1] += 1;
     }
@@ -998,6 +1003,12 @@ export function summarizeViewport(raw) {
  * @param {{ maxBlocks: number, maxTargets: number, snippetLength: number, maxCharacters: number }} limits
  */
 function readPage(limits) {
+  // The white-space-collapse values that keep a source newline, so it forces a line break (crit-y75).
+  const KEPT_NEWLINE_STYLES = new Set([
+    "preserve",
+    "preserve-breaks",
+    "break-spaces",
+  ]);
   const pageHeight = document.documentElement.scrollHeight;
   const pageWidth = document.documentElement.scrollWidth;
 
@@ -1296,6 +1307,11 @@ function readPage(limits) {
     let measured = 0;
     // True when a forced line break comes before the next drawn character (FR-79, crit-y75).
     let breakBefore = false;
+    // True when a skipped source newline comes before the next drawn character. The browser draws
+    // a collapsed newline as a space, so that character starts a new word (crit-y75).
+    let spaceBefore = false;
+    // True when the character limit cut the block, so its last line is not known.
+    let cut = false;
     for (const entry of entries) {
       if (entry.lineBreak) {
         breakBefore = true;
@@ -1305,29 +1321,26 @@ function readPage(limits) {
       if (textNode === undefined) {
         continue;
       }
-      // A newline in the source forces a line break only when the white-space style keeps it.
-      const keptNewlines = new Set([
-        "preserve",
-        "preserve-breaks",
-        "break-spaces",
-      ]);
       const textParent = textNode.parentElement;
       let keepsNewlines = false;
       if (textParent !== null) {
-        keepsNewlines = keptNewlines.has(
+        keepsNewlines = KEPT_NEWLINE_STYLES.has(
           getComputedStyle(textParent).whiteSpaceCollapse,
         );
       }
       for (let offset = 0; offset < textNode.data.length; offset++) {
         if (measured >= limits.maxCharacters) {
+          cut = true;
           break;
         }
         const character = textNode.data[offset];
         if (character === "\n" || character === "\r") {
           // A kept line break (white-space: pre or pre-line) ends a line; it is not a character on it.
+          // Its box is not measured, so characters per line stays the same; it only ends a word.
           if (keepsNewlines) {
             breakBefore = true;
           }
+          spaceBefore = true;
           continue;
         }
         range.setStart(textNode, offset);
@@ -1346,8 +1359,10 @@ function readPage(limits) {
           // trim() removes every kind of white space, the non-breaking space included.
           space: character?.trim() === "",
           breakBefore,
+          spaceBefore,
         });
         breakBefore = false;
+        spaceBefore = false;
         const left = rect.left + window.scrollX;
         const isLetter = character?.trim() !== "";
         if (isLetter && (textLeft === null || left < textLeft)) {
@@ -1355,7 +1370,7 @@ function readPage(limits) {
         }
       }
     }
-    if (measured >= limits.maxCharacters) {
+    if (cut) {
       candidate.notes.push(
         `characters per line measured on the first ${limits.maxCharacters} characters`,
       );
@@ -1398,7 +1413,7 @@ function readPage(limits) {
       characterRects,
       textLeft,
       // False when the character limit cut the block, so its last line is not known.
-      allMeasured: measured < limits.maxCharacters,
+      allMeasured: !cut,
       notes: candidate.notes,
       exemption: blockExemption(entries, owner),
       samples: [],

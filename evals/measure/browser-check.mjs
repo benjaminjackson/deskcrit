@@ -3,7 +3,7 @@
 //   known-values.html: 16 px Inter, 40 characters per line within 2, contrast 21 and 4.48, three
 //   cases with no contrast number, a hidden block left out, a 120 x 40 px button, light mode, and
 //   the desktop violations list: exactly #gray, #long, #widow, #pair-a, and #pair-b, with the exempt
-//   cases out, and two drawn lines each for #two-words and #forced, which are not flagged (crit-y75).
+//   cases out, and two drawn lines each for #two-words, #forced, and #newline, which are not flagged (crit-y75).
 //   hard-cases.html: the cases from the review of crit-0a0.1, listed at the top of that page.
 // It measures known-values.html with --width 768,1024 and checks that it writes w768.png and
 // w1024.png and a facts.json with only those two viewports, which validates against the schema.
@@ -245,8 +245,8 @@ check(
   JSON.stringify(violationNames) === JSON.stringify(expectedViolations),
   `desktop violations ${JSON.stringify(violationNames)}, expected ${JSON.stringify(expectedViolations)}`,
 );
-// #two-words and #forced must draw two lines, or their absence from the list above proves nothing (crit-y75).
-for (const selector of ["#two-words", "#forced"]) {
+// #two-words, #forced, and #newline must draw two lines, or their absence from the list above proves nothing (crit-y75).
+for (const selector of ["#two-words", "#forced", "#newline"]) {
   const block = findBlock(known.facts, "desktop", selector);
   check(block?.lines === 2, `${selector} lines ${block?.lines}, expected 2`);
 }

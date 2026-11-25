@@ -315,6 +315,16 @@ describe("measureLines", () => {
     ).toBe(1);
   });
 
+  it("counts a word after a source newline the browser drew as a space (crit-y75)", () => {
+    const lastLine = wordsOnLine(24, "andmore.");
+    // The source reads "and\nmore."; the skipped newline marks "m" as the start of a word.
+    const firstOfSecondWord = lastLine[3];
+    if (firstOfSecondWord !== undefined) {
+      Object.assign(firstOfSecondWord, { spaceBefore: true });
+    }
+    expect(shortLastLineOf([wordsOnLine(0, "ab cd ef "), lastLine])).toBeNull();
+  });
+
   it("reports no short last line for two words, one line, a forced break, or one word above", () => {
     expect(
       shortLastLineOf([wordsOnLine(0, "ab cd ef "), wordsOnLine(24, "gh ij")]),
