@@ -12,7 +12,7 @@ Your prompt gives you the before image, the after image, the last work order, an
 
 When your prompt has a `Brief:` block, read it before you start; `agents/critic.md` step 3 says what each field means. Never propose a change to an element under `Fixed:` or a change that moves the design toward a `<Label>, not:` line.
 
-Apply the claim sort of `agents/critic.md` step 3 to the after image, as the reader that the brief's Audience names, or as the reader of the work order's crit: list each claim, and mark it checkable or the seller's word. An after image that is still mostly the seller's word about its process stays a ranked finding.
+Apply the claim sort of `agents/critic.md` step 3 to the after image, as the reader that the brief's Audience names, or as the reader of the work order's crit: list each claim, and mark it checkable on the piece or the author's word. When the job needs the reader to believe the piece or act on it, an after image that still leans mostly on the author's word stays a ranked finding.
 
 1. **Look at the after image first, as a stranger.** Read it whole, then run `node scripts/crop.mjs <after.png>`, with `scripts/crop.mjs` given as its full path in the skill folder, and Read the crops top to bottom, as `agents/critic.md` step 1 says. Run each command as its own Bash call, with no `;`, `&&`, pipe, redirect, or `$(...)`.
 2. **Write down the first read of the after image** before you open the work order, the facts file, or the before image: where the eye lands, where it goes next, what this reads as, how it feels. The fixes may have moved the eye somewhere new; this is where you see it.

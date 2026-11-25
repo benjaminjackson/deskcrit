@@ -226,9 +226,11 @@ describe("the agent files", () => {
   });
 
   // The claim sort and the trust sentence (FR-77 as changed by crit-38w): the critic reads as the
-  // brief's Audience, sorts each claim into checkable or the seller's word, ranks a piece that is
-  // mostly the seller's word, and says what the reader must see to trust the piece. The recheck
-  // critic applies the same sort and copies the trust sentence.
+  // brief's Audience, sorts each claim into checkable on the piece or the author's word, ranks a
+  // piece that leans mostly on the author's word when its job needs belief or action, and says
+  // what the reader must see to believe the piece or act on it. The recheck critic applies the
+  // same sort and copies the trust sentence. The rule fits any piece and reader, so the claim sort never
+  // names a seller (Benjamin Jackson, 2026-11-25).
   it("critic.md step 3 sorts the claims after the Ask bullet, as the Audience reads them", () => {
     const critic = readSkillFile("agents", "critic.md");
     const stepStart = critic.indexOf("3. **Establish the job.**");
@@ -243,12 +245,13 @@ describe("the agent files", () => {
     const claimSort = step.slice(askAt, briefDescribesAt);
     for (const phrase of [
       "**Audience**",
-      "**checkable**",
-      "**the seller's word**",
+      "**checkable on the piece**",
+      "**the author's word**",
       "ranked finding",
     ]) {
       expect(claimSort).toContain(phrase);
     }
+    expect(claimSort).not.toMatch(/\bseller/i);
   });
 
   it("critic.md's What it's for line has the trust sentence", () => {
@@ -256,7 +259,7 @@ describe("the agent files", () => {
     const line = critic
       .split("\n")
       .find((text) => text.startsWith("**What it's for.**"));
-    expect(line).toContain("must see to trust the piece");
+    expect(line).toContain("must see to believe the piece or act on it");
   });
 
   it("recheck.md applies the claim sort and copies the trust sentence", () => {
@@ -268,5 +271,6 @@ describe("the agent files", () => {
       .split("\n")
       .find((text) => text.startsWith("**What it's for.**"));
     expect(line).toContain("the trust sentence copied from that crit");
+    expect(recheck).not.toMatch(/\bseller/i);
   });
 });
