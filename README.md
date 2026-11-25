@@ -73,7 +73,7 @@ The critic does not suggest a change to what is fixed or a change toward what th
 - "Are these consistent?" gives a consistency check that names each screen that breaks a pattern the others keep.
 - "Which is best?" gives a best pick, ranked by how well each version does its job.
 
-Each image also gets its own crit and work order. If you say the images are slides of one deck, the skill runs the consistency check. Otherwise, if you do not say which check you want, the skill asks. If another agent calls the skill and does not name the check, the skill refuses with one line, except for slides of one deck.
+Each image also gets its own crit and work order. If you say the images are slides of one deck or screens of one flow, the skill runs the consistency check. Otherwise, if you do not say which check you want, or the images could be versions of one design, the skill asks. If another agent calls the skill and does not name the check, the skill refuses with one line, except for slides of one deck or screens of one flow.
 
 **Fix a page in a loop.** After Claude changes UI code, ask it to check the design and fix it, or run:
 

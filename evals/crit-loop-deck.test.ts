@@ -79,7 +79,7 @@ describe("the design-critic skill's mode for slides of one deck", () => {
   const pickTheMode = section(skill, "Pick the mode");
 
   it("runs the consistency check with no question", () => {
-    expect(pickTheMode).toContain("Slides of one deck");
+    expect(pickTheMode).toContain("Slides of one deck or screens of one flow");
     expect(pickTheMode).toContain("ask no question");
   });
 
@@ -87,6 +87,7 @@ describe("the design-critic skill's mode for slides of one deck", () => {
     const refusal =
       '`Two or more images need a mode: "consistency check" or "best pick".`';
     expect(pickTheMode).toContain(refusal);
+    expect(pickTheMode).toContain("could be versions of one design");
     const deckRule = pickTheMode.indexOf("Slides of one deck");
     const otherSets = pickTheMode.indexOf("For any other set");
     expect(otherSets).toBeGreaterThan(deckRule);
@@ -116,5 +117,6 @@ describe("the PRD rows of the deck path", () => {
     const row = prdRow("FR-83");
     expect(row).toContain("slides of one deck");
     expect(row).toContain("2026-11-25");
+    expect(row).toContain("screens of one flow");
   });
 });
