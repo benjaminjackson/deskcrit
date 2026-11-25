@@ -338,7 +338,7 @@ describe("the agent files", () => {
       "answer the three questions of `agents/critic.md` step 3 for the after image",
       "not part of what you return",
       "the same condition as `agents/critic.md` step 3",
-      "rank a claim problem only when the after image adds a claim and the job needs the reader's belief",
+      "rank a claim problem only when a change to the after image makes it meet that condition",
       "new problem",
     ]) {
       expect(step).toContain(phrase);
