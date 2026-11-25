@@ -530,6 +530,11 @@ describe("the facts a finding requests from the maker", () => {
       "`Fact needed from the maker: <the fact>.`",
       "just before the `Viewports:` ending",
       "Never search the disk or the repository for a fact",
+      "or at its end when it has no such ending",
+      "A fact request is its own finding, and its whole fix is the missing fact.",
+      "write that part as a separate finding without the sentence",
+      "or a fact the brief states, is never a fact request",
+      "Neither is a real thing that your prompt does not give",
     ]) {
       expect(critic).toContain(phrase);
     }
@@ -543,7 +548,7 @@ describe("the facts a finding requests from the maker", () => {
     expect(recheck).toContain("A fact the brief states is not made up.");
     const workOrder = readSkillFile("agents", "work-order.md");
     expect(workOrder).toContain("Fact needed from the maker:");
-    expect(workOrder).toContain("Never search the disk");
+    expect(workOrder).toContain("Never search the disk or the repository");
     for (const text of [recheck, workOrder]) {
       expect(text).not.toContain("just before the `Viewports:` ending");
     }
@@ -562,6 +567,10 @@ describe("the facts a finding requests from the maker", () => {
       "ask one question for all the images together",
       "When no finding requests a fact, ask nothing",
       "When no person can answer",
+      "wait until every crit that runs together is done",
+      "every slide's crit or recheck of a fix-loop round",
+      "making the block when there was no brief, and give every work-order agent of those crits that Brief block",
+      "Leave out each fact that the caller says was asked for before and not given",
     ]) {
       expect(stepFive).toContain(phrase);
     }
@@ -575,14 +584,20 @@ describe("the facts a finding requests from the maker", () => {
     );
     for (const phrase of [
       "When the person settles a finding",
-      "Do not ask again",
+      "`<loop folder>/facts-asked.txt`, one line each, in the request's own words",
+      "so it does not ask for them again",
+      "A fact the person answers goes into `brief.md` and not into that file",
+      "the set critic requests no facts",
       "does not count against the stop rules",
       "No slide has a ranked finding",
       "never searches the disk or the repository",
       "the files the caller named",
+      "A finding whose whole fix is a requested fact that nobody gave stays open",
+      "together with other fixes is not set aside: make its other fixes",
     ]) {
       expect(section).toContain(phrase);
     }
+    expect(section).not.toMatch(/\bowner\b/);
     expect(section).not.toMatch(
       /\b(bd|beads|CLAUDE\.md|buyer|customer|sale|sales|sell|purchase|price)\b/i,
     );
@@ -597,9 +612,23 @@ describe("the facts a finding requests from the maker", () => {
     expect(lines[1]).toMatch(/^6\. If you do not stop/);
   });
 
+  it("contact-sheet mode and later deck rounds ask once, after every crit", () => {
+    expect(designCritic).toContain(
+      "when every crit is done, ask for the requested facts as step 5 says, then write each work order",
+    );
+    expect(loop).toContain(
+      "wait for every slide's recheck, ask once for the facts that all of them request",
+    );
+  });
+
   it("both stop rules of the crit-loop SKILL.md set the requested facts aside", () => {
     const deckStop = sliceBetween(loop, "**When to stop.**", "\n\n");
     expect(deckStop).toContain("When a finding requests a fact");
+    const deckRoundOne = sliceBetween(loop, "**Round 1.**", "\n\n");
+    expect(deckRoundOne).toContain('"Deck pattern wins" overrides');
+    expect(deckRoundOne).toContain(
+      '"When a finding requests a fact" sets aside',
+    );
     const pageStop = sliceBetween(loop, "## When to stop", "\n## ");
     expect(pageStop).toContain("When a finding requests a fact");
   });
