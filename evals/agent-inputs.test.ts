@@ -96,6 +96,7 @@ describe("the inputs rule of the design-critic agents", () => {
       "by the exact path you were given",
       "sits next to",
       "Never list, glob, or grep a folder",
+      "never run `ls`, `find`, `grep`, `cat`, or `cd`",
       "never search the disk or the repository",
       "project records",
       "harness relays into your context",
