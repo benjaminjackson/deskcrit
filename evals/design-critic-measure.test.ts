@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import {
   cpSync,
   mkdirSync,
@@ -908,5 +909,83 @@ describe("findCheckoutPacksAnchor", () => {
     const { root, scriptFolder } = makeScriptFolder();
     writeFileSync(join(root, "GUIDELINES.md"), "# Guidelines\n");
     expect(findCheckoutPacksAnchor(scriptFolder)).toBeNull();
+  });
+});
+
+describe("measure.mjs in a copy of the plugin", () => {
+  /** The message the stub Playwright throws when the script asks it to start Chromium. */
+  const STUB_MESSAGE = "stub playwright above the copy";
+
+  /**
+   * Copies the design-critic scripts into a new temp folder, and puts packs/package.json and a
+   * stub playwright package in packs/node_modules/ of that folder, above the copy. It returns the
+   * folder, the copied script, and a separate working folder that holds a page.
+   */
+  function makeCopyWithPacksAbove(): {
+    root: string;
+    script: string;
+    workingFolder: string;
+  } {
+    const root = mkdtempSync(join(tmpdir(), "measure-copy-"));
+    const scriptFolder = join(
+      root,
+      "plugin",
+      "skills",
+      "design-critic",
+      "scripts",
+    );
+    cpSync(
+      join(repositoryRoot, "plugin", "skills", "design-critic", "scripts"),
+      scriptFolder,
+      { recursive: true },
+    );
+    const stubFolder = join(root, "packs", "node_modules", "playwright");
+    mkdirSync(stubFolder, { recursive: true });
+    writeFileSync(join(root, "packs", "package.json"), "{}\n");
+    writeFileSync(
+      join(stubFolder, "package.json"),
+      '{ "name": "playwright", "main": "index.js" }\n',
+    );
+    // The stub fails at once when the script starts Chromium, so its message shows that the
+    // script loaded it.
+    writeFileSync(
+      join(stubFolder, "index.js"),
+      `module.exports = { chromium: { launch: async () => { throw new Error(${JSON.stringify(STUB_MESSAGE)}); } } };\n`,
+    );
+    const workingFolder = mkdtempSync(join(tmpdir(), "measure-work-"));
+    writeFileSync(join(workingFolder, "page.html"), "<p>Hello</p>\n");
+    return {
+      root,
+      script: join(scriptFolder, "measure.mjs"),
+      workingFolder,
+    };
+  }
+
+  /** Runs the copied script on page.html in the working folder and returns its exit code and output. */
+  function runCopiedScript(
+    script: string,
+    workingFolder: string,
+  ): { exitCode: number | null; output: string } {
+    const result = spawnSync(
+      process.execPath,
+      [script, "page.html", "--out", join(workingFolder, "out"), "--desktop"],
+      { cwd: workingFolder, encoding: "utf8" },
+    );
+    return { exitCode: result.status, output: result.stdout + result.stderr };
+  }
+
+  it("loads no Playwright from packs/ above the copy when no GUIDELINES.md is there", () => {
+    const { script, workingFolder } = makeCopyWithPacksAbove();
+    const result = runCopiedScript(script, workingFolder);
+    expect(result.exitCode).toBe(EXIT_TOOL_MISSING);
+    expect(result.output).toContain("Playwright is not installed");
+    expect(result.output).not.toContain(STUB_MESSAGE);
+  });
+
+  it("loads the Playwright in packs/ when GUIDELINES.md marks a deskcrit checkout", () => {
+    const { root, script, workingFolder } = makeCopyWithPacksAbove();
+    writeFileSync(join(root, "GUIDELINES.md"), "# Guidelines\n");
+    const result = runCopiedScript(script, workingFolder);
+    expect(result.output).toContain(STUB_MESSAGE);
   });
 });

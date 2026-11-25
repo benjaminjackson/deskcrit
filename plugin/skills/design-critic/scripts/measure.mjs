@@ -1547,7 +1547,8 @@ function readPage(limits) {
  * null when the script does not run from a deskcrit checkout. A checkout has GUIDELINES.md and
  * packs/package.json at its root, four levels above the script folder. Reason: an installed copy
  * of the plugin reads nothing it was not given, so it must not load a package from whatever folder
- * sits above it (bd memory inputs-only-given, crit-dh9).
+ * sits above it (bd memory inputs-only-given, crit-dh9). A full clone of the repository that a
+ * plugin marketplace makes also counts as a checkout, and that is accepted.
  *
  * @param {string} scriptFolder
  * @returns {string | null}
