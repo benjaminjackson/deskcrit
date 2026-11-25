@@ -1,6 +1,6 @@
 # EV-10 loop test
 
-This folder holds what the EV-10 loop test needs: a deliberately bad page, a screenshot script, and the record template. In the loop test, Claude Code with the deskcrit plugin works on the bad page with the `crit-loop` skill until no ranked finding is left or two rounds in a row close nothing (FR-82). The rules are in `docs/PRD.md` EV-18, R-5, and FR-82. This README does not restate them.
+This folder holds what the EV-10 loop test needs: a deliberately bad page, a screenshot script, and the record template. In the loop test, Claude Code with the deskcrit plugin works on the bad page with the `crit-loop` skill until no finding is left, ranked or smaller, or two rounds in a row close nothing (FR-82). The rules are in `docs/PRD.md` EV-18, R-5, and FR-82. This README does not restate them.
 
 Benjamin Jackson runs the test and writes the verdict. An agent never writes the verdict (R-5).
 
@@ -67,7 +67,7 @@ Benjamin Jackson runs the test and writes the verdict. An agent never writes the
 
 1. Before you read the transcript, a crit, or a work order, look at `before.png` and `after.png` side by side.
 2. Decide whether the after page is better, the same, or worse, and write your verdict and one or two sentences of reasoning in `RESULT.md`.
-3. Only then read the transcript, the crits, and the work orders in the loop folder the agent names, and fill in the other fields of `RESULT.md`. If the loop stopped with no ranked finding left but you judged the page not better, `RESULT.md` names that as the R-5 review trigger. Open a follow-up ticket for it.
+3. Only then read the transcript, the crits, and the work orders in the loop folder the agent names, and fill in the other fields of `RESULT.md`. If the loop stopped with no finding left but you judged the page not better, `RESULT.md` names that as the R-5 review trigger. Open a follow-up ticket for it.
 
 ## Commit the run
 

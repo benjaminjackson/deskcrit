@@ -496,3 +496,140 @@ describe("the skill files frame no piece as a sale (crit-cgl)", () => {
     ).toEqual(["price", "sales"]);
   });
 });
+
+/**
+ * Returns the text of `text` from the first `start` to the first `end` after it, or to the end of
+ * the text when `end` does not follow. It throws when `start` is missing, so a renamed heading
+ * fails the test instead of checking an empty slice.
+ */
+function sliceBetween(text: string, start: string, end: string): string {
+  const startIndex = text.indexOf(start);
+  if (startIndex === -1) {
+    throw new Error(`missing: ${start}`);
+  }
+  const endIndex = text.indexOf(end, startIndex + start.length);
+  if (endIndex === -1) {
+    return text.slice(startIndex);
+  }
+  return text.slice(startIndex, endIndex);
+}
+
+/** Reads a file of this repository as UTF-8 text, from its path parts below the root. */
+function readRepositoryText(...pathParts: string[]): string {
+  return readFileSync(join(REPOSITORY_ROOT, ...pathParts), "utf8");
+}
+
+// Benjamin Jackson, 2026-11-25 (crit-73l, FR-82): each round fixes every finding of the work
+// order, the ranked ones first and then the ones with rank null (the "Smaller things" items), and
+// stop rule 1 counts both lists. The fixer skips a finding only for the reasons step 1 lists, and
+// names each one at the stop. Review trigger: a run keeps going for rounds on smaller things that
+// no fix closes, or Benjamin Jackson changes the ruling.
+describe("fix and stop rules count the smaller things (crit-73l, FR-82)", () => {
+  const RECHECK_TEXT = readFileSync(
+    join(DESIGN_CRITIC_FOLDER, "agents", "recheck.md"),
+    "utf8",
+  );
+
+  it("step 1 fixes every finding and lists the skips", () => {
+    const stepOne = sliceBetween(
+      SKILL_TEXT,
+      "## Each round after that",
+      "\n2. Capture",
+    );
+    expect(stepOne).toContain(
+      "Fix every finding in this pass, the ones with `rank` null after the ranked ones",
+    );
+    expect(stepOne).toContain("name each finding you skipped and why");
+    expect(stepOne).toContain("the brief's Ask or Stage puts out of scope");
+    expect(stepOne).toContain(
+      "the line that says a mock could not be checked against the real thing",
+    );
+    expect(stepOne).not.toContain("as many as you can");
+  });
+
+  it("round 1 stops only when no finding would count", () => {
+    const line =
+      SKILL_TEXT.split("\n").find((text) =>
+        text.startsWith("3. If the work order"),
+      ) ?? "";
+    expect(line).toContain('"No finding is left" in "When to stop"');
+  });
+
+  it("stop rule 1 counts the Smaller things list and points to the skips", () => {
+    const stopRules = sliceBetween(SKILL_TEXT, "## When to stop", "\n## ");
+    expect(stopRules).toContain("- No finding is left:");
+    expect(stopRules).toContain('lists no item under "Smaller things"');
+    expect(stopRules).toContain('"None." under "What would move it most"');
+    expect(stopRules).toContain("When a finding requests a fact");
+    expect(stopRules).toContain(
+      'the other findings that step 1 of "Each round after that" skips',
+    );
+    expect(stopRules).toContain("the findings you skipped, each with why");
+    expect(stopRules).not.toContain("no ranked finding left");
+  });
+
+  it("the deck counts the smaller things of each slide", () => {
+    const deckStop = sliceBetween(SKILL_TEXT, "**When to stop.**", "\n## ");
+    expect(deckStop).toContain(
+      "No slide has a ranked finding or a smaller thing left",
+    );
+    const deckRoundOne = sliceBetween(SKILL_TEXT, "**Round 1.**", "\n\n");
+    expect(deckRoundOne).toContain("has a finding, ranked or with `rank` null");
+  });
+
+  it("the description names the new stop rule", () => {
+    const description =
+      SKILL_TEXT.split("\n").find((text) => text.startsWith("description:")) ??
+      "";
+    expect(description).toContain("no finding is left, ranked or smaller");
+    expect(description).not.toContain("no ranked finding is left");
+  });
+
+  it("no fenced block of the skill holds the new rule", () => {
+    const fencedText = listFencedLines(SKILL_TEXT).join("\n");
+    expect(fencedText).not.toContain("Smaller things");
+    expect(fencedText).not.toContain("`rank` null");
+  });
+
+  it("the recheck sends every Smaller things item to the fixer", () => {
+    const stepSix = sliceBetween(
+      RECHECK_TEXT,
+      "6. **Rank what is left.**",
+      "\n## ",
+    );
+    expect(stepSix).toContain(
+      'Every item under "Smaller things" goes into the next work order',
+    );
+    expect(RECHECK_TEXT).not.toContain("an empty ranked list ends the loop");
+    expect(RECHECK_TEXT).toContain(
+      'never list the finding again, ranked or under "Smaller things"',
+    );
+  });
+
+  it("the FR-82 row records the decision", () => {
+    const row =
+      readRepositoryText("docs", "PRD.md")
+        .split("\n")
+        .find((line) => line.startsWith("| FR-82 |")) ?? "";
+    expect(row).toContain("Decision 2026-11-25 (crit-73l)");
+    expect(row).toContain("fixes every finding of the work order");
+    expect(row).toContain("both empty");
+    expect(row).toContain("the brief's Ask or Stage puts it out of scope");
+    expect(row).toContain(
+      "the line that a mock could not be checked against the real thing",
+    );
+  });
+
+  for (const pathParts of [
+    ["README.md"],
+    ["plugin", "README.md"],
+    ["plugin", ".claude-plugin", "plugin.json"],
+    [".claude-plugin", "marketplace.json"],
+  ]) {
+    it(`the user text drops the old stop rule: ${pathParts.join("/")}`, () => {
+      const text = readRepositoryText(...pathParts);
+      expect(text).not.toContain("no ranked finding");
+      expect(text).not.toContain("top findings");
+    });
+  }
+});
