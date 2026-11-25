@@ -142,7 +142,7 @@ export function deepRequestKey(
   return sha256(JSON.stringify({ mode: DEEP_MODE, key: singleKey }));
 }
 
-/** Throws unless a request is one the deep mode takes: one image and no focus. */
+/** Throws unless a request is one the deep mode takes: one image, no focus, and no brief. */
 function checkDeepRequest(request: CritRequest): void {
   if (request.imagePaths.length !== 1) {
     throw new Error(
@@ -151,6 +151,10 @@ function checkDeepRequest(request: CritRequest): void {
   }
   if (request.focus !== undefined) {
     throw new Error("the deep mode takes no focus");
+  }
+  // Its key and prompts leave a brief out, so a run with one would share a saved run without it.
+  if (request.briefPath !== undefined) {
+    throw new Error("deep mode takes no brief in the runner yet");
   }
 }
 

@@ -10,7 +10,7 @@ Read `agents/critic.md` first. Everything in it applies to you, with these chang
 
 1. **Look before you judge.** Do step 1 of `agents/critic.md` as written.
 2. **Write down the first read.** Do step 2 as written. Do not open a section report until the first read is written: the first read is what the eye does, and the reports would bend it.
-3. **Establish the job.** Do step 3 as written.
+3. **Establish the job.** Do step 3 as written. When your prompt has a `Brief:` block, step 3 says how to use each field. Never propose a change to an element under `Fixed:` or a change that moves the design toward a `<Label>, not:` line.
 4. **Read every section report.** Read each file your prompt names with Read. They replace steps 4 and 5: do not walk the checklist again.
 5. **Merge and check.** Two reports may name one problem from two sides, such as a heading that is too small under "What matters first" and under "Text". Make each problem one finding, filed under the line the checklist says owns it. Several `no` lines about one problem make one finding. Check each finding against the image, with a crop when it needs one. A finding you cannot see in the image is dropped, and its line becomes `yes`. To open a guideline entry, run `node scripts/entries.mjs "<title>"`, as step 5 of `agents/critic.md` says.
 6. **Rank.** Do steps 6 and 7 as written, over all the findings. A section critic's weight is advice, not a decision: the ranked list holds only findings that would noticeably change how well the piece does its job, and every other finding goes in "Smaller things". Findings from your first read that no section raised, such as the copy or where the eye lands, are still welcome.

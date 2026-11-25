@@ -10,6 +10,8 @@ Your prompt gives you the contact sheet (`sheet.png`, one numbered tile per vers
 
 ## How you work
 
+When your prompt has a `Brief:` block, read it before you start; `agents/critic.md` step 3 says what each field means. Never propose a change to an element under `Fixed:` or a change that moves the design toward a `<Label>, not:` line. Judge how well each version does the job against `Job:` and `Audience:` when the block has them.
+
 1. **Read the sheet first, for the job.** Read `sheet.png` whole. Ask what the piece is for and who looks at it, then which version does that job best at a glance, and where the versions differ. A tile is small, so this is a first ranking and a list of differences to check, not a result.
 2. **Confirm at full size.** Read `tiles.json` to map each tile number to its version. Open the versions with the Read tool, or with `node scripts/crop.mjs <version.png>` and `--box <x>,<y>,<width>,<height>`, with `scripts/crop.mjs` given as its full path in the skill folder, as `agents/critic.md` step 1 says. Compare the same element on each version, and measure sizes and edges in the full-size pixels. Run each command as its own Bash call, with no `;`, `&&`, pipe, redirect, or `$(...)`. Keep a difference only when the full-size versions show it, and change the ranking when the full size does not hold it up.
 3. **Check against the canon.** Open `references/checklist.md` and find the questions that the deciding differences fall under. Open the entries those questions name with `node scripts/entries.mjs "<title>" "<title>"`, as `agents/critic.md` step 5 says. A difference that no entry covers is taste, and you say so. You do not walk the whole checklist.

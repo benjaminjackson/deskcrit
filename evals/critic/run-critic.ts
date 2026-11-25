@@ -7,12 +7,14 @@
 // It asks a model, so `npm run ci` never runs it (CS-21); a person starts run mode by hand.
 //
 // Usage:
-//   node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--parallel N] [--runs-dir DIR] [--note TEXT] [--facts FILE] IMAGE...
-//   node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] [--facts FILE] IMAGE...
+//   node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--parallel N] [--runs-dir DIR] [--brief FILE] [--note TEXT] [--facts FILE] IMAGE...
+//   node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--brief FILE] [--note TEXT] [--facts FILE] IMAGE...
 //   node evals/critic/run-critic.ts --help
 // Each image on the command line is a separate one-image request. A request may carry a measured
 // facts file (FR-79): its SHA-256 joins the request key and its prompt line joins the prompt hash,
-// so a run with facts never shares a saved run with one without.
+// so a run with facts never shares a saved run with one without. A request may carry a brief file
+// (FR-87) the same way: its Brief block takes the place of the note and focus lines, and its
+// SHA-256 joins the request key.
 //
 // Exit codes: 0 when every request has its crits, 1 when replay finds an image with no saved crit,
 // and 2 when the runner could not run.
@@ -132,12 +134,52 @@ export const JEV_EVIDENCE_PROMPT_LINE =
 /** The Image(s) line of the template, which the facts line follows. */
 const IMAGES_PROMPT_LINE = "Image(s): <absolute paths>";
 
+/** The first line of the Brief block (FR-87), as step 1 of the skill's SKILL.md writes it. */
+const BRIEF_PROMPT_HEADER = "Brief:";
+
+/** The placeholder of the brief lines in the template of a request with a brief. */
+const BRIEF_LINES_PLACEHOLDER = "<brief lines>";
+
+/**
+ * The labels a line of a brief file may start with (FR-87): the eight fields in their order, and the
+ * "not" lines of the first five.
+ */
+export const BRIEF_LABELS: readonly string[] = [
+  "Job",
+  "Job, not",
+  "Audience",
+  "Audience, not",
+  "Setting",
+  "Setting, not",
+  "Message",
+  "Message, not",
+  "Brand and tone",
+  "Brand and tone, not",
+  "Fixed",
+  "Stage",
+  "Ask",
+];
+
+const NOTE_PROMPT_LINE =
+  'What I know about the piece: <purpose, audience, medium, or "nothing">';
+
+const FOCUS_PLACEHOLDER_LINE =
+  '<Any focus the caller asked for, such as "compare v1 and v2" or "only the chart". Omit if none.>';
+
 /**
  * Returns the prompt template of a request: the facts line after the Image(s) line when it has
- * facts, and the Jev evidence line after those when `withJev` is true. `withJev` stays only so the
- * saved runs of skill commit 82b57a1f still replay after Jev was removed (crit-mk9.3).
+ * facts, and the Jev evidence line after those when `withJev` is true. With a brief (FR-87), the
+ * Brief block takes the place of the note line and the focus line, because the brief's Ask holds
+ * the focus. With none of the three it is CRITIC_PROMPT_TEMPLATE exactly, so saved runs keep their
+ * prompt hash. `withJev` stays only so the saved runs of skill commit 82b57a1f still replay after
+ * Jev was removed (crit-mk9.3).
  */
-export function promptTemplate(withFacts: boolean, withJev = false): string {
+export function promptTemplate(
+  withFacts: boolean,
+  withJev = false,
+  withBrief = false,
+): string {
+  let template = CRITIC_PROMPT_TEMPLATE;
   let addedLines = "";
   if (withFacts) {
     addedLines += `\n${FACTS_PROMPT_LINE}`;
@@ -145,17 +187,68 @@ export function promptTemplate(withFacts: boolean, withJev = false): string {
   if (withJev) {
     addedLines += `\n${JEV_EVIDENCE_PROMPT_LINE}`;
   }
-  if (addedLines === "") {
-    return CRITIC_PROMPT_TEMPLATE;
+  if (addedLines !== "") {
+    template = template.replace(
+      IMAGES_PROMPT_LINE,
+      `${IMAGES_PROMPT_LINE}${addedLines}`,
+    );
   }
-  return CRITIC_PROMPT_TEMPLATE.replace(
-    IMAGES_PROMPT_LINE,
-    `${IMAGES_PROMPT_LINE}${addedLines}`,
-  );
+  if (withBrief) {
+    template = template.replace(
+      `${NOTE_PROMPT_LINE}\n${FOCUS_PLACEHOLDER_LINE}`,
+      `${BRIEF_PROMPT_HEADER}\n${BRIEF_LINES_PLACEHOLDER}`,
+    );
+  }
+  return template;
 }
 
-const FOCUS_PLACEHOLDER_LINE =
-  '<Any focus the caller asked for, such as "compare v1 and v2" or "only the chart". Omit if none.>';
+/**
+ * Checks the text of a brief file and returns its field lines, trimmed, joined by line breaks. A
+ * first line that is exactly "Brief:" is left out, because crit-loop's brief.md holds the whole
+ * block. Each other line must start with one of BRIEF_LABELS and ": ", and each label must come
+ * later in BRIEF_LABELS than the label of the line before it. That one order rule stops a wrong
+ * order, a repeated label, and a "not" line that is not right after its field, so the critic gets
+ * the block the way step 1 of SKILL.md writes it. It stops with one line naming the file and the bad
+ * line.
+ */
+export function parseBriefText(text: string, briefPath: string): string {
+  const lines = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line !== "");
+  if (lines[0] === BRIEF_PROMPT_HEADER) {
+    lines.shift();
+  }
+  if (lines.length === 0) {
+    throw new Error(`brief file ${briefPath} has no field`);
+  }
+  let lastLabelIndex = -1;
+  for (const line of lines) {
+    const labelIndex = BRIEF_LABELS.findIndex((label) =>
+      line.startsWith(`${label}: `),
+    );
+    if (labelIndex === -1) {
+      throw new Error(
+        `brief file ${briefPath}: line does not start with a brief label and ": ": ${line}`,
+      );
+    }
+    if (labelIndex <= lastLabelIndex) {
+      throw new Error(
+        `brief file ${briefPath}: line is out of order, repeated, or a "not" line away from its field: ${line}`,
+      );
+    }
+    lastLabelIndex = labelIndex;
+  }
+  return lines.join("\n");
+}
+
+/** Reads a brief file and returns its checked field lines (parseBriefText); it stops when the file does not exist. */
+export function readBriefLines(briefPath: string): string {
+  if (!existsSync(briefPath)) {
+    throw new Error(`brief file ${briefPath} does not exist`);
+  }
+  return parseBriefText(readFileSync(briefPath, "utf8"), briefPath);
+}
 
 /** What a child process returned. */
 export type ClaudeRunResult = {
@@ -171,12 +264,16 @@ export type ClaudeRunner = (
   workingDirectory: string,
 ) => Promise<ClaudeRunResult>;
 
-/** One request to the critic: the images in order, an optional note and focus, and an optional measured facts file (FR-79). */
+/**
+ * One request to the critic: the images in order, an optional note and focus, an optional
+ * measured facts file (FR-79), and an optional brief file (FR-87), which goes with no note or focus.
+ */
 export type CritRequest = {
   readonly imagePaths: readonly string[];
   readonly note?: string;
   readonly focus?: string;
   readonly factsPath?: string;
+  readonly briefPath?: string;
 };
 
 /** One saved run: its number, the crit text, its metadata, and both file paths. */
@@ -235,7 +332,9 @@ function sha256(content: string | Buffer): string {
 
 /**
  * Fills the prompt template with the skill folder, image paths, note, optional focus line, and,
- * when `factsPath` is given, the facts line with that path.
+ * when `factsPath` is given, the facts line with that path. When `briefLines` is given (the checked
+ * lines of a brief file, from parseBriefText), they take the place of the note and focus lines.
+ * runCriticCommand refuses --brief with --note before any prompt is built.
  */
 export function buildPrompt(
   skillDirectory: string,
@@ -243,15 +342,21 @@ export function buildPrompt(
   note: string | undefined,
   focus: string | undefined,
   factsPath?: string,
+  briefLines?: string,
 ): string {
-  let prompt = promptTemplate(factsPath !== undefined).replaceAll(
-    "<skill folder>",
-    skillDirectory,
-  );
+  let prompt = promptTemplate(
+    factsPath !== undefined,
+    false,
+    briefLines !== undefined,
+  ).replaceAll("<skill folder>", skillDirectory);
   if (factsPath !== undefined) {
     prompt = prompt.replace("<absolute path of facts.json>", factsPath);
   }
   prompt = prompt.replace("<absolute paths>", imagePaths.join(", "));
+  if (briefLines !== undefined) {
+    // A function as the replacement keeps any "$" in the brief text literal.
+    return prompt.replace(BRIEF_LINES_PLACEHOLDER, () => briefLines);
+  }
   prompt = prompt.replace(
     '<purpose, audience, medium, or "nothing">',
     note ?? "nothing",
@@ -266,17 +371,18 @@ export function buildPrompt(
 }
 
 /**
- * Returns what a new run would be made with. A run with a facts file has the template with the
- * facts line, so its prompt hash differs; a run without one keeps the hash of the saved runs.
+ * Returns what a new run would be made with. A run with a facts file or a brief has its own
+ * template, so its prompt hash differs; a run with neither keeps the hash of the saved runs.
  * `withJev` stays only so the saved runs of skill commit 82b57a1f still replay after Jev was
  * removed (crit-mk9.3).
  */
 export function currentRunIdentity(
   withFacts = false,
   withJev = false,
+  withBrief = false,
 ): RunIdentity {
   return {
-    prompt_sha256: sha256(promptTemplate(withFacts, withJev)),
+    prompt_sha256: sha256(promptTemplate(withFacts, withJev, withBrief)),
     model_requested: CRITIC_MODEL,
     isolation_flag: CRITIC_ISOLATION_FLAG,
     permission_mode: CRITIC_PERMISSION_MODE,
@@ -460,9 +566,10 @@ export function skillCommit(
 /**
  * Returns the folder name for a request: the image SHA-256 for one image with no note, focus, or
  * facts file, and otherwise the SHA-256 of {images, note, focus} as JSON with the keys in that
- * order, with `facts`, the facts file's SHA-256, added last only when there is one. So every key
- * made before facts existed stays the same, and a run with facts never shares a folder with a run
- * without them, or with a run on another facts file.
+ * order, with `facts`, the facts file's SHA-256, added last only when there is one, and then
+ * `brief`, the brief file's SHA-256, only when there is one. So every key made before facts or
+ * briefs existed stays the same, and a run with facts or a brief never shares a folder with a run
+ * without them, or with a run on another facts or brief file.
  */
 export function requestKey(
   imageSha256s: readonly string[],
@@ -471,6 +578,7 @@ export function requestKey(
   factsSha256?: string,
   // Stays only so the saved runs of skill commit 82b57a1f still replay after Jev was removed (crit-mk9.3).
   jevEvidenceSha256?: string,
+  briefSha256?: string,
 ): string {
   const onlyImage = imageSha256s[0];
   if (
@@ -479,7 +587,8 @@ export function requestKey(
     note === undefined &&
     focus === undefined &&
     factsSha256 === undefined &&
-    jevEvidenceSha256 === undefined
+    jevEvidenceSha256 === undefined &&
+    briefSha256 === undefined
   ) {
     return onlyImage;
   }
@@ -494,11 +603,23 @@ export function requestKey(
   if (jevEvidenceSha256 !== undefined) {
     fields.jev = jevEvidenceSha256;
   }
+  if (briefSha256 !== undefined) {
+    fields.brief = briefSha256;
+  }
   return sha256(JSON.stringify(fields));
 }
 
-/** Returns the request key of a request, reading each image and the facts file to hash it. */
-export function requestKeyOf(request: CritRequest): string {
+/**
+ * Returns the request key of a request, reading each image, the facts file, and the brief file to
+ * hash it. ensureCrits passes `briefSha256` of the brief text it already read, so the key, the
+ * metadata, and the prompt all come from one read of the file.
+ */
+export function requestKeyOf(
+  request: CritRequest,
+  briefSha256 = request.briefPath === undefined
+    ? undefined
+    : sha256(readFileSync(request.briefPath)),
+): string {
   const imageSha256s = request.imagePaths.map((imagePath) =>
     sha256(readFileSync(imagePath)),
   );
@@ -506,7 +627,14 @@ export function requestKeyOf(request: CritRequest): string {
     request.factsPath === undefined
       ? undefined
       : sha256(readFileSync(request.factsPath));
-  return requestKey(imageSha256s, request.note, request.focus, factsSha256);
+  return requestKey(
+    imageSha256s,
+    request.note,
+    request.focus,
+    factsSha256,
+    undefined,
+    briefSha256,
+  );
 }
 
 /** Returns the run numbers found in a request folder, from both .md and .json file names. */
@@ -655,6 +783,7 @@ export function writeRun(
 async function runCriticOnce(
   request: CritRequest,
   options: CriticRunnerOptions,
+  briefLines: string | undefined,
 ): Promise<{
   result: ClaudeResult;
   claudeVersion: string;
@@ -696,6 +825,7 @@ async function runCriticOnce(
       request.note,
       request.focus,
       workFactsPath,
+      briefLines,
     );
     const startedAt = new Date();
     const run = await options.runClaude(
@@ -734,14 +864,34 @@ export async function ensureCrits(
   const imageSha256s = request.imagePaths.map((imagePath) =>
     sha256(readFileSync(imagePath)),
   );
-  const key = requestKeyOf(request);
-  const identity = currentRunIdentity(request.factsPath !== undefined);
+  // Read the brief once, so a file edited during a long run never puts crits of the new text under
+  // the key of the old text: the key, the metadata, and every prompt use these same bytes.
+  let briefSha256: string | undefined;
+  let briefLines: string | undefined;
+  if (request.briefPath !== undefined) {
+    // The Brief block takes the place of the note and focus lines, so a note or focus would go into
+    // the key but never reach the critic. Callers such as compare.ts call this function directly.
+    if (request.note !== undefined || request.focus !== undefined) {
+      throw new Error(
+        "a brief replaces the note and the focus; give the brief alone",
+      );
+    }
+    const briefBytes = readFileSync(request.briefPath);
+    briefSha256 = sha256(briefBytes);
+    briefLines = parseBriefText(briefBytes.toString("utf8"), request.briefPath);
+  }
+  const key = requestKeyOf(request, briefSha256);
+  const identity = currentRunIdentity(
+    request.factsPath !== undefined,
+    false,
+    request.briefPath !== undefined,
+  );
   const requestDirectory = join(options.runsDirectory, commit, key);
   const currentRuns = () =>
     readSavedCrits(options.runsDirectory, commit, key, identity);
   let missing = runs - currentRuns().length;
   while (missing > 0) {
-    const once = await runCriticOnce(request, options);
+    const once = await runCriticOnce(request, options, briefLines);
     writeRun(requestDirectory, once.result.crit, {
       request: {
         images: request.imagePaths.map((imagePath, index) => ({
@@ -756,6 +906,14 @@ export async function ensureCrits(
               facts: {
                 sha256: sha256(readFileSync(request.factsPath)),
                 path: portablePath(request.factsPath, 1),
+              },
+            }),
+        ...(request.briefPath === undefined
+          ? {}
+          : {
+              brief: {
+                sha256: briefSha256,
+                path: portablePath(request.briefPath, 1),
               },
             }),
       },
@@ -812,8 +970,8 @@ export function runClaudeProcess(
 const HELP_TEXT = `Run the design critic headless, save each crit, or replay saved crits.
 
 Usage:
-  node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--parallel N] [--runs-dir DIR] [--note TEXT] [--facts FILE] IMAGE...
-  node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--note TEXT] [--facts FILE] IMAGE...
+  node evals/critic/run-critic.ts run    [--skill DIR] [--runs N] [--parallel N] [--runs-dir DIR] [--brief FILE] [--note TEXT] [--facts FILE] IMAGE...
+  node evals/critic/run-critic.ts replay [--skill DIR | --skill-commit SHA] [--runs-dir DIR] [--brief FILE] [--note TEXT] [--facts FILE] IMAGE...
   node evals/critic/run-critic.ts --help
 
 Modes:
@@ -827,6 +985,9 @@ Flags:
   --runs N            run only: how many saved crits each image must have.
   --parallel N        run only: how many images run at once (default 40).
   --note TEXT         what you know about the piece. replay needs the note the run used.
+  --brief FILE        a brief (FR-87): one "<Label>: <text>" line per field, with the labels of
+                      step 1 of the skill's SKILL.md. Its Brief block takes the place of the note
+                      line, so it goes with no --note. replay needs the brief file the run used.
   --facts FILE        a measured facts file (facts.json from the skill's scripts/measure.mjs) for
                       the one image named. The critic gets a copy named facts.json. replay needs
                       the facts file the run used.
@@ -947,6 +1108,7 @@ export async function runCriticCommand(
       parallel: { type: "string" },
       note: { type: "string" },
       facts: { type: "string" },
+      brief: { type: "string" },
       "runs-dir": { type: "string" },
       help: { type: "boolean", short: "h", default: false },
     },
@@ -980,6 +1142,18 @@ export async function runCriticCommand(
       throw new Error("--facts goes with exactly one image");
     }
   }
+  // A brief takes the place of the note line, so the two never go together (FR-87).
+  let briefPath: string | undefined;
+  if (parsed.values.brief !== undefined) {
+    briefPath = resolve(parsed.values.brief);
+    if (parsed.values.note !== undefined) {
+      throw new Error(
+        "--brief replaces the note line; give --brief or --note, not both",
+      );
+    }
+    // Reading it here stops the run on a missing file or a bad line before any child starts.
+    readBriefLines(briefPath);
+  }
   const skillDirectory = resolve(
     parsed.values.skill ?? options.defaultSkillDirectory,
   );
@@ -1000,12 +1174,17 @@ export async function runCriticCommand(
         imagePaths: [imagePath],
         note: parsed.values.note,
         factsPath,
+        briefPath,
       });
       const saved = readSavedCrits(
         runsDirectory,
         commit,
         key,
-        currentRunIdentity(factsPath !== undefined),
+        currentRunIdentity(
+          factsPath !== undefined,
+          false,
+          briefPath !== undefined,
+        ),
       );
       if (saved.length === 0) {
         missingImages.push(imagePath);
@@ -1041,6 +1220,7 @@ export async function runCriticCommand(
         imagePaths: [imagePath],
         note: parsed.values.note,
         factsPath,
+        briefPath,
       },
       {
         runsDirectory,

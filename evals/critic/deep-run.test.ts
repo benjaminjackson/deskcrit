@@ -98,6 +98,20 @@ function options(runsDirectory: string, runner: ClaudeRunner) {
 }
 
 describe("ensureDeepCrits", () => {
+  it("refuses a request with a brief, because its key and prompts leave the brief out", async () => {
+    const { root, imagePath, runsDirectory } = setUp();
+    const briefPath = join(root, "brief.md");
+    writeFileSync(briefPath, "Job: sign-ups\n");
+    const stub = recordingStub();
+    await expect(
+      ensureDeepCrits(
+        { imagePaths: [imagePath], briefPath },
+        options(runsDirectory, stub.runner),
+      ),
+    ).rejects.toThrow("deep mode takes no brief in the runner yet");
+    expect(stub.agentCalls()).toHaveLength(0);
+  });
+
   it("runs eight section critics and then the director, and saves the director's crit with every report", async () => {
     const { imagePath, runsDirectory } = setUp();
     const stub = recordingStub();

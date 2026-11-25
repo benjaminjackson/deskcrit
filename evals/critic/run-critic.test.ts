@@ -20,6 +20,7 @@ import {
   deepRequestKey,
 } from "./deep-run.ts";
 import {
+  BRIEF_LABELS,
   buildClaudeArguments,
   type ClaudeRunner,
   CRITIC_MODEL,
@@ -27,6 +28,7 @@ import {
   currentRunIdentity,
   ensureCrits,
   FACTS_PROMPT_LINE,
+  parseBriefText,
   parseClaudeResult,
   readSavedCrits,
   requestKey,
@@ -738,6 +740,7 @@ describe("the committed runs", () => {
         const factsSha256: string | undefined = metadata.request.facts?.sha256;
         const jevEvidenceSha256: string | undefined =
           metadata.request.jev_evidence?.sha256;
+        const briefSha256: string | undefined = metadata.request.brief?.sha256;
         const imageSha256s = metadata.request.images.map(
           (image: { sha256: string }) => image.sha256,
         );
@@ -769,6 +772,7 @@ describe("the committed runs", () => {
             metadata.request.focus ?? undefined,
             factsSha256,
             jevEvidenceSha256,
+            briefSha256,
           ),
         ).toBe(key);
         expect(
@@ -779,6 +783,7 @@ describe("the committed runs", () => {
             currentRunIdentity(
               factsSha256 !== undefined,
               jevEvidenceSha256 !== undefined,
+              briefSha256 !== undefined,
             ),
           ).length,
         ).toBeGreaterThan(0);
@@ -853,5 +858,167 @@ describe("run --parallel", () => {
         runClaude: recordingStub().runner,
       }),
     ).rejects.toThrow("--parallel must be a whole number");
+  });
+});
+
+describe("a brief file (FR-87)", () => {
+  /** Writes a brief file in the test folder and returns its path. */
+  function writeBrief(root: string, text: string): string {
+    const briefPath = join(root, "brief-sketch.md");
+    writeFileSync(briefPath, text);
+    return briefPath;
+  }
+
+  it("keeps the identity and key of a run without a brief", () => {
+    expect(currentRunIdentity(false, false, false)).toEqual(
+      currentRunIdentity(),
+    );
+    expect(requestKey(["abc"], undefined, undefined)).toBe("abc");
+    expect(
+      requestKey(["abc"], "a note", undefined, "facts", undefined, undefined),
+    ).toBe(requestKey(["abc"], "a note", undefined, "facts"));
+  });
+
+  it("puts the Brief block in place of the note and focus lines, and keys and hashes the run apart", async () => {
+    const { root, imagePath, runsDirectory } = setUp();
+    const briefPath = writeBrief(
+      root,
+      "Stage: rough sketch\n\nAsk: only the layout and hierarchy; type and color are out of scope.\n",
+    );
+    const stub = recordingStub();
+    const withBrief = await ensureCrits(
+      { imagePaths: [imagePath], briefPath },
+      options(runsDirectory, stub.runner),
+    );
+    const prompt = stub.critCalls()[0]?.args.at(-1) ?? "";
+    expect(prompt).toContain(
+      "image-1.png\nBrief:\nStage: rough sketch\nAsk: only the layout and hierarchy; type and color are out of scope.\n\nYou critique only.",
+    );
+    expect(prompt).not.toContain("What I know about the piece");
+    expect(prompt).not.toContain("Any focus the caller asked for");
+    const metadata = withBrief[0]?.metadata ?? {};
+    const request = metadata.request as {
+      images: { sha256: string }[];
+      brief: { sha256: string; path: string };
+    };
+    expect(request.brief.path).toBe("brief-sketch.md");
+    expect(metadata.prompt_sha256).toBe(
+      currentRunIdentity(false, false, true).prompt_sha256,
+    );
+    expect(metadata.prompt_sha256).not.toBe(currentRunIdentity().prompt_sha256);
+    const imageSha256 = request.images[0]?.sha256 ?? "";
+    expect(withBrief[0]?.critPath).toContain(
+      join(
+        runsDirectory,
+        COMMIT,
+        requestKey(
+          [imageSha256],
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          request.brief.sha256,
+        ),
+      ),
+    );
+    expect(withBrief[0]?.critPath).not.toContain(
+      join(runsDirectory, COMMIT, imageSha256),
+    );
+    // Another brief for the same image is another request.
+    writeBrief(root, "Stage: near final\n");
+    await ensureCrits(
+      { imagePaths: [imagePath], briefPath },
+      options(runsDirectory, stub.runner),
+    );
+    expect(stub.critCalls()).toHaveLength(2);
+  });
+
+  it("refuses a line with an unknown label, a missing file, and a brief with a note", async () => {
+    const { root, imagePath, runsDirectory } = setUp();
+    const { runCriticCommand } = await import("./run-critic.ts");
+    const mainOptions = {
+      runsDirectory,
+      defaultSkillDirectory: "/no-skill",
+      runClaude: recordingStub().runner,
+    };
+    const badBrief = writeBrief(root, "Job: sign-ups\nGoal: more sign-ups\n");
+    await expect(
+      runCriticCommand(["run", "--brief", badBrief, imagePath], mainOptions),
+    ).rejects.toThrow("Goal: more sign-ups");
+    await expect(
+      runCriticCommand(
+        ["run", "--brief", join(root, "missing.md"), imagePath],
+        mainOptions,
+      ),
+    ).rejects.toThrow(/brief file .*missing\.md does not exist/);
+    const goodBrief = writeBrief(root, "Job: sign-ups\n");
+    await expect(
+      runCriticCommand(
+        ["run", "--brief", goodBrief, "--note", "a note", imagePath],
+        mainOptions,
+      ),
+    ).rejects.toThrow("give --brief or --note, not both");
+  });
+
+  it("refuses a request with a brief and a focus or a note", async () => {
+    const { root, imagePath, runsDirectory } = setUp();
+    const briefPath = writeBrief(root, "Job: sign-ups\n");
+    const stub = recordingStub();
+    await expect(
+      ensureCrits(
+        { imagePaths: [imagePath], briefPath, focus: "only the chart" },
+        options(runsDirectory, stub.runner),
+      ),
+    ).rejects.toThrow("give the brief alone");
+    await expect(
+      ensureCrits(
+        { imagePaths: [imagePath], briefPath, note: "a note" },
+        options(runsDirectory, stub.runner),
+      ),
+    ).rejects.toThrow("give the brief alone");
+    expect(stub.critCalls()).toHaveLength(0);
+  });
+
+  it("accepts a first line of Brief:, as crit-loop's brief.md holds it", () => {
+    expect(
+      parseBriefText("Brief:\nJob: sign-ups\nJob, not: demos\n", "brief.md"),
+    ).toBe("Job: sign-ups\nJob, not: demos");
+  });
+
+  it("refuses labels out of order", () => {
+    expect(() =>
+      parseBriefText("Stage: sketch\nJob: sign-ups\n", "brief.md"),
+    ).toThrow("out of order");
+  });
+
+  it("refuses a repeated label", () => {
+    expect(() =>
+      parseBriefText("Job: sign-ups\nJob: trials\n", "brief.md"),
+    ).toThrow("Job: trials");
+  });
+
+  it("refuses a not line that is not right after its field", () => {
+    expect(() =>
+      parseBriefText(
+        "Job: sign-ups\nAudience: studios\nJob, not: demos\n",
+        "brief.md",
+      ),
+    ).toThrow("Job, not: demos");
+  });
+
+  it("holds exactly the labels that step 1 of the skill's SKILL.md defines", () => {
+    const skillText = readFileSync(
+      join(REPOSITORY_ROOT, "plugin", "skills", "design-critic", "SKILL.md"),
+      "utf8",
+    );
+    const stepOne = skillText.slice(
+      skillText.indexOf("1. Collect the inputs"),
+      skillText.indexOf("\n2. Spawn one agent"),
+    );
+    // Each field and each "not" half is written as **<Label>**: in step 1.
+    const labels = [
+      ...stepOne.matchAll(/\*\*([A-Z][a-z ]*(?:, not)?)\*\*:/g),
+    ].map((match) => match[1]);
+    expect(labels).toEqual([...BRIEF_LABELS]);
   });
 });

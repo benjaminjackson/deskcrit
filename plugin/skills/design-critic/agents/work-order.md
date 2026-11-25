@@ -8,6 +8,8 @@ Your prompt gives you the crit file, the image or images, the folder to write in
 
 ## How you work
 
+When your prompt has a `Brief:` block, read it before you start; `agents/critic.md` step 3 says what each field means. Never propose a change to an element under `Fixed:` or a change that moves the design toward a `<Label>, not:` line.
+
 1. Read the crit file. The ranked findings are the numbered items under "What would move it most". The smaller things are the items under "Smaller things". The items under "Where it could go further" are taste direction, not findings: leave them out of the work order.
 2. Read the facts file, when there is one.
 3. Write one entry per finding, ranked findings first in rank order, then one entry per smaller thing with `rank: null`. Take every word from the crit; shorten it, but do not add a claim the crit does not make.
