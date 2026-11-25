@@ -57,13 +57,12 @@ A finding marked worse is not progress. Fix it before the findings ranked below 
 
 ## When the person settles a finding
 
-The person can settle a finding in chat, during a round or between rounds, such as "keep this headline" or "the layout stays two columns". Before the next recheck, write the decision into `<loop folder>/brief.md`, in the person's meaning:
+The person can settle a finding in chat, during a round or between rounds, such as "keep this headline as it is" or "make the tone calmer". Before the next recheck, write the decision into `<loop folder>/brief.md`, in the person's meaning:
 
-- A decision about an exact form or a hard limit goes on the Fixed line of `<loop folder>/brief.md`. Write each entry as its own sentence, with any exact text in double quotes, such as: The headline stays "Vet every candidate". When the brief has no Fixed line, add one after the Brand and tone lines and before the Stage line.
-- Any other decision, such as "I want a calmer tone", goes in the field that rules 1 to 5 of FR-87 pick.
-- When the loop has no `brief.md`, create it with the `Brief:` line and that one field line only.
+- A decision that settles a finding, meaning "keep this element as it is", always goes on the Fixed line of `<loop folder>/brief.md`, because keeping an element as it is fixes its exact form. Write each entry as its own sentence, with any exact text in double quotes, such as: The headline stays "Vet every candidate". When the brief has no Fixed line, add one after the Brand and tone lines and before the Stage line. When the loop has no `brief.md`, create it with the `Brief:` line and a `Fixed:` line only.
+- A decision that gives new direction, such as "make the tone calmer", goes in the field that rules 1 to 5 of FR-87 pick, and settles no finding.
 
-Then delete the settled finding from the last `work-order.json` and do not fix it. Leave the other findings and their ranks as they are, and do not run `work-order.mjs` on the trimmed file. This holds for a decision in any field. Every later recheck and work-order run reads the updated `brief.md`.
+For a settled finding, delete it from the last `work-order.json` and do not fix it. Leave the other findings and their ranks as they are, so the trimmed file can have gaps in its ranks; the recheck lists the findings in the order the file gives them. Do not run `work-order.mjs` on the trimmed file. Every later recheck and work-order run reads the updated `brief.md`.
 
 ## When to stop
 
