@@ -256,4 +256,69 @@ describe("the agent files", () => {
       "against `Job:` and `Audience:`",
     );
   });
+
+  // The claim sort and the trust sentence (FR-77 as changed by crit-38w). The critic reads as the
+  // brief's Audience, lists the claims made to win belief, sorts each into checkable on the piece
+  // or the author's word, leaves plain facts off the list, and ranks a piece that leans mostly on
+  // the author's word under the same Ask and Stage rules as any finding. The recheck critic copies
+  // the trust sentence from the crit that crit_file names after it reads the work order.
+  it("critic.md step 3 sorts the claims after the Ask bullet, as the Audience reads them", () => {
+    const critic = readSkillFile("agents", "critic.md");
+    const stepStart = critic.indexOf("3. **Establish the job.**");
+    const stepEnd = critic.indexOf("4. **Run the checklist");
+    expect(stepStart).toBeGreaterThan(-1);
+    expect(stepEnd).toBeGreaterThan(stepStart);
+    const step = critic.slice(stepStart, stepEnd);
+    const askAt = step.indexOf("**Ask**");
+    const briefDescribesAt = step.indexOf("The brief describes the piece");
+    expect(askAt).toBeGreaterThan(-1);
+    expect(briefDescribesAt).toBeGreaterThan(askAt);
+    const claimSort = step.slice(askAt, briefDescribesAt);
+    for (const phrase of [
+      "**Audience**",
+      "to win belief",
+      "**checkable on the piece**",
+      "**the author's word**",
+      "Plain facts",
+      "ranked finding",
+      "inline in its own prose, not as a list",
+      "Ask and Stage apply to this finding",
+      "one trust sentence per version",
+      "no claim is at stake",
+    ]) {
+      expect(claimSort).toContain(phrase);
+    }
+  });
+
+  it("critic.md's What it's for line has the trust sentence", () => {
+    const critic = readSkillFile("agents", "critic.md");
+    const line = critic
+      .split("\n")
+      .find((text) => text.startsWith("**What it's for.**"));
+    expect(line).toContain("must see to believe the piece or act on it");
+  });
+
+  it("recheck.md sorts the claims in step 3 and copies the trust sentence from crit_file", () => {
+    const recheck = readSkillFile("agents", "recheck.md");
+    const stepStart = recheck.indexOf("3. **Read the last work order.**");
+    const stepEnd = recheck.indexOf("4. **Check each finding");
+    expect(stepStart).toBeGreaterThan(-1);
+    expect(stepEnd).toBeGreaterThan(stepStart);
+    const step = recheck.slice(stepStart, stepEnd);
+    for (const phrase of [
+      "`crit_file`",
+      "apply the claim sort of `agents/critic.md` step 3 to the after image",
+      "not part of what you return",
+      "new problem",
+    ]) {
+      expect(step).toContain(phrase);
+    }
+    expect(recheck.indexOf("claim sort")).toBeGreaterThan(stepStart);
+    const line = recheck
+      .split("\n")
+      .find((text) => text.startsWith("**What it's for.**"));
+    expect(line).toContain(
+      "the trust sentence copied from the crit that `crit_file` names",
+    );
+  });
 });
