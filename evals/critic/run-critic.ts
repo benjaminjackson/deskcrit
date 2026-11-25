@@ -13,8 +13,8 @@
 // Each image on the command line is a separate one-image request. A request may carry a measured
 // facts file (FR-79): its SHA-256 joins the request key and its prompt line joins the prompt hash,
 // so a run with facts never shares a saved run with one without. A request may carry a brief file
-// (FR-87) the same way: its Brief block takes the place of the note line, and its SHA-256 joins the
-// request key.
+// (FR-87) the same way: its Brief block takes the place of the note and focus lines, and its
+// SHA-256 joins the request key.
 //
 // Exit codes: 0 when every request has its crits, 1 when replay finds an image with no saved crit,
 // and 2 when the runner could not run.
@@ -869,6 +869,13 @@ export async function ensureCrits(
   let briefSha256: string | undefined;
   let briefLines: string | undefined;
   if (request.briefPath !== undefined) {
+    // The Brief block takes the place of the note and focus lines, so a note or focus would go into
+    // the key but never reach the critic. Callers such as compare.ts call this function directly.
+    if (request.note !== undefined || request.focus !== undefined) {
+      throw new Error(
+        "a brief replaces the note and the focus; give the brief alone",
+      );
+    }
     const briefBytes = readFileSync(request.briefPath);
     briefSha256 = sha256(briefBytes);
     briefLines = parseBriefText(briefBytes.toString("utf8"), request.briefPath);

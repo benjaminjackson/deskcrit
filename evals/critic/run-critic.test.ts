@@ -960,6 +960,25 @@ describe("a brief file (FR-87)", () => {
     ).rejects.toThrow("give --brief or --note, not both");
   });
 
+  it("refuses a request with a brief and a focus or a note", async () => {
+    const { root, imagePath, runsDirectory } = setUp();
+    const briefPath = writeBrief(root, "Job: sign-ups\n");
+    const stub = recordingStub();
+    await expect(
+      ensureCrits(
+        { imagePaths: [imagePath], briefPath, focus: "only the chart" },
+        options(runsDirectory, stub.runner),
+      ),
+    ).rejects.toThrow("give the brief alone");
+    await expect(
+      ensureCrits(
+        { imagePaths: [imagePath], briefPath, note: "a note" },
+        options(runsDirectory, stub.runner),
+      ),
+    ).rejects.toThrow("give the brief alone");
+    expect(stub.critCalls()).toHaveLength(0);
+  });
+
   it("accepts a first line of Brief:, as crit-loop's brief.md holds it", () => {
     expect(
       parseBriefText("Brief:\nJob: sign-ups\nJob, not: demos\n", "brief.md"),
