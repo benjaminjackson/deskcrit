@@ -9,7 +9,7 @@
 // `Real thing:` line per path after each prompt block, the critic and the recheck critic open it and never
 // stop the run when they cannot, and nobody searches for one.
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -260,12 +260,13 @@ describe("the agent files", () => {
     );
   });
 
-  // The claim sort and the trust sentence (FR-77 as changed by crit-38w). The critic reads as the
-  // brief's Audience, lists the claims made to win belief, sorts each into checkable on the piece
-  // or the author's word, leaves plain facts off the list, and ranks a piece that leans mostly on
-  // the author's word under the same Ask and Stage rules as any finding. The recheck critic copies
+  // The three claim questions and the trust sentence (FR-77 as changed by crit-38w and crit-9hj).
+  // The critic reads as the brief's Audience and asks what the piece asks that reader to accept
+  // that they do not already hold, what it shows that the reader would accept on sight, and what
+  // the reader will object to. It leaves plain facts out and ranks a piece whose proof does not
+  // carry the ask under the same Ask and Stage rules as any finding. The recheck critic copies
   // the trust sentence from the crit that crit_file names after it reads the work order.
-  it("critic.md step 3 sorts the claims after the Ask bullet, as the Audience reads them", () => {
+  it("critic.md step 3 asks the three claim questions after the Ask bullet, as the Audience reads them", () => {
     const critic = readSkillFile("agents", "critic.md");
     const stepStart = critic.indexOf("3. **Establish the job.**");
     const stepEnd = critic.indexOf("4. **Run the checklist");
@@ -279,17 +280,41 @@ describe("the agent files", () => {
     const claimSort = step.slice(askAt, briefDescribesAt);
     for (const phrase of [
       "**Audience**",
-      "to win belief",
-      "**checkable on the piece**",
-      "**the author's word**",
+      "**What does the piece ask this reader to accept that they do not already hold?**",
+      "assume they hold none of it",
+      "**What does it show that this reader would accept on sight?**",
+      "a fact this reader doubts is one more thing to accept",
+      "A shown fact must also lead to what the piece asks",
+      "**What will this reader object to, and does the piece answer it?**",
       "Plain facts",
       "ranked finding",
       "inline in its own prose, not as a list",
+      "only when all three of these hold: the job needs this reader's belief",
+      "leaves unanswered an objection this reader will surely raise",
+      "the link from a shown fact to the ask",
+      "Objections stay inside this one finding: it names the kind of answer that is missing and never writes the answer",
       "Ask and Stage apply to this finding",
       "one trust sentence per version",
       "no claim is at stake",
+      "already holds what the piece asks",
     ]) {
       expect(claimSort).toContain(phrase);
+    }
+    expect(claimSort).not.toContain("**checkable on the piece**");
+  });
+
+  // The crits report in terms of the piece and never label parts of an argument (crit-9hj), so
+  // no agent file uses the vocabulary of Toulmin's model. \b marks a word boundary, so
+  // "background" does not match "backing".
+  it("no agent file uses the words of Toulmin's model", () => {
+    const toulminWords = /\b(toulmin|warrants?|rebuttals?|grounds|backing)\b/i;
+    const agentFiles = readdirSync(join(DESIGN_CRITIC_FOLDER, "agents")).filter(
+      (name) => name.endsWith(".md"),
+    );
+    expect(agentFiles).toContain("critic.md");
+    expect(agentFiles).toContain("recheck.md");
+    for (const file of agentFiles) {
+      expect(readSkillFile("agents", file)).not.toMatch(toulminWords);
     }
   });
 
@@ -301,7 +326,7 @@ describe("the agent files", () => {
     expect(line).toContain("must see to believe the piece or act on it");
   });
 
-  it("recheck.md sorts the claims in step 3 and copies the trust sentence from crit_file", () => {
+  it("recheck.md asks the three claim questions in step 3 and copies the trust sentence from crit_file", () => {
     const recheck = readSkillFile("agents", "recheck.md");
     const stepStart = recheck.indexOf("3. **Read the last work order.**");
     const stepEnd = recheck.indexOf("4. **Check each finding");
@@ -310,13 +335,15 @@ describe("the agent files", () => {
     const step = recheck.slice(stepStart, stepEnd);
     for (const phrase of [
       "`crit_file`",
-      "apply the claim sort of `agents/critic.md` step 3 to the after image",
+      "answer the three questions of `agents/critic.md` step 3 for the after image",
       "not part of what you return",
+      "the same condition as `agents/critic.md` step 3",
+      "rank a claim problem only when a change to the after image makes it meet that condition",
       "new problem",
     ]) {
       expect(step).toContain(phrase);
     }
-    expect(recheck.indexOf("claim sort")).toBeGreaterThan(stepStart);
+    expect(recheck.indexOf("three questions")).toBeGreaterThan(stepStart);
     const line = recheck
       .split("\n")
       .find((text) => text.startsWith("**What it's for.**"));
