@@ -344,28 +344,29 @@ export function buildPrompt(
   factsPath?: string,
   briefLines?: string,
 ): string {
+  // A function as the replacement keeps any "$" in the filled text literal; a plain string
+  // would read $&, $` and $' as patterns.
   let prompt = promptTemplate(
     factsPath !== undefined,
     false,
     briefLines !== undefined,
-  ).replaceAll("<skill folder>", skillDirectory);
+  ).replaceAll("<skill folder>", () => skillDirectory);
   if (factsPath !== undefined) {
-    prompt = prompt.replace("<absolute path of facts.json>", factsPath);
+    prompt = prompt.replace("<absolute path of facts.json>", () => factsPath);
   }
-  prompt = prompt.replace("<absolute paths>", imagePaths.join(", "));
+  prompt = prompt.replace("<absolute paths>", () => imagePaths.join(", "));
   if (briefLines !== undefined) {
-    // A function as the replacement keeps any "$" in the brief text literal.
     return prompt.replace(BRIEF_LINES_PLACEHOLDER, () => briefLines);
   }
   prompt = prompt.replace(
     '<purpose, audience, medium, or "nothing">',
-    note ?? "nothing",
+    () => note ?? "nothing",
   );
   if (focus === undefined) {
     // Drop the whole placeholder line, with its line break, when there is no focus.
     prompt = prompt.replace(`${FOCUS_PLACEHOLDER_LINE}\n`, "");
   } else {
-    prompt = prompt.replace(FOCUS_PLACEHOLDER_LINE, focus);
+    prompt = prompt.replace(FOCUS_PLACEHOLDER_LINE, () => focus);
   }
   return prompt;
 }
