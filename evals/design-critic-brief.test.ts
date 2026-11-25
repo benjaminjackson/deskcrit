@@ -9,7 +9,7 @@
 // `Real thing:` line per path after each prompt block, the critic and the recheck critic open it and never
 // stop the run when they cannot, and nobody searches for one.
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -289,7 +289,10 @@ describe("the agent files", () => {
       "Plain facts",
       "ranked finding",
       "inline in its own prose, not as a list",
+      "only when all three of these hold: the job needs this reader's belief",
+      "leaves unanswered an objection this reader will surely raise",
       "the link from a shown fact to the ask",
+      "Objections stay inside this one finding: it names the kind of answer that is missing and never writes the answer",
       "Ask and Stage apply to this finding",
       "one trust sentence per version",
       "no claim is at stake",
@@ -301,20 +304,17 @@ describe("the agent files", () => {
   });
 
   // The crits report in terms of the piece and never label parts of an argument (crit-9hj), so
-  // the agent files that write crits never use the vocabulary of Toulmin's model.
-  it("critic.md and recheck.md use none of the words of Toulmin's model", () => {
-    for (const file of ["critic.md", "recheck.md"]) {
-      const text = readSkillFile("agents", file);
-      for (const word of [
-        "Toulmin",
-        "warrant",
-        "rebuttal",
-        "grounds",
-        "backing",
-      ]) {
-        // \b marks a word boundary, so "background" does not match "backing".
-        expect(text).not.toMatch(new RegExp(`\\b${word}\\b`, "i"));
-      }
+  // no agent file uses the vocabulary of Toulmin's model. \b marks a word boundary, so
+  // "background" does not match "backing".
+  it("no agent file uses the words of Toulmin's model", () => {
+    const toulminWords = /\b(toulmin|warrants?|rebuttals?|grounds|backing)\b/i;
+    const agentFiles = readdirSync(join(DESIGN_CRITIC_FOLDER, "agents")).filter(
+      (name) => name.endsWith(".md"),
+    );
+    expect(agentFiles).toContain("critic.md");
+    expect(agentFiles).toContain("recheck.md");
+    for (const file of agentFiles) {
+      expect(readSkillFile("agents", file)).not.toMatch(toulminWords);
     }
   });
 
@@ -337,6 +337,8 @@ describe("the agent files", () => {
       "`crit_file`",
       "answer the three questions of `agents/critic.md` step 3 for the after image",
       "not part of what you return",
+      "the same condition as `agents/critic.md` step 3",
+      "rank a claim problem only when the after image adds a claim and the job needs the reader's belief",
       "new problem",
     ]) {
       expect(step).toContain(phrase);
