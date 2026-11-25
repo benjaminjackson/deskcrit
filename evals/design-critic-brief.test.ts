@@ -224,4 +224,49 @@ describe("the agent files", () => {
       "against `Job:` and `Audience:`",
     );
   });
+
+  // The claim sort and the trust sentence (FR-77 as changed by crit-38w): the critic reads as the
+  // brief's Audience, sorts each claim into checkable or the seller's word, ranks a piece that is
+  // mostly the seller's word, and says what the reader must see to trust the piece. The recheck
+  // critic applies the same sort and copies the trust sentence.
+  it("critic.md step 3 sorts the claims after the Ask bullet, as the Audience reads them", () => {
+    const critic = readSkillFile("agents", "critic.md");
+    const stepStart = critic.indexOf("3. **Establish the job.**");
+    const stepEnd = critic.indexOf("4. **Run the checklist");
+    expect(stepStart).toBeGreaterThan(-1);
+    expect(stepEnd).toBeGreaterThan(stepStart);
+    const step = critic.slice(stepStart, stepEnd);
+    const askAt = step.indexOf("**Ask**");
+    const briefDescribesAt = step.indexOf("The brief describes the piece");
+    expect(askAt).toBeGreaterThan(-1);
+    expect(briefDescribesAt).toBeGreaterThan(askAt);
+    const claimSort = step.slice(askAt, briefDescribesAt);
+    for (const phrase of [
+      "**Audience**",
+      "**checkable**",
+      "**the seller's word**",
+      "ranked finding",
+    ]) {
+      expect(claimSort).toContain(phrase);
+    }
+  });
+
+  it("critic.md's What it's for line has the trust sentence", () => {
+    const critic = readSkillFile("agents", "critic.md");
+    const line = critic
+      .split("\n")
+      .find((text) => text.startsWith("**What it's for.**"));
+    expect(line).toContain("must see to trust the piece");
+  });
+
+  it("recheck.md applies the claim sort and copies the trust sentence", () => {
+    const recheck = readSkillFile("agents", "recheck.md");
+    expect(recheck).toContain(
+      "Apply the claim sort of `agents/critic.md` step 3 to the after image",
+    );
+    const line = recheck
+      .split("\n")
+      .find((text) => text.startsWith("**What it's for.**"));
+    expect(line).toContain("the trust sentence copied from that crit");
+  });
 });
