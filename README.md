@@ -73,7 +73,7 @@ The critic does not suggest a change to what is fixed or a change toward what th
 - "Are these consistent?" gives a consistency check that names each screen that breaks a pattern the others keep.
 - "Which is best?" gives a best pick, ranked by how well each version does its job.
 
-Each image also gets its own crit and work order. If you do not say which check you want, the skill asks. If another agent calls the skill and does not name the check, the skill refuses with one line.
+Each image also gets its own crit and work order. If you say the images are slides of one deck, the skill runs the consistency check. Otherwise, if you do not say which check you want, the skill asks. If another agent calls the skill and does not name the check, the skill refuses with one line, except for slides of one deck.
 
 **Fix a page in a loop.** After Claude changes UI code, ask it to check the design and fix it, or run:
 
@@ -82,6 +82,8 @@ Each image also gets its own crit and work order. If you do not say which check 
 ```
 
 Each round captures the page, fixes from the top of the work order, captures again at the same viewports as round 1 (four by default), and starts a fresh critic that marks each finding closed, open, or worse, or settled when you decided to keep it as it is. The loop stops when no ranked finding is left, or when two rounds in a row close nothing. It does not add content to close a finding: when a fix needs text or data that only you have, it leaves the finding open and tells you.
+
+For a deck or a flow of screens, the loop captures each slide on its own, so give one file or URL per slide when you can. Each round critiques every slide and checks the slides for consistency on one contact sheet, and the loop fixes each break that the consistency check names. It stops when no slide has a ranked finding and the consistency check finds no break, or when two rounds in a row close nothing.
 
 The critic only critiques. It does not edit files.
 

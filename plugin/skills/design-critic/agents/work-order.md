@@ -74,6 +74,16 @@ When your prompt names two or more images, the critic judged one page at several
 - `location.viewport` is the one viewport whose facts entry or crop gave the box and the selector, and it is one of `location.viewports`. The box is in the pixels of that viewport's image. When nothing gives a box, use the first viewport the finding names.
 - `closed_when.check` names each viewport the check covers, such as "contrast of main > p.intro in the desktop and phone viewports is 4.5 or more".
 
+## A set crit
+
+When the crit has a `**Breaks**` heading, a set critic wrote it about a contact sheet, and your image is that sheet.
+
+- The ranked findings are the numbered items under Breaks, in order. The smaller things get `rank: null`. When Breaks says "No break found.", the work order has no ranked entry.
+- `location.description` starts with the breaking tile and its screen's file name from `tiles.json` in the image's folder, such as "tile 3 (slide-3.png): the heading".
+- Take `box` from a crop of `sheet.png` around the element, as above, or set `box` to null and `box_source` to `none`. `viewport` is null.
+- `target` is the pattern that the tiles which keep it hold, with the measured value when the crit gives one.
+- `closed_when` is `look`, and its check is "a fresh set critic names no break of this pattern on tile n", with the tile number.
+
 ## What you return
 
 When the script prints `ok`, end with one line as your final message: the absolute path of `work-order.json`. Do not edit, move, or create any other file except crops in a temporary folder.

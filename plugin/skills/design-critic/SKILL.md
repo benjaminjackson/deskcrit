@@ -1,6 +1,6 @@
 ---
 name: design-critic
-description: Critiques still images of a design (a screenshot, mockup, poster, slide, chart, or illustration) as a senior design director would, backed by about 210 guidelines from an approved reading list (Bringhurst, Müller-Brockmann, Tufte, WCAG, Nielsen) and 38 signs of an AI-made template from unslop. One image gets a crit. Two to twelve images get a crit each plus one check the request names: a consistency check of the set ("are these consistent") or a best pick ("which is best"). An agent caller must name one, or it gets a one-line refusal. A brief sharpens the crit: job, audience, setting, message, brand and tone, what is fixed, how finished, feedback wanted, and for the first five, what it is not. Use when the user or main thread wants a design critiqued, reviewed, or judged, asks "how does this look", "crit this", "what's wrong with this design", wants feedback on a screenshot before shipping, wants screens checked for consistency, or wants the best of several versions picked. Critiques only; it edits no files.
+description: Critiques still images of a design (a screenshot, mockup, poster, slide, chart, or illustration) as a senior design director would, backed by about 210 guidelines from an approved reading list (Bringhurst, Müller-Brockmann, Tufte, WCAG, Nielsen) and 38 signs of an AI-made template from unslop. One image gets a crit. Two to twelve images get a crit each plus one check the request names: a consistency check of the set ("are these consistent") or a best pick ("which is best"). An agent must name one, except for a deck: consistency check. A brief sharpens the crit: job, audience, setting, message, brand and tone, what is fixed, how finished, feedback wanted, and for the first five, what it is not. Use when the user or main thread wants a design critiqued, reviewed, or judged, asks "how does this look", "crit this", "what's wrong with this design", wants feedback on a screenshot before shipping, wants screens checked for consistency, or wants the best of several versions picked. Critiques only; it edits no files.
 ---
 
 # Design critic
@@ -15,7 +15,8 @@ Count the images first. The count picks the mode, and nothing else does. The scr
 - **Two or more images: contact-sheet mode, always.** Follow "Contact-sheet mode". Each image gets its own normal crit and work order, and then one last agent reads all the images on one contact sheet. That last agent does one of two jobs, and the request picks which:
   - **Consistency check** (`agents/set-critic.md`): does the set hold together as one product, and which image breaks a pattern the others keep. Requests such as "are these consistent" or "check this flow" mean this.
   - **Best pick** (`agents/picker.md`): which version does the job best. Requests such as "which is best", "pick one", "compare v1 and v2", or "before and after" mean this. The old before-and-after compare is now the best pick with two images.
-- **When the request does not say which**, ask the person one question that names the two: "Do you want a consistency check of the set, or a pick of the best version?" When the caller is another agent and no person can be asked, the caller must name the mode. If it did not, stop and reply with this one line, and do not guess: `Two or more images need a mode: "consistency check" or "best pick".`
+- **Slides of one deck, with no mode named: the consistency check.** When the request says the images are slides of one deck (a deck, slides, a presentation), run the consistency check and ask no question, for a person and for an agent caller alike. Slides of one deck are screens of one product, never versions of one design.
+- **For any other set, when the request does not say which**, ask the person one question that names the two: "Do you want a consistency check of the set, or a pick of the best version?" When the caller is another agent and no person can be asked, the caller must name the mode. If it did not, stop and reply with this one line, and do not guess: `Two or more images need a mode: "consistency check" or "best pick".`
 - **Several images to critique with neither check**: call this skill once per image, each time with one image. Contact-sheet mode always adds the last agent.
 - **At most twelve images.** The contact sheet holds twelve; with more, split the set or ask the person which twelve.
 - **Cost.** Contact-sheet mode starts two Opus agents and one Sonnet agent per image, plus one Opus agent for the last step: five images start eleven Opus agents.
@@ -154,7 +155,7 @@ Use this mode for two or more images, once you know the mode from "Pick the mode
    Measured differences file: <absolute path of differences.json>
    ```
 
-   The consistency check and the best pick get no work order.
+   The consistency check and the best pick get no work order; the crit-loop skill has the work-order agent write one from the consistency check of a deck.
 3. Give the person the consistency check or the best pick first, then each image's crit under its file name, as the agents wrote them, then the path of each `work-order.json`.
 
 ## What is in the folder

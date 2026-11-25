@@ -371,3 +371,55 @@ describe("a work order for one page at several viewports (crit-9w5.6)", () => {
     expect(validate(copy)).toBe(false);
   });
 });
+
+describe("countRankedItems on a set critic's crit (crit-3wg, FR-82)", () => {
+  /** Builds a set crit with the given lines under its Breaks heading. */
+  function setCrit(breakLines: string[]): string {
+    return [
+      "**First read.** The slides read as one talk until slide 2.",
+      "",
+      "**Verdict.** One heading breaks the set.",
+      "",
+      "**Breaks**",
+      ...breakLines,
+      "",
+      "**Smaller things.**",
+      "- tile 3: the caption is lighter than the others.",
+      "",
+      "**What's working.** The palette holds.",
+      "",
+      "Breaks: tile 2",
+    ].join("\n");
+  }
+
+  it("counts the numbered items under Breaks as the ranked findings", () => {
+    const crit = setCrit([
+      "1. Heading size: tiles 1, 3 keep it; tile 2 breaks it.",
+      "2. Content edge: tiles 1, 3 keep it; tile 2 breaks it.",
+    ]);
+    expect(countRankedItems(crit)).toBe(2);
+  });
+
+  it("counts no ranked finding when Breaks says no break was found", () => {
+    expect(countRankedItems(setCrit(["No break found."]))).toBe(0);
+  });
+
+  it("returns undefined when the crit has neither heading", () => {
+    expect(countRankedItems("**First read.** Fine.\n\n1. Not ranked.")).toBe(
+      undefined,
+    );
+  });
+
+  it("still counts the items under What would move it most", () => {
+    const crit = [
+      "**What would move it most**",
+      "1. One.",
+      "2. Two.",
+      "3. Three.",
+      "",
+      "**Smaller things.**",
+      "- four",
+    ].join("\n");
+    expect(countRankedItems(crit)).toBe(3);
+  });
+});

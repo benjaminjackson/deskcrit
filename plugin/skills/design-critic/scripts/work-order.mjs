@@ -41,9 +41,10 @@ export const FINDING_FIELDS = [
 ];
 
 /**
- * Returns the number of items in the crit's "What would move it most" list: the lines that start
- * with a number and a period at column 0, from the heading up to the next line that starts with
- * `**`. Returns undefined when the crit has no such heading.
+ * Returns the number of ranked items in the crit: the lines that start with a number and a period
+ * at column 0, from the "What would move it most" heading, or the "Breaks" heading of a set
+ * critic's crit (FR-82), up to the next line that starts with `**`. Returns undefined when the crit
+ * has neither heading.
  */
 export function countRankedItems(critText) {
   const lines = critText.split(/\r?\n/);
@@ -53,7 +54,9 @@ export function countRankedItems(critText) {
   for (const line of lines) {
     if (line.startsWith("**")) {
       // A curly apostrophe or a trailing period or colon may follow the heading words.
-      inSection = line.startsWith("**What would move it most");
+      inSection =
+        line.startsWith("**What would move it most") ||
+        line.startsWith("**Breaks**");
       if (inSection) {
         found = true;
       }
@@ -235,7 +238,9 @@ export function checkWorkOrder(
   }
   const critCount = countRankedItems(critText);
   if (critCount === undefined) {
-    problems.push('the crit has no "What would move it most" heading');
+    problems.push(
+      'the crit has no "What would move it most" or "Breaks" heading',
+    );
   } else if (critCount !== rankedCount) {
     problems.push(
       `the crit ranks ${critCount} findings, but the work order ranks ${rankedCount}`,

@@ -1,6 +1,6 @@
 ---
 name: crit-loop
-description: Use after you change UI code (HTML, CSS, components) and want to check the design and fix it. Runs the design-critic skill, fixes from the top of its work order, captures the page again at the same viewport, and has a fresh critic mark each finding closed, closed with a new problem, settled, open, or worse, until no ranked finding is left or two rounds in a row close nothing.
+description: Use after you change UI code (HTML, CSS, components) and want to check the design and fix it. Runs the design-critic skill, fixes from the top of its work order, captures the page again at the same viewport, and has a fresh critic mark each finding closed, closed with a new problem, settled, open, or worse, until no ranked finding is left or two rounds in a row close nothing. For a deck or a flow, each round critiques every slide and checks that the set is consistent.
 ---
 
 # The fix loop
@@ -8,6 +8,8 @@ description: Use after you change UI code (HTML, CSS, components) and want to ch
 The design-critic skill judges a picture of a design and writes a work order: the findings, ranked, each with where it is, what the viewer meets, the target, and the check that closes it. This skill tells you how to fix from that work order, how to check each fix, and when to stop. The critics decide every finding, rank, and status. You do not judge them again. The rules are FR-82 in `docs/PRD.md` of the deskcrit repository.
 
 In the steps below, `<design-critic folder>` is the `design-critic` folder next to this skill's folder, and `<loop folder>` is a new folder in the system temp folder that holds one folder per round.
+
+A deck or a flow of several screens is a set: follow "A deck or a flow" below, which says which steps it replaces. Every other step holds for each slide as written.
 
 ## Capture
 
@@ -54,6 +56,36 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 6. If you do not stop, write the new work order with step 5 of the design-critic skill's `SKILL.md`: this round's `crit.md`, this round's images, its facts file, and the Brief block from `brief.md` when the loop folder has one. Then start the next round.
 
 A finding marked worse is not progress. Fix it before the findings ranked below it.
+
+## A deck or a flow
+
+A deck, or a flow of screens of one product, is a set. Each slide is one page of the loop, and every round a set critic also checks that the set holds together. Versions of one design are not a set: they need a best pick, so ask the person, as "Pick the mode" in the design-critic `SKILL.md` says. With more than twelve slides, split the deck into parts of twelve or fewer in slide order, run this section on each part, and tell the person.
+
+This section replaces "Capture", "Round 1: the crit", "Each round after that", and "When to stop" for a set. The fix rules of "Each round after that" step 1 hold for each fix.
+
+**Capture.** Capture one image per slide, at the slide's own size, into `<round folder>/slide-<k>`, where k is the slide number. When each slide has its own file or URL (an http or https URL may pick the slide with a hash or a query), use the measure script as "Capture" says, with the one viewport flag that matches the slide size, such as `--widescreen` for 1920 x 1080 px or `--desktop` for 1280 x 800 px. Otherwise use your own tool at the slide's size. Use the same capture for every slide in every round.
+
+**Round 1.** Capture every slide. Then run the design-critic skill in contact-sheet mode on the slides, one image per slide (with its facts file when there is one), in slide order, and name "consistency check" in the call. Make the contact sheet in `<round folder>/set` and save the set critic's crit there as `crit.md`. Each slide's `crit.md` and `work-order.json` go in its slide folder. When the loop has a `brief.md`, pass its Brief block as Round 1 step 2 says; it goes to every slide critic and to the set critic. Then write the set work order, as below. Stop if no slide's work order has a ranked finding and the set critic's last line is `Breaks: none`.
+
+**The set work order.** The set critic writes no work order, so you start one. As soon as the set critic has finished and its last line names a tile, spawn the work-order agent with the step 5 prompt of the design-critic `SKILL.md`: the set `crit.md` as the crit file, `sheet.png` as the only image, no facts line, `<round folder>/set` to write in, and the Brief block when the loop has a `brief.md`. The agent follows "A set crit" in `<design-critic folder>/agents/work-order.md` and writes one ranked entry per break. When the last line is `Breaks: none`, write no set work order. Do the same at step 6 of every later round.
+
+**Each later round.**
+
+1. Fix from the set work order first, then from each slide's work order, each from the top. A break's entry names its tile, and `tiles.json` in that round's set folder maps the tile to its slide.
+2. Capture every slide again into `<loop folder>/round-<n>`.
+3. Build the new contact sheet as "Contact-sheet mode" step 2 of the design-critic `SKILL.md` says, in `<round folder>/set`. Then start, in one message, the recheck critic of each slide whose last work order has a ranked finding or that a fix changed this round, with the step 3 prompt filled for that slide and the Brief block when the loop has a `brief.md`, and a fresh set critic on the new sheet, with the set-critic prompt of "Contact-sheet mode" step 2. A slide that gets no recheck keeps its last work order.
+4. Save each recheck as `crit.md` in its slide folder, and the set crit as `crit.md` in the set folder.
+5. Count and check the stop rules below.
+6. If you do not stop, start in one message the work-order agent of each rechecked slide, as step 6 of "Each round after that" says, and the set work-order agent.
+
+**When to stop.** Stop when one of these is true:
+
+- No slide has a ranked finding (its last recheck says "None." under "What would move it most", or its last work order has no ranked finding), and the set critic's last line is `Breaks: none`.
+- Two rounds in a row close nothing: no recheck marks a finding closed (settled and "closed, new problem" count as closed), and the Breaks line still names every tile that the previous Breaks line named.
+
+At the stop, tell the person what "When to stop" lists, for each slide under its file name, plus the set critic's last line and the breaks still open.
+
+The rules of "When the person settles a finding" and "Fix the design, not the score" hold for each slide.
 
 ## When the person settles a finding
 
