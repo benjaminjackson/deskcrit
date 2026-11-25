@@ -556,6 +556,9 @@ describe("fix and stop rules count the smaller things (crit-73l, FR-82)", () => 
     expect(stepOne).toContain(
       "but never text contrast or a target size under the WCAG minimum, or a broken Fixed entry: fix those, and they count for the stop",
     );
+    expect(stepOne).toContain(
+      "never by changing a Fixed entry; when only a change to a Fixed entry would cure one, skip it and name it at the stop",
+    );
   });
 
   it("the skip of an opposite finding lasts and leaves the stop count", () => {
