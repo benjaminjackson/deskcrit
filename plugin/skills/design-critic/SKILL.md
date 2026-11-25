@@ -125,7 +125,7 @@ Count the images first. The count picks the mode, and nothing else does. The scr
    When the work order is done, end with its absolute path as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with that path.
    ```
 
-   With a brief from step 1, add the Brief block right after the `Image(s)` line. With no brief, use the prompt exactly as shown.
+   With a brief from step 1, add the Brief block right after the `Image(s)` line. When the crit had `Real thing:` lines, add the same lines, one per path, as the last lines before `When the work order is done`, with or without a brief, as step 2 places them before `You critique only.`. With no brief and no real thing, use the prompt exactly as shown.
 
    Tell the user the path of `work-order.json`. A work order is for one page, with all its viewports, so in contact-sheet mode each page gets its own.
 

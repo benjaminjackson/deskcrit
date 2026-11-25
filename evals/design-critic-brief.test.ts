@@ -545,7 +545,9 @@ describe("the facts a finding requests from the maker", () => {
     expect(recheck).toContain(
       '"Suggest copy edits, never new content" bullet in `agents/critic.md`',
     );
-    expect(recheck).toContain("A fact the brief states is not made up.");
+    expect(recheck).toContain(
+      "A fact the brief or a file on a `Real thing:` line states is not made up.",
+    );
     const workOrder = readSkillFile("agents", "work-order.md");
     expect(workOrder).toContain("Fact needed from the maker:");
     expect(workOrder).toContain("Never search the disk or the repository");
@@ -647,5 +649,153 @@ describe("the facts a finding requests from the maker", () => {
         expect(block).not.toContain("one question");
       }
     }
+  });
+});
+
+// The copy rule (FR-77, FR-82, crit-bwr): facts and real examples come from the brief or the real
+// thing, and a fix adds no new promise or sample data. The critic.md bullet
+// "Suggest copy edits, never new content" is its one statement; the recheck, the work order, and
+// the fix loop point to it, and no fenced prompt block holds it.
+describe("the copy rule of FR-77", () => {
+  const critic = readSkillFile("agents", "critic.md");
+  const recheck = readSkillFile("agents", "recheck.md");
+  const workOrder = readSkillFile("agents", "work-order.md");
+  const loop = readRepositoryFile("plugin", "skills", "crit-loop", "SKILL.md");
+  const designCritic = readSkillFile("SKILL.md");
+  const bullet = sliceBetween(
+    critic,
+    "- **Suggest copy edits, never new content.**",
+    "\n- **",
+  );
+  // "Fix the design, not the score" is the last section of the crit-loop SKILL.md.
+  const fixTheDesignStart = loop.indexOf("## Fix the design, not the score");
+  const fixTheDesign = loop.slice(fixTheDesignStart);
+
+  it("the fix loop has its Fix the design section", () => {
+    expect(fixTheDesignStart).toBeGreaterThanOrEqual(0);
+  });
+
+  it("the critic.md bullet states the whole rule", () => {
+    for (const phrase of [
+      "Keep what each line means and what each label names",
+      'a column headed "Size" still names a size',
+      "a unit the piece states nowhere is a fact only the maker has",
+      "Never add a promise the piece does not already make",
+      '"every", "unlimited", "as many as you like"',
+      "judge any other claim of scope or quantity the same way",
+      "A real example the caller gave",
+      '"Case No. 00-EXAMPLE"',
+      "never in the format of a real record",
+      "This bullet is the one statement of the copy rule",
+    ]) {
+      expect(bullet).toContain(phrase);
+    }
+  });
+
+  it("the rule is stated once, in critic.md", () => {
+    const files = [critic, recheck, workOrder, loop];
+    for (const phrase of [
+      "Never add a promise",
+      "00-EXAMPLE",
+      "copywriter",
+      "cut, reorder, restore",
+    ]) {
+      const count = files
+        .map((text) => text.split(phrase).length - 1)
+        .reduce((total, each) => total + each, 0);
+      expect(count, phrase).toBe(1);
+      expect(bullet).toContain(phrase);
+    }
+  });
+
+  it("the recheck, the work order, and the fix loop point to the bullet", () => {
+    for (const text of [recheck, workOrder, loop]) {
+      expect(text).toContain('"Suggest copy edits, never new content" bullet');
+    }
+    expect(recheck).toContain("a promise the before image does not make");
+    expect(recheck).toContain("a label that now names a different thing");
+  });
+
+  it("the fix loop says never invent content and uses given facts as given", () => {
+    const inventLines = loop
+      .split("\n")
+      .filter((line) => line.includes("Never invent content"));
+    expect(inventLines).toHaveLength(1);
+    expect(loop).not.toContain("Never add content");
+    for (const phrase of [
+      "<design-critic folder>/agents/critic.md",
+      "a file in `real-thing.txt`",
+      "use it exactly as given",
+    ]) {
+      expect(fixTheDesign).toContain(phrase);
+    }
+  });
+
+  it("no fenced block holds the rule", () => {
+    for (const text of [loop, designCritic, critic, recheck, workOrder]) {
+      for (const block of textInsideEachFence(text)) {
+        expect(block).not.toContain("promise");
+        expect(block).not.toContain("00-EXAMPLE");
+      }
+    }
+  });
+
+  it("the bullet keeps its ban list and adds no sample data where none is shown", () => {
+    expect(bullet).toContain(
+      "no facts, figures, names, comparisons, quotes, sample data, or claims that the piece does not make",
+    );
+    expect(bullet).toContain(
+      "A fix adds no sample data where the piece shows none.",
+    );
+    expect(bullet).toContain(
+      "When the piece already shows sample data, a fix that changes it keeps it reading as made up at a glance",
+    );
+    expect(recheck).toContain(
+      "made-up names, numbers, or sample data that the before image did not show",
+    );
+  });
+
+  it("facts come only from the brief and the real thing", () => {
+    expect(fixTheDesign).toContain(
+      "A fact or a real example that `brief.md` or a file in `real-thing.txt` gives",
+    );
+    expect(fixTheDesign).toContain(
+      "A fact the person states in the request reaches you through the `brief.md` that round 1 writes.",
+    );
+    for (const text of [bullet, fixTheDesign]) {
+      expect(text).not.toContain("the request, or a file the caller named");
+    }
+  });
+
+  it("the work-order agent gets the Real thing lines, outside the prompt block", () => {
+    const afterWorkOrderBlock = textAfterEachPromptBlock(designCritic)[2] ?? "";
+    expect(afterWorkOrderBlock).toContain(
+      "When the crit had `Real thing:` lines, add the same lines, one per path, as the last lines before `When the work order is done`",
+    );
+    for (const block of textInsideEachFence(designCritic)) {
+      expect(block).not.toContain("Real thing:");
+    }
+    expect(workOrder).toContain("even when the crit gives one as an example");
+  });
+
+  it("the fix loop may add a control whose label uses words already there", () => {
+    expect(loop).toContain(
+      'The rule against new content in "Fix the design, not the score" holds here too',
+    );
+    expect(loop).toContain(
+      "A control that a finding asks for may be added when its label uses only words already on the piece or in `brief.md`",
+    );
+    expect(loop).toContain("It adds no promise, number, or sample data.");
+    expect(loop).not.toContain("The rule against new content still holds");
+  });
+
+  it("the PRD states the rule in FR-77 and points to it from FR-82", () => {
+    const prd = readRepositoryFile("docs", "PRD.md").split("\n");
+    const row77 = prd.find((line) => line.startsWith("| FR-77 |")) ?? "";
+    const row82 = prd.find((line) => line.startsWith("| FR-82 |")) ?? "";
+    expect(row77).toContain("Decision 2026-11-25 (crit-bwr)");
+    expect(row77).toContain("the list is open");
+    expect(row82).toContain("under the copy-edit rule of FR-77");
+    expect(row82).toContain("I do not want anything to invent content");
   });
 });
