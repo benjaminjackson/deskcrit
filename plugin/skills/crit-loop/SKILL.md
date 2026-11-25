@@ -21,7 +21,7 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 ## Round 1: the crit
 
 1. Capture into `<loop folder>/round-1`.
-2. Run the design-critic skill on that capture, steps 1 to 5 of its `SKILL.md`, with every screenshot and the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder. When the person gave a brief, make its Brief block by step 1 of that `SKILL.md`, write it to `<loop folder>/brief.md`, and pass that block to the design-critic run. `brief.md` is the current brief: every later round reads it as it stands, after any decision that "When the person settles a finding" below adds. When the person gave the real thing that the design mocks, as a path, pass that path to the design-critic run as step 1 of its `SKILL.md` says.
+2. Run the design-critic skill on that capture, steps 1 to 5 of its `SKILL.md`, with every screenshot and the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder. When the person gave a brief, make its Brief block by step 1 of that `SKILL.md`, write it to `<loop folder>/brief.md`, and pass that block to the design-critic run. `brief.md` is the current brief: every later round reads it as it stands, after any decision that "When the person settles a finding" below adds. When the person gave the real thing that the design mocks, as a path, write each path to `<loop folder>/real-thing.txt`, one path per line, and pass the paths to the design-critic run as step 1 of its `SKILL.md` says.
 3. If the work order has no finding with a rank, stop: there is nothing to fix.
 
 ## Each round after that
@@ -49,7 +49,7 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 
    With a facts file of several viewports, write `Before images: <absolute paths of the last round's screenshots>` and `After images: <absolute paths of this round's screenshots>` in place of the two image lines, both in the order of the facts file viewports.
 
-   When the person gave the real thing in round 1, add the line `Real thing: <absolute path>` as the last line before `You critique only.`, in every round, the same way the image lines go in. Never search the disk for the real thing.
+   With a `real-thing.txt` in the loop folder, add one line `Real thing: <absolute path>` for each path in it, as the last lines before `You critique only.`, in every round. Never search the disk for the real thing.
 
 4. Save its final message as `crit.md` in the round folder, exactly as it wrote it.
 5. Count the findings it marked closed under "Finding status", and check the stop rule below. A finding marked settled counts as closed: the person settled it, and the Fixed line of `brief.md` holds the decision. A finding marked "closed, new problem" counts as closed too: your fix added a template tell or made one of an element already there, and the recheck lists that tell as a new problem, so the next work order holds it.
