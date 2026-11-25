@@ -304,13 +304,27 @@ export function resolveBackground(layers, canvasColor) {
  * mean count of every line except the last, because the last line of a paragraph is usually short
  * and would pull the mean down; a one-line block reports its own length.
  *
- * @param {{ top: number, bottom: number }[]} characterRects
- * @returns {{ lines: number, charactersPerLine: number | null }}
+ * It also counts the words on each line, where a word is a run of characters that are not white
+ * space (a non-breaking space is white space too), and reports a short last line (FR-79,
+ * crit-y75): the number of words on the last line when the block has 2 lines or more, the last
+ * line holds fewer than LAST_LINE_MINIMUM_WORDS words, the line before holds that many or more,
+ * and no forced line break starts the last line. Otherwise shortLastLine is null.
+ *
+ * @param {{ top: number, bottom: number, space?: boolean, breakBefore?: boolean, spaceBefore?: boolean }[]} characterRects
+ *   `space` marks a white-space character, `breakBefore` a character that a forced line break
+ *   (a `<br>`, or a newline the white-space style keeps) comes right before, and `spaceBefore` a
+ *   character that a source newline comes right before, which the browser draws as a space.
+ * @returns {{ lines: number, charactersPerLine: number | null, shortLastLine: number | null }}
  */
 export function measureLines(characterRects) {
   const counts = [];
+  const wordCounts = [];
+  const forcedStarts = [];
   let lineTop = 0;
   let lineBottom = 0;
+  // True when the character before was white space or the line just started, so the next
+  // character that is not white space starts a new word.
+  let afterSpace = true;
   for (const rect of characterRects) {
     const center = (rect.top + rect.bottom) / 2;
     const onCurrentLine =
@@ -321,24 +335,54 @@ export function measureLines(characterRects) {
       lineBottom = Math.max(lineBottom, rect.bottom);
     } else {
       counts.push(1);
+      wordCounts.push(0);
+      forcedStarts.push(rect.breakBefore === true);
       lineTop = rect.top;
       lineBottom = rect.bottom;
+      afterSpace = true;
     }
+    const isSpace = rect.space === true;
+    // A skipped source newline before this character ends the word before it.
+    if (rect.spaceBefore === true) {
+      afterSpace = true;
+    }
+    if (!isSpace && afterSpace) {
+      wordCounts[wordCounts.length - 1] += 1;
+    }
+    afterSpace = isSpace;
   }
   if (counts.length === 0) {
-    return { lines: 0, charactersPerLine: null };
+    return { lines: 0, charactersPerLine: null, shortLastLine: null };
   }
   if (counts.length === 1) {
-    return { lines: 1, charactersPerLine: counts[0] ?? null };
+    return {
+      lines: 1,
+      charactersPerLine: counts[0] ?? null,
+      shortLastLine: null,
+    };
   }
   let total = 0;
   for (const count of counts.slice(0, -1)) {
     total += count;
   }
   const mean = total / (counts.length - 1);
+  const lastIndex = counts.length - 1;
+  const wordsOnLastLine = wordCounts[lastIndex] ?? 0;
+  const wordsOnLineBefore = wordCounts[lastIndex - 1] ?? 0;
+  const lastLineForced = forcedStarts[lastIndex] === true;
+  let shortLastLine = null;
+  if (
+    wordsOnLastLine > 0 &&
+    wordsOnLastLine < LAST_LINE_MINIMUM_WORDS &&
+    wordsOnLineBefore >= LAST_LINE_MINIMUM_WORDS &&
+    !lastLineForced
+  ) {
+    shortLastLine = wordsOnLastLine;
+  }
   return {
     lines: counts.length,
     charactersPerLine: Math.round(mean * 10) / 10,
+    shortLastLine,
   };
 }
 
@@ -605,17 +649,25 @@ export const LINE_LENGTH_MAXIMUM = 75;
 /** A block counts as paragraph text for the line length rule when it has this many lines or more. */
 export const PARAGRAPH_MINIMUM_LINES = 3;
 
+/**
+ * Common sense (FR-79, crit-y75): a last line with fewer words than this, under a line with this
+ * many words or more, is a short last line. Bringhurst 2.4.2 asks for no short last-line word and
+ * gives no number, so the rule flags only one word alone, the case nobody disputes.
+ */
+export const LAST_LINE_MINIMUM_WORDS = 2;
+
 /** The GUIDELINES.md entry title of each rule that findViolations checks. */
 export const VIOLATION_GUIDELINES = {
   "text-contrast": "Text contrast (minimum)",
   "large-text-contrast": "Text contrast (minimum)",
   "target-size": "Target size (minimum)",
   "line-length": "Line length (measure)",
+  "short-last-line": "Widows, orphans, and runts",
 };
 
 /** The top-level note that says what the violations list covers and what it cannot see. */
 export const VIOLATIONS_NOTE =
-  "violations lists only text contrast under 4.5:1 (3:1 for large text: 24 px, or 18.66 px bold), targets under 24 px without room around them, and paragraph lines over 75 characters (blocks of 3 or more lines). It leaves out text in a disabled control, in a logo or an image, inline links in text, and small targets whose 24 px circles touch nothing. It cannot see non-text contrast (not measured), contrast marked not measurable, text that is only decoration, unstyled browser controls, and targets that are essential or have an equal control elsewhere; judge those by eye.";
+  "violations lists only text contrast under 4.5:1 (3:1 for large text: 24 px, or 18.66 px bold), targets under 24 px without room around them, paragraph lines over 75 characters (blocks of 3 or more lines), and a last line of one word under a line of two or more words, not after a forced line break. It leaves out text in a disabled control, in a logo or an image, inline links in text, and small targets whose 24 px circles touch nothing. It cannot see non-text contrast (not measured), contrast marked not measurable, text that is only decoration, unstyled browser controls, and targets that are essential or have an equal control elsewhere; judge those by eye.";
 
 /**
  * Returns true when text counts as large under WCAG: at least 18 pt (24 CSS px), or at least
@@ -638,7 +690,7 @@ function distanceToBox(pointX, pointY, box) {
 
 /**
  * Returns the threshold violations of one viewport, checked in code against fixed numbers
- * (FR-79): text contrast, target size, and line length. Each names its rule, the GUIDELINES.md
+ * (FR-79): text contrast, target size, line length, and a short last line. Each names its rule, the GUIDELINES.md
  * entry, the measured value, the threshold, and the selector and box. It skips text and targets
  * with an exemption the DOM shows. An undersized target passes when a 24 px circle centered on it
  * touches no other target and no other undersized target's circle (WCAG 2.2 SC 2.5.8).
@@ -647,12 +699,15 @@ function distanceToBox(pointX, pointY, box) {
  * @param {(string | null)[]} blockExemptions the exemption of each text block, at the same index
  * @param {{ selector: string, box: number[] }[]} targets
  * @param {(string | null)[]} targetExemptions the exemption of each target, at the same index
+ * @param {(number | null)[]} [shortLastLines] the words on the short last line of each text block,
+ *   at the same index, or null when it has none (the shortLastLine of measureLines)
  */
 export function findViolations(
   textBlocks,
   blockExemptions,
   targets,
   targetExemptions,
+  shortLastLines = [],
 ) {
   const violations = [];
   const addViolation = (rule, value, threshold, item) => {
@@ -690,6 +745,15 @@ export function findViolations(
         "line-length",
         block.characters_per_line,
         LINE_LENGTH_MAXIMUM,
+        block,
+      );
+    }
+    const wordsOnLastLine = shortLastLines[index];
+    if (typeof wordsOnLastLine === "number" && !exempt) {
+      addViolation(
+        "short-last-line",
+        wordsOnLastLine,
+        LAST_LINE_MINIMUM_WORDS,
         block,
       );
     }
@@ -754,6 +818,8 @@ export function summarizeViewport(raw) {
   const textBlocks = [];
   // The WCAG exemption of each entry of textBlocks, at the same index, or null.
   const blockExemptions = [];
+  // The words on the short last line of each entry of textBlocks, at the same index, or null.
+  const shortLastLines = [];
   const listedBlocks = [];
   for (const rawBlock of raw.blocks) {
     if (hiddenSelectors.has(rawBlock.selector)) {
@@ -813,6 +879,12 @@ export function summarizeViewport(raw) {
     }
     textBlocks.push(block);
     blockExemptions.push(rawBlock.exemption ?? null);
+    // A block cut off at the character limit has an unknown last line, so it is never flagged.
+    if (rawBlock.allMeasured) {
+      shortLastLines.push(lines.shortLastLine);
+    } else {
+      shortLastLines.push(null);
+    }
   }
 
   const typeSizes = [];
@@ -882,6 +954,7 @@ export function summarizeViewport(raw) {
     blockExemptions,
     targets,
     targetExemptions,
+    shortLastLines,
   );
 
   const notes = [...raw.notes];
@@ -930,6 +1003,12 @@ export function summarizeViewport(raw) {
  * @param {{ maxBlocks: number, maxTargets: number, snippetLength: number, maxCharacters: number }} limits
  */
 function readPage(limits) {
+  // The white-space-collapse values that keep a source newline, so it forces a line break (crit-y75).
+  const KEPT_NEWLINE_STYLES = new Set([
+    "preserve",
+    "preserve-breaks",
+    "break-spaces",
+  ]);
   const pageHeight = document.documentElement.scrollHeight;
   const pageWidth = document.documentElement.scrollWidth;
 
@@ -1226,18 +1305,42 @@ function readPage(limits) {
     const range = document.createRange();
     let textLeft = null;
     let measured = 0;
+    // True when a forced line break comes before the next drawn character (FR-79, crit-y75).
+    let breakBefore = false;
+    // True when a skipped source newline comes before the next drawn character. The browser draws
+    // a collapsed newline as a space, so that character starts a new word (crit-y75).
+    let spaceBefore = false;
+    // True when the character limit cut the block, so its last line is not known.
+    let cut = false;
     for (const entry of entries) {
+      if (entry.lineBreak) {
+        breakBefore = true;
+        continue;
+      }
       const textNode = entry.textNode;
       if (textNode === undefined) {
         continue;
       }
+      const textParent = textNode.parentElement;
+      let keepsNewlines = false;
+      if (textParent !== null) {
+        keepsNewlines = KEPT_NEWLINE_STYLES.has(
+          getComputedStyle(textParent).whiteSpaceCollapse,
+        );
+      }
       for (let offset = 0; offset < textNode.data.length; offset++) {
         if (measured >= limits.maxCharacters) {
+          cut = true;
           break;
         }
         const character = textNode.data[offset];
         if (character === "\n" || character === "\r") {
           // A kept line break (white-space: pre or pre-line) ends a line; it is not a character on it.
+          // Its box is not measured, so characters per line stays the same; it only ends a word.
+          if (keepsNewlines) {
+            breakBefore = true;
+          }
+          spaceBefore = true;
           continue;
         }
         range.setStart(textNode, offset);
@@ -1253,7 +1356,13 @@ function readPage(limits) {
           bottom: rect.bottom + window.scrollY,
           centerX: rect.left + window.scrollX + rect.width / 2,
           textElement: textNode.parentElement,
+          // trim() removes every kind of white space, the non-breaking space included.
+          space: character?.trim() === "",
+          breakBefore,
+          spaceBefore,
         });
+        breakBefore = false;
+        spaceBefore = false;
         const left = rect.left + window.scrollX;
         const isLetter = character?.trim() !== "";
         if (isLetter && (textLeft === null || left < textLeft)) {
@@ -1261,7 +1370,7 @@ function readPage(limits) {
         }
       }
     }
-    if (measured >= limits.maxCharacters) {
+    if (cut) {
       candidate.notes.push(
         `characters per line measured on the first ${limits.maxCharacters} characters`,
       );
@@ -1303,6 +1412,8 @@ function readPage(limits) {
       lineHeight,
       characterRects,
       textLeft,
+      // False when the character limit cut the block, so its last line is not known.
+      allMeasured: !cut,
       notes: candidate.notes,
       exemption: blockExemption(entries, owner),
       samples: [],
