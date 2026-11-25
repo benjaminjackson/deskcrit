@@ -54,6 +54,8 @@ describe("the crit-loop skill's deck path", () => {
       "`Breaks: none`",
       "twelve",
       "`--widescreen`",
+      "`<deck file>#<k>`",
+      "hash anchor",
       "as soon as the set critic has finished",
     ]) {
       // Lowercase both, so a phrase at the start of a sentence still matches.
@@ -111,6 +113,7 @@ describe("the PRD rows of the deck path", () => {
     const row = prdRow("FR-82");
     expect(row).toContain("crit-3wg");
     expect(row).toContain("`Breaks: none`");
+    expect(row).toContain("all decks use hash as the slide anchor");
   });
 
   it("records the deck default in FR-83", () => {

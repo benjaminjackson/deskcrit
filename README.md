@@ -83,7 +83,7 @@ Each image also gets its own crit and work order. If you say the images are slid
 
 Each round captures the page, fixes from the top of the work order, captures again at the same viewports as round 1 (four by default), and starts a fresh critic that marks each finding closed, open, or worse, or settled when you decided to keep it as it is. The loop stops when no ranked finding is left, or when two rounds in a row close nothing. It does not add content to close a finding: when a fix needs text or data that only you have, it leaves the finding open and tells you.
 
-For a deck or a flow of screens, the loop captures each slide on its own, so give one file or URL per slide when you can. Each round critiques every slide and checks the slides for consistency on one contact sheet, and the loop fixes each break that the consistency check names. It stops when no slide has a ranked finding and the consistency check finds no break, or when two rounds in a row close nothing.
+For a deck or a flow of screens, give the deck as one HTML file whose hash anchor picks the slide, such as `deck.html#3` for slide 3. The loop captures each slide on its own. Each round critiques every slide and checks the slides for consistency on one contact sheet, and the loop fixes each break that the consistency check names. It stops when no slide has a ranked finding and the consistency check finds no break, or when two rounds in a row close nothing.
 
 The critic only critiques. It does not edit files.
 

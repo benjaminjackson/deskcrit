@@ -1,6 +1,7 @@
 import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import {
@@ -29,6 +30,7 @@ import {
   resolveBackground,
   runMeasure,
   summarizeDarkMode,
+  toPageUrl,
   VIEWPORTS,
   widthViewports,
 } from "../plugin/skills/design-critic/scripts/measure.mjs";
@@ -862,5 +864,40 @@ describe("findViolations", () => {
       target("#b", [24, 0, 20, 20]),
     ];
     expect(findViolations([], [], targets, [null, null])).toEqual([]);
+  });
+});
+
+describe("toPageUrl (FR-82, crit-3wg)", () => {
+  // A deck is one HTML file, and its hash picks the slide, so a local path keeps its hash.
+  const folder = mkdtempSync(join(tmpdir(), "measure-page-url-"));
+  const deckPath = join(folder, "deck.html");
+  writeFileSync(deckPath, "<!doctype html><title>deck</title>");
+
+  it("adds the hash of a local path to the file URL", () => {
+    expect(toPageUrl(`${deckPath}#3`)).toBe(
+      `${pathToFileURL(deckPath).href}#3`,
+    );
+  });
+
+  it("leaves a local path with no hash as before", () => {
+    expect(toPageUrl(deckPath)).toBe(pathToFileURL(deckPath).href);
+  });
+
+  it("leaves an http URL with a hash as given", () => {
+    expect(toPageUrl("https://example.com/deck#3")).toBe(
+      "https://example.com/deck#3",
+    );
+  });
+
+  it("opens a file whose name holds # as that file", () => {
+    const oddPath = join(folder, "odd#name.html");
+    writeFileSync(oddPath, "<!doctype html><title>odd</title>");
+    expect(toPageUrl(oddPath)).toBe(pathToFileURL(oddPath).href);
+  });
+
+  it("refuses a path whose file does not exist, with or without a hash", () => {
+    expect(() => toPageUrl(join(folder, "missing.html#2"))).toThrow(
+      "does not exist",
+    );
   });
 });

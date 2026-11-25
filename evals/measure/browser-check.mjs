@@ -13,6 +13,8 @@
 // times out: still exit 0, found_by none, and a note that the check failed), and pulse.html (a
 // button whose color pulses, with no dark mode: found_by none); dark-media and
 // dark-toggle are compared with their committed .facts.json.
+// It measures hash-slides.html#2 and checks that only the heading of slide 2 is measured and that
+// source keeps the hash (FR-82, crit-3wg).
 // It also serves pages from a local HTTP server to check that a 404 is refused with one line, that
 // a redirect is recorded, and that a page that does not open gives one line. Then it compares the
 // parts of each facts.json that do not depend on the machine with the committed
@@ -333,6 +335,28 @@ check(
   "a left edge with fewer than 2 blocks is listed",
 );
 compareWithSample("evals/measure/hard-cases.html", hard);
+
+// A local path with a hash picks one slide of a deck (FR-82, crit-3wg): hash-slides.html#2 shows
+// only the heading of slide 2, and source records the path with its hash.
+const slideTwo = await measureCommittedPage(
+  "evals/measure/hash-slides.html#2",
+  ["--desktop"],
+);
+const slideTwoSelectors = slideTwo.facts.viewports[0].text_blocks.map(
+  (block) => block.selector,
+);
+check(
+  JSON.stringify(slideTwoSelectors) === JSON.stringify(["#heading-two"]),
+  `hash-slides.html#2 gave text blocks ${JSON.stringify(slideTwoSelectors)}, expected ["#heading-two"]`,
+);
+check(
+  slideTwo.facts.source === "evals/measure/hash-slides.html#2",
+  `hash-slides.html#2 recorded source ${slideTwo.facts.source}`,
+);
+check(
+  validateFacts(slideTwo.facts),
+  `the hash-slides.html#2 facts.json does not validate: ${JSON.stringify(validateFacts.errors)}`,
+);
 
 // --width: one viewport per width, named w<N>, and a facts.json that the schema accepts.
 const widthRun = await runMeasureScript("evals/measure/known-values.html", [

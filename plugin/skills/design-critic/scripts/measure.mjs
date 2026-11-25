@@ -1565,16 +1565,29 @@ export function loadPlaywright(workingDirectory) {
   return null;
 }
 
-/** Turns the PAGE argument into a URL: an http(s) URL as given, anything else as a local file. */
-function toPageUrl(pageArgument) {
+/**
+ * Turns the PAGE argument into a URL: an http(s) URL as given, anything else as a local file.
+ * A local path may end with a hash, such as `deck.html#3`, which picks slide 3 of a deck (FR-82):
+ * the hash is split off and added to the file URL as a hash, because pathToFileURL would encode
+ * `#` as `%23` and open a file of that name. A path whose whole text names a file that exists is
+ * used as it is, so a file with `#` in its name still opens.
+ */
+export function toPageUrl(pageArgument) {
   if (/^https?:\/\//i.test(pageArgument)) {
     return pageArgument;
   }
-  const filePath = resolve(pageArgument);
-  if (!existsSync(filePath)) {
-    throw new MeasureRefusal(`the file ${pageArgument} does not exist`);
+  const wholePath = resolve(pageArgument);
+  if (existsSync(wholePath)) {
+    return pathToFileURL(wholePath).href;
   }
-  return pathToFileURL(filePath).href;
+  const hashStart = pageArgument.lastIndexOf("#");
+  if (hashStart !== -1) {
+    const filePath = resolve(pageArgument.slice(0, hashStart));
+    if (existsSync(filePath)) {
+      return pathToFileURL(filePath).href + pageArgument.slice(hashStart);
+    }
+  }
+  throw new MeasureRefusal(`the file ${pageArgument} does not exist`);
 }
 
 /** Returns the first line of an error's message, so the script prints exactly one line. */
