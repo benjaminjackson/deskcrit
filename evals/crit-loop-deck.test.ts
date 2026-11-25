@@ -210,6 +210,68 @@ describe("a screen a cut left too thin (crit-1kh)", () => {
     expect(counts).toEqual([1, 0, 0, 0, 0]);
   });
 
+  it("lists the screens sparse by design once, in the recheck critic", () => {
+    const files = [
+      recheckPath,
+      setCriticPath,
+      "plugin/skills/design-critic/agents/critic.md",
+      "plugin/skills/design-critic/agents/work-order.md",
+      skillPath,
+    ];
+    const counts = files.map((path) =>
+      countOccurrences(
+        readRepositoryFile(path),
+        "a title slide, a section divider, or an end slide",
+      ),
+    );
+    expect(counts).toEqual([1, 0, 0, 0, 0]);
+  });
+
+  it("lets a thin-screen break request a fact, and lets the deck stop when only that is left (fix 1)", () => {
+    expect(setCritic).toContain(
+      "end the break with the `Fact needed from the maker:` sentence of `agents/critic.md`; that is the only fact you request",
+    );
+    const factsSection = section(skill, "When a finding requests a fact");
+    expect(factsSection).toContain(
+      "the set critic requests no facts, with one exception: a thin-screen break",
+    );
+    expect(factsSection).toContain(
+      "goes through this section like any requested fact",
+    );
+    const deck = section(skill, "A deck or a flow");
+    expect(
+      countOccurrences(
+        deck,
+        'or names only thin-screen breaks that "When a finding requests a fact" sets aside',
+      ),
+    ).toBe(2);
+    const oneQuestionLines = skill
+      .split("\n")
+      .filter((line) => line.includes("one question"));
+    expect(oneQuestionLines).toHaveLength(2);
+  });
+
+  it("closes a thin-screen break by content comparable to the others (fix 2)", () => {
+    const start = setCritic.indexOf(
+      "If your prompt has a `Last set work order:` line",
+    );
+    expect(start).toBeGreaterThan(-1);
+    const breakStatus = setCritic.slice(start, setCritic.indexOf("\n", start));
+    expect(breakStatus).toContain(
+      "A thin-screen break is closed when that screen now makes its point with content comparable to the others; there is no number.",
+    );
+  });
+
+  it("allows a card that carries a fact only in the fix of a thin screen (fix 3)", () => {
+    const fixSection = section(skill, "Fix the design, not the score");
+    expect(fixSection).toContain(
+      "Only in the fix of a screen that a cut left too thin, an element that carries one, such as a card, is not a new section",
+    );
+    expect(fixSection).toContain(
+      "a quote from the brief is still a testimonial and is never added as a card",
+    );
+  });
+
   it("gives the set critic one exception for a screen with far less content", () => {
     expect(countOccurrences(setCritic, "far less content")).toBe(1);
     expect(setCritic).toContain("there is no fixed number");
@@ -228,7 +290,7 @@ describe("a screen a cut left too thin (crit-1kh)", () => {
     );
     expect(fixSection).toContain("is not a new section");
     expect(skill).toContain(
-      "or one that carries a fact or a real example that section allows",
+      "or, only in the fix of a screen that a cut left too thin, one that carries a fact or a real example that section allows",
     );
   });
 
@@ -254,5 +316,13 @@ describe("a screen a cut left too thin (crit-1kh)", () => {
     const fr83 = prdRow("FR-83");
     expect(fr83).toContain("(crit-1kh)");
     expect(fr83).toContain("far less content");
+    expect(fr83).toContain("This is the one fact the set critic requests.");
+    expect(fr83).toContain("content comparable to the other screens");
+    expect(fr82).toContain(
+      "except the one fact request of a thin-screen break (FR-83, crit-1kh)",
+    );
+    expect(fr82).toContain(
+      "A quote from the brief is still a testimonial and is never added as a card.",
+    );
   });
 });
