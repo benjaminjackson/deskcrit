@@ -23,8 +23,8 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 ## Round 1: the crit
 
 1. Capture into `<loop folder>/round-1`.
-2. Run the design-critic skill on that capture, steps 1 to 5 of its `SKILL.md`, with every screenshot and the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder. When the person gave a brief, make its Brief block by step 1 of that `SKILL.md`, write it to `<loop folder>/brief.md`, and pass that block to the design-critic run. `brief.md` is the current brief: every later round reads it as it stands, after any decision that "When the person settles a finding" below adds. When the person gave the real thing that the design mocks, as a path, write each path to `<loop folder>/real-thing.txt`, one path per line, and pass the paths to the design-critic run as step 1 of its `SKILL.md` says.
-3. If the work order has no finding with a rank, stop: there is nothing to fix.
+2. Run the design-critic skill on that capture, steps 1 to 5 of its `SKILL.md`, with every screenshot and the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder. When the person gave a brief, make its Brief block by step 1 of that `SKILL.md`, write it to `<loop folder>/brief.md`, and pass that block to the design-critic run. `brief.md` is the current brief: every later round reads it as it stands, after any decision that "When the person settles a finding" below adds. When the person gave the real thing that the design mocks, as a path, write each path to `<loop folder>/real-thing.txt`, one path per line, and pass the paths to the design-critic run as step 1 of its `SKILL.md` says. Its step 5 asks the person, in one question, for the facts the crit requests.
+3. If the work order has no finding with a rank (leave out the findings that "When a finding requests a fact" sets aside), stop: there is nothing to fix.
 
 ## Each round after that
 
@@ -55,7 +55,7 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 
 4. Save its final message as `crit.md` in the round folder, exactly as it wrote it.
 5. Count the findings it marked closed under "Finding status", and check the stop rule below. A finding marked settled counts as closed: the person settled it, and the Fixed line of `brief.md` holds the decision. A finding marked "closed, new problem" counts as closed too: your fix added a template tell or made one of an element already there, and the recheck lists that tell as a new problem, so the next work order holds it.
-6. If you do not stop, write the new work order with step 5 of the design-critic skill's `SKILL.md`: this round's `crit.md`, this round's images, its facts file, and the Brief block from `brief.md` when the loop folder has one. Then start the next round.
+6. If you do not stop, write the new work order with step 5 of the design-critic skill's `SKILL.md`, which first asks the person, in one question, for the facts that this round's crit requests (see "When a finding requests a fact"): this round's `crit.md`, this round's images, its facts file, and the Brief block from `brief.md` when the loop folder has one. Then start the next round.
 
 A finding marked worse is not progress. Fix it before the findings ranked below it.
 
@@ -67,7 +67,7 @@ This section replaces "Capture", "Round 1: the crit", "Each round after that", a
 
 **Capture.** A deck is one HTML file or URL, and its hash anchor picks the slide: `deck.html#3` shows slide 3. Capture one image per slide with one run of the measure script per slide, as "Capture" says, with the page `<deck file>#<k>`, where k is the slide number, the out folder `<round folder>/slide-<k>`, and the one viewport flag that matches the slide size, such as `--widescreen` for 1920 x 1080 px or `--desktop` for 1280 x 800 px. For a local deck file, the measure script keeps the hash and measures only the element whose id the hash names, so a deck whose hash only scrolls still gives one slide. A flow whose screens are separate files or URLs gets one run per screen in the same way. Use your own tool at the slide's size only when the measure script cannot open the deck. Use the same capture for every slide in every round.
 
-**Round 1.** Capture every slide. Then run the design-critic skill in contact-sheet mode on the slides, one image per slide (with its facts file when there is one), in slide order, and name "consistency check" in the call. Make the contact sheet in `<round folder>/set` and save the set critic's crit there as `crit.md`. When the slides have facts files, the design-critic skill runs the compare-facts script for the set critic; pass it the viewport you captured, such as `--viewport widescreen`, as "Contact-sheet mode" step 2 says. Each slide's `crit.md` and `work-order.json` go in its slide folder. When the loop has a `brief.md`, pass its Brief block as Round 1 step 2 says; it goes to every slide critic and to the set critic. Then write the set work order, as below. Stop if no slide's work order has a ranked finding and the set critic's last line is `Breaks: none`.
+**Round 1.** Capture every slide. Then run the design-critic skill in contact-sheet mode on the slides, one image per slide (with its facts file when there is one), in slide order, and name "consistency check" in the call. Make the contact sheet in `<round folder>/set` and save the set critic's crit there as `crit.md`. When the slides have facts files, the design-critic skill runs the compare-facts script for the set critic; pass it the viewport you captured, such as `--viewport widescreen`, as "Contact-sheet mode" step 2 says. Each slide's `crit.md` and `work-order.json` go in its slide folder. When the loop has a `brief.md`, pass its Brief block as Round 1 step 2 says; it goes to every slide critic and to the set critic. Then write the set work order, as below. Stop if no slide's work order has a ranked finding, leaving out the findings that "Deck pattern wins" overrides and the ones that "When a finding requests a fact" sets aside, and the set critic's last line is `Breaks: none`.
 
 **The set work order.** The set critic writes no work order, so you start one. As soon as the set critic has finished and its last line names a tile, spawn the work-order agent with the step 5 prompt of the design-critic `SKILL.md`: the set `crit.md` as the crit file, `sheet.png` as the only image, no facts line, `<round folder>/set` to write in, and the Brief block when the loop has a `brief.md`. The agent follows "A set crit" in `<design-critic folder>/agents/work-order.md`, writes one ranked entry per break, and names each tile with its slide folder, such as `slide-3`. When the last line is `Breaks: none`, write no set work order. Do the same at step 6 of every later round.
 
@@ -80,9 +80,9 @@ This section replaces "Capture", "Round 1: the crit", "Each round after that", a
 3. Build the new contact sheet as "Contact-sheet mode" step 2 of the design-critic `SKILL.md` says, in `<round folder>/set`, with compare-facts given the same viewport as in round 1. Then start, in one message, the recheck critic of each slide whose last work order has a ranked finding or that a fix changed this round, with the step 3 prompt filled for that slide and the Brief block when the loop has a `brief.md`, and a fresh set critic on the new sheet, with the set-critic prompt of "Contact-sheet mode" step 2. When the last round has a set work order, add the line `Last set work order: <absolute path of the last set work-order.json>` to the set critic's prompt right after the `Images, in tile order` line, so it marks each break of that work order closed or open. A slide that gets no recheck keeps its last work order.
 4. Save each recheck as `crit.md` in its slide folder, and the set crit as `crit.md` in the set folder.
 5. Count and check the stop rules below.
-6. If you do not stop, start in one message the work-order agent of each rechecked slide, as step 6 of "Each round after that" says, and the set work-order agent.
+6. If you do not stop, wait for every slide's recheck, ask once for the facts that all of them request, as step 5 of the design-critic `SKILL.md` says, and then start in one message the work-order agent of each rechecked slide, as step 6 of "Each round after that" says, and the set work-order agent.
 
-**When to stop.** Leave out every slide finding that "Deck pattern wins" overrides. Stop when one of these is true:
+**When to stop.** Leave out every slide finding that "Deck pattern wins" overrides, and every finding that "When a finding requests a fact" sets aside. Stop when one of these is true:
 
 - No slide has a ranked finding (its last recheck says "None." under "What would move it most", or its last work order has no ranked finding), and the set critic's last line is `Breaks: none`.
 - Two rounds in a row close nothing: no recheck marks a finding closed (settled and "closed, new problem" count as closed), and the set critic marks no break of the last set work order closed.
@@ -100,11 +100,19 @@ The person can make a decision about a finding in chat, during a round or betwee
 
 Every later recheck and work-order run reads the updated `brief.md`.
 
+## When a finding requests a fact
+
+A finding that needs a fact only the maker has requests it with a `Fact needed from the maker:` sentence (`agents/critic.md`). Step 5 of the design-critic `SKILL.md` asks for these facts, once per round, after the crit or recheck and before the work order. For a deck, the round's single question covers every slide's `crit.md`; the set critic requests no facts. Write each answer into `<loop folder>/brief.md` as "When the person settles a finding" writes a decision: in the field that rules 1 to 5 of FR-87 pick. The work-order agent then reads it.
+
+Write each fact that was asked for and not given, because the person declined it or left it unanswered, to `<loop folder>/facts-asked.txt`, one line each, in the request's own words. Before step 5 asks, give it the facts in that file as asked before and not given, so it does not ask for them again. A later finding on the same element that requests the same fact in other words is the same request. A fact the person answers goes into `brief.md` and not into that file. A finding whose whole fix is a requested fact that nobody gave stays open and is listed at the stop. That finding does not count against the stop rules: leave it out of "The recheck has no ranked finding left" and of the deck's "No slide has a ranked finding". A finding that holds the `Fact needed from the maker:` sentence together with other fixes is not set aside: make its other fixes, and list the fact at the stop. Once its other fixes are made and only its requested fact is left, it counts as a finding whose whole fix is that fact. With no person to ask, the work order is written as it is, and every requested fact counts as asked and not given and is written to `<loop folder>/facts-asked.txt`.
+
+The loop uses only what it was given: the request, the brief, and the files the caller named. It never searches the disk or the repository for a fact.
+
 ## When to stop
 
 Stop when one of these is true:
 
-- The recheck has no ranked finding left: under "What would move it most" it says "None.".
+- The recheck has no ranked finding left: under "What would move it most" it says "None.", or the only ranked findings left are the ones that "When a finding requests a fact" sets aside.
 - Two rounds in a row have no finding marked closed.
 
 When you stop, tell the person:
@@ -112,7 +120,7 @@ When you stop, tell the person:
 - which of the two rules made you stop,
 - the last first read and verdict,
 - the findings still open or worse, with their places,
-- the findings you left open because they need content that only the owner has, and what kind of content each one needs,
+- the findings whose requested fact nobody gave, each with the fact it requested,
 - the path of the loop folder.
 
 If a script or a critic cannot run, do not retry it in a loop. Tell the person what it printed, and stop.
@@ -121,4 +129,4 @@ If a script or a critic cannot run, do not retry it in a loop. Tell the person w
 
 Fix the design for the person who will use it. Do not hide or remove content to close a finding.
 
-Never add content. Add no new text, facts, names, numbers, sample data, images, testimonials, or sections. Change the copy only with the editorial edits that a finding calls for: cut, reorder, restore a missing verb or unit, or make a line clear. Do not rewrite the copy as a copywriter would. Fix layout, type, color, spacing, and hierarchy freely. When a finding needs content that only the owner has, leave it open and tell the person at the stop.
+Never add content. Add no new text, facts, names, numbers, sample data, images, testimonials, or sections. Change the copy only with the editorial edits that a finding calls for: cut, reorder, restore a missing verb or unit, or make a line clear. Do not rewrite the copy as a copywriter would. Fix layout, type, color, spacing, and hierarchy freely. A fact that `brief.md` holds is the maker's, not new content: use it exactly as `brief.md` states it. A finding whose requested fact nobody gave stays open; "When a finding requests a fact" says how it counts at the stop.
