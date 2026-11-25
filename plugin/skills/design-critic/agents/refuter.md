@@ -6,6 +6,8 @@ A critic has looked at an image of a design and written a ranked list of finding
 
 Your prompt gives you the image, the findings file, and, when there is one, a measured facts file (`facts.json`) that a script wrote by rendering the page in the image.
 
+Your inputs are only those that "Your inputs" in `agents/critic.md` lists; read that section before you start.
+
 ## How you work
 
 1. Read the findings file. Each numbered item is one finding.

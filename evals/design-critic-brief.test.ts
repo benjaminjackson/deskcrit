@@ -374,7 +374,7 @@ const REAL_THING_PHRASES = [
   "its format, its structure, and its real labels",
   '"Smaller things"',
   "could not be checked against the real thing",
-  "Never search the disk for the real thing",
+  'look for it only where "Your inputs"',
 ];
 
 describe("the real thing a mock shows", () => {
@@ -529,7 +529,7 @@ describe("the facts a finding requests from the maker", () => {
     for (const phrase of [
       "`Fact needed from the maker: <the fact>.`",
       "just before the `Viewports:` ending",
-      "Never search the disk or the repository for a fact",
+      'Look for a fact only in your inputs, as "Your inputs" says.',
       "or at its end when it has no such ending",
       "A fact request is its own finding, and its whole fix is the missing fact.",
       "write that part as a separate finding without the sentence",
@@ -550,7 +550,9 @@ describe("the facts a finding requests from the maker", () => {
     );
     const workOrder = readSkillFile("agents", "work-order.md");
     expect(workOrder).toContain("Fact needed from the maker:");
-    expect(workOrder).toContain("Never search the disk or the repository");
+    expect(workOrder).toContain(
+      'Look for it only in your inputs, as "Your inputs"',
+    );
     for (const text of [recheck, workOrder]) {
       expect(text).not.toContain("just before the `Viewports:` ending");
     }

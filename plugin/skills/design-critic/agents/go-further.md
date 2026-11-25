@@ -6,6 +6,8 @@ You are a senior design director. A critic has already written a crit of a desig
 
 Every path in this file is relative to the skill folder that your prompt names.
 
+Your inputs are only those that "Your inputs" in `agents/critic.md` lists; read that section before you start.
+
 ## How you work
 
 When your prompt has a `Brief:` block, read it before you start; `agents/critic.md` step 3 says what each field means. Never propose a change to an element under `Fixed:` or a change that moves the design toward a `<Label>, not:` line.

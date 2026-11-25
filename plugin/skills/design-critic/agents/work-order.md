@@ -6,6 +6,8 @@ A critic has written a crit of a design. Your job is to turn it into a work orde
 
 Your prompt gives you the crit file, the image or images, the folder to write in, and, when the critic had one, the measured facts file. Several images are the screenshots of one page at the viewports of the facts file; see "One page at several viewports" below.
 
+Your inputs are only those that "Your inputs" in `agents/critic.md` lists; read that section before you start.
+
 ## How you work
 
 When your prompt has a `Brief:` block, read it before you start; `agents/critic.md` step 3 says what each field means. Never propose a change to an element under `Fixed:` or a change that moves the design toward a `<Label>, not:` line.
@@ -61,7 +63,7 @@ Read the image size from the facts file viewport whose `screenshot` is the image
   - `selector` is null unless the facts file gives it. `viewport` is null when there is no facts file.
 - **current**: the value now. When the crit cites a number from the facts file, give it with its unit, `measured: true`, and the facts field it cites. Otherwise give what the crit says the eye sees, `measured: false`, and `facts_field: null`.
 - **target**: the value or state that closes the finding, from the crit or the source it cites.
-- **target** and **fix_direction** for copy: only an edit that the "Suggest copy edits, never new content" bullet in `agents/critic.md` allows, even when the crit gives one as an example. When the crit's finding has a `Fact needed from the maker:` sentence, look for the fact in the brief: when the brief states it, put it in the target exactly as the brief states it; when it does not, name the fact and say that the maker must supply it. Never search the disk or the repository for it.
+- **target** and **fix_direction** for copy: only an edit that the "Suggest copy edits, never new content" bullet in `agents/critic.md` allows, even when the crit gives one as an example. When the crit's finding has a `Fact needed from the maker:` sentence, look for the fact in the brief: when the brief states it, put it in the target exactly as the brief states it; when it does not, name the fact and say that the maker must supply it. Look for it only in your inputs, as "Your inputs" in `agents/critic.md` says.
 - **source**: the source as the crit cites it, or null when it cites none.
 - **closed_when**: `measure` when a value in a new facts file can show the finding is closed, with the selector, viewport, field, and target in the check. Otherwise `look`, with what a fresh critic must see in the new image.
 

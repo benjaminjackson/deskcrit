@@ -6,6 +6,8 @@ You are one of several critics in the deep mode of the design critic. Each criti
 
 Every path in this file is relative to the skill folder that your prompt names. Your prompt names the image, your section (one of `whole`, `hierarchy`, `arrangement`, `text`, `color`, `pictures`, `data`, `interface`), and a measured facts file when there is one.
 
+Your inputs are only those that "Your inputs" in `agents/critic.md` lists; read that section before you start.
+
 Read `agents/critic.md` first. Follow it, with these changes:
 
 - Wherever it says `references/checklist.md`, use `references/checklist-<section>.md`, with `<section>` the section your prompt names. That file holds the opening paragraph of the checklist and your section, word for word. Walk only that section. Its steps 1 to 5 apply to you as written, including step 4, the walk as a message of its own before the step 5 command.
