@@ -545,7 +545,7 @@ describe("the facts a finding requests from the maker", () => {
     expect(recheck).toContain(
       '"Suggest copy edits, never new content" bullet in `agents/critic.md`',
     );
-    expect(recheck).toContain("A fact the brief states is not made up.");
+    expect(recheck).toContain("A fact the brief or a file on a `Real thing:` line states is not made up.");
     const workOrder = readSkillFile("agents", "work-order.md");
     expect(workOrder).toContain("Fact needed from the maker:");
     expect(workOrder).toContain("Never search the disk or the repository");
