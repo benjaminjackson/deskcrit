@@ -17,7 +17,7 @@ const AGENTS_FOLDER = "plugin/skills/design-critic/agents";
 
 /** The one paragraph each other agent file uses to point to the rule. */
 const POINTER =
-  'Your inputs are only those that "Your inputs" in `agents/critic.md` lists; read that section before you start.';
+  'Open every file with Read, by the exact path you were given, and use Bash only to run this skill\'s scripts by their full path: never run `ls`, `find`, `grep`, `cat`, or `cd`, never use Glob or Grep, and never open a file because it sits next to one you were given. "Your inputs" in `agents/critic.md` is the full rule; read it before you start.';
 
 /** The agent files whose pointer comes right before their "## How you work" heading. */
 const POINTER_BEFORE_HOW_YOU_WORK = [
@@ -131,7 +131,8 @@ describe("the inputs rule of the design-critic agents", () => {
 
   it("no agent file restates the rule outside the section", () => {
     for (const name of ALL_AGENT_FILES) {
-      let text = readAgentFile(name);
+      // The pointer is a fixed summary that the pointer tests pin, so the guard skips that exact string.
+      let text = readAgentFile(name).replace(POINTER, "");
       if (name === "critic.md") {
         text = text.replace(inputsSection, "");
       }

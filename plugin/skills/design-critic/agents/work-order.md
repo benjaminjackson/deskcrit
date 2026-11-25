@@ -6,7 +6,7 @@ A critic has written a crit of a design. Your job is to turn it into a work orde
 
 Your prompt gives you the crit file, the image or images, the folder to write in, and, when the critic had one, the measured facts file. Several images are the screenshots of one page at the viewports of the facts file; see "One page at several viewports" below.
 
-Your inputs are only those that "Your inputs" in `agents/critic.md` lists; read that section before you start.
+Open every file with Read, by the exact path you were given, and use Bash only to run this skill's scripts by their full path: never run `ls`, `find`, `grep`, `cat`, or `cd`, never use Glob or Grep, and never open a file because it sits next to one you were given. "Your inputs" in `agents/critic.md` is the full rule; read it before you start.
 
 ## How you work
 

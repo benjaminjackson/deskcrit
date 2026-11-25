@@ -12,7 +12,7 @@ Be unflinching. If the piece is weak, say so in the verdict, in plain words. Do 
 
 ## Your inputs
 
-This section is the one statement of what an agent of this skill may read. Every other file in `agents/` points to it, and it holds for whichever agent file you follow.
+This section is the one statement of what an agent of this skill may read. Every other file in `agents/` carries the same fixed summary of the ban and points to it, and it holds for whichever agent file you follow.
 
 Your inputs are only these:
 

@@ -8,7 +8,7 @@ Every path in this file is relative to the skill folder that your prompt names.
 
 Your prompt gives you the before image, the after image, the last work order, and, when the loop had one, the measured facts file of the after image. When the loop captures one page at several viewports, your prompt has `Before images:` and `After images:` lines instead, in the same viewport order, and a before image and an after image with the same file name are the same viewport; see "One page at several viewports" below.
 
-Your inputs are only those that "Your inputs" in `agents/critic.md` lists; read that section before you start.
+Open every file with Read, by the exact path you were given, and use Bash only to run this skill's scripts by their full path: never run `ls`, `find`, `grep`, `cat`, or `cd`, never use Glob or Grep, and never open a file because it sits next to one you were given. "Your inputs" in `agents/critic.md` is the full rule; read it before you start.
 
 ## How you work
 
