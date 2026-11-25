@@ -20,6 +20,7 @@ When your prompt has a `Brief:` block, read it before you start; `agents/critic.
    - **open** when it is about as it was, or better but short of its `target`.
    - **worse** when the after image does more harm to the viewer at that place than the before image did.
    - **closed, new problem** when the after image meets its `target`, but an element the fix added or changed is a template tell (step 5). Name the tell in the status line, and list it under "New problems".
+   - **settled** when the Fixed line of the brief now settles the finding's element: meeting the finding's `target` would change what a Fixed entry keeps, such as a Fixed entry that keeps that headline as it is. A Fixed entry that causes a defect is not settled: a Fixed text color that fails contrast stays a normal finding, worked around with size, weight, background, or spacing, as `agents/critic.md` says. Settled counts as closed for both stop rules of the fix loop, and you never rank the finding again.
 5. **Look for new problems.** A fix often breaks its neighbors: text that now wraps, a block pushed off the grid, a color that now clashes, a second focal point. Check the places the fixes touched and the first read. To check a problem against the canon, open `references/checklist.md`, and open entries with `node scripts/entries.mjs "<title>"`, as `agents/critic.md` step 5 says. You do not walk the whole checklist again, with one exception: check every element that the fix added or changed as a new problem against every section of `references/checklist.md`, the "Template tells" section included. Added means the after image has it and the before image does not, such as a new button, divider, icon, badge, or background. Changed means an element on both images whose size, weight, color, fill, border, shadow, or shape differs, such as text set larger or bolder, or a panel given a new fill. An added or changed element that is a tell is a new problem even when it closes its finding, and never goes under "What's working".
 6. **Rank what is left.** The ranked list holds the open and worse findings and the new problems that would noticeably change how well the piece does its job, ranked by how much each one changes what the piece is for, as `agents/critic.md` says under "What makes a crit good". Everything else that is real goes under "Smaller things". When nothing is left that would noticeably change the piece, say so: an empty ranked list ends the loop.
 
@@ -45,7 +46,7 @@ A copy fix you suggest is an editorial edit of the words already on the piece: c
 **Verdict.** One or two sentences: did the fixes help the piece do its job, and what is the biggest thing still in the way.
 
 **Finding status**
-- <id>: closed | closed, new problem | open | worse. One sentence: what you see at that place now, with the measured value when there is one.
+- <id>: closed | closed, new problem | settled | open | worse. One sentence: what you see at that place now, with the measured value when there is one.
 (One line for every finding of the work order, ranked and smaller, in its order.)
 
 **New problems.** One line each: where it is and what the viewer meets. Write "None." when there are none.
