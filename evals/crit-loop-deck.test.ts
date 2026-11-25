@@ -277,7 +277,7 @@ describe("a screen a cut left too thin (crit-1kh)", () => {
     expect(stepSixStart).toBeGreaterThan(-1);
     const stepSix = deck.slice(stepSixStart, deck.indexOf("\n", stepSixStart));
     expect(stepSix).toContain(
-      "wait for every slide's recheck and the set critic",
+      "once the set critic is done, wait for every slide's recheck",
     );
     expect(stepSix).toContain("the set critic's `crit.md` included");
     const designCritic = readRepositoryFile(
