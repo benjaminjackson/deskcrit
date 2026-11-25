@@ -188,6 +188,38 @@ describe("the agent prompt blocks", () => {
     );
     expect(loop).toContain("`<loop folder>/brief.md`");
   });
+
+  it("has crit-loop write a settled finding into brief.md and the recheck mark it settled", () => {
+    const loop = readRepositoryFile(
+      "plugin",
+      "skills",
+      "crit-loop",
+      "SKILL.md",
+    );
+    // The rule is prose after the fenced recheck prompt, so read only that text (FR-82, crit-deh).
+    const afterRecheckPrompt = textAfterEachPromptBlock(loop).join("\n");
+    expect(afterRecheckPrompt).toContain(
+      "always goes on the Fixed line, because keeping an element as it is fixes its exact form",
+    );
+    expect(afterRecheckPrompt).toContain(
+      "When you already changed its element in this round, undo that change before the capture",
+    );
+    expect(afterRecheckPrompt).toContain(
+      "When the loop has no `brief.md`, create it with the `Brief:` line and the line the decision needs",
+    );
+    expect(afterRecheckPrompt).toContain(
+      "The recheck marks the finding settled",
+    );
+    // The recheck critic must know the settled status and list it among the statuses.
+    const recheck = readSkillFile("agents", "recheck.md");
+    expect(recheck).toContain("**settled** when the Fixed line of the brief");
+    expect(recheck).toContain(
+      "A Fixed entry that causes a defect is not settled",
+    );
+    expect(recheck).toContain(
+      "closed | closed, new problem | settled | open | worse",
+    );
+  });
 });
 
 describe("the agent files", () => {

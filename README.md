@@ -66,7 +66,7 @@ or "crit this screenshot". If you also give the page's URL or HTML file, the cri
 /deskcrit:design-critic ~/Desktop/pricing.png It's for small design studios on a laptop. We want sign-ups, not demo bookings. The footer must say "© 2026 Quillfern Ltd". It's a first draft; skip the footer for now.
 ```
 
-The critic does not suggest a change to what is fixed or a change toward what the piece is not going for. With `crit-loop`, the brief you give in round 1 applies to every round.
+The critic does not suggest a change to what is fixed or a change toward what the piece is not going for. With `crit-loop`, the brief you give in round 1 applies to every round, and a decision you make about a finding during the loop is added to it.
 
 **Compare several images.** Give it 2 to 12 images and say which check you want:
 
@@ -81,7 +81,7 @@ Each image also gets its own crit and work order. If you do not say which check 
 /deskcrit:crit-loop
 ```
 
-Each round captures the page, fixes from the top of the work order, captures again at the same viewports as round 1 (four by default), and starts a fresh critic that marks each finding closed, open, or worse. The loop stops when no ranked finding is left, or when two rounds in a row close nothing. It does not add content to close a finding: when a fix needs text or data that only you have, it leaves the finding open and tells you.
+Each round captures the page, fixes from the top of the work order, captures again at the same viewports as round 1 (four by default), and starts a fresh critic that marks each finding closed, open, or worse, or settled when you decided to keep it as it is. The loop stops when no ranked finding is left, or when two rounds in a row close nothing. It does not add content to close a finding: when a fix needs text or data that only you have, it leaves the finding open and tells you.
 
 The critic only critiques. It does not edit files.
 

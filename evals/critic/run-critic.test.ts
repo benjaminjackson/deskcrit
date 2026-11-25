@@ -22,6 +22,7 @@ import {
 import {
   BRIEF_LABELS,
   buildClaudeArguments,
+  buildPrompt,
   type ClaudeRunner,
   CRITIC_MODEL,
   CRITIC_PROMPT_TEMPLATE,
@@ -1020,5 +1021,42 @@ describe("a brief file (FR-87)", () => {
       ...stepOne.matchAll(/\*\*([A-Z][a-z ]*(?:, not)?)\*\*:/g),
     ].map((match) => match[1]);
     expect(labels).toEqual([...BRIEF_LABELS]);
+  });
+});
+
+describe("buildPrompt", () => {
+  it("keeps $ patterns in the note, focus, and paths literal", () => {
+    const note = "price shown as $' in the hero";
+    const focus = "check the $& badge";
+    const prompt = buildPrompt(
+      "/skill/$`dir",
+      ["/work/$'image-1.png"],
+      note,
+      focus,
+      "/work/$&facts.json",
+    );
+    // The same call with plain text, with each plain value swapped for its "$" twin by
+    // split and join, which never reads "$" patterns. A "$'" read as a pattern would paste
+    // the rest of the template into the prompt and break the match.
+    const plainPrompt = buildPrompt(
+      "/skill/dir",
+      ["/work/image-1.png"],
+      "plain note",
+      "plain focus",
+      "/work/facts.json",
+    );
+    const expected = plainPrompt
+      .split("plain note")
+      .join(note)
+      .split("plain focus")
+      .join(focus)
+      .split("/skill/dir")
+      .join("/skill/$`dir")
+      .split("/work/image-1.png")
+      .join("/work/$'image-1.png")
+      .split("/work/facts.json")
+      .join("/work/$&facts.json");
+    expect(prompt).toBe(expected);
+    expect(prompt).toContain(note);
   });
 });
