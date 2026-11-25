@@ -214,6 +214,9 @@ describe("the agent prompt blocks", () => {
     const recheck = readSkillFile("agents", "recheck.md");
     expect(recheck).toContain("**settled** when the Fixed line of the brief");
     expect(recheck).toContain(
+      "A Fixed entry that causes a defect is not settled",
+    );
+    expect(recheck).toContain(
       "closed | closed, new problem | settled | open | worse",
     );
   });
