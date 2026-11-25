@@ -20,6 +20,8 @@ These are the steps for the main thread, in place of step 2 of `SKILL.md`, when 
 
    When you have a measured facts file, add the line `Measured facts file: <absolute path of facts.json>` right after the `Image` line, as in step 2 of `SKILL.md`.
 
+   With a brief from step 1 of `SKILL.md`, put its Brief block in place of the `What I know about the piece:` line. With no brief, use the prompt exactly as shown.
+
 3. Save each section critic's final message, exactly as it wrote it, with the Write tool as `section-<section>.md` in the folder from step 1.
 4. Spawn the director: one Agent tool call with `subagent_type: "general-purpose"` and `model: "opus"`, with this prompt and the placeholders filled. List the eight report paths in the order of step 2, separated by `, `. Add the facts line after the `Image` line when you have a facts file, as in step 2.
 
@@ -35,5 +37,7 @@ These are the steps for the main thread, in place of step 2 of `SKILL.md`, when 
    You critique only. Do not edit, move, or create any file except crops in a temporary folder.
    When the critique is done, end with the full critique as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the full critique.
    ```
+
+   With a brief, put the same Brief block in place of the `What I know about the piece:` line, as in step 2. With no brief, use the prompt exactly as shown.
 
 5. The director's final message is the crit. Go on with step 3 of `SKILL.md`.

@@ -1,6 +1,6 @@
 ---
 name: design-critic
-description: Critiques still images of a design (a screenshot, mockup, poster, slide, chart, or illustration) the way a senior design director would in a crit, backed by a checklist of about 210 guidelines from Bringhurst, Müller-Brockmann, Tufte, WCAG, Nielsen and the rest of an approved reading list, plus 38 signs of an AI-made template from unslop. One image gets a crit. Two to twelve images get a crit each plus one check, which the request names: a consistency check of the set ("are these consistent") or a best pick ("which is best"). An agent caller must name one, or it gets a one-line refusal. Use when the user or the main thread wants a design critiqued, reviewed, or judged, asks "how does this look", "crit this", "what's wrong with this design", wants feedback on a screenshot before shipping, wants screens checked for consistency, or wants the best of several versions picked. Critiques only; it does not edit files or redesign the piece.
+description: Critiques still images of a design (a screenshot, mockup, poster, slide, chart, or illustration) the way a senior design director would in a crit, backed by a checklist of about 210 guidelines from Bringhurst, Müller-Brockmann, Tufte, WCAG, Nielsen and the rest of an approved reading list, plus 38 signs of an AI-made template from unslop. One image gets a crit. Two to twelve images get a crit each plus one check, which the request names: a consistency check of the set ("are these consistent") or a best pick ("which is best"). An agent caller must name one, or it gets a one-line refusal. A brief sharpens the crit: the job, audience, setting, message, brand and tone, what is fixed, how finished it is, the feedback wanted, and for the first five what it is not. Use when the user or the main thread wants a design critiqued, reviewed, or judged, asks "how does this look", "crit this", "what's wrong with this design", wants feedback on a screenshot before shipping, wants screens checked for consistency, or wants the best of several versions picked. Critiques only; it does not edit files or redesign the piece.
 ---
 
 # Design critic
@@ -23,6 +23,36 @@ Count the images first. The count picks the mode, and nothing else does. The scr
 ## Run it
 
 1. Collect the inputs: the absolute path of each image, and whatever you know about the piece's purpose, audience, and medium. Do not ask the user for context they did not give; the critic states its own assumption.
+
+   When the caller gives a brief, in the request or in a brief file it names, turn it into a Brief block (FR-87 in `docs/PRD.md` of the deskcrit repository). Read a brief file with the Read tool; if the file does not exist, stop and reply with one line: `brief file <path> does not exist`. The brief has eight fields. Fields 1 to 6 describe the piece, and fields 7 and 8 describe the crit:
+
+   1. **Job**: the outcome. What the piece must get the viewer to do, and what success looks like. What the viewer must understand goes in Message. **Job, not**: outcomes it is not after.
+   2. **Audience**: the people. Who looks at it, what they already know, the language they read, what they care about or doubt, and any access needs, such as low vision. **Audience, not**: who it is not for.
+   3. **Setting**: the circumstances of viewing. How people get to it (a search result, an email link, a wall in a station), the medium, the device or size, the viewing distance, and whether it gets a glance or a long read. **Setting, not**: where and how it is never seen.
+   4. **Message**: the meaning. What the viewer must take away, in order of importance, as ideas that can be said in more than one way. **Message, not**: what it must not suggest.
+   5. **Brand and tone**: the feel. The voice, the personality, and the look, plus reference work, all as direction a designer can interpret. **Brand and tone, not**: the feel it must avoid and the work it must not look like.
+   6. **Fixed**: every concrete element or value whose exact form is required, and every hard limit: exact text that must appear, the logo and its use, brand colors and typefaces, the design system's components, technical limits, a required standard such as a WCAG level, and layout decisions already made. A "must not" limit is a Fixed entry too. It has no "not" line.
+   7. **Stage**: how finished the piece is: a sketch, a working draft, or near final. One value, with no "not" line.
+   8. **Ask**: the scope of this crit. What feedback is wanted, and what is out of scope for now; out of scope is its "not" half, written on the Ask line. Ask holds any focus the caller asked for.
+
+   Put each item the caller gave in exactly one field. Apply these rules in this order, and use the first that fits:
+
+   1. An item about the crit and not the piece (what to look at, what to skip this time) goes in Ask.
+   2. An item about how finished the piece is goes in Stage.
+   3. An item whose exact form is required, or that is a hard limit, goes in Fixed. Test: if the item can be met in only one way, it is Fixed; if it can be met in many ways, it goes in one of fields 1 to 5. "Show the line 'Capital at risk'" is Fixed, and "make clear the money can be lost" is Message.
+   4. Any other item goes in the field whose subject it names: an outcome in Job, people in Audience, circumstances of viewing in Setting, meaning in Message, and feel in Brand and tone.
+   5. A negative item goes in the "not" line of the field that rule 4 picks, unless rule 1 or rule 3 picks a field first.
+
+   "Never on a phone" is Setting, not; "skip the phone layout for now" is Ask. "Many readers are over 70" is Audience; "must meet WCAG 2.2 AA" is Fixed.
+
+   Write the block in this form, one line per field given, in the order of the list above, with each `<Label>, not:` line right after its field's line. Leave out every field the caller did not give, and never ask for one. A caller can give a "not" half without its field.
+
+   ```
+   Brief:
+   <Label>: <text>
+   <Label>, not: <text>
+   ```
+
 2. Spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`. Use this prompt, with the placeholders filled. `<skill folder>` is the base directory Claude Code gave when it loaded this skill.
 
    ```
@@ -37,6 +67,8 @@ Count the images first. The count picks the mode, and nothing else does. The scr
    You critique only. Do not edit, move, or create any file except crops in a temporary folder.
    When the critique is done, end with the full critique as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the full critique.
    ```
+
+   With a brief from step 1, put the Brief block in place of the `What I know about the piece:` line, and leave out the focus line, because Ask holds it. With no brief, use the prompt exactly as shown.
 
    If the person gives a page or a URL, run `scripts/measure.mjs` on it to get a facts file. Pass no viewport flag, so it renders its four default viewports, or the flags that pick the viewports the person asked for (`--desktop`, `--phone`, `--tablet`, `--widescreen`, `--width N`). Add `--dark` only when the person asks about dark mode, the theme, or both modes. With `--dark`, the script writes a `<name>-dark` entry and `<name>-dark.png` for each viewport only when the page has a dark mode, and `dark_mode.found_by` in `facts.json` says how it found it, or `none`. If it exits with code 4, Playwright or its Chromium is missing: show the person the install commands from its `cannot measure:` line, ask whether to install them, and never install without their yes. On no, critique the image alone and say so.
 
@@ -68,6 +100,8 @@ Count the images first. The count picks the mode, and nothing else does. The scr
    End with the section as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the section.
    ```
 
+   With a brief from step 1, add the Brief block right after the `Image(s)` line. With no brief, use the prompt exactly as shown.
+
    Join the section into the crit exactly as the agent wrote it, as its own paragraph right after "What's working": before "Couldn't judge from a still" when the crit has it, else before "Checklist". Write the joined crit over `crit.md`.
 
 4. Give the critique to the user, joined with the section. Do not soften or trim it. Add your own comment only if the user asked for it.
@@ -86,6 +120,8 @@ Count the images first. The count picks the mode, and nothing else does. The scr
 
    When the work order is done, end with its absolute path as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with that path.
    ```
+
+   With a brief from step 1, add the Brief block right after the `Image(s)` line. With no brief, use the prompt exactly as shown.
 
    Tell the user the path of `work-order.json`. A work order is for one page, with all its viewports, so in contact-sheet mode each page gets its own.
 
@@ -109,6 +145,8 @@ Use this mode for two or more images, once you know the mode from "Pick the mode
    You critique only. Do not edit, move, or create any file except crops in a temporary folder.
    When the crit is done, end with the full crit as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the full crit.
    ```
+
+   With a brief from step 1, put the Brief block in place of the `What I know about the piece:` line. One brief covers the whole set, so every per-image crit of step 1 and this agent get the same block. With no brief, use the prompt exactly as shown.
 
    When the person gave the pages themselves (a URL or an HTML file for each) and `scripts/measure.mjs` ran on each, also run `node <skill folder>/scripts/compare-facts.mjs <facts.json of each page, in tile order> --out <folder>/differences.json`. It writes the differences across pages in measured numbers (content left edge, text width, type sizes, text colors). Add this line to the prompt right after the `Images, in tile order` line, with the path filled. When there are no pages, or it exits with a usage error, leave the line out.
 

@@ -10,6 +10,7 @@ Read `agents/critic.md` first. Follow it, with these changes:
 
 - Wherever it says `references/checklist.md`, use `references/checklist-<section>.md`, with `<section>` the section your prompt names. That file holds the opening paragraph of the checklist and your section, word for word. Walk only that section. Its steps 1 to 5 apply to you as written, including step 4, the walk as a message of its own before the step 5 command.
 - If your section does not apply to this image (no chart for `data`, no picture for `pictures`, no control for `interface`), stop after step 1 and return the report below with the section skipped and no findings.
+- When your prompt has a `Brief:` block, read it before you start; `agents/critic.md` step 3 says what each field means. Never propose a change to an element under `Fixed:` or a change that moves the design toward a `<Label>, not:` line. Its step 3 applies to you as written.
 - Do not do its step 6 or write its "What you return" format. Write the report below instead.
 - Report every line you answered `no` in the end, also the small ones. The director decides what is ranked and what is a smaller thing; give it what it needs to decide.
 

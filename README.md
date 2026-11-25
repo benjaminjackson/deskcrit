@@ -60,6 +60,14 @@ The plugin has two skills. You start them by asking in plain words, or by name.
 
 or "crit this screenshot". If you also give the page's URL or HTML file, the critic measures the page first. The skill saves `crit.md` and `work-order.json` next to the image (or next to the measured facts) and tells you the path of the work order.
 
+**Give it a brief.** A brief makes the crit sharper. Say what you know in plain words, or name a file that holds it. The skill sorts it into eight fields: the job, the audience, where and how people see it, the message, brand and tone, what is fixed, how finished it is, and the feedback you want. For the first five you can also say what the piece is not going for. The fields and the sorting rules are FR-87 in `docs/PRD.md`. For example:
+
+```
+/deskcrit:design-critic ~/Desktop/pricing.png It's for small design studios on a laptop. We want sign-ups, not demo bookings. The footer must say "© 2026 Quillfern Ltd". It's a first draft; skip the footer for now.
+```
+
+The critic does not suggest a change to what is fixed or a change toward what the piece is not going for. With `crit-loop`, the brief you give in round 1 applies to every round.
+
 **Compare several images.** Give it 2 to 12 images and say which check you want:
 
 - "Are these consistent?" gives a consistency check that names each screen that breaks a pattern the others keep.
