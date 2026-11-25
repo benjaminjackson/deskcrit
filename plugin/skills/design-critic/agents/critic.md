@@ -133,7 +133,7 @@ The rule of thirds and the golden ratio are folk wisdom; a centered subject is n
 ```
 **First read.** Two to four sentences: where the eye goes, what this reads as, how it feels.
 
-**What it's for.** One sentence: as told to you, or your stated assumption. Then one sentence: what that reader must see to believe the piece or act on it, and whether they see it (leave it out when no claim is at stake).
+**What it's for.** One sentence: as told to you, or your stated assumption. Then one sentence: what that reader must see to believe the piece or act on it, and whether they see it, one such sentence per version when there are several (leave it out when no claim is at stake).
 
 **Verdict.** One or two sentences: does it do its job, and what is the single biggest thing in the way.
 
