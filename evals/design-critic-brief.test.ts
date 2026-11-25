@@ -649,3 +649,105 @@ describe("the facts a finding requests from the maker", () => {
     }
   });
 });
+
+// The copy rule (FR-77, FR-82, crit-bwr): "brief facts yes, new promises no". The critic.md bullet
+// "Suggest copy edits, never new content" is its one statement; the recheck, the work order, and
+// the fix loop point to it, and no fenced prompt block holds it.
+describe("the copy rule: brief facts yes, new promises no", () => {
+  const critic = readSkillFile("agents", "critic.md");
+  const recheck = readSkillFile("agents", "recheck.md");
+  const workOrder = readSkillFile("agents", "work-order.md");
+  const loop = readRepositoryFile("plugin", "skills", "crit-loop", "SKILL.md");
+  const designCritic = readSkillFile("SKILL.md");
+  const bullet = sliceBetween(
+    critic,
+    "- **Suggest copy edits, never new content.**",
+    "\n- **",
+  );
+  // "Fix the design, not the score" is the last section of the crit-loop SKILL.md.
+  const fixTheDesign = loop.slice(
+    loop.indexOf("## Fix the design, not the score"),
+  );
+
+  it("the critic.md bullet states the whole rule", () => {
+    for (const phrase of [
+      "Keep what each line means and what each label names",
+      'a column headed "Size" still names a size',
+      "a unit the piece states nowhere is a fact only the maker has",
+      "Never add a promise the piece does not already make",
+      '"every", "unlimited", "as many as you like"',
+      "judge any other claim of scope or quantity the same way",
+      "A real example the caller gave",
+      '"Case No. 00-EXAMPLE"',
+      "never in the format of a real record",
+      "This bullet is the one statement of the copy rule",
+    ]) {
+      expect(bullet).toContain(phrase);
+    }
+  });
+
+  it("the rule is stated once, in critic.md", () => {
+    const files = [critic, recheck, workOrder, loop];
+    for (const phrase of [
+      "Never add a promise",
+      "00-EXAMPLE",
+      "copywriter",
+      "cut, reorder, restore",
+    ]) {
+      const count = files
+        .map((text) => text.split(phrase).length - 1)
+        .reduce((total, each) => total + each, 0);
+      expect(count, phrase).toBe(1);
+      expect(bullet).toContain(phrase);
+    }
+  });
+
+  it("the recheck, the work order, and the fix loop point to the bullet", () => {
+    for (const text of [recheck, workOrder, loop]) {
+      expect(text).toContain('"Suggest copy edits, never new content" bullet');
+    }
+    expect(recheck).toContain("a promise the before image does not make");
+    expect(recheck).toContain("a label that now names a different thing");
+  });
+
+  it("the fix loop says never invent content and uses given facts as given", () => {
+    const inventLines = loop
+      .split("\n")
+      .filter((line) => line.includes("Never invent content"));
+    expect(inventLines).toHaveLength(1);
+    expect(loop).not.toContain("Never add content");
+    for (const phrase of [
+      "<design-critic folder>/agents/critic.md",
+      "a file the caller named",
+      "use it exactly as given",
+    ]) {
+      expect(fixTheDesign).toContain(phrase);
+    }
+  });
+
+  it("no fenced block holds the rule", () => {
+    for (const text of [loop, designCritic, critic, recheck, workOrder]) {
+      for (const block of textInsideEachFence(text)) {
+        expect(block).not.toContain("promise");
+        expect(block).not.toContain("00-EXAMPLE");
+      }
+    }
+  });
+
+  it("the rule has no sale framing", () => {
+    const saleWords =
+      /\b(buyer|buy|customer|sale|sales|sell|purchase|price)\b/i;
+    expect(bullet).not.toMatch(saleWords);
+    expect(fixTheDesign).not.toMatch(saleWords);
+  });
+
+  it("the PRD states the rule in FR-77 and points to it from FR-82", () => {
+    const prd = readRepositoryFile("docs", "PRD.md").split("\n");
+    const row77 = prd.find((line) => line.startsWith("| FR-77 |")) ?? "";
+    const row82 = prd.find((line) => line.startsWith("| FR-82 |")) ?? "";
+    expect(row77).toContain("Decision 2026-11-25 (crit-bwr)");
+    expect(row77).toContain("the list is open");
+    expect(row82).toContain("under the copy-edit rule of FR-77");
+    expect(row82).toContain("I do not want anything to invent content");
+  });
+});
