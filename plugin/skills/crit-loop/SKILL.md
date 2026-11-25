@@ -21,7 +21,7 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 ## Round 1: the crit
 
 1. Capture into `<loop folder>/round-1`.
-2. Run the design-critic skill on that capture, steps 1 to 5 of its `SKILL.md`, with every screenshot and the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder. When the person gave a brief, make its Brief block by step 1 of that `SKILL.md`, write it to `<loop folder>/brief.md`, and pass that block to the design-critic run. Every later round uses the text of that same `brief.md`, so every recheck judges against the brief of the first crit.
+2. Run the design-critic skill on that capture, steps 1 to 5 of its `SKILL.md`, with every screenshot and the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder. When the person gave a brief, make its Brief block by step 1 of that `SKILL.md`, write it to `<loop folder>/brief.md`, and pass that block to the design-critic run. `brief.md` is the current brief: every later round reads it as it stands, after any decision that "When the person settles a finding" below adds.
 3. If the work order has no finding with a rank, stop: there is nothing to fix.
 
 ## Each round after that
@@ -45,15 +45,25 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
    When the recheck is done, end with the full recheck as your final message. If you were spawned as a teammate, also call SendMessage to the agent that spawned you with the full recheck.
    ```
 
-   With a `brief.md` from round 1, add its text, the Brief block, right after the `After image` line (or the `After images` line). With no `brief.md`, use the prompt exactly as shown.
+   With a `brief.md` in the loop folder, add its current text, the Brief block, right after the `After image` line (or the `After images` line). With no `brief.md`, use the prompt exactly as shown.
 
    With a facts file of several viewports, write `Before images: <absolute paths of the last round's screenshots>` and `After images: <absolute paths of this round's screenshots>` in place of the two image lines, both in the order of the facts file viewports.
 
 4. Save its final message as `crit.md` in the round folder, exactly as it wrote it.
 5. Count the findings it marked closed under "Finding status", and check the stop rule below. A finding marked "closed, new problem" counts as closed: your fix added a template tell or made one of an element already there, and the recheck lists that tell as a new problem, so the next work order holds it.
-6. If you do not stop, write the new work order with step 5 of the design-critic skill's `SKILL.md`: this round's `crit.md`, this round's images, its facts file, and the Brief block from `brief.md` when round 1 wrote one. Then start the next round.
+6. If you do not stop, write the new work order with step 5 of the design-critic skill's `SKILL.md`: this round's `crit.md`, this round's images, its facts file, and the Brief block from `brief.md` when the loop folder has one. Then start the next round.
 
 A finding marked worse is not progress. Fix it before the findings ranked below it.
+
+## When the person settles a finding
+
+The person can settle a finding in chat, during a round or between rounds, such as "keep this headline" or "the layout stays two columns". Before the next recheck, write the decision into `<loop folder>/brief.md`, in the person's meaning:
+
+- A decision about an exact form or a hard limit goes on the Fixed line of `<loop folder>/brief.md`. Write each entry as its own sentence, with any exact text in double quotes, such as: The headline stays "Vet every candidate". When the brief has no Fixed line, add one after the Brand and tone lines and before the Stage line.
+- Any other decision, such as "I want a calmer tone", goes in the field that rules 1 to 5 of FR-87 pick.
+- When the loop has no `brief.md`, create it with the `Brief:` line and that one field line only.
+
+Then delete the settled finding from the last `work-order.json` and do not fix it. Leave the other findings and their ranks as they are, and do not run `work-order.mjs` on the trimmed file. This holds for a decision in any field. Every later recheck and work-order run reads the updated `brief.md`.
 
 ## When to stop
 

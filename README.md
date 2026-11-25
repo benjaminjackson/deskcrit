@@ -66,7 +66,7 @@ or "crit this screenshot". If you also give the page's URL or HTML file, the cri
 /deskcrit:design-critic ~/Desktop/pricing.png It's for small design studios on a laptop. We want sign-ups, not demo bookings. The footer must say "© 2026 Quillfern Ltd". It's a first draft; skip the footer for now.
 ```
 
-The critic does not suggest a change to what is fixed or a change toward what the piece is not going for. With `crit-loop`, the brief you give in round 1 applies to every round.
+The critic does not suggest a change to what is fixed or a change toward what the piece is not going for. With `crit-loop`, the brief you give in round 1 applies to every round, and a decision you make about a finding during the loop is added to it.
 
 **Compare several images.** Give it 2 to 12 images and say which check you want:
 

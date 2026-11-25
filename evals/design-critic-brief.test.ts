@@ -188,6 +188,26 @@ describe("the agent prompt blocks", () => {
     );
     expect(loop).toContain("`<loop folder>/brief.md`");
   });
+
+  it("has crit-loop write a settled finding into brief.md and drop it from the work order", () => {
+    const loop = readRepositoryFile(
+      "plugin",
+      "skills",
+      "crit-loop",
+      "SKILL.md",
+    );
+    // The rule is prose after the fenced recheck prompt, so read only that text (FR-82, crit-deh).
+    const afterRecheckPrompt = textAfterEachPromptBlock(loop).join("\n");
+    expect(afterRecheckPrompt).toContain(
+      "goes on the Fixed line of `<loop folder>/brief.md`",
+    );
+    expect(afterRecheckPrompt).toContain(
+      "delete the settled finding from the last `work-order.json` and do not fix it",
+    );
+    expect(afterRecheckPrompt).toContain(
+      "When the loop has no `brief.md`, create it",
+    );
+  });
 });
 
 describe("the agent files", () => {
