@@ -5,6 +5,9 @@
 // a rule that says where the Brief block goes, critic.md names every label, and each other agent
 // file says to read the brief. The prompt blocks themselves stay as they are, because other tests
 // pin them to the prompt text that every saved run is hashed against. It reads files only.
+// It also checks the real thing a mock shows (FR-77, FR-82, crit-321): the skill passes its path on a
+// `Real thing:` line per path after each prompt block, the critic and the recheck critic open it and never
+// stop the run when they cannot, and nobody searches for one.
 
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -320,5 +323,138 @@ describe("the agent files", () => {
     expect(line).toContain(
       "the trust sentence copied from the crit that `crit_file` names",
     );
+  });
+});
+
+/** Returns the line of `text` that starts at the first `start`, up to the next newline. */
+function paragraphStartingWith(text: string, start: string): string {
+  const begin = text.indexOf(start);
+  if (begin === -1) {
+    return "";
+  }
+  const end = text.indexOf("\n", begin);
+  return end === -1 ? text.slice(begin) : text.slice(begin, end);
+}
+
+/** The phrases that the critic and the recheck critic share about the real thing. */
+const REAL_THING_PHRASES = [
+  "`Real thing:` line",
+  "with Read",
+  "Read's `pages` parameter, up to 20 pages a call",
+  "treat it as not given",
+  "says it could not be opened",
+  "Never stop the run for it",
+  "its format, its structure, and its real labels",
+  '"Smaller things"',
+  "could not be checked against the real thing",
+  "Never search the disk for the real thing",
+];
+
+describe("the real thing a mock shows", () => {
+  it("step 1 of the design-critic SKILL.md passes a given path and never searches", () => {
+    const skill = readSkillFile("SKILL.md");
+    const stepStart = skill.indexOf("1. Collect the inputs");
+    const stepEnd = skill.indexOf("\n2. Spawn one agent");
+    expect(stepStart).toBeGreaterThan(-1);
+    expect(stepEnd).toBeGreaterThan(stepStart);
+    const step = skill.slice(stepStart, stepEnd);
+    for (const phrase of [
+      "Never search the disk for the real thing",
+      "`Real thing:` line",
+      "Do not open it, check it, or list its folder",
+    ]) {
+      expect(step).toContain(phrase);
+    }
+  });
+
+  it("no skill file or the PRD stops the run on a real thing that cannot be opened", () => {
+    for (const text of [
+      readSkillFile("SKILL.md"),
+      readSkillFile("agents", "critic.md"),
+      readSkillFile("agents", "recheck.md"),
+      readRepositoryFile("plugin", "skills", "crit-loop", "SKILL.md"),
+      readRepositoryFile("docs", "PRD.md"),
+    ]) {
+      expect(text).not.toContain("real thing <path> does not exist");
+    }
+  });
+
+  it("the text after the critic prompt block says where the Real thing line goes", () => {
+    const afterFirstBlock =
+      textAfterEachPromptBlock(readSkillFile("SKILL.md"))[0] ?? "";
+    expect(afterFirstBlock).toContain("`Real thing: <absolute path>`");
+    expect(afterFirstBlock).toContain("for each path");
+    expect(afterFirstBlock).toContain("`You critique only.`");
+  });
+
+  it("critic.md step 3 judges a mock against the real thing after the brief paragraph", () => {
+    const critic = readSkillFile("agents", "critic.md");
+    const stepStart = critic.indexOf("3. **Establish the job.**");
+    const stepEnd = critic.indexOf("4. **Run the checklist");
+    expect(stepStart).toBeGreaterThan(-1);
+    expect(stepEnd).toBeGreaterThan(stepStart);
+    const step = critic.slice(stepStart, stepEnd);
+    const start = "When the image shows a mock of a real thing";
+    expect(step.indexOf(start)).toBeGreaterThan(
+      step.indexOf("The brief describes the piece"),
+    );
+    const paragraph = paragraphStartingWith(step, start);
+    for (const phrase of [
+      ...REAL_THING_PHRASES,
+      "ranked finding",
+      "Ask and Stage apply",
+    ]) {
+      expect(paragraph).toContain(phrase);
+    }
+  });
+
+  it("recheck.md step 5 judges a mock in the after image against the real thing", () => {
+    const recheck = readSkillFile("agents", "recheck.md");
+    // The paragraph sits in step 5, after the first read of step 2 and the statuses of step 4.
+    const stepFive = recheck.indexOf("5. **Look for new problems.**");
+    const stepSix = recheck.indexOf("6. **Rank what is left.**");
+    const start = "When the after image shows a mock of a real thing";
+    const paragraphStart = recheck.indexOf(start);
+    expect(stepFive).toBeGreaterThan(-1);
+    expect(paragraphStart).toBeGreaterThan(stepFive);
+    expect(stepSix).toBeGreaterThan(paragraphStart);
+    const paragraph = paragraphStartingWith(recheck, start);
+    for (const phrase of [
+      ...REAL_THING_PHRASES,
+      "stays open, unless step 4 marks it settled",
+      "new problem",
+    ]) {
+      expect(paragraph).toContain(phrase);
+    }
+  });
+
+  it("the crit-loop SKILL.md passes the same real thing in round 1 and every round", () => {
+    const loop = readRepositoryFile(
+      "plugin",
+      "skills",
+      "crit-loop",
+      "SKILL.md",
+    );
+    const roundOneStart = loop.indexOf("## Round 1");
+    const roundOneEnd = loop.indexOf("## Each round after that");
+    expect(roundOneStart).toBeGreaterThan(-1);
+    expect(roundOneEnd).toBeGreaterThan(roundOneStart);
+    expect(loop.slice(roundOneStart, roundOneEnd)).toContain(
+      "write each path to `<loop folder>/real-thing.txt`, one path per line",
+    );
+    // The recheck prompt block is the one whose following text names the Before images line.
+    const afterRecheckBlock =
+      textAfterEachPromptBlock(loop).find((text) =>
+        text.includes("Before images:"),
+      ) ?? "";
+    for (const phrase of [
+      "`Real thing: <absolute path>`",
+      "for each path in it",
+      "`real-thing.txt`",
+      "in every round",
+      "Never search the disk for the real thing",
+    ]) {
+      expect(afterRecheckBlock).toContain(phrase);
+    }
   });
 });
