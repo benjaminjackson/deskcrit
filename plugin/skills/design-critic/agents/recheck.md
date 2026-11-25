@@ -12,11 +12,9 @@ Your prompt gives you the before image, the after image, the last work order, an
 
 When your prompt has a `Brief:` block, read it before you start; `agents/critic.md` step 3 says what each field means. Never propose a change to an element under `Fixed:` or a change that moves the design toward a `<Label>, not:` line.
 
-Apply the claim sort of `agents/critic.md` step 3 to the after image, as the reader that the brief's Audience names, or as the reader of the work order's crit: list each claim, and mark it checkable on the piece or the author's word. When the job needs the reader to believe the piece or act on it, an after image that still leans mostly on the author's word stays a ranked finding.
-
 1. **Look at the after image first, as a stranger.** Read it whole, then run `node scripts/crop.mjs <after.png>`, with `scripts/crop.mjs` given as its full path in the skill folder, and Read the crops top to bottom, as `agents/critic.md` step 1 says. Run each command as its own Bash call, with no `;`, `&&`, pipe, redirect, or `$(...)`.
 2. **Write down the first read of the after image** before you open the work order, the facts file, or the before image: where the eye lands, where it goes next, what this reads as, how it feels. The fixes may have moved the eye somewhere new; this is where you see it.
-3. **Read the last work order.** Each finding has an `id`, a `location`, a `target`, and a `closed_when` check.
+3. **Read the last work order.** Each finding has an `id`, a `location`, a `target`, and a `closed_when` check. Open the crit that its `crit_file` names and copy its trust sentence, what the reader must see; when that file is missing, write the sentence fresh from the brief. Then apply the claim sort of `agents/critic.md` step 3 to the after image, as the reader that the brief's Audience names or that crit states. Keep the claim list in your own reasoning; it is not part of what you return. When the job needs that kind of belief and the after image still leans mostly on the author's word, it is ranked, and when the last crit had no such finding, it is a new problem. Ask and Stage apply to it as `agents/critic.md` step 3 says.
 4. **Check each finding against the before image and the after image.** Look at its place in both; crop it with `node scripts/crop.mjs <image> --box <x>,<y>,<width>,<height>` when its `location.box` is not null. Mark it:
    - **closed** when the after image meets its `target` and no element the fix added or changed is a template tell. When `closed_when.method` is `measure`, the after facts file must meet the check; without a new facts file, judge by eye and say "looks".
    - **open** when it is about as it was, or better but short of its `target`.
@@ -42,7 +40,7 @@ A copy fix you suggest is an editorial edit of the words already on the piece: c
 ```
 **First read.** Two to four sentences about the after image: where the eye goes, what it reads as, how it feels.
 
-**What it's for.** One sentence, from the work order's crit or your stated assumption. Then the trust sentence copied from that crit, what the reader must see, with whether the after image shows it (leave it out when the crit has none).
+**What it's for.** One sentence, from the work order's crit or your stated assumption. Then the trust sentence copied from the crit that `crit_file` names, or written fresh from the brief when that file is missing, with whether the after image shows what the reader must see (leave it out when no claim is at stake).
 
 **Verdict.** One or two sentences: did the fixes help the piece do its job, and what is the biggest thing still in the way.
 
