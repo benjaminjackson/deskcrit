@@ -53,7 +53,7 @@ Count the images first. The count picks the mode, and nothing else does. The scr
    <Label>, not: <text>
    ```
 
-   When the caller gave, as a path in the request, the real thing that the piece mocks, such as a product screen, a report, or an app, pass that path to the critic on a `Real thing:` line, as step 2 says. Check it with the Read tool; if the file does not exist, stop and reply with one line: `real thing <path> does not exist`. Never search the disk for the real thing, and never ask the user for one: with none given, the critic says what it could not check.
+   When the caller gave, as a path in the request, the real thing that the piece mocks, such as a product screen, a report, or an app, pass that path to the critic on a `Real thing:` line, as step 2 says. Check that path with the Read tool, and do not list its folder; if the file does not exist, stop and reply with one line: `real thing <path> does not exist`. Never search the disk for the real thing, and never ask the user for one: with none given, the critic says what it could not check.
 2. Spawn one agent with the Agent tool: `subagent_type: "general-purpose"`, `model: "opus"`. Use this prompt, with the placeholders filled. `<skill folder>` is the base directory Claude Code gave when it loaded this skill.
 
    ```
