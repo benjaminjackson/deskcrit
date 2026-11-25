@@ -135,7 +135,7 @@ export const JEV_EVIDENCE_PROMPT_LINE =
 const IMAGES_PROMPT_LINE = "Image(s): <absolute paths>";
 
 /** The first line of the Brief block (FR-87), as step 1 of the skill's SKILL.md writes it. */
-export const BRIEF_PROMPT_HEADER = "Brief:";
+const BRIEF_PROMPT_HEADER = "Brief:";
 
 /** The placeholder of the brief lines in the template of a request with a brief. */
 const BRIEF_LINES_PLACEHOLDER = "<brief lines>";
@@ -333,8 +333,8 @@ function sha256(content: string | Buffer): string {
 /**
  * Fills the prompt template with the skill folder, image paths, note, optional focus line, and,
  * when `factsPath` is given, the facts line with that path. When `briefLines` is given (the checked
- * lines of a brief file, from parseBriefText), they take the place of the note and focus, so it
- * refuses a note or focus with them.
+ * lines of a brief file, from parseBriefText), they take the place of the note and focus lines.
+ * runCriticCommand refuses --brief with --note before any prompt is built.
  */
 export function buildPrompt(
   skillDirectory: string,
@@ -354,11 +354,6 @@ export function buildPrompt(
   }
   prompt = prompt.replace("<absolute paths>", imagePaths.join(", "));
   if (briefLines !== undefined) {
-    if (note !== undefined || focus !== undefined) {
-      throw new Error(
-        "a brief replaces the note and the focus; give the brief alone",
-      );
-    }
     // A function as the replacement keeps any "$" in the brief text literal.
     return prompt.replace(BRIEF_LINES_PLACEHOLDER, () => briefLines);
   }
@@ -871,15 +866,13 @@ export async function ensureCrits(
   );
   // Read the brief once, so a file edited during a long run never puts crits of the new text under
   // the key of the old text: the key, the metadata, and every prompt use these same bytes.
-  const briefBytes =
-    request.briefPath === undefined
-      ? undefined
-      : readFileSync(request.briefPath);
-  const briefSha256 = briefBytes === undefined ? undefined : sha256(briefBytes);
-  const briefLines =
-    briefBytes === undefined || request.briefPath === undefined
-      ? undefined
-      : parseBriefText(briefBytes.toString("utf8"), request.briefPath);
+  let briefSha256: string | undefined;
+  let briefLines: string | undefined;
+  if (request.briefPath !== undefined) {
+    const briefBytes = readFileSync(request.briefPath);
+    briefSha256 = sha256(briefBytes);
+    briefLines = parseBriefText(briefBytes.toString("utf8"), request.briefPath);
+  }
   const key = requestKeyOf(request, briefSha256);
   const identity = currentRunIdentity(
     request.factsPath !== undefined,

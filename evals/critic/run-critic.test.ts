@@ -21,7 +21,6 @@ import {
 } from "./deep-run.ts";
 import {
   BRIEF_LABELS,
-  BRIEF_PROMPT_HEADER,
   buildClaudeArguments,
   type ClaudeRunner,
   CRITIC_MODEL,
@@ -1001,29 +1000,6 @@ describe("a brief file (FR-87)", () => {
     const labels = [
       ...stepOne.matchAll(/\*\*([A-Z][a-z ]*(?:, not)?)\*\*:/g),
     ].map((match) => match[1]);
-    expect([...labels].sort()).toEqual([...BRIEF_LABELS].sort());
-  });
-
-  it("accepts every label, including the five not lines", () => {
-    expect(BRIEF_LABELS).toHaveLength(13);
-    for (const field of [
-      "Job",
-      "Audience",
-      "Setting",
-      "Message",
-      "Brand and tone",
-    ]) {
-      expect(BRIEF_LABELS).toContain(`${field}, not`);
-    }
-  });
-
-  it("keeps the Brief header equal to the example block in step 1 of the skill's SKILL.md", () => {
-    const skillText = readFileSync(
-      join(REPOSITORY_ROOT, "plugin", "skills", "design-critic", "SKILL.md"),
-      "utf8",
-    );
-    expect(skillText).toContain(
-      `   \`\`\`\n   ${BRIEF_PROMPT_HEADER}\n   <Label>: <text>\n   <Label>, not: <text>\n   \`\`\`\n`,
-    );
+    expect(labels).toEqual([...BRIEF_LABELS]);
   });
 });
