@@ -29,7 +29,7 @@ When your prompt has a `Brief:` block, read it before you start; `agents/critic.
       "id": "faint-intro-text",
       "rank": 1,
       "kind": "defect",
-      "title": "The intro that explains the offer is too faint to read",
+      "title": "The intro that explains the page is too faint to read",
       "location": {
         "description": "the intro paragraph under the page title",
         "viewport": "desktop",
