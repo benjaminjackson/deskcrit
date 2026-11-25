@@ -1,6 +1,6 @@
 # deskcrit plugin for Claude Code
 
-This plugin gives Claude Code two skills. The `crit-loop` skill tells a coding agent how to check its UI work: capture the page, run the design-critic skill, fix the top findings from its work order, capture again, have a fresh critic recheck each finding, and stop when no ranked finding is left or two rounds in a row close nothing. The rules are in [docs/PRD.md](../docs/PRD.md).
+This plugin gives Claude Code two skills. The `crit-loop` skill tells a coding agent how to check its UI work: capture the page, run the design-critic skill, fix every finding of its work order, capture again, have a fresh critic recheck each finding, and stop when no finding is left, ranked or smaller, or two rounds in a row close nothing. The rules are in [docs/PRD.md](../docs/PRD.md).
 
 The `design-critic` skill critiques a still image of a design the way a senior design director would. It starts a Claude agent that walks a checklist of guidelines. It needs no API key.
 
