@@ -251,7 +251,11 @@ describe("measureLines", () => {
     for (let index = 0; index < 5; index++) {
       rects.push(characterOnLine(48));
     }
-    expect(measureLines(rects)).toEqual({ lines: 3, charactersPerLine: 39 });
+    expect(measureLines(rects)).toEqual({
+      lines: 3,
+      charactersPerLine: 39,
+      shortLastLine: null,
+    });
   });
 
   it("keeps a taller inline character on its line", () => {
@@ -260,11 +264,84 @@ describe("measureLines", () => {
       { top: -4, bottom: 28 },
       characterOnLine(0),
     ];
-    expect(measureLines(rects)).toEqual({ lines: 1, charactersPerLine: 3 });
+    expect(measureLines(rects)).toEqual({
+      lines: 1,
+      charactersPerLine: 3,
+      shortLastLine: null,
+    });
   });
 
   it("gives no characters per line when nothing is drawn", () => {
-    expect(measureLines([])).toEqual({ lines: 0, charactersPerLine: null });
+    expect(measureLines([])).toEqual({
+      lines: 0,
+      charactersPerLine: null,
+      shortLastLine: null,
+    });
+  });
+
+  /**
+   * Returns one rectangle per character of `text` on the line at `top`, with each space marked.
+   * With `breakBefore`, a forced line break comes before the first character.
+   */
+  function wordsOnLine(
+    top: number,
+    text: string,
+    options: { breakBefore?: boolean } = {},
+  ) {
+    const rects = [];
+    for (let index = 0; index < text.length; index++) {
+      rects.push({
+        top,
+        bottom: top + 24,
+        space: (text[index] ?? "").trim() === "",
+        breakBefore: index === 0 && options.breakBefore === true,
+      });
+    }
+    return rects;
+  }
+
+  /** Returns the shortLastLine that measureLines gives for the drawn lines. */
+  function shortLastLineOf(lines: ReturnType<typeof wordsOnLine>[]) {
+    return measureLines(lines.flat()).shortLastLine;
+  }
+
+  it("reports one word alone on the last line under a line of two words or more (FR-79, crit-y75)", () => {
+    expect(
+      shortLastLineOf([wordsOnLine(0, "ab cd ef "), wordsOnLine(24, "gh.")]),
+    ).toBe(1);
+    // A non-breaking space separates words too.
+    expect(
+      shortLastLineOf([wordsOnLine(0, "ab\u00a0cd"), wordsOnLine(24, "gh.")]),
+    ).toBe(1);
+  });
+
+  it("counts a word after a source newline the browser drew as a space (crit-y75)", () => {
+    const lastLine = wordsOnLine(24, "andmore.");
+    // The source reads "and\nmore."; the skipped newline marks "m" as the start of a word.
+    const firstOfSecondWord = lastLine[3];
+    if (firstOfSecondWord !== undefined) {
+      Object.assign(firstOfSecondWord, { spaceBefore: true });
+    }
+    expect(shortLastLineOf([wordsOnLine(0, "ab cd ef "), lastLine])).toBeNull();
+  });
+
+  it("reports no short last line for two words, one line, a forced break, or one word above", () => {
+    expect(
+      shortLastLineOf([wordsOnLine(0, "ab cd ef "), wordsOnLine(24, "gh ij")]),
+    ).toBeNull();
+    expect(
+      shortLastLineOf([wordsOnLine(0, "ab cd ef "), wordsOnLine(24, "gh ij.")]),
+    ).toBeNull();
+    expect(shortLastLineOf([wordsOnLine(0, "gh")])).toBeNull();
+    expect(
+      shortLastLineOf([
+        wordsOnLine(0, "ab cd ef"),
+        wordsOnLine(24, "gh.", { breakBefore: true }),
+      ]),
+    ).toBeNull();
+    expect(
+      shortLastLineOf([wordsOnLine(0, "abcdef"), wordsOnLine(24, "gh.")]),
+    ).toBeNull();
   });
 });
 
@@ -354,6 +431,23 @@ describe("facts.json", () => {
     ]) {
       expect(validatesWithName(name), name).toBe(false);
     }
+  });
+
+  it("the schema accepts the rule short-last-line and rejects a rule it does not name (crit-y75)", () => {
+    /** Returns whether the sample validates with its first violation given another rule. */
+    function validatesWithRule(rule: string): boolean {
+      // JSON.parse returns `any`, so the copy can be changed without a cast.
+      const copy = JSON.parse(
+        readFileSync(
+          join(repositoryRoot, "evals/measure/known-values.facts.json"),
+          "utf8",
+        ),
+      );
+      copy.viewports[0].violations[0].rule = rule;
+      return validate(copy);
+    }
+    expect(validatesWithRule("short-last-line")).toBe(true);
+    expect(validatesWithRule("widow")).toBe(false);
   });
 
   it("the schema checks the dark-mode fields that --dark writes", () => {
@@ -845,6 +939,26 @@ describe("findViolations", () => {
       [],
     );
     expect(names(found)).toEqual(["line-length #long 76"]);
+  });
+
+  it("flags a short last line, and leaves out a block with an exemption (FR-79, crit-y75)", () => {
+    const blocks = [
+      block("#widow", { lines: 2 }),
+      block("#logo-widow", { lines: 2 }),
+      block("#none", { lines: 2 }),
+    ];
+    const found = findViolations(
+      blocks,
+      [null, "logo or image", null],
+      [],
+      [],
+      [1, 1, null],
+    );
+    expect(names(found)).toEqual(["short-last-line #widow 1"]);
+    expect(found[0]).toMatchObject({
+      guideline: "Widows, orphans, and runts",
+      threshold: 2,
+    });
   });
 
   it("flags small targets whose 24 px circles touch, and passes one with room or an exemption", () => {
