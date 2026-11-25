@@ -516,7 +516,7 @@ function sliceBetween(text: string, start: string, end: string): string {
   return text.slice(begin, finish);
 }
 
-// The owner facts a finding requests (FR-77, FR-80, FR-82, crit-cbt): the critic writes one
+// The maker facts a finding requests (FR-77, FR-80, FR-82, crit-cbt): the critic writes one
 // fixed sentence per requested fact, the main thread asks for every requested fact in one
 // question before the work order, the fix loop writes the answers into brief.md and does not
 // count an unanswered request against the stop rules, and nothing searches the disk for a fact.
@@ -594,10 +594,17 @@ describe("the facts a finding requests from the maker", () => {
       "the files the caller named",
       "A finding whose whole fix is a requested fact that nobody gave stays open",
       "together with other fixes is not set aside: make its other fixes",
+      "Once its other fixes are made and only its requested fact is left, it counts as a finding whose whole fix is that fact",
+      "counts as asked and not given and is written to `<loop folder>/facts-asked.txt`",
     ]) {
       expect(section).toContain(phrase);
     }
     expect(section).not.toMatch(/\bowner\b/);
+    const fixTheDesign = loop.slice(
+      loop.indexOf("## Fix the design, not the score"),
+    );
+    expect(fixTheDesign).toContain("## Fix the design, not the score");
+    expect(fixTheDesign).not.toMatch(/\bowner\b/);
     expect(section).not.toMatch(
       /\b(bd|beads|CLAUDE\.md|buyer|customer|sale|sales|sell|purchase|price)\b/i,
     );
