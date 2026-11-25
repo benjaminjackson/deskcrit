@@ -81,7 +81,7 @@ Each image also gets its own crit and work order. If you do not say which check 
 /deskcrit:crit-loop
 ```
 
-Each round captures the page, fixes from the top of the work order, captures again at the same viewports as round 1 (four by default), and starts a fresh critic that marks each finding closed, open, or worse. The loop stops when no ranked finding is left, or when two rounds in a row close nothing. It does not add content to close a finding: when a fix needs text or data that only you have, it leaves the finding open and tells you.
+Each round captures the page, fixes from the top of the work order, captures again at the same viewports as round 1 (four by default), and starts a fresh critic that marks each finding closed, open, or worse, or settled when you decided to keep it as it is. The loop stops when no ranked finding is left, or when two rounds in a row close nothing. It does not add content to close a finding: when a fix needs text or data that only you have, it leaves the finding open and tells you.
 
 The critic only critiques. It does not edit files.
 
