@@ -547,12 +547,57 @@ describe("fix and stop rules count the smaller things (crit-73l, FR-82)", () => 
     expect(stepOne).not.toContain("as many as you can");
   });
 
+  it("the Ask or Stage skip never covers a WCAG failure or a broken Fixed entry", () => {
+    const stepOne = sliceBetween(
+      SKILL_TEXT,
+      "## Each round after that",
+      "\n2. Capture",
+    );
+    expect(stepOne).toContain(
+      "but never text contrast or a target size under the WCAG minimum, or a broken Fixed entry: fix those, and they count for the stop",
+    );
+  });
+
+  it("the skip of an opposite finding lasts and leaves the stop count", () => {
+    const stepOne = sliceBetween(
+      SKILL_TEXT,
+      "## Each round after that",
+      "\n2. Capture",
+    );
+    expect(stepOne).toContain(
+      "keep skipping the other one in every later round, and do not change the element back; the skipped finding does not count against the stop rules",
+    );
+    const deckStepOne = sliceBetween(
+      SKILL_TEXT,
+      "**Each later round.**",
+      "\n2. Capture",
+    );
+    expect(deckStepOne).toContain(
+      "the lasting skip of a finding that asks for the opposite of a finding above it included",
+    );
+  });
+
+  it("a work order has nothing to fix only when every entry is a skip, stated once", () => {
+    const definition =
+      "A work order has nothing to fix when each of its entries, ranked or with `rank` null, is one of these skips.";
+    expect(SKILL_TEXT.split(definition).length - 1).toBe(1);
+    const pointer = 'as step 1 of "Each round after that" defines it';
+    const deckStepThree = sliceBetween(
+      SKILL_TEXT,
+      "**Each later round.**",
+      "\n4. Save",
+    );
+    expect(deckStepThree).toContain(`has something to fix, ${pointer}`);
+  });
+
   it("round 1 stops only when no finding would count", () => {
     const line =
       SKILL_TEXT.split("\n").find((text) =>
         text.startsWith("3. If the work order"),
       ) ?? "";
-    expect(line).toContain('"No finding is left" in "When to stop"');
+    expect(line).toContain(
+      'has nothing to fix, as step 1 of "Each round after that" defines it',
+    );
   });
 
   it("stop rule 1 counts the Smaller things list and points to the skips", () => {
@@ -574,7 +619,33 @@ describe("fix and stop rules count the smaller things (crit-73l, FR-82)", () => 
       "No slide has a ranked finding or a smaller thing left",
     );
     const deckRoundOne = sliceBetween(SKILL_TEXT, "**Round 1.**", "\n\n");
-    expect(deckRoundOne).toContain("has a finding, ranked or with `rank` null");
+    expect(deckRoundOne).toContain(
+      'no slide\'s work order has anything to fix, as step 1 of "Each round after that" defines it',
+    );
+    const deckStopLead = sliceBetween(SKILL_TEXT, "**When to stop.**", "\n\n");
+    expect(deckStopLead).toContain(
+      'Leave out every finding that step 1 of "Each round after that" skips',
+    );
+  });
+
+  it("the deck fixes only the ranked breaks of the set work order", () => {
+    const deckStepOne = sliceBetween(
+      SKILL_TEXT,
+      "**Each later round.**",
+      "\n2. Capture",
+    );
+    expect(deckStepOne).toContain(
+      "Fix the ranked breaks of the set work order first",
+    );
+    expect(deckStepOne).toContain(
+      "Do not fix the set work order's entries with `rank` null",
+    );
+  });
+
+  it("the recheck still lists the skipped items under Smaller things", () => {
+    expect(RECHECK_TEXT).toContain(
+      "The items the fixer skips still go there when they are not ranked",
+    );
   });
 
   it("the description names the new stop rule", () => {
@@ -614,6 +685,9 @@ describe("fix and stop rules count the smaller things (crit-73l, FR-82)", () => 
     expect(row).toContain("Decision 2026-11-25 (crit-73l)");
     expect(row).toContain("fixes every finding of the work order");
     expect(row).toContain("both empty");
+    expect(row).toContain(
+      "except a text contrast or target size under the WCAG minimum or a broken Fixed entry",
+    );
     expect(row).toContain("the brief's Ask or Stage puts it out of scope");
     expect(row).toContain(
       "the line that a mock could not be checked against the real thing",
