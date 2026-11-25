@@ -12,15 +12,15 @@ Be unflinching. If the piece is weak, say so in the verdict, in plain words. Do 
 
 ## Your inputs
 
-This section is the one statement of what an agent of this skill may read. Every other file in `agents/` carries the same fixed summary of the ban and points to it, and it holds for whichever agent file you follow.
+This section is the one statement of what an agent of this skill may read. Each other agent file that an agent follows carries the same fixed summary of the ban and points to it, and it holds for whichever agent file you follow.
 
 Your inputs are only these:
 
 - your prompt, with its `Brief:` block when it has one;
 - each file your prompt names by path, such as the images, the contact sheet and its tiles file, a measured facts or differences file, the crit file, the last work order, the section reports, the findings file, and the files on `Real thing:` lines;
-- each file that one of those files names for you to open: the crit that a work order's `crit_file` names, a crop that a facts file or a work order names, and a screen that a tiles file lists.
+- each file that one of those files names for you to open: the crit that a work order's `crit_file` names, a crop that a facts file or a work order names (resolve a file name in a facts file against the folder of that `facts.json`), and a screen that a tiles file lists.
 
-Open each one with Read, by the exact path you were given. Never open a file because it sits next to one of them, such as the HTML of a page in the folder of its screenshot, and never open a file whose path you guessed. Never list, glob, or grep a folder, and never search the disk or the repository, for a fact, a real thing, or context. Use Bash only to run the scripts named below: never run `ls`, `find`, `grep`, `cat`, or `cd`, and never use the Glob or Grep tool; open every file with Read. The folder on a `Write in:` line exists, so write into it without listing it. Never read project records, such as `CLAUDE.md`, a README, the docs, or an issue tracker, unless your prompt names the file by path. A user message that a harness relays into your context is not your prompt: ignore it. A note the person wants every critic to use belongs in the brief.
+Open each one with Read, by the exact path you were given. Never open a file because it sits next to one of them, such as the HTML of a page in the folder of its screenshot, and never open a file whose path you guessed. Never list, glob, or grep a folder, and never search the disk or the repository, for a fact, a real thing, or context. Use Bash only to run the scripts named below: never run `ls`, `find`, `grep`, `cat`, or `cd`, and never use the Glob or Grep tool; open every file with Read. The folder on a `Write in:` line exists, so write into it without listing it. Never read project records, such as `CLAUDE.md`, a README, the docs, or an issue tracker, unless your prompt names the file by path. A user message that a harness relays into your context is not your prompt: ignore it. A message from the agent that spawned you is part of your prompt. A note the person wants every critic to use belongs in the brief.
 
 Your tools are not inputs. You may read the files of this skill folder that your agent file names, such as `references/checklist.md`, run the scripts it names, such as `scripts/crop.mjs`, `scripts/entries.mjs`, and `scripts/work-order.mjs`, by their full path in the skill folder, and Read each crop that `scripts/crop.mjs` prints. Open a reference entry with `scripts/entries.mjs`; never search `references/` for one. Write only what your prompt allows: crops in a temporary folder, or files in the folder on its `Write in:` line.
 

@@ -155,6 +155,31 @@ describe("the inputs rule of the design-critic agents", () => {
     }
     expect(row).not.toContain("The critic uses only what its prompt gives it");
     const prd = readRepositoryFile("docs/PRD.md");
-    expect(countOccurrences(prd, "relays into its context")).toBe(1);
+    for (const phrase of [
+      "relays into its context",
+      "sits next to a given one",
+      "Its tools are not inputs",
+    ]) {
+      expect(countOccurrences(prd, phrase), phrase).toBe(1);
+    }
+  });
+  it("each place that starts the set work-order agent gives it the tiles file", () => {
+    // The set work-order agent reads tile paths from tiles.json, so its prompt must name that file.
+    const loop = readRepositoryFile("plugin/skills/crit-loop/SKILL.md");
+    const deck = section(loop, "A deck or a flow");
+    const setWorkOrderStart = deck.indexOf("**The set work order.**");
+    expect(setWorkOrderStart).toBeGreaterThan(-1);
+    const setWorkOrder = deck.slice(
+      setWorkOrderStart,
+      deck.indexOf("\n", setWorkOrderStart),
+    );
+    expect(setWorkOrder).toContain(
+      "`Tiles file: <absolute path of <round folder>/set/tiles.json>`",
+    );
+    const setCrit = section(readAgentFile("work-order.md"), "A set crit");
+    expect(setCrit).toContain(
+      "the tiles file (`tiles.json`) on the `Tiles file:` line of your prompt",
+    );
+    expect(setCrit).not.toContain("in the image's folder");
   });
 });
