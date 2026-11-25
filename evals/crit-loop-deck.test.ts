@@ -262,6 +262,41 @@ describe("a screen a cut left too thin (crit-1kh)", () => {
     );
   });
 
+  it("puts the set critic's fact request into the round's question in all three places", () => {
+    const deck = section(skill, "A deck or a flow");
+    const roundOneStart = deck.indexOf("**Round 1.**");
+    expect(roundOneStart).toBeGreaterThan(-1);
+    const roundOne = deck.slice(
+      roundOneStart,
+      deck.indexOf("\n", roundOneStart),
+    );
+    expect(roundOne).toContain(
+      "its question includes a fact that the set critic's `crit.md` requests",
+    );
+    const stepSixStart = deck.indexOf("6. If you do not stop");
+    expect(stepSixStart).toBeGreaterThan(-1);
+    const stepSix = deck.slice(stepSixStart, deck.indexOf("\n", stepSixStart));
+    expect(stepSix).toContain(
+      "wait for every slide's recheck and the set critic",
+    );
+    expect(stepSix).toContain("the set critic's `crit.md` included");
+    const designCritic = readRepositoryFile(
+      "plugin/skills/design-critic/SKILL.md",
+    );
+    const stepFiveStart = designCritic.indexOf("5. Write the work order");
+    expect(stepFiveStart).toBeGreaterThan(-1);
+    const stepFive = designCritic.slice(
+      stepFiveStart,
+      designCritic.indexOf("\n", stepFiveStart),
+    );
+    expect(stepFive).toContain(
+      "and the set critic's crit when the run has one",
+    );
+    for (const block of fencedBlocks(designCritic)) {
+      expect(block).not.toContain("set critic's crit");
+    }
+  });
+
   it("allows a card that carries a fact only in the fix of a thin screen (fix 3)", () => {
     const fixSection = section(skill, "Fix the design, not the score");
     expect(fixSection).toContain(
@@ -317,6 +352,12 @@ describe("a screen a cut left too thin (crit-1kh)", () => {
     expect(fr83).toContain("(crit-1kh)");
     expect(fr83).toContain("far less content");
     expect(fr83).toContain("This is the one fact the set critic requests.");
+    expect(fr82).toContain(
+      "or names only thin-screen breaks set aside as FR-83 says, or when two rounds in a row close nothing",
+    );
+    expect(fr82).toContain(
+      "keyed on `Breaks: none`, with the one exception of a thin-screen break set aside as FR-83 says",
+    );
     expect(fr83).toContain("content comparable to the other screens");
     expect(fr82).toContain(
       "except the one fact request of a thin-screen break (FR-83, crit-1kh)",
