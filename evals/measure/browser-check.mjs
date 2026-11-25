@@ -13,6 +13,13 @@
 // times out: still exit 0, found_by none, and a note that the check failed), and pulse.html (a
 // button whose color pulses, with no dark mode: found_by none); dark-media and
 // dark-toggle are compared with their committed .facts.json.
+// It measures hash-slides.html#2 and checks that only the heading of slide 2 is measured and that
+// source keeps the hash (FR-82, crit-3wg).
+// It measures hash-scroll.html#2, a deck whose hash only scrolls, and checks that only slide 2 is
+// measured, in a 1280 x 800 px screenshot with boxes in the slide's pixels, and that hash-scroll.html#9,
+// whose hash names no element, measures the whole page with a note.
+// It measures hash-anchor.html#top, whose hash names an anchor with no size, and checks that it
+// gives the same text blocks as the page with no hash, plus a note.
 // It also serves pages from a local HTTP server to check that a 404 is refused with one line, that
 // a redirect is recorded, and that a page that does not open gives one line. Then it compares the
 // parts of each facts.json that do not depend on the machine with the committed
@@ -333,6 +340,105 @@ check(
   "a left edge with fewer than 2 blocks is listed",
 );
 compareWithSample("evals/measure/hard-cases.html", hard);
+
+// A local path with a hash picks one slide of a deck (FR-82, crit-3wg): hash-slides.html#2 shows
+// only the heading of slide 2, and source records the path with its hash.
+const slideTwo = await measureCommittedPage(
+  "evals/measure/hash-slides.html#2",
+  ["--desktop"],
+);
+const slideTwoSelectors = slideTwo.facts.viewports[0].text_blocks.map(
+  (block) => block.selector,
+);
+check(
+  JSON.stringify(slideTwoSelectors) === JSON.stringify(["#heading-two"]),
+  `hash-slides.html#2 gave text blocks ${JSON.stringify(slideTwoSelectors)}, expected ["#heading-two"]`,
+);
+check(
+  slideTwo.facts.source === "evals/measure/hash-slides.html#2",
+  `hash-slides.html#2 recorded source ${slideTwo.facts.source}`,
+);
+check(
+  validateFacts(slideTwo.facts),
+  `the hash-slides.html#2 facts.json does not validate: ${JSON.stringify(validateFacts.errors)}`,
+);
+
+// A deck whose hash only scrolls (crit-3wg): hash-scroll.html#2 measures slide 2 alone, so the
+// screenshot is the slide's 1280 x 800 px and the heading box is in the slide's pixels, 120 px from
+// its top and left, though the body's 40 px padding puts the slide off the page origin.
+const scrollTwo = await measureCommittedPage(
+  "evals/measure/hash-scroll.html#2",
+  ["--desktop"],
+);
+const scrollViewport = scrollTwo.facts.viewports[0];
+const scrollBlocks = scrollViewport.text_blocks.map((block) => ({
+  selector: block.selector,
+  box: block.box,
+}));
+check(
+  JSON.stringify(scrollBlocks) ===
+    JSON.stringify([{ selector: "#heading-two", box: [120, 120, 1040, 60] }]),
+  `hash-scroll.html#2 gave text blocks ${JSON.stringify(scrollBlocks)}, expected #heading-two at [120, 120, 1040, 60]`,
+);
+check(
+  scrollViewport.page_width === 1280 && scrollViewport.page_height === 800,
+  `hash-scroll.html#2 gave a page of ${scrollViewport.page_width} x ${scrollViewport.page_height}, expected 1280 x 800`,
+);
+const scrollPng = readFileSync(join(scrollTwo.outputFolder, "desktop.png"));
+// A PNG holds its width and height as 4-byte big-endian numbers at bytes 16 and 20.
+const scrollPngSize = [scrollPng.readUInt32BE(16), scrollPng.readUInt32BE(20)];
+check(
+  scrollPngSize[0] === 1280 && scrollPngSize[1] === 800,
+  `hash-scroll.html#2 wrote a ${scrollPngSize.join(" x ")} screenshot, expected 1280 x 800`,
+);
+check(
+  scrollTwo.facts.final_url === undefined,
+  `hash-scroll.html#2 recorded final_url ${scrollTwo.facts.final_url}; a hash is not a redirect`,
+);
+check(
+  validateFacts(scrollTwo.facts),
+  `the hash-scroll.html#2 facts.json does not validate: ${JSON.stringify(validateFacts.errors)}`,
+);
+
+// A hash that names no element measures the whole page, with a note.
+const scrollMissing = await measureCommittedPage(
+  "evals/measure/hash-scroll.html#9",
+  ["--desktop"],
+);
+const missingViewport = scrollMissing.facts.viewports[0];
+check(
+  missingViewport.text_blocks.length === 3 &&
+    missingViewport.notes.some((note) => note.includes('"9"')),
+  `hash-scroll.html#9 gave ${missingViewport.text_blocks.length} text blocks and notes ${JSON.stringify(missingViewport.notes)}, expected 3 and a note on id "9"`,
+);
+
+// A hash that names an anchor with no size (crit-3wg): hash-anchor.html#top measures the same
+// text blocks as the page with no hash, plus a note, because nothing is hidden before the size check.
+const anchorPlain = await measureCommittedPage(
+  "evals/measure/hash-anchor.html",
+  ["--desktop"],
+);
+const anchorTop = await measureCommittedPage(
+  "evals/measure/hash-anchor.html#top",
+  ["--desktop"],
+);
+const anchorPlainSelectors = anchorPlain.facts.viewports[0].text_blocks.map(
+  (block) => block.selector,
+);
+const anchorTopSelectors = anchorTop.facts.viewports[0].text_blocks.map(
+  (block) => block.selector,
+);
+check(
+  anchorPlainSelectors.length > 0 &&
+    JSON.stringify(anchorTopSelectors) === JSON.stringify(anchorPlainSelectors),
+  `hash-anchor.html#top gave text blocks ${JSON.stringify(anchorTopSelectors)}, expected ${JSON.stringify(anchorPlainSelectors)} as with no hash`,
+);
+check(
+  anchorTop.facts.viewports[0].notes.some((note) =>
+    note.includes('"top" has a size, so the whole page is measured'),
+  ),
+  `hash-anchor.html#top notes ${JSON.stringify(anchorTop.facts.viewports[0].notes)} name no whole-page measure`,
+);
 
 // --width: one viewport per width, named w<N>, and a facts.json that the schema accepts.
 const widthRun = await runMeasureScript("evals/measure/known-values.html", [
