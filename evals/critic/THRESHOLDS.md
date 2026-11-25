@@ -12,7 +12,7 @@ npm run eval:critic:thresholds
 
 ## The cases
 
-Every case, band, and count below is this evaluation's own choice (crit-576.13), not a rule from the PRD. The measured value comes from the committed facts file, except for the photo case, where `render-thresholds.ts` takes the median contrast between the text color and the screenshot pixels behind the text, with the text hidden.
+Every case, band, and count below is this evaluation's own choice (crit-576.13), not a rule from the PRD. The measured value comes from the committed facts file, except for the photo case, where `render-thresholds.ts` takes the median contrast between the text color and the screenshot pixels behind the text, with the text hidden. A rerun of `render-thresholds.ts` after crit-y75 changes the violations note and may add short-last-line entries, so the committed files in `thresholds/facts/` stay as they are, because their hashes are in the saved run keys.
 
 | image | kind | defect asked about | measured | right call | facts show |
 |---|---|---|---|---|---|

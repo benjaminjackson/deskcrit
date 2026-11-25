@@ -15,7 +15,8 @@
 // case needs (checkFacts), and writes nothing then. It uses the Playwright that packs/ pins, so
 // `npm run ci` never runs it. Run `npm --prefix packs ci` and `npm --prefix packs run setup` first,
 // then `node evals/critic/render-thresholds.ts`. The committed files are what the saved runs used,
-// so `git diff` must show no change after a rerun.
+// and their hashes are in the saved run keys. A rerun after crit-y75 changes the violations note and
+// may add short-last-line entries, so the committed files stay as they are; do not commit a rerun.
 
 import { createReadStream, existsSync, mkdirSync, mkdtempSync } from "node:fs";
 import { copyFile, readFile, rm, writeFile } from "node:fs/promises";

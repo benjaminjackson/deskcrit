@@ -13,7 +13,10 @@
 // It renders pages with the Playwright that packs/ pins, so `npm run ci` never runs it. Run
 // `npm --prefix packs ci` and `npm --prefix packs run setup` first, then
 // `node evals/critic/measure-fixtures.ts`. It writes every file again each time it runs; the
-// committed files are what the saved runs used, so `git diff` must show no change after a rerun.
+// committed files are what the saved runs used, and their hashes are in the saved run keys. They
+// were written before measure.mjs wrote a violations list and its note, and keepFixtureViewport
+// keeps both, so a rerun after crit-576.13 and crit-y75 adds the note and the list, which may hold
+// short-last-line entries. The committed files stay as they are; do not commit a rerun.
 
 import { createReadStream, existsSync, mkdirSync, mkdtempSync } from "node:fs";
 import { readFile, rm, writeFile } from "node:fs/promises";
