@@ -25,7 +25,9 @@
 // note says so.
 //
 // It uses Playwright, which it never installs. It looks for `playwright` first in the project of
-// the working directory, then in packs/ of the deskcrit checkout that holds this script. It opens
+// the working directory, then, only when this script runs from a deskcrit checkout (GUIDELINES.md
+// and packs/package.json at the root four levels above this folder), in that checkout's packs/. An
+// installed copy of the plugin loads no package from a folder above itself. It opens
 // the page in a new browser context with no cookies, follows no link, and runs no script of its own
 // in the page other than code that reads layout and styles and scrolls the window. Only with --dark
 // does it click anything: at most two theme controls per viewport, never a link, a submit button,
@@ -1541,18 +1543,40 @@ function readPage(limits) {
 // ---------------------------------------------------------------------------------------------
 
 /**
+ * Returns the path of packs/package.json in the deskcrit checkout that holds the script folder, or
+ * null when the script does not run from a deskcrit checkout. A checkout has GUIDELINES.md and
+ * packs/package.json at its root, four levels above the script folder. Reason: an installed copy
+ * of the plugin reads nothing it was not given, so it must not load a package from whatever folder
+ * sits above it (bd memory inputs-only-given, crit-dh9).
+ *
+ * @param {string} scriptFolder
+ * @returns {string | null}
+ */
+export function findCheckoutPacksAnchor(scriptFolder) {
+  const checkoutRoot = resolve(scriptFolder, "../../../..");
+  const packsAnchor = join(checkoutRoot, "packs", "package.json");
+  const isCheckout =
+    existsSync(join(checkoutRoot, "GUIDELINES.md")) && existsSync(packsAnchor);
+  if (!isCheckout) {
+    return null;
+  }
+  return packsAnchor;
+}
+
+/**
  * Loads the `playwright` package without installing it: first from the project in the working
- * directory, then from packs/ of the deskcrit checkout that holds this script. It returns null when
- * neither has it.
+ * directory, then, only when this script runs from a deskcrit checkout, from that checkout's
+ * packs/. It returns null when neither has it.
  *
  * @param {string} workingDirectory
  */
 export function loadPlaywright(workingDirectory) {
   const scriptFolder = fileURLToPath(new URL(".", import.meta.url));
-  const searchFrom = [
-    join(workingDirectory, "package.json"),
-    join(scriptFolder, "../../../../packs/package.json"),
-  ];
+  const searchFrom = [join(workingDirectory, "package.json")];
+  const packsAnchor = findCheckoutPacksAnchor(scriptFolder);
+  if (packsAnchor !== null) {
+    searchFrom.push(packsAnchor);
+  }
   for (const anchor of searchFrom) {
     try {
       // createRequire gives a `require` that loads packages as if from the anchor file's folder.

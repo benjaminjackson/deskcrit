@@ -1,4 +1,10 @@
-import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
@@ -13,6 +19,7 @@ import {
   EXIT_CANNOT_MEASURE,
   EXIT_TOOL_MISSING,
   EXIT_USAGE,
+  findCheckoutPacksAnchor,
   findMainStyle,
   findViolations,
   formatFactsJson,
@@ -862,5 +869,44 @@ describe("findViolations", () => {
       target("#b", [24, 0, 20, 20]),
     ];
     expect(findViolations([], [], targets, [null, null])).toEqual([]);
+  });
+});
+
+describe("findCheckoutPacksAnchor", () => {
+  /** Makes plugin/skills/design-critic/scripts/ under a new temp folder and returns both paths. */
+  function makeScriptFolder(): { root: string; scriptFolder: string } {
+    const root = mkdtempSync(join(tmpdir(), "measure-checkout-"));
+    const scriptFolder = join(
+      root,
+      "plugin",
+      "skills",
+      "design-critic",
+      "scripts",
+    );
+    mkdirSync(scriptFolder, { recursive: true });
+    return { root, scriptFolder };
+  }
+
+  it("names packs/package.json when GUIDELINES.md and packs/package.json are at the root", () => {
+    const { root, scriptFolder } = makeScriptFolder();
+    writeFileSync(join(root, "GUIDELINES.md"), "# Guidelines\n");
+    mkdirSync(join(root, "packs"));
+    writeFileSync(join(root, "packs", "package.json"), "{}\n");
+    expect(findCheckoutPacksAnchor(scriptFolder)).toBe(
+      join(root, "packs", "package.json"),
+    );
+  });
+
+  it("returns null for an installed copy with packs/package.json but no GUIDELINES.md above it", () => {
+    const { root, scriptFolder } = makeScriptFolder();
+    mkdirSync(join(root, "packs"));
+    writeFileSync(join(root, "packs", "package.json"), "{}\n");
+    expect(findCheckoutPacksAnchor(scriptFolder)).toBeNull();
+  });
+
+  it("returns null when GUIDELINES.md is at the root but packs/package.json is not", () => {
+    const { root, scriptFolder } = makeScriptFolder();
+    writeFileSync(join(root, "GUIDELINES.md"), "# Guidelines\n");
+    expect(findCheckoutPacksAnchor(scriptFolder)).toBeNull();
   });
 });
