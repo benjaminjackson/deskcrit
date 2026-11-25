@@ -83,6 +83,11 @@ describe("the design-critic skill description", () => {
   const skill = readSkillFile("SKILL.md");
   const description = /^description: (.*)$/m.exec(skill)?.[1] ?? "";
 
+  it("is 1,024 characters or less, the limit of the Agent Skills format", () => {
+    // Array.from counts characters, not UTF-16 code units, so "ü" counts as one.
+    expect(Array.from(description).length).toBeLessThanOrEqual(1024);
+  });
+
   it("names all eight brief fields and the not halves", () => {
     for (const words of [
       "job",
@@ -140,25 +145,39 @@ describe("step 1 of the design-critic SKILL.md", () => {
 });
 
 describe("the agent prompt blocks", () => {
-  const files = [
-    ["plugin", "skills", "design-critic", "SKILL.md"],
-    ["plugin", "skills", "crit-loop", "SKILL.md"],
-    ["plugin", "skills", "design-critic", "agents", "deep-mode.md"],
+  const whatIKnow = "`What I know about the piece:`";
+  const imagesLine = "`Image(s)`";
+  const afterImage = "`After image`";
+  // Each file with the line that the rule after each of its prompt blocks must name, in block
+  // order. The counts pin how many prompt blocks each file has, so a new block without a rule fails.
+  const files: { segments: string[]; targets: string[] }[] = [
+    {
+      // The critic, go-further, work-order, and contact-sheet prompts.
+      segments: ["plugin", "skills", "design-critic", "SKILL.md"],
+      targets: [whatIKnow, imagesLine, imagesLine, whatIKnow],
+    },
+    {
+      // The recheck prompt.
+      segments: ["plugin", "skills", "crit-loop", "SKILL.md"],
+      targets: [afterImage],
+    },
+    {
+      // The section critic and director prompts.
+      segments: ["plugin", "skills", "design-critic", "agents", "deep-mode.md"],
+      targets: [whatIKnow, whatIKnow],
+    },
   ];
-  for (const segments of files) {
-    it(`are each followed by a Brief block rule in ${segments.join("/")}`, () => {
+  for (const { segments, targets } of files) {
+    it(`are each followed by a Brief block rule that names its line in ${segments.join("/")}`, () => {
       const after = textAfterEachPromptBlock(readRepositoryFile(...segments));
-      expect(after.length).toBeGreaterThan(0);
-      for (const text of after) {
+      expect(after).toHaveLength(targets.length);
+      after.forEach((text, index) => {
         expect(text).toContain("Brief block");
+        expect(text).toContain(targets[index]);
         expect(text).toContain("use the prompt exactly as shown");
-      }
+      });
     });
   }
-
-  it("finds every prompt block of the design-critic SKILL.md: critic, go-further, work order, and contact sheet", () => {
-    expect(textAfterEachPromptBlock(readSkillFile("SKILL.md")).length).toBe(4);
-  });
 
   it("has crit-loop write brief.md in round 1", () => {
     const loop = readRepositoryFile(

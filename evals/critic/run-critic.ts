@@ -203,30 +203,51 @@ export function promptTemplate(
 }
 
 /**
- * Reads a brief file and returns its non-blank lines, trimmed, joined by line breaks. It stops with
- * one line naming the file when the file does not exist, and naming the line when a line does not
- * start with one of BRIEF_LABELS and ": ", so a typo never reaches the critic as a field.
+ * Checks the text of a brief file and returns its field lines, trimmed, joined by line breaks. A
+ * first line that is exactly "Brief:" is left out, because crit-loop's brief.md holds the whole
+ * block. Each other line must start with one of BRIEF_LABELS and ": ", and each label must come
+ * later in BRIEF_LABELS than the label of the line before it. That one order rule stops a wrong
+ * order, a repeated label, and a "not" line that is not right after its field, so the critic gets
+ * the block the way step 1 of SKILL.md writes it. It stops with one line naming the file and the bad
+ * line.
  */
-export function readBriefLines(briefPath: string): string {
-  if (!existsSync(briefPath)) {
-    throw new Error(`brief file ${briefPath} does not exist`);
-  }
-  const lines = readFileSync(briefPath, "utf8")
+export function parseBriefText(text: string, briefPath: string): string {
+  const lines = text
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line !== "");
+  if (lines[0] === BRIEF_PROMPT_HEADER) {
+    lines.shift();
+  }
   if (lines.length === 0) {
     throw new Error(`brief file ${briefPath} has no field`);
   }
+  let lastLabelIndex = -1;
   for (const line of lines) {
-    const known = BRIEF_LABELS.some((label) => line.startsWith(`${label}: `));
-    if (!known) {
+    const labelIndex = BRIEF_LABELS.findIndex((label) =>
+      line.startsWith(`${label}: `),
+    );
+    if (labelIndex === -1) {
       throw new Error(
         `brief file ${briefPath}: line does not start with a brief label and ": ": ${line}`,
       );
     }
+    if (labelIndex <= lastLabelIndex) {
+      throw new Error(
+        `brief file ${briefPath}: line is out of order, repeated, or a "not" line away from its field: ${line}`,
+      );
+    }
+    lastLabelIndex = labelIndex;
   }
   return lines.join("\n");
+}
+
+/** Reads a brief file and returns its checked field lines (parseBriefText); it stops when the file does not exist. */
+export function readBriefLines(briefPath: string): string {
+  if (!existsSync(briefPath)) {
+    throw new Error(`brief file ${briefPath} does not exist`);
+  }
+  return parseBriefText(readFileSync(briefPath, "utf8"), briefPath);
 }
 
 /** What a child process returned. */
@@ -311,8 +332,9 @@ function sha256(content: string | Buffer): string {
 
 /**
  * Fills the prompt template with the skill folder, image paths, note, optional focus line, and,
- * when `factsPath` is given, the facts line with that path. When `briefPath` is given, the lines of
- * that brief file take the place of the note and focus, so it refuses a note or focus with it.
+ * when `factsPath` is given, the facts line with that path. When `briefLines` is given (the checked
+ * lines of a brief file, from parseBriefText), they take the place of the note and focus, so it
+ * refuses a note or focus with them.
  */
 export function buildPrompt(
   skillDirectory: string,
@@ -320,25 +342,24 @@ export function buildPrompt(
   note: string | undefined,
   focus: string | undefined,
   factsPath?: string,
-  briefPath?: string,
+  briefLines?: string,
 ): string {
   let prompt = promptTemplate(
     factsPath !== undefined,
     false,
-    briefPath !== undefined,
+    briefLines !== undefined,
   ).replaceAll("<skill folder>", skillDirectory);
   if (factsPath !== undefined) {
     prompt = prompt.replace("<absolute path of facts.json>", factsPath);
   }
   prompt = prompt.replace("<absolute paths>", imagePaths.join(", "));
-  if (briefPath !== undefined) {
+  if (briefLines !== undefined) {
     if (note !== undefined || focus !== undefined) {
       throw new Error(
         "a brief replaces the note and the focus; give the brief alone",
       );
     }
     // A function as the replacement keeps any "$" in the brief text literal.
-    const briefLines = readBriefLines(briefPath);
     return prompt.replace(BRIEF_LINES_PLACEHOLDER, () => briefLines);
   }
   prompt = prompt.replace(
@@ -593,8 +614,17 @@ export function requestKey(
   return sha256(JSON.stringify(fields));
 }
 
-/** Returns the request key of a request, reading each image, the facts file, and the brief file to hash it. */
-export function requestKeyOf(request: CritRequest): string {
+/**
+ * Returns the request key of a request, reading each image, the facts file, and the brief file to
+ * hash it. ensureCrits passes `briefSha256` of the brief text it already read, so the key, the
+ * metadata, and the prompt all come from one read of the file.
+ */
+export function requestKeyOf(
+  request: CritRequest,
+  briefSha256 = request.briefPath === undefined
+    ? undefined
+    : sha256(readFileSync(request.briefPath)),
+): string {
   const imageSha256s = request.imagePaths.map((imagePath) =>
     sha256(readFileSync(imagePath)),
   );
@@ -602,10 +632,6 @@ export function requestKeyOf(request: CritRequest): string {
     request.factsPath === undefined
       ? undefined
       : sha256(readFileSync(request.factsPath));
-  const briefSha256 =
-    request.briefPath === undefined
-      ? undefined
-      : sha256(readFileSync(request.briefPath));
   return requestKey(
     imageSha256s,
     request.note,
@@ -762,6 +788,7 @@ export function writeRun(
 async function runCriticOnce(
   request: CritRequest,
   options: CriticRunnerOptions,
+  briefLines: string | undefined,
 ): Promise<{
   result: ClaudeResult;
   claudeVersion: string;
@@ -803,7 +830,7 @@ async function runCriticOnce(
       request.note,
       request.focus,
       workFactsPath,
-      request.briefPath,
+      briefLines,
     );
     const startedAt = new Date();
     const run = await options.runClaude(
@@ -842,7 +869,18 @@ export async function ensureCrits(
   const imageSha256s = request.imagePaths.map((imagePath) =>
     sha256(readFileSync(imagePath)),
   );
-  const key = requestKeyOf(request);
+  // Read the brief once, so a file edited during a long run never puts crits of the new text under
+  // the key of the old text: the key, the metadata, and every prompt use these same bytes.
+  const briefBytes =
+    request.briefPath === undefined
+      ? undefined
+      : readFileSync(request.briefPath);
+  const briefSha256 = briefBytes === undefined ? undefined : sha256(briefBytes);
+  const briefLines =
+    briefBytes === undefined || request.briefPath === undefined
+      ? undefined
+      : parseBriefText(briefBytes.toString("utf8"), request.briefPath);
+  const key = requestKeyOf(request, briefSha256);
   const identity = currentRunIdentity(
     request.factsPath !== undefined,
     false,
@@ -853,7 +891,7 @@ export async function ensureCrits(
     readSavedCrits(options.runsDirectory, commit, key, identity);
   let missing = runs - currentRuns().length;
   while (missing > 0) {
-    const once = await runCriticOnce(request, options);
+    const once = await runCriticOnce(request, options, briefLines);
     writeRun(requestDirectory, once.result.crit, {
       request: {
         images: request.imagePaths.map((imagePath, index) => ({
@@ -874,7 +912,7 @@ export async function ensureCrits(
           ? {}
           : {
               brief: {
-                sha256: sha256(readFileSync(request.briefPath)),
+                sha256: briefSha256,
                 path: portablePath(request.briefPath, 1),
               },
             }),

@@ -29,6 +29,7 @@ import {
   currentRunIdentity,
   ensureCrits,
   FACTS_PROMPT_LINE,
+  parseBriefText,
   parseClaudeResult,
   readSavedCrits,
   requestKey,
@@ -958,6 +959,49 @@ describe("a brief file (FR-87)", () => {
         mainOptions,
       ),
     ).rejects.toThrow("give --brief or --note, not both");
+  });
+
+  it("accepts a first line of Brief:, as crit-loop's brief.md holds it", () => {
+    expect(
+      parseBriefText("Brief:\nJob: sign-ups\nJob, not: demos\n", "brief.md"),
+    ).toBe("Job: sign-ups\nJob, not: demos");
+  });
+
+  it("refuses labels out of order", () => {
+    expect(() =>
+      parseBriefText("Stage: sketch\nJob: sign-ups\n", "brief.md"),
+    ).toThrow("out of order");
+  });
+
+  it("refuses a repeated label", () => {
+    expect(() =>
+      parseBriefText("Job: sign-ups\nJob: trials\n", "brief.md"),
+    ).toThrow("Job: trials");
+  });
+
+  it("refuses a not line that is not right after its field", () => {
+    expect(() =>
+      parseBriefText(
+        "Job: sign-ups\nAudience: studios\nJob, not: demos\n",
+        "brief.md",
+      ),
+    ).toThrow("Job, not: demos");
+  });
+
+  it("holds exactly the labels that step 1 of the skill's SKILL.md defines", () => {
+    const skillText = readFileSync(
+      join(REPOSITORY_ROOT, "plugin", "skills", "design-critic", "SKILL.md"),
+      "utf8",
+    );
+    const stepOne = skillText.slice(
+      skillText.indexOf("1. Collect the inputs"),
+      skillText.indexOf("\n2. Spawn one agent"),
+    );
+    // Each field and each "not" half is written as **<Label>**: in step 1.
+    const labels = [
+      ...stepOne.matchAll(/\*\*([A-Z][a-z ]*(?:, not)?)\*\*:/g),
+    ].map((match) => match[1]);
+    expect([...labels].sort()).toEqual([...BRIEF_LABELS].sort());
   });
 
   it("accepts every label, including the five not lines", () => {
