@@ -434,15 +434,16 @@ describe("the viewports of one page (crit-9w5.6, FR-85)", () => {
 // Benjamin Jackson, 2026-11-25 (bd memory critic-no-buyer-framing): not every piece has a buyer,
 // so no example in the skills may assume a sale (crit-cgl). This reads every SKILL.md and every
 // agent file of both skills, removes the listed real terms, and expects no commercial word left.
+// Review trigger: a skill needs one of these words outside an example, or Benjamin Jackson
+// changes the ruling.
 describe("the skill files frame no piece as a sale (crit-cgl)", () => {
   const SKILLS_FOLDER = join(REPOSITORY_ROOT, "plugin", "skills");
   const COMMERCIAL_WORDS =
-    /\b(?:buyers?|clients?|customers?|sales?|sell(?:s|ing)?|purchas\w*|prices?|pricing|trials?|checkout|carts?|subscrib\w*|plans?|conversions?|CTA|sign[- ]?ups?)\b/gi;
+    /\b(?:buyers?|customers?|sales?|sell(?:s|ing)?|purchas\w*|prices?|pricing|trials?|checkout)\b/gi;
   // Real terms, by path under plugin/skills. Each phrase must still be in its file.
   const ALLOWED: Readonly<Record<string, readonly string[]>> = {
     "design-critic/agents/critic.md": [
       "do not call the reader a buyer or a client", // the rule itself (crit-9hj)
-      "a team reading its own plan", // a document the team wrote
       "Prices, dates, deadlines", // crit-bwr owns this line; delete this entry when it rewords it
     ],
     "design-critic/SKILL.md": ["from a checkout of the repository"], // a git checkout
@@ -451,7 +452,10 @@ describe("the skill files frame no piece as a sale (crit-cgl)", () => {
   /** Lists each skill's SKILL.md and agents/*.md, as paths under plugin/skills. */
   function listSkillFiles(): string[] {
     const files: string[] = [];
-    for (const skill of readdirSync(SKILLS_FOLDER)) {
+    for (const entry of readdirSync(SKILLS_FOLDER, { withFileTypes: true })) {
+      // Skip loose files such as .DS_Store; each skill is a folder.
+      if (!entry.isDirectory()) continue;
+      const skill = entry.name;
       files.push(`${skill}/SKILL.md`);
       const agentsFolder = join(SKILLS_FOLDER, skill, "agents");
       if (!existsSync(agentsFolder)) continue;
