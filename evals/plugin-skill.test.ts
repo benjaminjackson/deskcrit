@@ -444,7 +444,6 @@ describe("the skill files frame no piece as a sale (crit-cgl)", () => {
   const ALLOWED: Readonly<Record<string, readonly string[]>> = {
     "design-critic/agents/critic.md": [
       "do not call the reader a buyer or a client", // the rule itself (crit-9hj)
-      "Prices, dates, deadlines", // crit-bwr owns this line; delete this entry when it rewords it
     ],
     "design-critic/SKILL.md": ["from a checkout of the repository"], // a git checkout
   };
