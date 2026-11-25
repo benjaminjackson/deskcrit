@@ -2049,13 +2049,6 @@ export async function guardDarkMode(viewportName, attempt) {
 }
 
 /**
- * Runs inside the page. Reads the computed text and background color of html, body, and each
- * selector given, and the image each img element chose, into one flat object. A selector whose
- * element is missing gives null.
- *
- * @param {string[]} selectors
- */
-/**
  * Returns the element id that the hash of a local page URL names, such as "3" for
  * file:///deck.html#3, or null for an http(s) URL or a URL with no hash. The script measures only
  * that element, one slide of a deck (FR-79, FR-82, crit-3wg).
@@ -2119,6 +2112,11 @@ function isolateSlide(id) {
   if (slide === null) {
     return null;
   }
+  // Check the size before hiding anything, so an anchor with no size leaves the page as it was.
+  const sizeRect = slide.getBoundingClientRect();
+  if (sizeRect.width < 1 || sizeRect.height < 1) {
+    return null;
+  }
   for (const element of document.body.querySelectorAll("*")) {
     const keep =
       element === slide || slide.contains(element) || element.contains(slide);
@@ -2127,9 +2125,6 @@ function isolateSlide(id) {
     }
   }
   const rect = slide.getBoundingClientRect();
-  if (rect.width < 1 || rect.height < 1) {
-    return null;
-  }
   return {
     x: Math.round(rect.left + window.scrollX),
     y: Math.round(rect.top + window.scrollY),
@@ -2138,6 +2133,13 @@ function isolateSlide(id) {
   };
 }
 
+/**
+ * Runs inside the page. Reads the computed text and background color of html, body, and each
+ * selector given, and the image each img element chose, into one flat object. A selector whose
+ * element is missing gives null.
+ *
+ * @param {string[]} selectors
+ */
 function readColorProbe(selectors) {
   const probe = {};
   const elements = [

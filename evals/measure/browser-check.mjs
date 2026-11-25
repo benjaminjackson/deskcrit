@@ -18,6 +18,8 @@
 // It measures hash-scroll.html#2, a deck whose hash only scrolls, and checks that only slide 2 is
 // measured, in a 1280 x 800 px screenshot with boxes in the slide's pixels, and that hash-scroll.html#9,
 // whose hash names no element, measures the whole page with a note.
+// It measures hash-anchor.html#top, whose hash names an anchor with no size, and checks that it
+// gives the same text blocks as the page with no hash, plus a note.
 // It also serves pages from a local HTTP server to check that a 404 is refused with one line, that
 // a redirect is recorded, and that a page that does not open gives one line. Then it compares the
 // parts of each facts.json that do not depend on the machine with the committed
@@ -408,6 +410,34 @@ check(
   missingViewport.text_blocks.length === 3 &&
     missingViewport.notes.some((note) => note.includes('"9"')),
   `hash-scroll.html#9 gave ${missingViewport.text_blocks.length} text blocks and notes ${JSON.stringify(missingViewport.notes)}, expected 3 and a note on id "9"`,
+);
+
+// A hash that names an anchor with no size (crit-3wg): hash-anchor.html#top measures the same
+// text blocks as the page with no hash, plus a note, because nothing is hidden before the size check.
+const anchorPlain = await measureCommittedPage(
+  "evals/measure/hash-anchor.html",
+  ["--desktop"],
+);
+const anchorTop = await measureCommittedPage(
+  "evals/measure/hash-anchor.html#top",
+  ["--desktop"],
+);
+const anchorPlainSelectors = anchorPlain.facts.viewports[0].text_blocks.map(
+  (block) => block.selector,
+);
+const anchorTopSelectors = anchorTop.facts.viewports[0].text_blocks.map(
+  (block) => block.selector,
+);
+check(
+  anchorPlainSelectors.length > 0 &&
+    JSON.stringify(anchorTopSelectors) === JSON.stringify(anchorPlainSelectors),
+  `hash-anchor.html#top gave text blocks ${JSON.stringify(anchorTopSelectors)}, expected ${JSON.stringify(anchorPlainSelectors)} as with no hash`,
+);
+check(
+  anchorTop.facts.viewports[0].notes.some((note) =>
+    note.includes('"top" has a size, so the whole page is measured'),
+  ),
+  `hash-anchor.html#top notes ${JSON.stringify(anchorTop.facts.viewports[0].notes)} name no whole-page measure`,
 );
 
 // --width: one viewport per width, named w<N>, and a facts.json that the schema accepts.
