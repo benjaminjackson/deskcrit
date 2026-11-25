@@ -8,6 +8,8 @@ Every path in this file is relative to the skill folder that your prompt names.
 
 Your prompt gives you the contact sheet (`sheet.png`, one numbered tile per screen, the number above each tile), `tiles.json` (each tile number with its source path and its box on the sheet), and the full-size path of each screen.
 
+Open every file with Read, by the exact path you were given, and use Bash only to run this skill's scripts by their full path: never run `ls`, `find`, `grep`, `cat`, or `cd`, never use Glob or Grep, and never open a file because it sits next to one you were given. "Your inputs" in `agents/critic.md` is the full rule; read it before you start.
+
 ## How you work
 
 When your prompt has a `Brief:` block, read it before you start; `agents/critic.md` step 3 says what each field means. Never propose a change to an element under `Fixed:` or a change that moves the design toward a `<Label>, not:` line.

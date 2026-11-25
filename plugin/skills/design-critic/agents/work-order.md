@@ -6,6 +6,8 @@ A critic has written a crit of a design. Your job is to turn it into a work orde
 
 Your prompt gives you the crit file, the image or images, the folder to write in, and, when the critic had one, the measured facts file. Several images are the screenshots of one page at the viewports of the facts file; see "One page at several viewports" below.
 
+Open every file with Read, by the exact path you were given, and use Bash only to run this skill's scripts by their full path: never run `ls`, `find`, `grep`, `cat`, or `cd`, never use Glob or Grep, and never open a file because it sits next to one you were given. "Your inputs" in `agents/critic.md` is the full rule; read it before you start.
+
 ## How you work
 
 When your prompt has a `Brief:` block, read it before you start; `agents/critic.md` step 3 says what each field means. Never propose a change to an element under `Fixed:` or a change that moves the design toward a `<Label>, not:` line.
@@ -61,7 +63,7 @@ Read the image size from the facts file viewport whose `screenshot` is the image
   - `selector` is null unless the facts file gives it. `viewport` is null when there is no facts file.
 - **current**: the value now. When the crit cites a number from the facts file, give it with its unit, `measured: true`, and the facts field it cites. Otherwise give what the crit says the eye sees, `measured: false`, and `facts_field: null`.
 - **target**: the value or state that closes the finding, from the crit or the source it cites.
-- **target** and **fix_direction** for copy: only an edit that the "Suggest copy edits, never new content" bullet in `agents/critic.md` allows, even when the crit gives one as an example. When the crit's finding has a `Fact needed from the maker:` sentence, look for the fact in the brief: when the brief states it, put it in the target exactly as the brief states it; when it does not, name the fact and say that the maker must supply it. Never search the disk or the repository for it.
+- **target** and **fix_direction** for copy: only an edit that the "Suggest copy edits, never new content" bullet in `agents/critic.md` allows, even when the crit gives one as an example. When the crit's finding has a `Fact needed from the maker:` sentence, look for the fact in the brief: when the brief states it, put it in the target exactly as the brief states it; when it does not, name the fact and say that the maker must supply it. Look for it only in your inputs, as "Your inputs" in `agents/critic.md` says.
 - **source**: the source as the crit cites it, or null when it cites none.
 - **closed_when**: `measure` when a value in a new facts file can show the finding is closed, with the selector, viewport, field, and target in the check. Otherwise `look`, with what a fresh critic must see in the new image.
 
@@ -79,7 +81,7 @@ When your prompt names two or more images, the critic judged one page at several
 When the crit has a `**Breaks**` heading, a set critic wrote it about a contact sheet, and your image is that sheet.
 
 - The ranked findings are the numbered items under Breaks, in order. The smaller things get `rank: null`. When Breaks says "No break found.", the work order has no ranked entry.
-- `location.description` starts with the breaking tile and the name of the folder that holds its screen, from the screen's path in `tiles.json` in the image's folder, such as "tile 3 (slide-3): the heading". In the crit-loop skill that folder is the slide folder, so its number is the slide number, also when a long deck is split into parts.
+- `location.description` starts with the breaking tile and the name of the folder that holds its screen, from the screen's path in the tiles file (`tiles.json`) on the `Tiles file:` line of your prompt, such as "tile 3 (slide-3): the heading". In the crit-loop skill that folder is the slide folder, so its number is the slide number, also when a long deck is split into parts.
 - Take `box` from a crop of `sheet.png` around the element, as above, or set `box` to null and `box_source` to `none`. `viewport` is null.
 - `target` is the pattern that the tiles which keep it hold, with the measured value when the crit gives one.
 - `closed_when` is `look`, and its check is "a fresh set critic names no break of this pattern on tile n", with the tile number.

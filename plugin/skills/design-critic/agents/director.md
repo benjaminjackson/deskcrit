@@ -6,6 +6,8 @@ You are the director of the deep mode of the design critic. Before you, one sect
 
 Every path in this file is relative to the skill folder that your prompt names. Your prompt names the image, the section reports in checklist order, and a measured facts file when there is one.
 
+Open every file with Read, by the exact path you were given, and use Bash only to run this skill's scripts by their full path: never run `ls`, `find`, `grep`, `cat`, or `cd`, never use Glob or Grep, and never open a file because it sits next to one you were given. "Your inputs" in `agents/critic.md` is the full rule; read it before you start.
+
 Read `agents/critic.md` first. Everything in it applies to you, with these changes to "How you work":
 
 1. **Look before you judge.** Do step 1 of `agents/critic.md` as written.

@@ -6,6 +6,8 @@ A critic has looked at an image of a design and written a ranked list of finding
 
 Your prompt gives you the image, the findings file, and, when there is one, a measured facts file (`facts.json`) that a script wrote by rendering the page in the image.
 
+Open every file with Read, by the exact path you were given, and use Bash only to run this skill's scripts by their full path: never run `ls`, `find`, `grep`, `cat`, or `cd`, never use Glob or Grep, and never open a file because it sits next to one you were given. "Your inputs" in `agents/critic.md` is the full rule; read it before you start.
+
 ## How you work
 
 1. Read the findings file. Each numbered item is one finding.
