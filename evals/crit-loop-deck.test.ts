@@ -56,6 +56,12 @@ describe("the crit-loop skill's deck path", () => {
       "`--widescreen`",
       "`<deck file>#<k>`",
       "hash anchor",
+      "deck pattern wins",
+      "last set work order:",
+      "`<round folder>/set-<n>`",
+      "`--viewport widescreen`",
+      "does not count against the stop rules",
+      "marks no break of the last set work order closed",
       "as soon as the set critic has finished",
     ]) {
       // Lowercase both, so a phrase at the start of a sentence still matches.
@@ -105,6 +111,7 @@ describe("the work-order agent and a set crit", () => {
   it("reads the Breaks heading and the tiles file", () => {
     expect(setCrit).toContain("`**Breaks**`");
     expect(setCrit).toContain("`tiles.json`");
+    expect(setCrit).toContain("(slide-3)");
   });
 });
 
@@ -121,5 +128,25 @@ describe("the PRD rows of the deck path", () => {
     expect(row).toContain("slides of one deck");
     expect(row).toContain("2026-11-25");
     expect(row).toContain("screens of one flow");
+  });
+});
+
+describe("the set critic and a last set work order", () => {
+  it("marks each break of the last set work order closed or open", () => {
+    const agent = readRepositoryFile(
+      "plugin/skills/design-critic/agents/set-critic.md",
+    );
+    expect(agent).toContain("`Last set work order:`");
+    expect(agent).toContain("**Break status**");
+  });
+});
+
+describe("the FR-82 row after fix round 1", () => {
+  it("names the deck pattern ruling and the flow as the orchestrator's detail", () => {
+    const row = prdRow("FR-82");
+    expect(row).toContain("Deck pattern wins");
+    expect(row).toContain(
+      "a flow of screens of one product runs the same way; this is the orchestrator's detail",
+    );
   });
 });

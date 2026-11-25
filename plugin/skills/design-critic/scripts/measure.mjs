@@ -2055,6 +2055,89 @@ export async function guardDarkMode(viewportName, attempt) {
  *
  * @param {string[]} selectors
  */
+/**
+ * Returns the element id that the hash of a local page URL names, such as "3" for
+ * file:///deck.html#3, or null for an http(s) URL or a URL with no hash. The script measures only
+ * that element, one slide of a deck (FR-79, FR-82, crit-3wg).
+ */
+export function slideIdOf(pageUrl) {
+  if (!pageUrl.startsWith("file:")) {
+    return null;
+  }
+  const hash = new URL(pageUrl).hash;
+  if (hash.length < 2) {
+    return null;
+  }
+  return decodeURIComponent(hash.slice(1));
+}
+
+/** Returns a URL without its hash, so the redirect check does not count a slide anchor as a move. */
+export function withoutHash(url) {
+  const hashStart = url.indexOf("#");
+  return hashStart === -1 ? url : url.slice(0, hashStart);
+}
+
+/**
+ * Moves every box and left edge of a raw page read into the pixels of a screenshot clipped to the
+ * slide's box, and sets the page size to the slide size. The read itself is in page pixels. It
+ * changes the raw read in place and returns it.
+ *
+ * @param {{ blocks: { box: { x: number, y: number }, textLeft: number | null }[], targets: { box: { x: number, y: number } }[], pageWidth: number, pageHeight: number }} raw
+ * @param {{ x: number, y: number, width: number, height: number }} slideBox the clip, in page pixels
+ */
+export function shiftRawToSlide(raw, slideBox) {
+  for (const block of raw.blocks) {
+    block.box = {
+      ...block.box,
+      x: block.box.x - slideBox.x,
+      y: block.box.y - slideBox.y,
+    };
+    if (block.textLeft !== null) {
+      block.textLeft -= slideBox.x;
+    }
+  }
+  for (const target of raw.targets) {
+    target.box = {
+      ...target.box,
+      x: target.box.x - slideBox.x,
+      y: target.box.y - slideBox.y,
+    };
+  }
+  raw.pageWidth = slideBox.width;
+  raw.pageHeight = slideBox.height;
+  return raw;
+}
+
+/**
+ * Runs in the page: hides every element that is not the element with this id, inside it, or
+ * around it, and returns that element's box in page pixels, in whole pixels. It returns null when
+ * no element has the id or the element has no size. Hiding the rest keeps the text and targets of
+ * other slides out of the facts, and lets a deck whose hash only scrolls show one slide.
+ */
+function isolateSlide(id) {
+  const slide = document.getElementById(id);
+  if (slide === null) {
+    return null;
+  }
+  for (const element of document.body.querySelectorAll("*")) {
+    const keep =
+      element === slide || slide.contains(element) || element.contains(slide);
+    if (!keep) {
+      element.style.setProperty("display", "none", "important");
+    }
+  }
+  const rect = slide.getBoundingClientRect();
+  if (rect.width < 1 || rect.height < 1) {
+    return null;
+  }
+  return {
+    x: Math.round(rect.left + window.scrollX),
+    y: Math.round(rect.top + window.scrollY),
+    width: Math.round(rect.width),
+    height: Math.round(rect.height),
+  };
+}
+
 function readColorProbe(selectors) {
   const probe = {};
   const elements = [
@@ -2367,10 +2450,25 @@ async function measureViewport(
 ) {
   const screenshotName = `${entryName}.png`;
   const screenshotPath = join(outputFolder, screenshotName);
+  // With a slide id from the hash of a local path, measure only that element (crit-3wg).
+  let slideBox = null;
+  if (viewport.slideId) {
+    slideBox = await page.evaluate(isolateSlide, viewport.slideId);
+    if (slideBox === null) {
+      notes.push(
+        `no element with the id "${viewport.slideId}" has a size, so the whole page is measured`,
+      );
+    } else {
+      notes.push(
+        `only the element with the id "${viewport.slideId}" is measured, the box [${slideBox.x}, ${slideBox.y}, ${slideBox.width}, ${slideBox.height}] of the page; every box is in the pixels of its screenshot`,
+      );
+    }
+  }
   await page.screenshot({
     path: screenshotPath,
     fullPage: true,
     animations: "disabled",
+    ...(slideBox === null ? {} : { clip: slideBox }),
   });
   lines.push(`screenshot ${screenshotPath}`);
   const crops = await writeCrops(
@@ -2388,6 +2486,9 @@ async function measureViewport(
     maxCharacters: MAX_MEASURED_CHARACTERS,
   });
   await readRenderedFamilies(page, raw.blocks);
+  if (slideBox !== null) {
+    shiftRawToSlide(raw, slideBox);
+  }
   const summary = summarizeViewport({
     ...raw,
     name: entryName,
@@ -2439,13 +2540,15 @@ export async function measurePage(
   const finalUrls = new Set();
   const darkResults = [];
   try {
-    for (const viewport of viewportList) {
+    const slideId = slideIdOf(pageUrl);
+    for (const listedViewport of viewportList) {
+      const viewport = { ...listedViewport, slideId };
       const { context, page, notes, finalUrl } = await openPage(
         browser,
         viewport,
         pageUrl,
       );
-      if (finalUrl !== pageUrl) {
+      if (withoutHash(finalUrl) !== withoutHash(pageUrl)) {
         finalUrls.add(finalUrl);
       }
       const light = await measureViewport(
@@ -2498,7 +2601,10 @@ export async function measurePage(
           }
         }
         darkResults.push(found.result);
-        if (found.finalUrl !== null && found.finalUrl !== pageUrl) {
+        if (
+          found.finalUrl !== null &&
+          withoutHash(found.finalUrl) !== withoutHash(pageUrl)
+        ) {
           finalUrls.add(found.finalUrl);
         }
         if (found.measured !== null) {

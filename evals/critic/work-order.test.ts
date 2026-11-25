@@ -374,13 +374,13 @@ describe("a work order for one page at several viewports (crit-9w5.6)", () => {
 
 describe("countRankedItems on a set critic's crit (crit-3wg, FR-82)", () => {
   /** Builds a set crit with the given lines under its Breaks heading. */
-  function setCrit(breakLines: string[]): string {
+  function setCrit(breakLines: string[], heading = "**Breaks**"): string {
     return [
       "**First read.** The slides read as one talk until slide 2.",
       "",
       "**Verdict.** One heading breaks the set.",
       "",
-      "**Breaks**",
+      heading,
       ...breakLines,
       "",
       "**Smaller things.**",
@@ -398,6 +398,15 @@ describe("countRankedItems on a set critic's crit (crit-3wg, FR-82)", () => {
       "2. Content edge: tiles 1, 3 keep it; tile 2 breaks it.",
     ]);
     expect(countRankedItems(crit)).toBe(2);
+  });
+
+  it("matches the Breaks heading with a trailing period or colon", () => {
+    const breaks = [
+      "1. Heading size: tiles 1, 3 keep it; tile 2 breaks it.",
+      "2. Content edge: tiles 1, 3 keep it; tile 2 breaks it.",
+    ];
+    expect(countRankedItems(setCrit(breaks, "**Breaks.**"))).toBe(2);
+    expect(countRankedItems(setCrit(breaks, "**Breaks:**"))).toBe(2);
   });
 
   it("counts no ranked finding when Breaks says no break was found", () => {

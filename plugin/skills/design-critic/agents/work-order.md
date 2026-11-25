@@ -79,7 +79,7 @@ When your prompt names two or more images, the critic judged one page at several
 When the crit has a `**Breaks**` heading, a set critic wrote it about a contact sheet, and your image is that sheet.
 
 - The ranked findings are the numbered items under Breaks, in order. The smaller things get `rank: null`. When Breaks says "No break found.", the work order has no ranked entry.
-- `location.description` starts with the breaking tile and its screen's file name from `tiles.json` in the image's folder, such as "tile 3 (slide-3.png): the heading".
+- `location.description` starts with the breaking tile and the name of the folder that holds its screen, from the screen's path in `tiles.json` in the image's folder, such as "tile 3 (slide-3): the heading". In the crit-loop skill that folder is the slide folder, so its number is the slide number, also when a long deck is split into parts.
 - Take `box` from a crop of `sheet.png` around the element, as above, or set `box` to null and `box_source` to `none`. `viewport` is null.
 - `target` is the pattern that the tiles which keep it hold, with the measured value when the crit gives one.
 - `closed_when` is `look`, and its check is "a fresh set critic names no break of this pattern on tile n", with the tile number.

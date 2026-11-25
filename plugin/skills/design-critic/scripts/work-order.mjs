@@ -56,7 +56,7 @@ export function countRankedItems(critText) {
       // A curly apostrophe or a trailing period or colon may follow the heading words.
       inSection =
         line.startsWith("**What would move it most") ||
-        line.startsWith("**Breaks**");
+        line.startsWith("**Breaks");
       if (inSection) {
         found = true;
       }

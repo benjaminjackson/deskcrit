@@ -37,10 +37,13 @@ import {
   readCommandLine,
   resolveBackground,
   runMeasure,
+  shiftRawToSlide,
+  slideIdOf,
   summarizeDarkMode,
   toPageUrl,
   VIEWPORTS,
   widthViewports,
+  withoutHash,
 } from "../plugin/skills/design-critic/scripts/measure.mjs";
 
 // The no-browser checks of the design critic's measure script (PRD FR-79). They run in
@@ -1024,5 +1027,53 @@ describe("measure.mjs in a copy of the plugin", () => {
     writeFileSync(join(root, "GUIDELINES.md"), "# Guidelines\n");
     const result = runCopiedScript(script, workingFolder);
     expect(result.output).toContain(STUB_MESSAGE);
+  });
+});
+
+describe("the slide a hash picks (FR-79, FR-82, crit-3wg)", () => {
+  it("reads the slide id from the hash of a file URL", () => {
+    expect(slideIdOf("file:///tmp/deck.html#3")).toBe("3");
+    expect(slideIdOf("file:///tmp/deck.html#slide%20two")).toBe("slide two");
+  });
+
+  it("gives no slide id for an http URL or a file URL with no hash", () => {
+    expect(slideIdOf("https://example.com/deck#3")).toBe(null);
+    expect(slideIdOf("file:///tmp/deck.html")).toBe(null);
+    expect(slideIdOf("file:///tmp/deck.html#")).toBe(null);
+  });
+
+  it("compares URLs without their hash", () => {
+    expect(withoutHash("file:///tmp/deck.html#3")).toBe(
+      "file:///tmp/deck.html",
+    );
+    expect(withoutHash("https://example.com/a")).toBe("https://example.com/a");
+  });
+
+  it("moves boxes and left edges into the pixels of the clipped screenshot", () => {
+    const raw = {
+      blocks: [
+        { box: { x: 160, y: 960, width: 1040, height: 60 }, textLeft: 160 },
+        { box: { x: 40, y: 40, width: 10, height: 10 }, textLeft: null },
+      ],
+      targets: [{ box: { x: 200, y: 1500, width: 120, height: 40 } }],
+      pageWidth: 1360,
+      pageHeight: 2480,
+    };
+    shiftRawToSlide(raw, { x: 40, y: 840, width: 1280, height: 800 });
+    expect(raw.blocks[0]?.box).toEqual({
+      x: 120,
+      y: 120,
+      width: 1040,
+      height: 60,
+    });
+    expect(raw.blocks[0]?.textLeft).toBe(120);
+    expect(raw.blocks[1]?.textLeft).toBe(null);
+    expect(raw.targets[0]?.box).toEqual({
+      x: 160,
+      y: 660,
+      width: 120,
+      height: 40,
+    });
+    expect([raw.pageWidth, raw.pageHeight]).toEqual([1280, 800]);
   });
 });
