@@ -8,6 +8,9 @@
 // It also checks the real thing a mock shows (FR-77, FR-82, crit-321): the skill passes its path on a
 // `Real thing:` line per path after each prompt block, the critic and the recheck critic open it and never
 // stop the run when they cannot, and nobody searches for one.
+// It also checks the project brief `.deskcrit/brief.md` (FR-88, crit-crj.1): the path, the read by
+// exact path, the merge in which the request wins, the stop on a bad label, round 1 writing the merged
+// block, the whole-project decisions, and that no fenced block holds the rule.
 
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -507,6 +510,11 @@ function textInsideEachFence(text: string): string[] {
   return blocks;
 }
 
+/** Counts how many times `phrase` occurs in `text`. */
+function countOccurrences(text: string, phrase: string): number {
+  return text.split(phrase).length - 1;
+}
+
 /** Returns the part of `text` from the first `start` up to the next `end` after it. */
 function sliceBetween(text: string, start: string, end: string): string {
   const begin = text.indexOf(start);
@@ -799,5 +807,140 @@ describe("the copy rule of FR-77", () => {
     expect(row77).toContain("the list is open");
     expect(row82).toContain("under the copy-edit rule of FR-77");
     expect(row82).toContain("I do not want anything to invent content");
+  });
+});
+
+// The project brief (FR-88, crit-crj.1): the main thread of the design-critic skill reads
+// `.deskcrit/brief.md` by its exact path in step 1, stops on an unknown or repeated label, and
+// merges it into the Brief block, with the request's text winning for a label both give; the fix
+// loop writes the merged block to its own brief.md in round 1, reads only that file later, and
+// writes a whole-project decision to the project brief too. The rule is stated once in each skill
+// file and never inside a fenced prompt block, so saved runs keep their prompt hash.
+describe("the project brief (FR-88, crit-crj.1)", () => {
+  const loop = readRepositoryFile("plugin", "skills", "crit-loop", "SKILL.md");
+  const designCritic = readSkillFile("SKILL.md");
+  const stepOne = sliceBetween(
+    designCritic,
+    "1. Collect the inputs",
+    "\n2. Spawn",
+  );
+  const projectPath = ".deskcrit/brief.md";
+
+  it("both skills name the project brief, and step 1 keeps the old behavior with no file", () => {
+    expect(designCritic).toContain(projectPath);
+    expect(loop).toContain(projectPath);
+    expect(stepOne).toContain(
+      "A project can also keep a project brief, the file `.deskcrit/brief.md` in the working directory (FR-88)",
+    );
+    expect(stepOne).toContain(
+      "read that exact path with the Read tool, never by listing or searching a folder",
+    );
+    expect(stepOne).toContain("never give the path to an agent");
+    expect(stepOne).toContain(
+      "With no `.deskcrit/brief.md`, everything in this step holds as written.",
+    );
+    expect(stepOne).toContain("This skill never writes `.deskcrit/brief.md`.");
+  });
+
+  it("round 1 writes the merged block to the loop's brief.md, and later rounds read only that file", () => {
+    const roundOne = sliceBetween(loop, "## Round 1: the crit", "\n## ");
+    expect(roundOne).toContain(
+      "from the person's brief, the project brief `.deskcrit/brief.md`, or both, merged as that step says, write that block to `<loop folder>/brief.md`",
+    );
+    expect(roundOne).toContain(
+      "Every later round reads only `brief.md`; no later crit, recheck, or work order uses `.deskcrit/brief.md`.",
+    );
+  });
+
+  it("step 1 merges by label line, the request winning and the other labels kept", () => {
+    const mergeSentence =
+      "when the caller's brief and the project brief both give a label, the caller's text wins and the project line is left out; a label that only one of them gives is kept";
+    expect(stepOne).toContain(mergeSentence);
+    expect(stepOne).toContain("`Job` and `Job, not` are two labels");
+    expect(stepOne).toContain("also when only the project brief gives lines");
+    expect(countOccurrences(designCritic + loop, mergeSentence)).toBe(1);
+    expect(
+      countOccurrences(designCritic + loop, "the caller's text wins"),
+    ).toBe(1);
+  });
+
+  it("the loop writes a whole-project decision to the project brief and keeps a page-only one", () => {
+    const settles = sliceBetween(
+      loop,
+      "## When the person settles a finding",
+      "\n## ",
+    );
+    expect(settles).toContain(
+      'A decision the person says applies to the whole project, in words such as "for the whole project" or "everywhere", also goes into `.deskcrit/brief.md`',
+    );
+    expect(settles).toContain("When that file does not exist, create it");
+    expect(settles).toContain(
+      "A decision about this page alone goes only into `brief.md`.",
+    );
+    expect(settles).toContain("Ask nothing to tell the two apart");
+    const facts = sliceBetween(
+      loop,
+      "## When a finding requests a fact",
+      "\n## ",
+    );
+    expect(facts).toContain(
+      "An answer goes into `.deskcrit/brief.md` too only when the person says it applies to the whole project.",
+    );
+    expect(facts).toContain(
+      "the project brief that step 1 of the design-critic `SKILL.md` reads (`.deskcrit/brief.md`), and the files the caller named",
+    );
+    const stop = sliceBetween(
+      loop,
+      "When you stop, tell the person:",
+      "If a script",
+    );
+    expect(stop).toContain(
+      "each line of `.deskcrit/brief.md` that the loop overrode for this page",
+    );
+  });
+
+  it("step 1 stops on an unknown or repeated label and names the line", () => {
+    expect(stepOne).toContain(
+      "such as `Fixed, not`, `Stage, not`, or `Ask, not`, or when a label comes twice",
+    );
+    expect(stepOne).toContain(
+      "`.deskcrit/brief.md: unknown or repeated label: <the line>`",
+    );
+  });
+
+  it("no fenced block of either skill holds the rule", () => {
+    for (const block of [
+      ...textInsideEachFence(designCritic),
+      ...textInsideEachFence(loop),
+    ]) {
+      expect(block).not.toContain(projectPath);
+    }
+  });
+
+  it("the PRD states the rule in FR-88, right after FR-87, and FR-82 and FR-77 point to it", () => {
+    const prd = readRepositoryFile("docs", "PRD.md").split("\n");
+    const index87 = prd.findIndex((line) => line.startsWith("| FR-87 |"));
+    const row88 = prd[index87 + 1] ?? "";
+    expect(row88.startsWith("| FR-88 |")).toBe(true);
+    for (const phrase of [
+      projectPath,
+      "the request's text wins",
+      "Reason:",
+      "Reconsider when:",
+    ]) {
+      expect(row88).toContain(phrase);
+    }
+    const row82 = prd.find((line) => line.startsWith("| FR-82 |")) ?? "";
+    expect(row82).toContain(
+      "the brief (with the project brief of FR-88), and the files the caller named",
+    );
+    const row77 = prd.find((line) => line.startsWith("| FR-77 |")) ?? "";
+    expect(row77).toContain(
+      "FR-88 adds the project brief, which only the main thread reads, by its exact path",
+    );
+  });
+
+  it("the README names the project brief", () => {
+    expect(readRepositoryFile("README.md")).toContain(projectPath);
   });
 });
