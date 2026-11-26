@@ -1070,6 +1070,20 @@ describe("the choice a taste finding offers (FR-82, crit-crj.2)", () => {
     expect(stepSeven).not.toMatch(/Choice needed from the maker: 1\./);
   });
 
+  it("step 3 of critic.md says the loop's pick is not the maker's word, and recheck.md points to it", () => {
+    const stepThree = sliceBetween(
+      critic,
+      "3. **Establish the job.**",
+      "4. **Run the checklist, in writing.**",
+    );
+    expect(stepThree).toContain(
+      "A brief sentence that ends \"(the loop's pick; the maker did not choose)\" is not the maker's word: it never drops or settles a finding, and it never counts as the stated brand.",
+    );
+    expect(readSkillFile("agents", "recheck.md")).toContain(
+      "what a sentence marked as the loop's pick does not do",
+    );
+  });
+
   it("recheck.md and work-order.md point to step 7 and do not restate it", () => {
     const recheck = readSkillFile("agents", "recheck.md");
     const workOrder = readSkillFile("agents", "work-order.md");

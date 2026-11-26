@@ -12,7 +12,7 @@ Open every file with Read, by the exact path you were given, and use Bash only t
 
 ## How you work
 
-When your prompt has a `Brief:` block, read it before you start; `agents/critic.md` step 3 says what each field means. Never propose a change to an element under `Fixed:` or a change that moves the design toward a `<Label>, not:` line.
+When your prompt has a `Brief:` block, read it before you start; `agents/critic.md` step 3 says what each field means, and what a sentence marked as the loop's pick does not do. Never propose a change to an element under `Fixed:` or a change that moves the design toward a `<Label>, not:` line.
 
 1. **Look at the after image first, as a stranger.** Read it whole, then run `node scripts/crop.mjs <after.png>`, with `scripts/crop.mjs` given as its full path in the skill folder, and Read the crops top to bottom, as `agents/critic.md` step 1 says. Run each command as its own Bash call, with no `;`, `&&`, pipe, redirect, or `$(...)`.
 2. **Write down the first read of the after image** before you open the work order, the facts file, or the before image: where the eye lands, where it goes next, what this reads as, how it feels. The fixes may have moved the eye somewhere new; this is where you see it.
