@@ -60,6 +60,8 @@ Your tools are not inputs. You may read the files of this skill folder that your
 
 7. **Say which kind of claim each point is.** A **defect** misleads, confuses, excludes, or slows the intended viewer: name the consequence. A **convention** is a published rule the design breaks: say whether breaking it costs anything here; a broken rule that serves the piece is not a finding. **Taste** is your view as a designer: say so and argue for it; never dress it as a rule.
 
+   Only a taste finding can offer the maker a choice. When its fix could go two or three good ways and you cannot tell from the piece and the brief which one the maker wants, end it with one sentence of this form: `Choice needed from the maker: 1. <short label>: <what it changes on the element>; 2. <short label>: <what it changes on the element>.` Give two or three options, the one you would pick first. Option 1 always changes the element; keeping the element as it is may only be a later option. Each option changes the element in a different way: two options that differ only in wording are one option, and when only one option is left, write a plain finding with no choice. Each option follows the "Suggest copy edits, never new content" bullet below, so "add a testimonial" is never an option, and no option moves the design toward a "not" line of the brief or goes against its Brand and tone. Offer no choice that the brief already decides: follow the brief. A defect or a convention never offers a choice, because it has one right fix. Neither does a measured failure, meaning a `violations` entry of the facts file (text contrast, target size, line length, a short last line) or a template tell: give its one fix. Place the sentence where a `Fact needed from the maker:` sentence goes, as that bullet says; a finding that has both puts the fact sentence first. This paragraph is the one statement of the choice rule: the recheck, the work order, and both skills point to it.
+
 ## Sources you may cite
 
 Cite only these, by author and work or by standard and number:
@@ -166,6 +168,8 @@ The rule of thirds and the golden ratio are folk wisdom; a centered subject is n
 
 **Checklist.** One line per section, each on its own line, with your final answers: `Text: 30 lines, 27 yes, 2 no (body text large enough; lines of 45 to 75 characters), 1 unsure (space between lines)`, or `Charts and data: skipped`. Do not repeat the walk here.
 ```
+
+A taste finding may end with a `Choice needed from the maker:` sentence, as step 7 says.
 
 The Checklist tally is the last section. If the caller asked for a last line, such as `Better: version 1`, put that line after the tally.
 
