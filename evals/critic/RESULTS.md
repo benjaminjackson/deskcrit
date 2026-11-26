@@ -224,7 +224,7 @@ Jev (EV-14): in the replay of npm run eval:agreement on 2026-11-23, 29 of the 32
 
 # Refuter (EV-14, FR-81)
 
-- Removed 2026-11-25 (crit-517): the refuter code and its saved refutations were removed, so `npm run eval:critic:detect:refute` and the `--refute` command below no longer run. Git tag `deep-refuter-final` holds the code and the saved refutations.
+- Removed 2026-11-25 (crit-517): the refuter code and its saved refutations were removed, so `npm run eval:critic:detect:refute` and the `--refute` command below no longer run. Commit `9808376a` holds the code and the saved refutations.
 - Date: 2026-11-24
 - Crits: the saved run-1 crits of skill commit `3a8d079b393465ca12ca83931416acd49717d971`, the last commit with crits of both the live and the removed criteria. No new critic run was made.
 - Refuter commit: `0bad6cc60138f58ea84a2e2fd373375bbce1d3a3` (crit-0a0.3), `agents/refuter.md` on `claude-opus-5-5`, with the critic's isolation and allowed commands. It got each crit's ranked findings, the image, and no facts file, because the removed criteria have none.
@@ -412,7 +412,7 @@ Reading: the refuter kept all 407 ranked findings, so every row is the same with
 
 # Deep mode (EV-14, OQ-28)
 
-- Removed 2026-11-25 (crit-517): the deep-mode code and its saved runs were removed, so `npm run eval:critic:detect:deep` and the `--deep` command below no longer run. Git tag `deep-refuter-final` holds the code and the saved runs.
+- Removed 2026-11-25 (crit-517): the deep-mode code and its saved runs were removed, so `npm run eval:critic:detect:deep` and the `--deep` command below no longer run. Commit `9808376a` holds the code and the saved runs.
 - Date: 2026-11-24
 - Skill commit: `b8ce97507396df2d86bdc20edc3a5fad21873ccc` (crit-0a0.7). The deep mode (`agents/deep-mode.md`) ran one section critic per checklist section (`agents/section-critic.md`, eight in all) and then the director (`agents/director.md`), each a separate `claude -p` child on `claude-opus-5-5` with the critic's isolation and allowed commands, through `evals/critic/deep-run.ts`. No facts file and no Jev evidence.
 - Beside: the single critic at `3a8d079b393465ca12ca83931416acd49717d971`, the newest skill commit with saved crits of both the live and the removed criteria. Between the two commits, `agents/critic.md` gained only the parts for a `violations` list and a Jev evidence file, which these runs do not have.

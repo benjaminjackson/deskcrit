@@ -10,7 +10,7 @@
 - `docs/PRD.md` is the behavioral specification with stable IDs. It is the source of truth for what to build. If `BRIEF.md` and `docs/PRD.md` disagree, `docs/PRD.md` wins and the disagreement is a defect to report.
 - `README.md` is the user-facing guide: what the plugin does, a sample crit, requirements, install steps, how to start each skill, and the commands to develop. Do not treat it as a specification.
 
-Current state: Benjamin Jackson ruled on 2026-11-24 to remove Jev ("Ok! Let's remove Jev. Ruled!"), and crit-mk9.3 removed TypeSafe's Jev model and the `crit` command. The Jev design ended at git tag `jev-spike-final`, and `docs/PRD.md` section 1 records the removal. Under PRD section 7.12 the judge is a subagent critic (FR-77), and the work is milestone M-6. Benjamin Jackson asked on 2026-11-25 to remove the deep mode and the refuter of the design critic, and crit-517 removed them, because EV-14 showed no gain from either; their code and saved runs are at git tag `deep-refuter-final`, and PRD FR-81 and OQ-28 record the removal.
+Current state: Benjamin Jackson ruled on 2026-11-24 to remove Jev ("Ok! Let's remove Jev. Ruled!"), and crit-mk9.3 removed TypeSafe's Jev model and the `crit` command. The Jev design ended at commit `29890376`, and `docs/PRD.md` section 1 records the removal. Under PRD section 7.12 the judge is a subagent critic (FR-77), and the work is milestone M-6. Benjamin Jackson asked on 2026-11-25 to remove the deep mode and the refuter of the design critic, and crit-517 removed them, because EV-14 showed no gain from either; their code and saved runs are at commit `9808376a`, and PRD FR-81 and OQ-28 record the removal.
 
 ## Layout
 
