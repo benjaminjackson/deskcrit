@@ -14,7 +14,6 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { currentDeepRunIdentity, deepRequestKey } from "./deep-run.ts";
 import { goFurtherKey } from "./go-further.ts";
 import { currentRunIdentity } from "./run-critic.ts";
 import {
@@ -111,63 +110,6 @@ function readKey(outDirectory: string): KeyFile {
 }
 
 describe("prepare", () => {
-  it("with --candidate-deep reads the deep crits of the same commit as the candidate", () => {
-    const setup = setUp(2);
-    for (const bytes of setup.imageBytes) {
-      writeRun(
-        setup.runsDirectory,
-        BASE_COMMIT,
-        bytes,
-        `Single crit of ${bytes}.`,
-      );
-      const deepDirectory = join(
-        setup.runsDirectory,
-        BASE_COMMIT,
-        deepRequestKey([sha256(bytes)], undefined, undefined),
-      );
-      mkdirSync(deepDirectory, { recursive: true });
-      writeFileSync(join(deepDirectory, "1.md"), `Deep crit of ${bytes}.`);
-      writeFileSync(
-        join(deepDirectory, "1.json"),
-        JSON.stringify({
-          ...currentDeepRunIdentity(),
-          mode: "deep",
-          skill_directory: "plugin/skills/design-critic",
-        }),
-      );
-    }
-    // Without the flag the two sides are the same run folder, which prepare refuses.
-    expect(prepare(setup, BASE_COMMIT, BASE_COMMIT).exitCode).toBe(2);
-    const output = runSideBySideCommand(
-      [
-        "prepare",
-        "--base",
-        BASE_COMMIT,
-        "--candidate",
-        BASE_COMMIT,
-        "--candidate-deep",
-        setup.imageFolder,
-      ],
-      {
-        runsDirectory: setup.runsDirectory,
-        outDirectory: setup.outDirectory,
-        randomSeed: () => FIXED_SEED,
-      },
-    );
-    expect(output.errorText).toBe("");
-    expect(output.exitCode).toBe(0);
-    const key = readKey(setup.outDirectory);
-    expect(key.candidate).toBe(`${BASE_COMMIT} deep mode`);
-    for (const page of key.pages) {
-      const text = readFileSync(
-        join(setup.outDirectory, "pages", `page-${page.page}.md`),
-        "utf8",
-      );
-      const critA = text.split("## Crit A")[1]?.split("## Crit B")[0] ?? "";
-      expect(critA).toContain(page.a === "base" ? "Single crit" : "Deep crit");
-    }
-  });
-
   it("with --candidate-go-further reads the candidate's crits with the section joined in", () => {
     const setup = setUp(2);
     writeBothSides(setup.runsDirectory, setup.imageBytes);

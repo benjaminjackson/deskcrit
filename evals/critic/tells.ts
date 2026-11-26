@@ -13,8 +13,7 @@
 // other evaluation of the same image. Live mode runs the critic and the judge, so `npm run ci`
 // never runs it (CS-21); a person starts it by hand. Replay mode (--replay) reads the saved crits
 // and judge answers and starts no child process. The npm script `eval:critic:tells` replays the
-// baseline run at the skill commit it pins, as `eval:critic:detect:refute` is pinned. HELP_TEXT
-// holds the usage and the exit codes.
+// baseline run at the skill commit it pins. HELP_TEXT holds the usage and the exit codes.
 
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";

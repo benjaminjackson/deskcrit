@@ -167,11 +167,6 @@ describe("the agent prompt blocks", () => {
       segments: ["plugin", "skills", "crit-loop", "SKILL.md"],
       targets: [afterImage],
     },
-    {
-      // The section critic and director prompts.
-      segments: ["plugin", "skills", "design-critic", "agents", "deep-mode.md"],
-      targets: [whatIKnow, whatIKnow],
-    },
   ];
   for (const { segments, targets } of files) {
     it(`are each followed by a Brief block rule that names its line in ${segments.join("/")}`, () => {
@@ -246,8 +241,6 @@ describe("the agent files", () => {
     "recheck.md",
     "set-critic.md",
     "picker.md",
-    "section-critic.md",
-    "director.md",
   ]) {
     it(`${name} reads the brief and never proposes a change to Fixed or toward a not line`, () => {
       const text = readSkillFile("agents", name);

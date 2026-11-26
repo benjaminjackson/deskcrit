@@ -15,11 +15,6 @@ import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  currentDeepRunIdentity,
-  DEEP_MODE,
-  deepRequestKey,
-} from "./deep-run.ts";
-import {
   BRIEF_LABELS,
   buildClaudeArguments,
   buildPrompt,
@@ -745,27 +740,6 @@ describe("the committed runs", () => {
         const imageSha256s = metadata.request.images.map(
           (image: { sha256: string }) => image.sha256,
         );
-        // A deep-mode run (deep-run.ts) has its own key and identity, and is checked the same way.
-        if (metadata.mode === DEEP_MODE) {
-          expect(
-            deepRequestKey(
-              imageSha256s,
-              metadata.request.note ?? undefined,
-              metadata.request.focus ?? undefined,
-              factsSha256,
-            ),
-          ).toBe(key);
-          expect(
-            readSavedCrits(
-              runsDirectory,
-              commit,
-              key,
-              currentDeepRunIdentity(factsSha256 !== undefined),
-            ).length,
-          ).toBeGreaterThan(0);
-          checked += 1;
-          continue;
-        }
         expect(
           requestKey(
             imageSha256s,
