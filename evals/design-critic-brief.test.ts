@@ -848,7 +848,7 @@ describe("the project brief (FR-88, crit-crj.1)", () => {
       "from the person's brief, the project brief `.deskcrit/brief.md`, or both, merged as that step says, write that block to `<loop folder>/brief.md`",
     );
     expect(roundOne).toContain(
-      "Every later round reads only `brief.md`; no later crit, recheck, or work order uses `.deskcrit/brief.md`.",
+      "Every later round reads only `brief.md`; no later crit, recheck, or work order uses `.deskcrit/brief.md`",
     );
   });
 
@@ -942,5 +942,90 @@ describe("the project brief (FR-88, crit-crj.1)", () => {
 
   it("the README names the project brief", () => {
     expect(readRepositoryFile("README.md")).toContain(projectPath);
+  });
+});
+
+// Review round 1 of crit-crj.1 (FR-88): the request's note and focus survive the merge, blank and
+// heading lines of the project brief are skipped, a whole-project decision adds only its own
+// sentence, a dropped project Fixed entry is named, and one test decides an overridden line.
+describe("the project brief, review round 1 (FR-88, crit-crj.1)", () => {
+  const loop = readRepositoryFile("plugin", "skills", "crit-loop", "SKILL.md");
+  const designCritic = readSkillFile("SKILL.md");
+  const stepOne = sliceBetween(
+    designCritic,
+    "1. Collect the inputs",
+    "\n2. Spawn",
+  );
+  const row88 =
+    readRepositoryFile("docs", "PRD.md")
+      .split("\n")
+      .find((line) => line.startsWith("| FR-88 |")) ?? "";
+
+  it("step 1 sorts the caller's note and focus into the block before the merge", () => {
+    expect(stepOne).toContain(
+      "sort every item of the request into field lines first, by the five rules above, also a note or a focus the caller gave without calling it a brief (a focus goes in Ask)",
+    );
+    expect(row88).toContain(
+      "also a note or a focus given without being called a brief",
+    );
+  });
+
+  it("step 1 skips blank and heading lines, and any other bad line still stops the run", () => {
+    expect(stepOne).toContain(
+      "Skip a blank line and a line that starts with `#`.",
+    );
+    expect(stepOne).toContain(
+      "When any other line's label is not one of the eight labels above",
+    );
+    expect(row88).toContain(
+      "Blank lines and lines that start with `#` are skipped.",
+    );
+  });
+
+  it("a whole-project decision adds only its own sentence to the project file", () => {
+    const settles = sliceBetween(
+      loop,
+      "## When the person settles a finding",
+      "\n## ",
+    );
+    expect(settles).toContain(
+      "Add only the decision's own sentence to the end of that file's line for the field",
+    );
+    expect(settles).toContain("never copy a line of `brief.md`");
+    expect(settles).not.toContain("on the same line it gets in `brief.md`");
+    expect(row88).toContain("adds only the decision's own sentence");
+  });
+
+  it("a request Fixed line replaces the project Fixed line whole, and the dropped entries are named once", () => {
+    const phrase =
+      "name each Fixed entry it dropped to the person in one line of your reply";
+    expect(stepOne).toContain(phrase);
+    expect(countOccurrences(designCritic + loop, phrase)).toBe(1);
+    expect(row88).toContain(
+      "a request Fixed line replaces the project Fixed line whole",
+    );
+  });
+
+  it("one test decides an overridden project line, and the loop stops on a bad project line", () => {
+    const stop = sliceBetween(
+      loop,
+      "When you stop, tell the person:",
+      "If a script",
+    );
+    expect(stop).toContain(
+      "every line of it whose text the line of `brief.md` for the same label does not contain unchanged",
+    );
+    expect(stop).not.toContain("word for word");
+    expect(row88).toContain(
+      "a project line is overridden when the line of `brief.md` for the same label does not contain the project line's text unchanged",
+    );
+    const roundOne = sliceBetween(loop, "## Round 1: the crit", "\n## ");
+    expect(roundOne).toContain(
+      "the stop reads it once more only to name the lines the loop overrode",
+    );
+    expect(roundOne).toContain(
+      "When step 1 stops on a line of `.deskcrit/brief.md`, the loop stops too and tells the person that line.",
+    );
+    expect(row88).toContain("Draft, crit-crj.1, 2026-11-25;");
   });
 });

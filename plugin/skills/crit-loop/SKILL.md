@@ -23,7 +23,7 @@ Rebuild or reload the app before each capture, so the image shows your fix and n
 ## Round 1: the crit
 
 1. Capture into `<loop folder>/round-1`.
-2. Run the design-critic skill on that capture, steps 1 to 5 of its `SKILL.md`, with every screenshot and the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder. When step 1 of that `SKILL.md` gives a Brief block, from the person's brief, the project brief `.deskcrit/brief.md`, or both, merged as that step says, write that block to `<loop folder>/brief.md`, and pass it to the design-critic run. `brief.md` is the current brief: every later round reads it as it stands, after any decision that "When the person settles a finding" below adds. Every later round reads only `brief.md`; no later crit, recheck, or work order uses `.deskcrit/brief.md`. When the person gave the real thing that the design mocks, as a path, write each path to `<loop folder>/real-thing.txt`, one path per line, and pass the paths to the design-critic run as step 1 of its `SKILL.md` says. Its step 5 asks the person, in one question, for the facts the crit requests.
+2. Run the design-critic skill on that capture, steps 1 to 5 of its `SKILL.md`, with every screenshot and the facts file when you have one. It writes `crit.md` and `work-order.json` into the round folder. When step 1 of that `SKILL.md` gives a Brief block, from the person's brief, the project brief `.deskcrit/brief.md`, or both, merged as that step says, write that block to `<loop folder>/brief.md`, and pass it to the design-critic run. `brief.md` is the current brief: every later round reads it as it stands, after any decision that "When the person settles a finding" below adds. Every later round reads only `brief.md`; no later crit, recheck, or work order uses `.deskcrit/brief.md`, and the stop reads it once more only to name the lines the loop overrode. When step 1 stops on a line of `.deskcrit/brief.md`, the loop stops too and tells the person that line. When the person gave the real thing that the design mocks, as a path, write each path to `<loop folder>/real-thing.txt`, one path per line, and pass the paths to the design-critic run as step 1 of its `SKILL.md` says. Its step 5 asks the person, in one question, for the facts the crit requests.
 3. If the work order has nothing to fix, as step 1 of "Each round after that" defines it, stop.
 
 ## Each round after that
@@ -99,7 +99,7 @@ The person can make a decision about a finding in chat, during a round or betwee
 - A decision that settles a finding, meaning "keep this element as it is", always goes on the Fixed line, because keeping an element as it is fixes its exact form. Write each entry as its own sentence, with any exact text in double quotes, such as: The headline stays "Vet every candidate". Do not fix that finding. When you already changed its element in this round, undo that change before the capture. The recheck marks the finding settled, and it is never listed again, ranked or under "Smaller things".
 - A decision that gives new direction, such as "make the tone calmer", goes in the field that rules 1 to 5 of FR-87 pick, and settles no finding.
 
-- A decision the person says applies to the whole project, in words such as "for the whole project" or "everywhere", also goes into `.deskcrit/brief.md` in the working directory, on the same line it gets in `brief.md`, by the same rules. When that file does not exist, create it with the `Brief:` line and that line. A decision about this page alone goes only into `brief.md`. Ask nothing to tell the two apart: the person says it.
+- A decision the person says applies to the whole project, in words such as "for the whole project" or "everywhere", also goes into `.deskcrit/brief.md` in the working directory, in the field the same rules pick. Add only the decision's own sentence to the end of that file's line for the field, or, when the file has no line for it, add a new line for it; never copy a line of `brief.md`, which can hold text for this page alone. When that file does not exist, create it with the `Brief:` line and that new line. A decision about this page alone goes only into `brief.md`. Ask nothing to tell the two apart: the person says it.
 
 Every later recheck and work-order run reads the updated `brief.md`.
 
@@ -125,7 +125,7 @@ When you stop, tell the person:
 - the findings still open or worse, with their places,
 - the findings you skipped, each with why,
 - the findings whose requested fact nobody gave, each with the fact it requested,
-- each line of `.deskcrit/brief.md` that the loop overrode for this page: read that file again at the stop, and name, one line each, every line of it that `brief.md` does not hold word for word under the same label (a line the loop only added text to is not overridden),
+- each line of `.deskcrit/brief.md` that the loop overrode for this page: read that file again at the stop, and name, one line each, every line of it whose text the line of `brief.md` for the same label does not contain unchanged,
 - the path of the loop folder.
 
 If a script or a critic cannot run, do not retry it in a loop. Tell the person what it printed, and stop.
