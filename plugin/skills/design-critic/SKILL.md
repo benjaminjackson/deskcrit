@@ -168,7 +168,6 @@ Use this mode for two or more images, once you know the mode from "Pick the mode
 - `agents/critic.md`: the critic's instructions, how it looks, what makes a good finding, and the output format.
 - `references/checklist.md`: yes-or-no questions in sections, whole page first and detail last, where yes means fine; each kind of defect has one question, and each question points to the full entries it stands for.
 - `references/<domain>.md`: full entries for basics, layout, typography, color, art direction, ux, accessibility, and dataviz. Each gives the rule, what to look for, the source, caveats about the source, and the approved fix.
-- `agents/deep-mode.md`, `agents/section-critic.md`, `agents/director.md`, and `references/checklist-<section>.md`: the deep mode, one critic per checklist section and a director who merges and ranks their reports.
 - `agents/go-further.md`: the instructions of the second agent, which reads the image and the finished crit and writes only the section "Where it could go further".
 - `agents/work-order.md`: the instructions of the agent that turns the finished crit into `work-order.json`.
 - `scripts/work-order.mjs`: checks a work order against its crit, image, and facts file: one entry per ranked finding, and every pixel box taken from the facts file or a crop.

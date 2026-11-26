@@ -15,10 +15,6 @@
 // have their own request keys, so they never share a saved crit with the runs without facts.
 // --beside SHA replays the runs without facts of another skill commit on the same images and
 // prints them next to this run, one column pair per commit.
-//
-// With --deep the crit of each image comes from the skill's deep mode (agents/deep-mode.md, run by
-// deep-run.ts): one section critic per checklist section and a director. Deep runs have their own
-// request keys and prompt hash, so they never share a saved crit or a judge answer with single runs.
 
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -30,12 +26,6 @@ import { type FixtureLabel, readLabels } from "../agreement/labels.ts";
 import { formatTable } from "../support/format-table.ts";
 import { DEFAULT_PARALLEL, parseParallel, runPooled } from "./compare.ts";
 import {
-  CallLimiter,
-  currentDeepRunIdentity,
-  deepRequestKeyOf,
-  ensureDeepCrits,
-} from "./deep-run.ts";
-import {
   ensureJudgeAnswer,
   JUDGE_MODEL,
   type JudgeQuestion,
@@ -43,13 +33,6 @@ import {
   judgeKey,
   readJudgeAnswer,
 } from "./judge.ts";
-import {
-  type CritToRefute,
-  ensureRefutation,
-  readSavedRefutation,
-  refutationKey,
-  type SavedRefutation,
-} from "./refute.ts";
 import {
   type ClaudeRunner,
   type CritRequest,
@@ -68,15 +51,6 @@ import {
 
 const REPOSITORY_DIRECTORY = resolve(import.meta.dirname, "..", "..");
 const EXIT_CODE_COULD_NOT_RUN = 2;
-
-/**
- * How many images the deep mode works on at once, given the --parallel number of child processes.
- * Each image has eight section critics, and the CallLimiter keeps the child processes at the
- * --parallel number, so twice as many images as fit keeps every place busy while a director runs.
- */
-function deepImagesAtOnce(parallel: number): number {
-  return Math.ceil(parallel / 4);
-}
 
 /** The judge question name, saved with each answer. */
 const JUDGE_QUESTION_NAME = "detection";
@@ -161,8 +135,6 @@ export type DetectOptions = {
   readonly runClaude: ClaudeRunner;
   /** Receives the live plan before the live run starts. main passes a stderr writer; tests may omit it. */
   readonly reportProgress?: (line: string) => void;
-  /** Where --refute saves and reads refutations (FR-81). main passes evals/critic/refutations/. */
-  readonly refutationsDirectory?: string;
 };
 
 /** What the command prints on stdout and stderr, and its exit code. */
@@ -964,7 +936,6 @@ Usage:
   node evals/critic/detect.ts [--replay] [--pairs-per-criterion N] [--skill DIR] [--skill-commit SHA]
                               [--parallel N]
                               [--facts] [--live-only] [--beside SHA]...
-                              [--refute [--refuter-commit SHA]] [--deep]
   node evals/critic/detect.ts --help
 
 For each criterion it takes the first N fixture pairs (a pair is one variant with a positive and a
@@ -985,16 +956,6 @@ Flags:
   --beside SHA               Replay the runs without facts of this skill commit on the same
                              images and print them in a side-by-side table after the main table.
                              May be given more than once. Starts no child process for them.
-  --refute                   Also run the refuter (FR-81, agents/refuter.md) on the run-1 crit of
-                             each image, judge each crit it changed, and print the table on the
-                             crits after the refuter, the ranked findings it dropped, and each
-                             image whose judge answer changed. Not with --facts.
-  --refuter-commit SHA       With --refute, use the refutations of this commit instead of the
-                             skill folder's commit.
-  --deep                     Make each crit with the deep mode (agents/deep-mode.md): one section
-                             critic per checklist section and a director, at most
-                             the --parallel number of child processes at once. These runs never share a
-                             saved crit with single-critic runs. Not with --refute.
   --help, -h                 Print this help.
 
 The judge reads one crit, the criterion title, and its rule, never the image name or polarity,
@@ -1081,9 +1042,6 @@ export async function runDetect(
       facts: { type: "boolean", default: false },
       "live-only": { type: "boolean", default: false },
       beside: { type: "string", multiple: true },
-      refute: { type: "boolean", default: false },
-      "refuter-commit": { type: "string" },
-      deep: { type: "boolean", default: false },
       help: { type: "boolean", short: "h", default: false },
     },
     strict: true,
@@ -1104,17 +1062,6 @@ export async function runDetect(
     parsed.values["skill-commit"] ?? skillCommit(skillDirectory, replay);
   const withFacts = parsed.values.facts === true;
   const besideCommits = parsed.values.beside ?? [];
-  const withRefuter = parsed.values.refute === true;
-  if (withRefuter && withFacts) {
-    throw new Error("--refute does not go with --facts");
-  }
-  if (!withRefuter && parsed.values["refuter-commit"] !== undefined) {
-    throw new Error("--refuter-commit needs --refute");
-  }
-  const withDeep = parsed.values.deep === true;
-  if (withDeep && withRefuter) {
-    throw new Error("--deep does not go with --refute");
-  }
   const selection = selectCriteria(
     options.repositoryDirectory,
     pairsPerCriterion,
@@ -1128,14 +1075,9 @@ export async function runDetect(
 
   const requestFor = (image: FixtureImage): CritRequest =>
     critRequestFor(options.repositoryDirectory, image, withFacts);
-  const runIdentity: RunIdentity = withDeep
-    ? currentDeepRunIdentity(withFacts)
-    : currentRunIdentity(withFacts);
-  // A deep run has its own key, so it never shares a folder or a judge answer with a single run.
+  const runIdentity: RunIdentity = currentRunIdentity(withFacts);
   const keyFor = (image: FixtureImage): string =>
-    withDeep
-      ? deepRequestKeyOf(requestFor(image))
-      : requestKeyOf(requestFor(image));
+    requestKeyOf(requestFor(image));
 
   // Every image to crit, once each, in selection order.
   const imagesToCrit: FixtureImage[] = [];
@@ -1208,19 +1150,9 @@ export async function runDetect(
       skillCommit: commit,
       runClaude: options.runClaude,
     };
-    if (withDeep) {
-      const deepOptions = {
-        ...criticOptions,
-        limiter: new CallLimiter(parallel),
-      };
-      await runPooled(imagesToCrit, deepImagesAtOnce(parallel), (image) =>
-        ensureDeepCrits(requestFor(image), deepOptions),
-      );
-    } else {
-      await runPooled(imagesToCrit, parallel, (image) =>
-        ensureCrits(requestFor(image), criticOptions),
-      );
-    }
+    await runPooled(imagesToCrit, parallel, (image) =>
+      ensureCrits(requestFor(image), criticOptions),
+    );
   }
 
   // One judge question per scored image, in selection order; undefined where the crit is missing.
@@ -1325,35 +1257,11 @@ export async function runDetect(
 
   // complete covers this run only; a beside commit with a missing item adds to missing below.
   const complete = missing.length === 0;
-  let refuterText = "";
-  if (withRefuter) {
-    // ?? gives the right side only when --refuter-commit is not given.
-    const refuterCommit =
-      parsed.values["refuter-commit"] ?? skillCommit(skillDirectory, replay);
-    const refuted = await scoreWithRefuter({
-      selected,
-      questionItems,
-      answers,
-      imagesToCrit,
-      keyByImagePath,
-      critCommit: commit,
-      refuterCommit,
-      replay,
-      options,
-      skillDirectory,
-      parallel,
-    });
-    missing.push(...refuted.missing);
-    refuterText = refuted.text;
-  }
   let factsText = "";
   if (withFacts) {
     factsText = ", with measured facts (live criteria only)";
   } else if (liveOnly) {
     factsText = ", live criteria only";
-  }
-  if (withDeep) {
-    factsText += ", deep mode";
   }
   const header = `skill commit ${commit}${factsText}, judge model ${JUDGE_MODEL}, pairs per criterion ${pairsPerCriterion}`;
   const table = formatTable(
@@ -1382,12 +1290,12 @@ export async function runDetect(
       });
     }
     columns.push({
-      label: `${commit.slice(0, 8)}${withFacts ? "+facts" : ""}${withDeep ? "+deep" : ""}`,
+      label: `${commit.slice(0, 8)}${withFacts ? "+facts" : ""}`,
       counts: countsByCriterion,
     });
     besideText = `\nside by side, raised on positive and quiet on negative (n/d); a column without +facts had no facts file\n${buildBesideTable(selected, columns)}\n`;
   }
-  const text = `${header}\n${noteText}${table}\n${besideText}${refuterText}${JEV_FIGURES_LINE}\n`;
+  const text = `${header}\n${noteText}${table}\n${besideText}${JEV_FIGURES_LINE}\n`;
   if (missing.length > 0) {
     const errorLines = [...missing];
     if (replay) {
@@ -1404,267 +1312,12 @@ export async function runDetect(
   return { text, errorText: "", exitCode: 0 };
 }
 
-/** What scoreWithRefuter needs from the main run. */
-type RefuterScoringInput = {
-  readonly selected: readonly SelectedCriterion[];
-  readonly questionItems: readonly {
-    criterionIndex: number;
-    scoredImage: ScoredImage;
-    question: JudgeQuestion | undefined;
-  }[];
-  readonly answers: readonly (DetectionAnswer | undefined)[];
-  readonly imagesToCrit: readonly FixtureImage[];
-  readonly keyByImagePath: ReadonlyMap<string, string>;
-  readonly critCommit: string;
-  readonly refuterCommit: string;
-  readonly replay: boolean;
-  readonly options: DetectOptions;
-  readonly skillDirectory: string;
-  readonly parallel: number;
-};
-
-/**
- * Runs or replays the refuter (FR-81) on the saved run-1 crit of each image, judges each crit the
- * refuter changed, and returns the text that --refute adds: the detection table on the crits after
- * the refuter, the ranked findings it dropped on images that show and do not show the defect, and
- * one row per image whose judge answer changed. A crit the refuter left unchanged keeps the judge
- * answer of the crit without it, so only a dropped finding can change a row. Judge answers on the
- * changed crits are saved with the crits' own judge answers, under the crit commit: their key
- * holds the changed crit text and the refutation key, so they never share a file with an answer on
- * the crit without the refuter.
- */
-async function scoreWithRefuter(
-  input: RefuterScoringInput,
-): Promise<{ text: string; missing: string[] }> {
-  const options = input.options;
-  const missing: string[] = [];
-  const refutationByImagePath = new Map<string, SavedRefutation>();
-  const toRefute: CritToRefute[] = [];
-  for (const image of input.imagesToCrit) {
-    const key = input.keyByImagePath.get(image.absolutePath) ?? "";
-    const saved = readSavedCrits(
-      options.runsDirectory,
-      input.critCommit,
-      key,
-      currentRunIdentity(),
-    )[0];
-    if (saved === undefined) {
-      // The main run already names the missing crit.
-      continue;
-    }
-    toRefute.push({
-      critCommit: input.critCommit,
-      critKey: key,
-      critRun: saved.runNumber,
-      crit: saved.crit,
-      imagePath: image.absolutePath,
-    });
-  }
-  const refutationsDirectory = options.refutationsDirectory;
-  if (refutationsDirectory === undefined) {
-    throw new Error("--refute needs a folder for refutations");
-  }
-  const refuterOptions = {
-    refutationsDirectory,
-    skillDirectory: input.skillDirectory,
-    refuterCommit: input.refuterCommit,
-    runClaude: options.runClaude,
-  };
-  if (input.replay) {
-    for (const item of toRefute) {
-      const refutation = readSavedRefutation(
-        refutationsDirectory,
-        input.refuterCommit,
-        refutationKey(item),
-      );
-      if (refutation === undefined) {
-        missing.push(
-          `missing refutation: crit ${item.critKey} at skill commit ${item.critCommit}, refuter commit ${input.refuterCommit}`,
-        );
-        continue;
-      }
-      refutationByImagePath.set(item.imagePath, refutation);
-    }
-  } else {
-    options.reportProgress?.(
-      `refuter: ${toRefute.length} crits to check at refuter commit ${input.refuterCommit}, at most ${input.parallel} at once`,
-    );
-    // Each failure is named and the rest go on, so one bad answer does not stop the whole run.
-    const results = await runPooled(toRefute, input.parallel, async (item) => {
-      try {
-        return await ensureRefutation(item, refuterOptions);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        missing.push(`refuter failed on crit ${item.critKey}: ${message}`);
-        return undefined;
-      }
-    });
-    results.forEach((refutation, index) => {
-      const item = toRefute[index];
-      if (refutation !== undefined && item !== undefined) {
-        refutationByImagePath.set(item.imagePath, refutation);
-      }
-    });
-  }
-
-  // One judge question per scored image whose crit the refuter changed.
-  const refutedQuestions: (JudgeQuestion | undefined)[] = [];
-  for (const item of input.questionItems) {
-    const refutation = refutationByImagePath.get(
-      item.scoredImage.image.absolutePath,
-    );
-    const criterion = input.selected[item.criterionIndex]?.criterion;
-    if (
-      refutation === undefined ||
-      refutation.droppedCount === 0 ||
-      criterion === undefined
-    ) {
-      refutedQuestions.push(undefined);
-      continue;
-    }
-    refutedQuestions.push(
-      buildDetectionQuestion(
-        criterion.title,
-        judgeRule(criterion.question),
-        refutation.key,
-        {
-          runNumber: 1,
-          critPath: "",
-          metadataPath: "",
-          crit: refutation.refutedCrit,
-          metadata: {},
-        },
-      ),
-    );
-  }
-  const judgeOptions = {
-    runsDirectory: options.runsDirectory,
-    skillCommit: input.critCommit,
-    runClaude: options.runClaude,
-  };
-  const refutedAnswers: (DetectionAnswer | undefined)[] = [];
-  if (input.replay) {
-    for (const question of refutedQuestions) {
-      refutedAnswers.push(
-        question === undefined
-          ? undefined
-          : readJudgeAnswer(
-              question,
-              parseDetectionAnswer,
-              options.runsDirectory,
-              input.critCommit,
-            ),
-      );
-    }
-  } else {
-    const judged = await runPooled(
-      refutedQuestions,
-      input.parallel,
-      async (question) =>
-        question === undefined
-          ? undefined
-          : ensureJudgeAnswer(question, parseDetectionAnswer, judgeOptions),
-    );
-    refutedAnswers.push(...judged);
-  }
-
-  // Counts after the refuter, the dropped findings by image truth, and the rows that changed.
-  const countsByCriterion: (DetectionCounts | undefined)[] = input.selected.map(
-    (entry) => ({
-      ...emptyCounts(),
-      leftOut: entry.leftOutCount,
-    }),
-  );
-  const dropped = {
-    "shows-defect": { dropped: 0, ranked: 0, images: 0 },
-    "no-defect": { dropped: 0, ranked: 0, images: 0 },
-  };
-  const changedRows: string[][] = [];
-  input.questionItems.forEach((item, index) => {
-    const image = item.scoredImage.image;
-    const criterion = input.selected[item.criterionIndex]?.criterion;
-    const refutation = refutationByImagePath.get(image.absolutePath);
-    const before = input.answers[index];
-    let after: DetectionAnswer | undefined;
-    if (refutation !== undefined && refutation.droppedCount === 0) {
-      after = before;
-    } else {
-      after = refutedAnswers[index];
-    }
-    if (refutation !== undefined) {
-      const tally = dropped[item.scoredImage.truth];
-      tally.dropped += refutation.droppedCount;
-      tally.ranked += refutation.rankedCount;
-      tally.images += 1;
-    }
-    if (after === undefined || refutation === undefined) {
-      if (refutation !== undefined && criterion !== undefined) {
-        const question = refutedQuestions[index];
-        const answerPath =
-          question === undefined
-            ? ""
-            : `: ${portablePath(judgeAnswerPath(options.runsDirectory, input.critCommit, judgeKey(question)), 3)}`;
-        missing.push(
-          `missing judge answer after the refuter: ${criterion.pack}/${criterion.id}, ${image.displayPath}${answerPath}`,
-        );
-      }
-      countsByCriterion[item.criterionIndex] = undefined;
-      return;
-    }
-    const counts = countsByCriterion[item.criterionIndex];
-    if (counts !== undefined) {
-      addJudgedImage(counts, item.scoredImage.truth, after);
-    }
-    if (
-      before !== undefined &&
-      before.says_defect !== after.says_defect &&
-      criterion !== undefined
-    ) {
-      changedRows.push([
-        criterion.group,
-        criterion.pack,
-        criterion.id,
-        item.scoredImage.truth,
-        `${refutation.droppedCount}/${refutation.rankedCount}`,
-        before.says_defect,
-        after.says_defect,
-      ]);
-    }
-  });
-  const complete = missing.length === 0;
-  const table = formatTable(
-    TABLE_HEADERS,
-    buildRows(input.selected, countsByCriterion, complete),
-  );
-  const shows = dropped["shows-defect"];
-  const quiet = dropped["no-defect"];
-  const droppedText = `ranked findings the refuter dropped: ${shows.dropped} of ${shows.ranked} on ${shows.images} images that show the defect, ${quiet.dropped} of ${quiet.ranked} on ${quiet.images} images that do not`;
-  const changedText =
-    changedRows.length === 0
-      ? "no judge answer changed"
-      : formatTable(
-          [
-            "group",
-            "pack",
-            "criterion",
-            "image",
-            "dropped",
-            "without-refuter",
-            "with-refuter",
-          ],
-          changedRows,
-        );
-  const text = `\nwith the refuter (FR-81) at refuter commit ${input.refuterCommit}, on the run-1 crits of skill commit ${input.critCommit}\n${table}\n${droppedText}\nimages whose judge answer changed with the refuter\n${changedText}\n`;
-  return { text, missing };
-}
-
 /** Runs the command, writes its output, and sets the exit code: 2 when anything stopped the run. */
 export async function main(): Promise<void> {
   try {
     const output = await runDetect(process.argv.slice(2), {
       repositoryDirectory: REPOSITORY_DIRECTORY,
       runsDirectory: join(import.meta.dirname, "runs"),
-      refutationsDirectory: join(import.meta.dirname, "refutations"),
       skillDirectory: join(
         REPOSITORY_DIRECTORY,
         "plugin",

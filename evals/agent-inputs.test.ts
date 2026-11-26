@@ -1,6 +1,6 @@
 // The durable check of the inputs rule of the design-critic agents (FR-77, crit-lcu). It reads the
 // agent files and docs/PRD.md and runs nothing. It checks that agents/critic.md holds the one
-// statement of the rule in a "Your inputs" section, that each of the other eight agent files points
+// statement of the rule in a "Your inputs" section, that each of the other five agent files points
 // to that section with one exact paragraph in a fixed place, that no agent file restates the rule
 // outside that section, and that the FR-77 row of the PRD records the decision.
 
@@ -24,21 +24,12 @@ const POINTER_BEFORE_HOW_YOU_WORK = [
   "go-further.md",
   "picker.md",
   "recheck.md",
-  "refuter.md",
   "set-critic.md",
   "work-order.md",
 ];
 
-/** The deep-mode agent files whose pointer comes right before "Read `agents/critic.md` first." */
-const POINTER_BEFORE_READ_CRITIC = ["director.md", "section-critic.md"];
-
 /** Every agent file in the folder, checked for a restatement of the rule. */
-const ALL_AGENT_FILES = [
-  "critic.md",
-  "deep-mode.md",
-  ...POINTER_BEFORE_HOW_YOU_WORK,
-  ...POINTER_BEFORE_READ_CRITIC,
-];
+const ALL_AGENT_FILES = ["critic.md", ...POINTER_BEFORE_HOW_YOU_WORK];
 
 /** Phrases specific to the rule, which only the "Your inputs" section of critic.md may hold. */
 const RULE_PHRASES = [
@@ -115,17 +106,6 @@ describe("the inputs rule of the design-critic agents", () => {
       const text = readAgentFile(name);
       expect(countOccurrences(text, POINTER), name).toBe(1);
       expect(text, name).toContain(`\n${POINTER}\n\n## How you work\n`);
-    }
-  });
-
-  it("each deep-mode agent file points to the section once, right before it reads critic.md", () => {
-    expect(inputsSection).not.toBe("");
-    for (const name of POINTER_BEFORE_READ_CRITIC) {
-      const text = readAgentFile(name);
-      expect(countOccurrences(text, POINTER), name).toBe(1);
-      expect(text, name).toContain(
-        `\n${POINTER}\n\nRead \`agents/critic.md\` first.`,
-      );
     }
   });
 

@@ -165,11 +165,7 @@ def section_text(section, sections)
     section.fetch("questions").map { checklist_line(_1, sections) }.join("\n") + "\n"
 end
 
-# The checklist ids that deep mode (agents/deep-mode.md) runs a section critic for. A section
-# outside this list, such as Template tells, gets no checklist-<id>.md file.
-DEEP_MODE_SECTIONS = %w[whole hierarchy arrangement text color pictures data interface].freeze
-
-# Writes references/: one entry file per SECTIONS row, checklist.md, and the deep-mode files.
+# Writes references/: one entry file per SECTIONS row, and checklist.md.
 def build
   sections = parse_guidelines
   attach_criteria(sections.values.flatten)
@@ -200,16 +196,6 @@ def build
 
   CHECKLIST.fetch("sections").each { checklist << section_text(_1, sections) }
   File.write(File.join(REFERENCES, "checklist.md"), checklist.join)
-
-  # One file per section for the section critics of the deep mode (agents/section-critic.md): the
-  # same opening paragraph as checklist.md, then that one section, word for word.
-  CHECKLIST.fetch("sections").select { DEEP_MODE_SECTIONS.include?(_1.fetch("id")) }.each do |section|
-    opening = checklist.first.sub(
-      "# Checklist\n",
-      "# Checklist: #{section.fetch("title")}\n\nThis is the \"#{section.fetch("title")}\" section of `references/checklist.md`, for one section critic of the deep mode.\n"
-    )
-    File.write(File.join(REFERENCES, "checklist-#{section.fetch("id")}.md"), opening + section_text(section, sections))
-  end
 
   titles = sections.values.flatten.map(&:title)
   missing = EXCLUDED.keys - titles
