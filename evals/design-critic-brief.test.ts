@@ -1029,3 +1029,189 @@ describe("the project brief, review round 1 (FR-88, crit-crj.1)", () => {
     expect(row88).toContain("Draft, crit-crj.1, 2026-11-25;");
   });
 });
+
+// The choice a taste finding offers the maker (FR-77, FR-82, crit-crj.2): only a taste finding
+// ends with the `Choice needed from the maker:` sentence, never a defect, a convention, or a
+// measured failure; step 7 of critic.md states the rule once and the other files point to it;
+// step 5 asks the choices in the same question as the facts; the fix loop writes each answer into
+// brief.md, takes the first option as its own marked pick when nobody answers, and names it at the stop.
+describe("the choice a taste finding offers (FR-82, crit-crj.2)", () => {
+  const critic = readSkillFile("agents", "critic.md");
+  const designCritic = readSkillFile("SKILL.md");
+  const loop = readRepositoryFile("plugin", "skills", "crit-loop", "SKILL.md");
+
+  it("step 7 of critic.md states the rule once: taste only, distinct options, (a) changes", () => {
+    const stepSeven = sliceBetween(
+      critic,
+      "7. **Say which kind of claim each point is.**",
+      "## Sources you may cite",
+    );
+    for (const phrase of [
+      "Only a taste finding can offer the maker a choice.",
+      "`Choice needed from the maker: (a) <short label>: <what it changes on the element>; (b) <short label>: <what it changes on the element>.`",
+      "on the finding's own line and never on a line of its own",
+      "never with numbers, because a line that starts with a number reads as a ranked finding",
+      "so a finding never holds both sentences",
+      "write the fact request as a separate finding",
+      "Give two or three options, the one you would pick first.",
+      "Option (a) always changes the element",
+      "two options that differ only in wording are one option",
+      "write a plain finding with no choice",
+      '"add a testimonial" is never an option',
+      "A defect or a convention never offers a choice, because it has one right fix.",
+      "Neither does a measured failure, meaning a `violations` entry of the facts file (text contrast, target size, line length, a short last line) or a template tell",
+      "Offer no choice that the brief already decides",
+      "This paragraph is the one statement of the choice rule",
+    ]) {
+      expect(stepSeven).toContain(phrase);
+    }
+    expect(critic.split("Only a taste finding can offer").length).toBe(2);
+    expect(stepSeven).not.toContain("puts the fact sentence first");
+    expect(stepSeven).not.toMatch(/Choice needed from the maker: 1\./);
+  });
+
+  it("step 3 of critic.md says the loop's pick is not the maker's word, and recheck.md points to it", () => {
+    const stepThree = sliceBetween(
+      critic,
+      "3. **Establish the job.**",
+      "4. **Run the checklist, in writing.**",
+    );
+    expect(stepThree).toContain(
+      "A brief sentence that ends \"(the loop's pick; the maker did not choose)\" is not the maker's word: it never drops or settles a finding, and it never counts as the stated brand.",
+    );
+    expect(readSkillFile("agents", "recheck.md")).toContain(
+      "what a sentence marked as the loop's pick does not do",
+    );
+  });
+
+  it("recheck.md and work-order.md point to step 7 and do not restate it", () => {
+    const recheck = readSkillFile("agents", "recheck.md");
+    const workOrder = readSkillFile("agents", "work-order.md");
+    expect(recheck).toContain("follow step 7 of `agents/critic.md`");
+    expect(workOrder).toContain(
+      "`Choice needed from the maker:` sentence (step 7 of `agents/critic.md`), use the option that the brief picks for that element. When the brief picks none, use the first option, (a)",
+    );
+    expect(workOrder).toContain(
+      "`fix_direction` says to make no change, because the person settled it",
+    );
+    for (const text of [recheck, workOrder]) {
+      expect(text).not.toContain("Only a taste finding can offer");
+      expect(text).not.toContain("differ only in wording");
+    }
+  });
+
+  it("step 5 of the design-critic SKILL.md asks the choices in the same question as the facts", () => {
+    const stepFive = sliceBetween(
+      designCritic,
+      "5. Write the work order",
+      "## Contact-sheet mode",
+    );
+    for (const phrase of [
+      "search each `crit.md` for `Choice needed from the maker:`",
+      "in the same question as the facts",
+      "answer each one by letter or by name",
+      "its options (a), (b), and (c)",
+      "When no finding requests a fact, ask nothing about facts.",
+      "ask for every requested fact in one question, together with the choices below, in one message",
+      "leave out each choice that the caller says was asked for before",
+      "an answer that keeps the element as it is goes on the Fixed line",
+      "When no finding requests a fact or offers a choice, ask nothing.",
+      "With no person to answer, the work-order agent uses the first option, (a), of each choice.",
+    ]) {
+      expect(stepFive).toContain(phrase);
+    }
+  });
+
+  it("the crit-loop SKILL.md has the section on choices after the one on facts", () => {
+    expect(loop.indexOf("## When a finding requests a fact")).toBeLessThan(
+      loop.indexOf("## When a finding offers a choice"),
+    );
+    const section = sliceBetween(
+      loop,
+      "## When a finding offers a choice",
+      "\n## ",
+    );
+    for (const phrase of [
+      "`Choice needed from the maker:`",
+      "step 7 of `<design-critic folder>/agents/critic.md`",
+      "in the same question as the facts",
+      "never offers a choice: fix it without asking",
+      "An answer that keeps the element as it is goes on the Fixed line and settles the finding.",
+      "goes in the field that rules 1 to 5 of FR-87 pick",
+      "Do not fix an option the person did not pick",
+      "undo that change in the fix step of the next round, before its capture",
+      "`<loop folder>/choices-asked.txt`, one line each",
+      "give it the choices in that file as asked before, so it does not ask them again",
+      'answers "you decide", or no person can answer, take the first option, (a)',
+      "(the loop's pick; the maker did not choose)",
+      "Never put the loop's pick on the Fixed line, and never into `.deskcrit/brief.md`.",
+      "Name each such pick at the stop.",
+      "offers the same choice in other words is the same choice",
+      "the Fixed line wins and the recheck marks the finding settled",
+    ]) {
+      expect(section).toContain(phrase);
+    }
+    expect(section).not.toContain("one question");
+    expect(section).not.toContain("undo that change before the capture");
+    expect(section).not.toMatch(/\boption 1\b/i);
+  });
+
+  it("the deck round 1 asks the choices of the slide crits with the facts", () => {
+    const deckRoundOne = sliceBetween(loop, "**Round 1.**", "\n\n");
+    expect(deckRoundOne).toContain(
+      "The same question holds the choices that the slide crits offer",
+    );
+  });
+
+  it("the fixer skips the option not picked and both stops name the loop's picks", () => {
+    const stepOne = sliceBetween(loop, "1. Fix every finding", "\n2. Capture");
+    expect(stepOne).toContain("never the option the person did not pick");
+    const pageStop = sliceBetween(loop, "## When to stop", "\n## ");
+    expect(pageStop).toContain(
+      "the choices nobody answered, each with the option the loop took",
+    );
+    const deckStop = sliceBetween(loop, "At the stop, tell the person", "\n");
+    expect(deckStop).toContain(
+      "the choices nobody answered, each with the option the loop took",
+    );
+  });
+
+  it("no fenced block of either skill or critic.md holds the choice rule", () => {
+    for (const text of [loop, designCritic, critic]) {
+      for (const block of textInsideEachFence(text)) {
+        expect(block).not.toContain("Choice needed");
+      }
+    }
+  });
+
+  it("the FR-82 row records the decision and the README names the choice", () => {
+    const prd = readRepositoryFile("docs", "PRD.md");
+    const row82 = prd.split("\n").find((line) => line.startsWith("| FR-82 |"));
+    expect(row82).toBeDefined();
+    for (const phrase of [
+      "Decision 2026-11-25 (crit-crj.2)",
+      '"#1 and #2 are worth doing"',
+      "`Choice needed from the maker:`",
+      "A defect or a convention never carries it",
+      "A measured failure never carries it either",
+      "never on the Fixed line and never into `.deskcrit/brief.md`",
+      "crit-crj.2, 2026-11-25 |",
+      "marked (a), (b), and (c)",
+      "in the fix step of the next round, before its capture",
+      "`choices-asked.txt`",
+    ]) {
+      expect(row82).toContain(phrase);
+    }
+    const row77 = prd.split("\n").find((line) => line.startsWith("| FR-77 |"));
+    expect(row77).toContain(
+      "Decision 2026-11-25 (crit-crj.2): only a taste finding may offer the maker a choice",
+    );
+    expect(row77).toContain("FR-82 holds the full decision.");
+    const readmeLoop = sliceBetween(
+      readRepositoryFile("README.md"),
+      "**Fix a page in a loop.**",
+      "For a deck or a flow of screens",
+    );
+    expect(readmeLoop).toContain("offers you a choice");
+  });
+});
