@@ -336,10 +336,14 @@ describe("saved metadata", () => {
       collectStrings(JSON.parse(readFileSync(saved.metadataPath, "utf8"))),
     );
     expect(strings.filter((text) => text.startsWith("/"))).toEqual([]);
+    // A temp folder path leaks when it is followed by a slash or ends the text. A plain
+    // includes() is wrong on Linux, where the temp folder is /tmp and the correct result
+    // "<temp>/tmp.a/1.png" holds "/tmp" as the start of a file name (crit-1y1).
     const leaks = strings.filter(
       (text) =>
-        temporaryForms.some((form) => text.includes(form)) ||
-        text.includes(homedir()),
+        temporaryForms.some(
+          (form) => text.includes(`${form}/`) || text.endsWith(form),
+        ) || text.includes(homedir()),
     );
     expect(leaks).toEqual([]);
     expect(strings).toContain("<home>/github/crit/package.json");
