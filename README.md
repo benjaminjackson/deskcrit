@@ -48,6 +48,13 @@ If Playwright is missing, the skills show you the install commands and ask befor
 
 3. Run `/plugin` and check that the `crit-loop` and `design-critic` skills are listed.
 
+If you added the marketplace before 2026-11-27, your copy holds about 360 MB of test images. To get the small copy, remove the marketplace and add it again:
+
+```
+/plugin marketplace remove deskcrit
+/plugin marketplace add benjaminjackson/deskcrit
+```
+
 ## Use
 
 The plugin has two skills. You start them by asking in plain words, or by name.
@@ -94,6 +101,16 @@ The critic only critiques. It does not edit files.
 ## Develop
 
 This repository holds the plugin, the guideline packs with their test images, and the evaluations of the critic. The npm package is development tooling only. It has no command and is not published.
+
+The test images are [Git LFS](https://git-lfs.com) files, and a clone does not download them by default, so that a plugin install stays small. For development, install git-lfs and download them once:
+
+```
+git lfs install
+git config lfs.fetchexclude ""
+git lfs pull
+```
+
+Then:
 
 ```
 npm ci

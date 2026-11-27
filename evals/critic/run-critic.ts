@@ -712,18 +712,35 @@ function pathsToRedact(): { path: string; placeholder: string }[] {
   return replacements;
 }
 
+/** Returns the text with every character that has a meaning in a regular expression escaped. */
+function escapeForRegExp(text: string): string {
+  // "\\$&" puts a backslash before the matched character.
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /**
  * Returns a copy of a JSON value with every temp and home folder path in its strings replaced by
  * <temp> or <home>, so a committed metadata file holds no absolute path of this machine.
  */
 export function redactPaths<Value>(value: Value): Value {
-  const replacements = pathsToRedact();
+  // Each folder path becomes a pattern that matches the path only as a whole path prefix: the
+  // character before it and the character after it must not be part of a file name. Reason: on
+  // Linux the temp folder is /tmp, and a plain text replace turned /tmp/tmp.a/1.png into
+  // <temp><temp>.a/1.png (crit-1y1). In the pattern, (?<!...) means "not preceded by" and
+  // (?!...) means "not followed by".
+  const replacements = pathsToRedact().map((replacement) => ({
+    pattern: new RegExp(
+      `(?<![A-Za-z0-9._-])${escapeForRegExp(replacement.path)}(?![A-Za-z0-9._-])`,
+      "g",
+    ),
+    placeholder: replacement.placeholder,
+  }));
   /** Replaces the paths in one value, walking into arrays and objects. */
   function redact(item: unknown): unknown {
     if (typeof item === "string") {
       let text = item;
       for (const replacement of replacements) {
-        text = text.replaceAll(replacement.path, replacement.placeholder);
+        text = text.replace(replacement.pattern, replacement.placeholder);
       }
       return text;
     }
