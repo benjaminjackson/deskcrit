@@ -19,6 +19,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # The images are Git LFS files, and .lfsconfig stops their download by default so that a
+      # plugin install stays small (crit-yi0). The tests need the real images, so each job
+      # downloads them. The cache keeps a job from downloading them again when no image changed.
+      # Reason: downloads in Actions count against the LFS bandwidth of the account.
+      - name: List the LFS files
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-files-id
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-files-id') }}
+          restore-keys: lfs-
+      - name: Download the LFS files
+        run: |
+          git lfs install --local
+          git config lfs.fetchexclude ""
+          git lfs pull
+      # Fails when a commit adds an image as a plain git file and not as an LFS pointer.
+      - name: Check the LFS pointers
+        run: git lfs fsck --pointers
       - uses: actions/setup-node@v4
         with:
           node-version: 22

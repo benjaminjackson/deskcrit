@@ -19,10 +19,12 @@ These are the paths that exist today. `docs/CONSTITUTION.md` CS-1 holds the comp
 - `package.json` declares the npm scripts and the dev tool versions. It declares no command and no library entry point, and `private` keeps it from being published.
 - `package-lock.json` pins every installed package for `npm ci`.
 - `.npmrc` makes `npm install` save exact versions (CS-3).
+- `.gitattributes` makes every PNG and JPG file under `evals/`, `packs/`, and `spike/` a Git LFS file, and `.lfsconfig` sets `fetchexclude = *`, so a clone downloads none of them and holds small pointer files (crit-yi0). Reason: `/plugin marketplace add` clones this whole repository, and the images were 114 MB of a 140 MB clone. A development checkout needs `git config lfs.fetchexclude ""` and `git lfs pull` once; all worktrees share that setting. `evals/critic/work-order/bad-page/desktop.png` stays a plain git file, because `README.md` shows it. The saved runs stay in plain git, because Git LFS downloads each file on its own request and they are thousands of small files. Benjamin Jackson ruled on 2026-11-26 that the plugin never moves to a separate repository. Review trigger: Claude Code lets a repository make a sparse install the default.
+- `evals/lfs-files-present.test.ts` fails with the setup commands in its message when `evals/wobble/slice.png` is a Git LFS pointer file. Reason: without the real images the other tests fail with errors that do not name the cause, and the 2 MB fixture size check passes on a pointer by mistake.
 - `tsconfig.json` holds the TypeScript settings for the type check.
 - `biome.json` holds the lint and format settings.
 - `vitest.config.ts` tells Vitest which unit tests to run.
-- `.github/workflows/ci.yml` runs `npm run ci` on each Node release in the CI matrix.
+- `.github/workflows/ci.yml` runs `npm run ci` on each Node release in the CI matrix. Each job of both workflows first downloads the Git LFS images, with a cache of `.git/lfs` so that a job downloads only when an image changed, and runs `git lfs fsck --pointers`, which fails when a commit adds an image as a plain git file. Reason for the cache: downloads in Actions count against the LFS bandwidth of the account.
 - `.github/workflows/packs.yml` runs the offline fixture-rules check in `evals/packs-fixture-rules.test.ts` on every pull request and push to main, with no secret (FR-54).
 - `schemas/pack.schema.json` is the pack JSON Schema (JSON Schema 2020-12), the checked form of the pack schema table in PRD section 7.8.
 - `schemas/pack.schema.test.ts` checks the schema against the example packs in `schemas/examples/valid/` and `schemas/examples/invalid/`. Each invalid example breaks one rule, and its `# expect:` line names the error path and keyword.
